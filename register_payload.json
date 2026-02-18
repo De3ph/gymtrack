@@ -1,9 +1,0 @@
-{
-    "email": "test@example.com",
-    "password": "password123",
-    "role": "athlete",
-    "profile": {
-        "name": "Test User",
-        "age": 30
-    }
-}
