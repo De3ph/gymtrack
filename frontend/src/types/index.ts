@@ -215,3 +215,29 @@ export interface TrainerSearchResponse {
   limit: number;
   offset: number;
 }
+
+export type CoachingRequestStatus = "pending" | "accepted" | "rejected";
+
+export interface CoachingRequest {
+  requestId: string;
+  athleteId: string;
+  trainerId: string;
+  message: string;
+  status: CoachingRequestStatus;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CoachingRequestWithDetails {
+  requestId: string;
+  athleteId: string;
+  trainerId: string;
+  message: string;
+  status: CoachingRequestStatus;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
+  athlete?: User;
+  trainer?: User;
+}

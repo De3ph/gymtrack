@@ -1,0 +1,52 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - heading "GymTrack" [level=1] [ref=e5]
+    - generic [ref=e6]:
+      - heading "Create Your Account" [level=2] [ref=e7]
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: Email
+          - textbox "Email" [ref=e11]
+        - generic [ref=e12]:
+          - generic [ref=e13]: Password
+          - textbox "Password" [ref=e14]
+        - generic [ref=e15]:
+          - generic [ref=e16]: Confirm Password
+          - textbox "Confirm Password" [ref=e17]
+        - generic [ref=e18]:
+          - generic [ref=e19]: I am a
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - radio "Athlete" [checked] [ref=e22]
+              - generic [ref=e23]: Athlete
+            - generic [ref=e24]:
+              - radio "Trainer" [ref=e25]
+              - generic [ref=e26]: Trainer
+        - generic [ref=e27]:
+          - generic [ref=e28]: Full Name
+          - textbox "Full Name" [ref=e29]
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]: Age (optional)
+            - spinbutton "Age (optional)" [ref=e33]
+          - generic [ref=e34]:
+            - generic [ref=e35]: Weight (kg, optional)
+            - spinbutton "Weight (kg, optional)" [ref=e36]
+        - generic [ref=e37]:
+          - generic [ref=e38]: Height (cm, optional)
+          - spinbutton "Height (cm, optional)" [ref=e39]
+        - generic [ref=e40]:
+          - generic [ref=e41]: Fitness Goals (optional)
+          - textbox "Fitness Goals (optional)" [ref=e42]
+        - button "Sign Up" [ref=e43]
+      - paragraph [ref=e44]:
+        - text: Already have an account?
+        - link "Login" [ref=e45] [cursor=pointer]:
+          - /url: /login
+  - button "Open Next.js Dev Tools" [ref=e51] [cursor=pointer]:
+    - img [ref=e52]
+  - alert [ref=e55]
+```

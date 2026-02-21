@@ -27,7 +27,7 @@
 2. Build threaded comment UI
 3. Add real-time notifications (optional: WebSockets)
 
-### **Phase 5: Trainer Improvements**
+### **Phase 5: Trainer Improvements** ✅
 
 1. Create trainer catalog for athletes to browse and request coaching
 2. Implement trainer profile pages

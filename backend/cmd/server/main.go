@@ -47,6 +47,7 @@ func main() {
 	trainerProfileRepo := repositories.NewCouchbaseTrainerProfileRepository(userCollection)
 	availabilityRepo := repositories.NewCouchbaseAvailabilityRepository(userCollection)
 	reviewRepo := repositories.NewCouchbaseReviewRepository(userCollection)
+	coachingRequestRepo := repositories.NewCoachingRequestRepository(config.GlobalCluster)
 
 	// Initialize invitation service with adapter pattern
 	invitationMethod := services.NewCodeBasedInvitation(invitationCollection)
@@ -85,13 +86,16 @@ func main() {
 	trainerCatalogService := services.NewTrainerCatalogService(trainerProfileRepo, reviewRepo)
 	availabilityService := services.NewAvailabilityService(availabilityRepo)
 	reviewService := services.NewReviewService(reviewRepo, relationshipRepo)
+	coachingRequestService := services.NewCoachingRequestService(coachingRequestRepo, userRepo, relationshipRepo)
 
 	// Trainer feature handlers
 	trainerCatalogHandler := handlers.NewTrainerCatalogHandler(trainerCatalogService)
 	availabilityHandler := handlers.NewAvailabilityHandler(availabilityService)
 	reviewHandler := handlers.NewReviewHandler(reviewService)
+	coachingRequestHandler := handlers.NewCoachingRequestHandler(coachingRequestService)
 
 	routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler)
+	routes.RegisterCoachingRequestRoutes(router, coachingRequestHandler)
 
 	log.Fatal(router.Run(":8080"))
 }

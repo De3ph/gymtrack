@@ -6,6 +6,9 @@ import { trainerCatalogApi, availabilityApi, reviewApi } from "@/lib/api"
 import { TrainerWithProfile, TrainerAvailability, TrainerReview } from "@/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { CreateReviewDialog } from "@/components/features/reviews/CreateReviewDialog"
+import { ReviewActions } from "@/components/features/reviews/ReviewActions"
+import { CoachingRequestDialog } from "@/components/features/coaching/CoachingRequestDialog"
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
@@ -17,28 +20,36 @@ export default function TrainerProfilePage() {
   const [availability, setAvailability] = useState<TrainerAvailability[]>([])
   const [reviews, setReviews] = useState<TrainerReview[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentUserId, setCurrentUserId] = useState("")
+
+  const refreshData = async () => {
+    try {
+      const [trainerData, availabilityData, reviewsData] = await Promise.all([
+        trainerCatalogApi.getTrainerProfile(trainerId),
+        availabilityApi.getTrainerAvailability(trainerId),
+        reviewApi.getTrainerReviews(trainerId)
+      ])
+      setTrainer(trainerData)
+      setAvailability(availabilityData.slots ?? [])
+      setReviews(reviewsData.reviews ?? [])
+    } catch (error) {
+      console.error("Failed to fetch trainer data:", error)
+    }
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
+    // Get current user ID from localStorage or context
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
       try {
-        const [trainerData, availabilityData, reviewsData] = await Promise.all([
-          trainerCatalogApi.getTrainerProfile(trainerId),
-          availabilityApi.getTrainerAvailability(trainerId),
-          reviewApi.getTrainerReviews(trainerId)
-        ])
-        setTrainer(trainerData)
-        setAvailability(availabilityData.slots ?? [])
-        setReviews(reviewsData.reviews ?? [])
-      } catch (error) {
-        console.error("Failed to fetch trainer data:", error)
-      } finally {
-        setLoading(false)
+        const user = JSON.parse(userStr)
+        setCurrentUserId(user.userId || user.id)
+      } catch (e) {
+        console.error('Failed to parse user data:', e)
       }
     }
 
-    if (trainerId) {
-      fetchData()
-    }
+    refreshData().finally(() => setLoading(false))
   }, [trainerId])
 
   const renderStars = (rating: number) => {
@@ -128,7 +139,20 @@ export default function TrainerProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Reviews</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>Reviews</CardTitle>
+                {currentUserId && (
+                  <CreateReviewDialog
+                    trainerId={trainerId}
+                    trainerName={trainer.profile.name}
+                    onReviewCreated={refreshData}
+                  >
+                    <Button variant="outline" size="sm">
+                      Write Review
+                    </Button>
+                  </CreateReviewDialog>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {reviews.length === 0 ? (
@@ -137,13 +161,25 @@ export default function TrainerProfilePage() {
                 <div className="space-y-4">
                   {reviews.map((review) => (
                     <div key={review.reviewId} className="border-b pb-4 last:border-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-yellow-500">{renderStars(review.rating)}</span>
-                        <span className="text-sm text-gray-500">
-                          {new Date(review.createdAt).toLocaleDateString()}
-                        </span>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-yellow-500">{renderStars(review.rating)}</span>
+                            <span className="text-sm text-gray-500">
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {review.comment && <p className="text-gray-600">{review.comment}</p>}
+                        </div>
+                        {currentUserId && (
+                          <ReviewActions
+                            review={review}
+                            trainerId={trainerId}
+                            currentUserId={currentUserId}
+                            onReviewUpdated={refreshData}
+                          />
+                        )}
                       </div>
-                      {review.comment && <p className="text-gray-600">{review.comment}</p>}
                     </div>
                   ))}
                 </div>
@@ -184,9 +220,17 @@ export default function TrainerProfilePage() {
             </CardContent>
           </Card>
 
-          <Button className="w-full mt-4">
-            Request Coaching
-          </Button>
+          {currentUserId && trainer && (
+            <CoachingRequestDialog
+              trainerId={trainerId}
+              trainerName={trainer.profile.name}
+              onRequestSent={refreshData}
+            >
+              <Button className="w-full mt-4">
+                Request Coaching
+              </Button>
+            </CoachingRequestDialog>
+          )}
         </div>
       </div>
     </div>
