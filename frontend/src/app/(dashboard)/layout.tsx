@@ -63,6 +63,12 @@ export default function DashboardLayout({
                     >
                       Meals
                     </Link>
+                    <Link
+                      href="/athlete/trainers"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                    >
+                      Find Trainers
+                    </Link>
                   </>
                 )}
                 {user?.role === "trainer" && (
@@ -72,6 +78,12 @@ export default function DashboardLayout({
                       className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
                     >
                       My Clients
+                    </Link>
+                    <Link
+                      href="/trainer/profile"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                    >
+                      My Profile
                     </Link>
                   </>
                 )}

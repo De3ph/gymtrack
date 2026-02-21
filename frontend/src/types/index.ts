@@ -158,3 +158,60 @@ export interface CreateCommentRequest {
 export interface UpdateCommentRequest {
   content: string;
 }
+
+export interface TrainerProfile {
+  bio?: string;
+  profilePhotoUrl?: string;
+  hourlyRate?: number;
+  yearsOfExperience?: number;
+  isAvailableForNewClients?: boolean;
+  location?: string;
+  languages?: string[];
+}
+
+export interface TrainerWithProfile {
+  userId: string;
+  email: string;
+  role: UserRole;
+  profile: UserProfile;
+  createdAt: string;
+  updatedAt: string;
+  trainerProfile: TrainerProfile;
+  averageRating?: number;
+  reviewCount?: number;
+}
+
+export interface TrainerAvailability {
+  availabilityId: string;
+  trainerId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isBooked: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainerReview {
+  reviewId: string;
+  trainerId: string;
+  athleteId: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainerFilters {
+  specialization?: string;
+  location?: string;
+  minRating?: number;
+  availableForNewClients?: boolean;
+}
+
+export interface TrainerSearchResponse {
+  trainers: TrainerWithProfile[];
+  total: number;
+  limit: number;
+  offset: number;
+}

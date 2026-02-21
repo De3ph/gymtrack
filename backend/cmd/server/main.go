@@ -43,6 +43,11 @@ func main() {
 	relationshipRepo := repositories.NewRelationshipRepository(relationshipCollection)
 	commentRepo := repositories.NewCommentRepository(commentCollection)
 
+	// Trainer feature repositories
+	trainerProfileRepo := repositories.NewCouchbaseTrainerProfileRepository(userCollection)
+	availabilityRepo := repositories.NewCouchbaseAvailabilityRepository(userCollection)
+	reviewRepo := repositories.NewCouchbaseReviewRepository(userCollection)
+
 	// Initialize invitation service with adapter pattern
 	invitationMethod := services.NewCodeBasedInvitation(invitationCollection)
 	invitationService := services.NewInvitationService(invitationMethod, relationshipRepo, userRepo)
@@ -75,6 +80,18 @@ func main() {
 	commentService := services.NewCommentService(commentRepo, relationshipRepo, workoutRepo, mealRepo)
 	commentHandler := handlers.NewCommentHandler(commentRepo, commentService)
 	routes.CommentRoutes(apiGroup, commentHandler)
+
+	// Trainer feature services
+	trainerCatalogService := services.NewTrainerCatalogService(trainerProfileRepo, reviewRepo)
+	availabilityService := services.NewAvailabilityService(availabilityRepo)
+	reviewService := services.NewReviewService(reviewRepo, relationshipRepo)
+
+	// Trainer feature handlers
+	trainerCatalogHandler := handlers.NewTrainerCatalogHandler(trainerCatalogService)
+	availabilityHandler := handlers.NewAvailabilityHandler(availabilityService)
+	reviewHandler := handlers.NewReviewHandler(reviewService)
+
+	routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler)
 
 	log.Fatal(router.Run(":8080"))
 }

@@ -277,4 +277,84 @@ export const trainerClientApi = {
   }
 }
 
+// Trainer Catalog API
+export const trainerCatalogApi = {
+  searchTrainers: async (params?: {
+    specialization?: string
+    location?: string
+    minRating?: number
+    availableForNewClients?: boolean
+    limit?: number
+    offset?: number
+  }) => {
+    return api.get<{
+      trainers: import("@/types").TrainerWithProfile[]
+      total: number
+      limit: number
+      offset: number
+    }>("/trainers", { params })
+  },
+
+  getTrainerProfile: async (id: string) => {
+    return api.get<import("@/types").TrainerWithProfile>(`/trainers/${id}`)
+  },
+
+  updateTrainerProfile: async (data: import("@/types").TrainerProfile) => {
+    return api.put<{ message: string }>("/trainers/me/profile", data)
+  }
+}
+
+// Availability API
+export const availabilityApi = {
+  getMyAvailability: async () => {
+    return api.get<{ slots: import("@/types").TrainerAvailability[] }>(
+      "/trainers/me/availability"
+    )
+  },
+
+  setMyAvailability: async (slots: import("@/types").TrainerAvailability[]) => {
+    return api.put<{ message: string }>("/trainers/me/availability", slots)
+  },
+
+  getTrainerAvailability: async (trainerId: string) => {
+    return api.get<{ slots: import("@/types").TrainerAvailability[] }>(
+      `/trainers/${trainerId}/availability`
+    )
+  },
+
+  deleteSlot: async (slotId: string) => {
+    return api.delete<{ message: string }>(`/trainers/me/availability/${slotId}`)
+  }
+}
+
+// Review API
+export const reviewApi = {
+  createReview: async (
+    trainerId: string,
+    data: { rating: number; comment?: string }
+  ) => {
+    return api.post<import("@/types").TrainerReview>(
+      `/trainers/${trainerId}/reviews`,
+      data
+    )
+  },
+
+  getTrainerReviews: async (trainerId: string) => {
+    return api.get<{ reviews: import("@/types").TrainerReview[] }>(
+      `/trainers/${trainerId}/reviews`
+    )
+  },
+
+  updateReview: async (
+    reviewId: string,
+    data: { rating: number; comment?: string }
+  ) => {
+    return api.put<{ message: string }>(`/reviews/${reviewId}`, data)
+  },
+
+  deleteReview: async (reviewId: string) => {
+    return api.delete<{ message: string }>(`/reviews/${reviewId}`)
+  }
+}
+
 export default api

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { User } from '@/types';
 import { authApi, userApi } from '@/lib/api';
+import { TokenService } from '@/lib/token-service';
 
 interface AuthState {
   user: User | null;
@@ -24,7 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const response = await authApi.login({ email, password });
     const token = response.token;
 
-    localStorage.setItem('token', token);
+    TokenService.set(token);
 
     // Fetch user data
     const user = await userApi.getCurrentUser();
@@ -38,7 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('token');
+    TokenService.remove();
     set({
       user: null,
       token: null,
@@ -52,7 +53,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   initializeAuth: async () => {
-    const token = localStorage.getItem('token');
+    const token = TokenService.get();
 
     if (!token) {
       set({ isLoading: false, isAuthenticated: false });
@@ -83,7 +84,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         errorMessage.includes('unauthorized') ||
         errorMessage.includes('token')) {
         // Clear auth state and redirect to login
-        localStorage.removeItem('token');
+        TokenService.remove();
         set({
           user: null,
           token: null,
