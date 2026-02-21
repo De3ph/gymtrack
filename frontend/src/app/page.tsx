@@ -9,25 +9,27 @@ export default function Home() {
   const { isAuthenticated, isLoading, initializeAuth, user } = useAuthStore();
 
   useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+    const initializeAndRedirect = async () => {
+      await initializeAuth();
+      
+      if (!isLoading && isAuthenticated) {
+        if (!user) {
+          // User is authenticated but user data is missing, reinitialize
+          await initializeAuth();
+          return;
+        }
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      if (!user) {
-        // User is authenticated but user data is missing, reinitialize
-        initializeAuth();
-        return;
+        // Redirect based on user role
+        if (user.role === 'trainer') {
+          router.push('/trainer/clients');
+        } else {
+          router.push('/athlete/workouts');
+        }
       }
-
-      // Redirect based on user role
-      if (user.role === 'trainer') {
-        router.push('/trainer/clients');
-      } else {
-        router.push('/athlete/workouts');
-      }
-    }
-  }, [isAuthenticated, isLoading, router, user, initializeAuth]);
+    };
+    
+    initializeAndRedirect();
+  }, [initializeAuth, isAuthenticated, isLoading, router, user]);
 
   if (isLoading) {
     return (

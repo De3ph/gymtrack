@@ -3,24 +3,26 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, isSameDay } from "date-fns";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mealApi } from "@/lib/api";
+import { withTiming } from "@/lib/performance";
 
 interface DailyNutritionSummaryProps {
   date: Date;
 }
 
 export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
-  const { data } = useQuery({
-    queryKey: ["meals"],
-    queryFn: () => mealApi.getAll(),
+  const dateStr = date.toISOString().split('T')[0];
+  
+  const { data, isLoading } = useQuery({
+    queryKey: ["meals", dateStr],
+    queryFn: () => withTiming("daily-meals-fetch", () => mealApi.getByDate(dateStr, { timeout: 5000 })),
   });
 
   const dailyMeals = React.useMemo(() => {
     if (!data?.meals) return [];
-    return data.meals.filter((m) => isSameDay(new Date(m.date), date));
-  }, [data, date]);
+    return data.meals;
+  }, [data]);
 
   const totals = React.useMemo(() => {
     let calories = 0;
@@ -39,6 +41,25 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
 
     return { calories, protein, carbs, fats };
   }, [dailyMeals]);
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Nutrition Data...</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 space-y-4">
+          {[...Array(4)].map((_, index) => (
+            <div
+              key={index}
+              className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+            ></div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
