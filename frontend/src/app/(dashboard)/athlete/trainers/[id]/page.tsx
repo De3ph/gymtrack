@@ -97,48 +97,48 @@ export default function TrainerProfilePage() {
                   </span>
                 </div>
 
-                {trainer.trainerProfile?.hourlyRate && (
+                {trainer.trainerProfile?.hourlyRate ? (
                   <div>
                     <span className="font-medium text-lg">Hourly Rate: </span>
                     <span className="text-xl">
                       ${trainer.trainerProfile.hourlyRate}
                     </span>
                   </div>
-                )}
+                ) : null}
 
-                {trainer.trainerProfile?.bio && (
+                {trainer.trainerProfile?.bio ? (
                   <div>
                     <h3 className="font-medium mb-2">About</h3>
                     <p className="text-gray-600">
                       {trainer.trainerProfile.bio}
                     </p>
                   </div>
-                )}
+                ) : null}
 
-                {trainer.profile.specializations && (
+                {trainer.profile.specializations ? (
                   <div>
                     <h3 className="font-medium mb-2">Specializations</h3>
                     <p className="text-gray-600">
                       {trainer.profile.specializations}
                     </p>
                   </div>
-                )}
+                ) : null}
 
-                {trainer.profile.certifications && (
+                {trainer.profile.certifications ? (
                   <div>
                     <h3 className="font-medium mb-2">Certifications</h3>
                     <p className="text-gray-600">
                       {trainer.profile.certifications}
                     </p>
                   </div>
-                )}
+                ) : null}
 
-                {trainer.trainerProfile?.yearsOfExperience && (
+                {trainer.trainerProfile?.yearsOfExperience ? (
                   <div>
                     <span className="font-medium">Years of Experience: </span>
                     {trainer.trainerProfile.yearsOfExperience}
                   </div>
-                )}
+                ) : null}
 
                 {trainer.trainerProfile?.location && (
                   <div>

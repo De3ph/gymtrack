@@ -91,7 +91,7 @@ export default function TrainerDetailPage() {
               </div>
             </div>
 
-            {trainer.profile.certifications && (
+            {trainer.profile.certifications ? (
               <div>
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                   Certifications
@@ -103,9 +103,9 @@ export default function TrainerDetailPage() {
                   </p>
                 </div>
               </div>
-            )}
+            ) : null}
 
-            {trainer.profile.specializations && (
+            {trainer.profile.specializations ? (
               <div>
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                   Specializations
@@ -114,7 +114,7 @@ export default function TrainerDetailPage() {
                   {trainer.profile.specializations}
                 </p>
               </div>
-            )}
+            ) : null}
           </CardContent>
         </Card>
 

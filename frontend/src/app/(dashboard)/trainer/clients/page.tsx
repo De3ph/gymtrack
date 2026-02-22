@@ -21,7 +21,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import dayjs from "dayjs";
 
 export default function TrainerClientsPage() {
@@ -32,6 +32,7 @@ export default function TrainerClientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (user?.role !== "trainer") {
@@ -62,6 +63,12 @@ export default function TrainerClientsPage() {
         .includes(searchTerm.toLowerCase()) ||
       client.athlete?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const handleSearch = (term: string) => {
+    startTransition(() => {
+      setSearchTerm(term);
+    });
+  };
 
   const handleViewClient = (clientId: string) => {
     router.push(`/trainer/client/${clientId}`);
@@ -102,7 +109,7 @@ export default function TrainerClientsPage() {
             type="text"
             placeholder="Search by name or email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
@@ -126,7 +133,7 @@ export default function TrainerClientsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredClients.map((client) => (
-            <Card key={client.relationship?.relationshipId}>
+            <Card key={client.relationship?.relationshipId} style={{ contentVisibility: 'auto' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />

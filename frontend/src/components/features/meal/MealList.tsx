@@ -84,7 +84,7 @@ export function MealList({
   return (
     <div className="space-y-4">
       {meals.map((meal) => (
-        <Card key={meal.mealId}>
+        <Card key={meal.mealId} style={{ contentVisibility: 'auto' }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex flex-col">
               <CardTitle className="text-base font-semibold capitalize">

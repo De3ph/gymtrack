@@ -218,37 +218,37 @@ export default function ClientDetailPage() {
       )}
 
       {/* Client Info */}
-      {clientDetails.athlete?.profile && (
+      {clientDetails.athlete?.profile ? (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Athlete Profile</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
-              {clientDetails.athlete.profile.age && (
+              {clientDetails.athlete.profile.age ? (
                 <div>
                   <span className="text-sm font-medium">Age:</span> {clientDetails.athlete.profile.age}
                 </div>
-              )}
-              {clientDetails.athlete.profile.weight && (
+              ) : null}
+              {clientDetails.athlete.profile.weight ? (
                 <div>
                   <span className="text-sm font-medium">Weight:</span> {clientDetails.athlete.profile.weight} kg
                 </div>
-              )}
-              {clientDetails.athlete.profile.height && (
+              ) : null}
+              {clientDetails.athlete.profile.height ? (
                 <div>
                   <span className="text-sm font-medium">Height:</span> {clientDetails.athlete.profile.height} cm
                 </div>
-              )}
-              {clientDetails.athlete.profile.fitnessGoals && (
+              ) : null}
+              {clientDetails.athlete.profile.fitnessGoals ? (
                 <div className="md:col-span-2">
                   <span className="text-sm font-medium">Fitness Goals:</span> {clientDetails.athlete.profile.fitnessGoals}
                 </div>
-              )}
+              ) : null}
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">

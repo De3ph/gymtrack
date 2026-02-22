@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import Link from "next/link"
 import { trainerCatalogApi } from "@/lib/api"
 import { TrainerWithProfile } from "@/types"
@@ -18,6 +18,7 @@ export default function TrainerCatalogPage() {
     location: "",
     minRating: 0
   })
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     loadTopTrainers()
@@ -76,7 +77,9 @@ export default function TrainerCatalogPage() {
                   placeholder="e.g., Weight Loss"
                   value={filters.specialization}
                   onChange={(e) =>
-                    setFilters({ ...filters, specialization: e.target.value })
+                    startTransition(() => {
+                      setFilters({ ...filters, specialization: e.target.value })
+                    })
                   }
                 />
               </div>
@@ -87,7 +90,9 @@ export default function TrainerCatalogPage() {
                   placeholder="e.g., New York"
                   value={filters.location}
                   onChange={(e) =>
-                    setFilters({ ...filters, location: e.target.value })
+                    startTransition(() => {
+                      setFilters({ ...filters, location: e.target.value })
+                    })
                   }
                 />
               </div>
@@ -101,7 +106,9 @@ export default function TrainerCatalogPage() {
                   step="0.5"
                   value={filters.minRating}
                   onChange={(e) =>
-                    setFilters({ ...filters, minRating: parseFloat(e.target.value) })
+                    startTransition(() => {
+                      setFilters({ ...filters, minRating: parseFloat(e.target.value) })
+                    })
                   }
                 />
               </div>
@@ -123,7 +130,7 @@ export default function TrainerCatalogPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {trainers.map((trainer) => (
                 <Link key={trainer.userId} href={`/athlete/trainers/${trainer.userId}`}>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full" style={{ contentVisibility: 'auto' }}>
                     <CardHeader>
                       <CardTitle>{trainer.profile.name}</CardTitle>
                       <p className="text-sm text-gray-500">{trainer.email}</p>

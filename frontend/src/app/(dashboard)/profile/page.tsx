@@ -126,9 +126,9 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            {currentUser.role === 'athlete' && (
+            {currentUser.role === 'athlete' ? (
               <>
-                {currentUser.profile.age && (
+                {currentUser.profile.age ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                       Age
@@ -137,8 +137,8 @@ export default function ProfilePage() {
                       {currentUser.profile.age}
                     </p>
                   </div>
-                )}
-                {currentUser.profile.weight && (
+                ) : null}
+                {currentUser.profile.weight ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                       Weight
@@ -147,8 +147,8 @@ export default function ProfilePage() {
                       {currentUser.profile.weight} kg
                     </p>
                   </div>
-                )}
-                {currentUser.profile.height && (
+                ) : null}
+                {currentUser.profile.height ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                       Height
@@ -157,8 +157,8 @@ export default function ProfilePage() {
                       {currentUser.profile.height} cm
                     </p>
                   </div>
-                )}
-                {currentUser.profile.fitnessGoals && (
+                ) : null}
+                {currentUser.profile.fitnessGoals ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                       Fitness Goals
@@ -167,13 +167,13 @@ export default function ProfilePage() {
                       {currentUser.profile.fitnessGoals}
                     </p>
                   </div>
-                )}
+                ) : null}
               </>
-            )}
+            ) : null}
 
-            {currentUser.role === 'trainer' && (
+            {currentUser.role === 'trainer' ? (
               <>
-                {currentUser.profile.certifications && (
+                {currentUser.profile.certifications ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                       Certifications
@@ -182,8 +182,8 @@ export default function ProfilePage() {
                       {currentUser.profile.certifications}
                     </p>
                   </div>
-                )}
-                {currentUser.profile.specializations && (
+                ) : null}
+                {currentUser.profile.specializations ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                       Specializations
@@ -192,9 +192,9 @@ export default function ProfilePage() {
                       {currentUser.profile.specializations}
                     </p>
                   </div>
-                )}
+                ) : null}
               </>
-            )}
+            ) : null}
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
