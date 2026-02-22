@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Comment } from "@/types";
+import dayjs from "dayjs";
 import { CommentItem } from "./CommentItem";
 import { CommentForm } from "./CommentForm";
 
@@ -30,9 +31,8 @@ function buildTree(comments: Comment[]): CommentNode[] {
     byParent.get(pid)!.push(c);
   }
   for (const arr of byParent.values()) {
-    arr.sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    arr.sort((a, b) =>
+      dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? -1 : 1,
     );
   }
   function node(comment: Comment): CommentNode {
@@ -41,10 +41,7 @@ function buildTree(comments: Comment[]): CommentNode[] {
   }
   const roots = comments
     .filter((c) => !c.parentCommentId || c.parentCommentId === "")
-    .sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
+    .sort((a, b) => (dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? -1 : 1));
   return roots.map(node);
 }
 

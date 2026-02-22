@@ -2,8 +2,15 @@
 
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { Edit2, Trash2, Dumbbell, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import dayjs from "dayjs";
+import {
+  Edit2,
+  Trash2,
+  Dumbbell,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +30,18 @@ interface WorkoutListProps {
   readOnly?: boolean;
 }
 
-export function WorkoutList({ workouts: propWorkouts, readOnly = false }: WorkoutListProps) {
+export function WorkoutList({
+  workouts: propWorkouts,
+  readOnly = false,
+}: WorkoutListProps) {
   const queryClient = useQueryClient();
-  const [editingWorkout, setEditingWorkout] = React.useState<Workout | null>(null);
+  const [editingWorkout, setEditingWorkout] = React.useState<Workout | null>(
+    null,
+  );
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [expandedCommentsId, setExpandedCommentsId] = React.useState<string | null>(null);
+  const [expandedCommentsId, setExpandedCommentsId] = React.useState<
+    string | null
+  >(null);
 
   // Only fetch data if not provided as props
   const { data, isLoading } = useQuery({
@@ -45,9 +59,9 @@ export function WorkoutList({ workouts: propWorkouts, readOnly = false }: Workou
 
   // Helper to check 24h window
   const canEdit = (workout: Workout) => {
-    const createdAt = new Date(workout.createdAt);
-    const now = new Date();
-    return now.getTime() - createdAt.getTime() < 24 * 60 * 60 * 1000;
+    const createdAt = dayjs(workout.createdAt);
+    const now = dayjs();
+    return now.diff(createdAt, "hour") < 24;
   };
 
   const handleEditClick = (workout: Workout) => {
@@ -76,7 +90,7 @@ export function WorkoutList({ workouts: propWorkouts, readOnly = false }: Workou
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex flex-col">
               <CardTitle className="text-base font-semibold">
-                {format(new Date(workout.date), "PPP")}
+                {dayjs(workout.date).format("MMMM D, YYYY")}
               </CardTitle>
               <CardDescription>
                 {workout.exercises.length} Exercises
@@ -128,7 +142,7 @@ export function WorkoutList({ workouts: propWorkouts, readOnly = false }: Workou
                 className="w-full justify-start text-muted-foreground"
                 onClick={() =>
                   setExpandedCommentsId((id) =>
-                    id === workout.workoutId ? null : workout.workoutId
+                    id === workout.workoutId ? null : workout.workoutId,
                   )
                 }
               >

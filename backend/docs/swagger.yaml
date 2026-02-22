@@ -1,0 +1,2357 @@
+basePath: /api
+definitions:
+  gymtrack-backend_internal_domain_models.AuthorRole:
+    enum:
+    - trainer
+    - athlete
+    type: string
+    x-enum-varnames:
+    - AuthorRoleTrainer
+    - AuthorRoleAthlete
+  gymtrack-backend_internal_domain_models.Comment:
+    properties:
+      authorId:
+        type: string
+      authorRole:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.AuthorRole'
+        enum:
+        - trainer
+        - athlete
+      commentId:
+        type: string
+      content:
+        maxLength: 2000
+        minLength: 1
+        type: string
+      createdAt:
+        type: string
+      editedAt:
+        type: string
+      parentCommentId:
+        type: string
+      targetId:
+        type: string
+      targetType:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.TargetType'
+        enum:
+        - workout
+        - meal
+      type:
+        description: Always "comment"
+        type: string
+    required:
+    - authorId
+    - authorRole
+    - content
+    - targetId
+    - targetType
+    type: object
+  gymtrack-backend_internal_domain_models.Exercise:
+    properties:
+      exerciseId:
+        type: string
+      name:
+        type: string
+      reps:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      restTime:
+        description: in seconds
+        minimum: 0
+        type: integer
+      sets:
+        type: integer
+      weight:
+        minimum: 0
+        type: number
+      weightUnit:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.WeightUnit'
+        enum:
+        - kg
+        - lbs
+    required:
+    - name
+    - reps
+    - sets
+    - weight
+    - weightUnit
+    type: object
+  gymtrack-backend_internal_domain_models.FoodItem:
+    properties:
+      calories:
+        minimum: 0
+        type: number
+      food:
+        type: string
+      macros:
+        $ref: '#/definitions/gymtrack-backend_internal_domain_models.Macros'
+      quantity:
+        type: string
+    required:
+    - food
+    - quantity
+    type: object
+  gymtrack-backend_internal_domain_models.Macros:
+    properties:
+      carbs:
+        minimum: 0
+        type: number
+      fats:
+        minimum: 0
+        type: number
+      protein:
+        minimum: 0
+        type: number
+    type: object
+  gymtrack-backend_internal_domain_models.Meal:
+    properties:
+      athleteId:
+        type: string
+      createdAt:
+        type: string
+      date:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/gymtrack-backend_internal_domain_models.FoodItem'
+        minItems: 1
+        type: array
+      mealId:
+        type: string
+      mealType:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.MealType'
+        enum:
+        - breakfast
+        - lunch
+        - dinner
+        - snack
+      type:
+        description: Always "meal"
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - athleteId
+    - date
+    - items
+    - mealType
+    type: object
+  gymtrack-backend_internal_domain_models.MealType:
+    enum:
+    - breakfast
+    - lunch
+    - dinner
+    - snack
+    type: string
+    x-enum-varnames:
+    - MealTypeBreakfast
+    - MealTypeLunch
+    - MealTypeDinner
+    - MealTypeSnack
+  gymtrack-backend_internal_domain_models.Relationship:
+    properties:
+      athleteId:
+        type: string
+      createdAt:
+        type: string
+      relationshipId:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.RelationshipStatus'
+        enum:
+        - pending
+        - active
+        - terminated
+      trainerId:
+        type: string
+      type:
+        description: Always "relationship"
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - athleteId
+    - status
+    - trainerId
+    type: object
+  gymtrack-backend_internal_domain_models.RelationshipStatus:
+    enum:
+    - pending
+    - active
+    - terminated
+    type: string
+    x-enum-varnames:
+    - RelationshipStatusPending
+    - RelationshipStatusActive
+    - RelationshipStatusTerminated
+  gymtrack-backend_internal_domain_models.TargetType:
+    enum:
+    - workout
+    - meal
+    type: string
+    x-enum-varnames:
+    - TargetTypeWorkout
+    - TargetTypeMeal
+  gymtrack-backend_internal_domain_models.TrainerAvailability:
+    description: TrainerAvailability model representing a single availability slot
+    properties:
+      availabilityId:
+        description: '@Description Unique identifier for the availability slot'
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      createdAt:
+        description: '@Description Timestamp when the slot was created'
+        type: string
+      dayOfWeek:
+        description: '@Description Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)'
+        example: 1
+        maximum: 6
+        minimum: 0
+        type: integer
+      endTime:
+        description: '@Description End time in HH:MM format (24-hour)'
+        example: "17:00"
+        type: string
+      isBooked:
+        description: '@Description Whether this slot has been booked by a client'
+        type: boolean
+      startTime:
+        description: '@Description Start time in HH:MM format (24-hour)'
+        example: "09:00"
+        type: string
+      trainerId:
+        description: '@Description Trainer user ID'
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      type:
+        description: Always "availability"
+        example: availability
+        type: string
+      updatedAt:
+        description: '@Description Timestamp when the slot was last updated'
+        type: string
+    type: object
+  gymtrack-backend_internal_domain_models.TrainerProfile:
+    properties:
+      bio:
+        type: string
+      hourlyRate:
+        type: number
+      isAvailableForNewClients:
+        type: boolean
+      languages:
+        items:
+          type: string
+        type: array
+      location:
+        type: string
+      profilePhotoUrl:
+        type: string
+      yearsOfExperience:
+        type: integer
+    type: object
+  gymtrack-backend_internal_domain_models.TrainerReview:
+    properties:
+      athleteId:
+        type: string
+      comment:
+        type: string
+      createdAt:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      reviewId:
+        type: string
+      trainerId:
+        type: string
+      type:
+        description: Always "review"
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - rating
+    type: object
+  gymtrack-backend_internal_domain_models.TrainerWithProfile:
+    properties:
+      averageRating:
+        type: number
+      createdAt:
+        type: string
+      email:
+        type: string
+      passwordHash:
+        type: string
+      profile:
+        $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerProfile'
+      reviewCount:
+        type: integer
+      role:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
+        enum:
+        - trainer
+        - athlete
+      type:
+        description: Always "user"
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    required:
+    - email
+    - role
+    type: object
+  gymtrack-backend_internal_domain_models.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      passwordHash:
+        type: string
+      profile:
+        $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
+      role:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
+        enum:
+        - trainer
+        - athlete
+      type:
+        description: Always "user"
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    required:
+    - email
+    - role
+    type: object
+  gymtrack-backend_internal_domain_models.UserProfile:
+    properties:
+      age:
+        type: integer
+      certifications:
+        description: Trainer specific fields
+        type: string
+      clientList:
+        description: List of athlete IDs
+        items:
+          type: string
+        type: array
+      fitnessGoals:
+        type: string
+      height:
+        type: integer
+      name:
+        type: string
+      specializations:
+        type: string
+      trainerAssignment:
+        description: Athlete's trainer ID
+        type: string
+      weight:
+        type: integer
+    type: object
+  gymtrack-backend_internal_domain_models.UserRole:
+    enum:
+    - trainer
+    - athlete
+    type: string
+    x-enum-varnames:
+    - RoleTrainer
+    - RoleAthlete
+  gymtrack-backend_internal_domain_models.WeightUnit:
+    enum:
+    - kg
+    - lbs
+    type: string
+    x-enum-varnames:
+    - WeightUnitKg
+    - WeightUnitLbs
+  gymtrack-backend_internal_domain_models.Workout:
+    properties:
+      athleteId:
+        type: string
+      createdAt:
+        type: string
+      date:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/gymtrack-backend_internal_domain_models.Exercise'
+        minItems: 1
+        type: array
+      type:
+        description: Always "workout"
+        type: string
+      updatedAt:
+        type: string
+      workoutId:
+        type: string
+    required:
+    - athleteId
+    - date
+    - exercises
+    type: object
+  internal_api_handlers.AcceptInvitationRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
+    type: object
+  internal_api_handlers.ClientStats:
+    properties:
+      mealsThisWeek:
+        type: integer
+      totalMeals:
+        type: integer
+      totalWorkouts:
+        type: integer
+      workoutsThisWeek:
+        type: integer
+    type: object
+  internal_api_handlers.CreateCoachingRequestRequest:
+    properties:
+      message:
+        type: string
+      trainerId:
+        type: string
+    required:
+    - trainerId
+    type: object
+  internal_api_handlers.CreateCommentRequest:
+    description: Request body for creating a new comment on a workout or meal.
+    properties:
+      content:
+        maxLength: 2000
+        minLength: 1
+        type: string
+      parentCommentId:
+        type: string
+      targetId:
+        type: string
+      targetType:
+        $ref: '#/definitions/gymtrack-backend_internal_domain_models.TargetType'
+    required:
+    - content
+    - targetId
+    - targetType
+    type: object
+  internal_api_handlers.CreateMealRequest:
+    description: Request body for creating a new meal entry
+    properties:
+      date:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/gymtrack-backend_internal_domain_models.FoodItem'
+        minItems: 1
+        type: array
+      mealType:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.MealType'
+        enum:
+        - breakfast
+        - lunch
+        - dinner
+        - snack
+    required:
+    - date
+    - items
+    - mealType
+    type: object
+  internal_api_handlers.CreateReviewRequest:
+    description: Request body for creating a review for a trainer.
+    properties:
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - rating
+    type: object
+  internal_api_handlers.CreateWorkoutRequest:
+    description: Request to create a new workout
+    properties:
+      date:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/gymtrack-backend_internal_domain_models.Exercise'
+        minItems: 1
+        type: array
+    required:
+    - date
+    - exercises
+    type: object
+  internal_api_handlers.ExerciseStat:
+    properties:
+      maxWeight:
+        type: number
+      name:
+        type: string
+      totalReps:
+        type: integer
+      totalSets:
+        type: integer
+    type: object
+  internal_api_handlers.GetClientDetailsResponse:
+    properties:
+      athlete:
+        $ref: '#/definitions/gymtrack-backend_internal_domain_models.User'
+      relationship:
+        $ref: '#/definitions/gymtrack-backend_internal_domain_models.Relationship'
+      stats:
+        $ref: '#/definitions/internal_api_handlers.ClientStats'
+    type: object
+  internal_api_handlers.GetClientStatsResponse:
+    properties:
+      mealStats:
+        $ref: '#/definitions/internal_api_handlers.MealStats'
+      workoutStats:
+        $ref: '#/definitions/internal_api_handlers.WorkoutStats'
+    type: object
+  internal_api_handlers.LoginRequest:
+    properties:
+      email:
+        example: test@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_api_handlers.MealStats:
+    properties:
+      averageCalories:
+        type: number
+      averageCarbs:
+        type: number
+      averageFats:
+        type: number
+      averageProtein:
+        type: number
+      mealTypeBreakdown:
+        items:
+          $ref: '#/definitions/internal_api_handlers.MealTypeStat'
+        type: array
+      weeklyAverages:
+        items:
+          $ref: '#/definitions/internal_api_handlers.WeeklyMealAvg'
+        type: array
+    type: object
+  internal_api_handlers.MealTypeStat:
+    properties:
+      count:
+        type: integer
+      mealType:
+        type: string
+    type: object
+  internal_api_handlers.RegisterRequest:
+    properties:
+      email:
+        example: test@example.com
+        type: string
+      password:
+        example: password123
+        minLength: 8
+        type: string
+      profile:
+        $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
+      role:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
+        enum:
+        - trainer
+        - athlete
+        example: athlete
+    required:
+    - email
+    - password
+    - role
+    type: object
+  internal_api_handlers.UpdateCommentRequest:
+    description: Request body for updating an existing comment's content.
+    properties:
+      content:
+        maxLength: 2000
+        minLength: 1
+        type: string
+    required:
+    - content
+    type: object
+  internal_api_handlers.UpdateMealRequest:
+    description: Request body for updating an existing meal entry
+    properties:
+      date:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/gymtrack-backend_internal_domain_models.FoodItem'
+        minItems: 1
+        type: array
+      mealType:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.MealType'
+        enum:
+        - breakfast
+        - lunch
+        - dinner
+        - snack
+    required:
+    - date
+    - items
+    - mealType
+    type: object
+  internal_api_handlers.UpdateProfileRequest:
+    description: UpdateProfileRequest is used to modify user profile information.
+    properties:
+      profile:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
+        description: |-
+          Profile contains the updated profile information.
+          @Description The user's profile data including personal details and role-specific fields.
+    required:
+    - profile
+    type: object
+  internal_api_handlers.UpdateReviewRequest:
+    description: Request body for updating an existing review.
+    properties:
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - rating
+    type: object
+  internal_api_handlers.UpdateWorkoutRequest:
+    description: Request to update an existing workout
+    properties:
+      date:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/gymtrack-backend_internal_domain_models.Exercise'
+        minItems: 1
+        type: array
+    required:
+    - date
+    - exercises
+    type: object
+  internal_api_handlers.UserResponse:
+    description: UserResponse contains all user information except the password hash.
+    properties:
+      createdAt:
+        description: |-
+          CreatedAt is the timestamp when the user account was created.
+          @Description The creation timestamp of the user account.
+          @Example 2024-01-01T00:00:00Z
+        type: string
+      email:
+        description: |-
+          Email is the user's email address.
+          @Description The user's registered email address.
+          @Example user@example.com
+        type: string
+      profile:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
+        description: |-
+          Profile contains user-specific profile information.
+          @Description The user's profile data including personal details and role-specific fields.
+      role:
+        allOf:
+        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
+        description: |-
+          Role is the user's role in the system (trainer or athlete).
+          @Description The user's role determining their permissions and capabilities.
+          @Example athlete
+          @Enum trainer,athlete
+      updatedAt:
+        description: |-
+          UpdatedAt is the timestamp when the user was last updated.
+          @Description The last update timestamp of the user account.
+          @Example 2024-01-01T00:00:00Z
+        type: string
+      userId:
+        description: |-
+          UserID is the unique identifier for the user.
+          @Description The unique UUID of the user.
+          @Example 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  internal_api_handlers.WeeklyMealAvg:
+    properties:
+      calories:
+        type: number
+      carbs:
+        type: number
+      fats:
+        type: number
+      protein:
+        type: number
+      week:
+        type: string
+    type: object
+  internal_api_handlers.WeeklyVolumePoint:
+    properties:
+      volume:
+        type: number
+      week:
+        type: string
+      workouts:
+        type: integer
+    type: object
+  internal_api_handlers.WorkoutStats:
+    properties:
+      consistency:
+        description: percentage
+        type: number
+      exerciseBreakdown:
+        items:
+          $ref: '#/definitions/internal_api_handlers.ExerciseStat'
+        type: array
+      totalVolume:
+        type: number
+      weeklyVolume:
+        items:
+          $ref: '#/definitions/internal_api_handlers.WeeklyVolumePoint'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Fitness tracking API for personal trainers and athletes
+  title: GymTrack API
+  version: "1.0"
+paths:
+  /clients/{id}/meals:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve paginated meal history for a specific client (trainers
+        only, requires active relationship)
+      parameters:
+      - description: Client (athlete) ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Number of meals to return (default: 50)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of meals to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      - description: Start date in RFC3339 format
+        in: query
+        name: startDate
+        type: string
+      - description: End date in RFC3339 format
+        in: query
+        name: endDate
+        type: string
+      - description: Filter by meal type (breakfast, lunch, dinner, snack)
+        in: query
+        name: mealType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Client meals retrieved successfully" "Returns meals array and
+            count
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid date format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only trainers can view client meals or no active relationship
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to retrieve meals
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get client's meals (trainer view)
+      tags:
+      - Meals
+  /coaching-requests:
+    post:
+      consumes:
+      - application/json
+      description: Athlete creates a new coaching request to request coaching from
+        a trainer
+      parameters:
+      - description: Coaching request details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.CreateCoachingRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Coaching request created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized - user not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - only athletes can create coaching requests
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new coaching request
+      tags:
+      - Coaching Requests
+  /coaching-requests/{id}/accept:
+    post:
+      consumes:
+      - application/json
+      description: Trainer accepts a coaching request from an athlete
+      parameters:
+      - description: Coaching request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coaching request accepted successfully" "{\"message\":\"coaching
+            request accepted\",\"relationship\":{}}
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request or coaching request not found
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized - user not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - only trainers can accept coaching requests
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Accept a coaching request
+      tags:
+      - Coaching Requests
+  /coaching-requests/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Trainer rejects a coaching request from an athlete
+      parameters:
+      - description: Coaching request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coaching request rejected successfully" "{\"message\":\"coaching
+            request rejected\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request or coaching request not found
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized - user not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - only trainers can reject coaching requests
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reject a coaching request
+      tags:
+      - Coaching Requests
+  /coaching-requests/my:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve coaching requests for the current user (sent by athlete
+        or received by trainer)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Successfully retrieved coaching requests" "{\"requests\":
+            []}'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized - user not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my coaching requests
+      tags:
+      - Coaching Requests
+  /coaching-requests/pending:
+    get:
+      consumes:
+      - application/json
+      description: Trainer retrieves all pending coaching requests they have received
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Successfully retrieved pending coaching requests" "{\"requests\":
+            []}'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized - user not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - only trainers can view pending requests
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get pending coaching requests
+      tags:
+      - Coaching Requests
+  /comments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all comments for a specific workout or meal. The user
+        must have access to the target.
+      parameters:
+      - description: Type of target (workout or meal)
+        in: query
+        name: targetType
+        required: true
+        type: string
+      - description: ID of the target (workout or meal)
+        in: query
+        name: targetId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comments retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Missing or invalid query parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Target not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to retrieve comments
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get comments for a target
+      tags:
+      - Comments
+    post:
+      consumes:
+      - application/json
+      description: Create a new comment on a workout or meal. The user must have permission
+        to comment on the target.
+      parameters:
+      - description: Create comment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Comment created successfully
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Comment'
+        "400":
+          description: Invalid request body or validation failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied or cannot comment on this target
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Target (workout or meal) not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to create comment
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a comment
+      tags:
+      - Comments
+  /comments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing comment. Only the author can delete their comment.
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only the comment author can delete it
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Comment not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to delete comment
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a comment
+      tags:
+      - Comments
+    put:
+      consumes:
+      - application/json
+      description: Update the content of an existing comment. Only the author can
+        edit their comment.
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update comment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.UpdateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment updated successfully
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Comment'
+        "400":
+          description: Invalid request body or validation failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only the comment author can edit it
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Comment not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to update comment
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a comment
+      tags:
+      - Comments
+  /meals:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve paginated meal history for the authenticated athlete with
+        optional date range filtering
+      parameters:
+      - description: 'Number of meals to return (default: 50)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of meals to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      - description: Start date in RFC3339 format
+        in: query
+        name: startDate
+        type: string
+      - description: End date in RFC3339 format
+        in: query
+        name: endDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Meals retrieved successfully" "Returns meals array and count
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid date format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only athletes can list their meals
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to retrieve meals
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get athlete's meals
+      tags:
+      - Meals
+    post:
+      consumes:
+      - application/json
+      description: Create a new meal entry for the authenticated athlete
+      parameters:
+      - description: Create meal request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.CreateMealRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Meal created successfully
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Meal'
+        "400":
+          description: Invalid request body or validation failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only athletes can create meals
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to create meal
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a meal entry
+      tags:
+      - Meals
+  /meals/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing meal (only within 24 hours of creation, athletes
+        can only delete their own meals)
+      parameters:
+      - description: Meal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Meal deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied or cannot delete after 24 hours
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Meal not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to delete meal
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a meal
+      tags:
+      - Meals
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a meal by its ID (athletes can only access their own meals)
+      parameters:
+      - description: Meal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Meal retrieved successfully
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Meal'
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Meal not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a specific meal
+      tags:
+      - Meals
+    put:
+      consumes:
+      - application/json
+      description: Update an existing meal (only within 24 hours of creation, athletes
+        can only update their own meals)
+      parameters:
+      - description: Meal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update meal request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.UpdateMealRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Meal updated successfully
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Meal'
+        "400":
+          description: Invalid request body or validation failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied or cannot edit after 24 hours
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Meal not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to update meal
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a meal
+      tags:
+      - Meals
+  /relationships/{id}:
+    delete:
+      description: Either the trainer or athlete can terminate the relationship. This
+        action deactivates the relationship and removes the trainer assignment from
+        the athlete's profile.
+      parameters:
+      - description: Relationship ID
+        example: '"rel-123"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Relationship terminated successfully" {"message":"Relationship
+            terminated successfully","relationship": models.Relationship}'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized" {"error":"User not authenticated"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden" {"error":"You are not authorized to terminate this
+            relationship"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found" {"error":"Relationship not found"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error" {"error":"Failed to terminate relationship/get
+            athlete/update profile"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Terminate relationship
+      tags:
+      - Relationships
+  /relationships/accept:
+    post:
+      consumes:
+      - application/json
+      description: Athletes accept an invitation by providing the 8-character code
+        generated by a trainer.
+      parameters:
+      - description: Invitation acceptance request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.AcceptInvitationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Invitation accepted successfully" {"message":"Invitation accepted
+            successfully","relationship": models.Relationship}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request" {"error":"Invalid request body"} or {"error":"Validation
+            failed"} or {"error":"Invalid invitation code"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized" {"error":"User not authenticated"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden" {"error":"Only athletes can accept invitations"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Accept invitation
+      tags:
+      - Relationships
+  /relationships/client/{id}:
+    get:
+      description: Trainers can view comprehensive details for a specific client including
+        workout/meal counts and current week activity.
+      parameters:
+      - description: Client (athlete) user ID
+        example: '"user-123"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/internal_api_handlers.GetClientDetailsResponse'
+        "401":
+          description: Unauthorized" {"error":"User not authenticated"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden" {"error":"Only trainers can view client details"}
+            or {"error":"You don't have an active relationship with this client"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error" {"error":"Failed to verify relationship/get
+            athlete details"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get client details
+      tags:
+      - Relationships
+  /relationships/client/{id}/stats:
+    get:
+      description: Trainers can view detailed analytics including workout volume trends,
+        exercise breakdown, consistency scores, and nutrition averages for a specific
+        client.
+      parameters:
+      - description: Client (athlete) user ID
+        example: '"user-123"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" {"workoutStats": WorkoutStats, "mealStats": MealStats}'
+          schema:
+            $ref: '#/definitions/internal_api_handlers.GetClientStatsResponse'
+        "401":
+          description: Unauthorized" {"error":"User not authenticated"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden" {"error":"Only trainers can view client stats"}
+            or {"error":"You don't have an active relationship with this client"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error" {"error":"Failed to verify relationship"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get client statistics
+      tags:
+      - Relationships
+  /relationships/invite:
+    post:
+      consumes:
+      - application/json
+      description: Trainers generate an 8-character invitation code to share with
+        athletes. The code expires after a set period.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Invitation generated successfully" {"message":"Invitation generated
+            successfully","invitation":{"code":"string","expiresAt":"string"}}
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized" {"error":"User not authenticated"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden" {"error":"Only trainers can generate invitations"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error" {"error":"Failed to generate invitation","details":"error
+            message"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Generate invitation code
+      tags:
+      - Relationships
+  /relationships/my-clients:
+    get:
+      description: Trainers can view all their active client relationships with athlete
+        profiles.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" {"clients": []ClientWithAthlete, "count": int}'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized" {"error":"User not authenticated"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden" {"error":"Only trainers can view their clients"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error" {"error":"Failed to retrieve clients"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my clients
+      tags:
+      - Relationships
+  /relationships/my-trainer:
+    get:
+      description: Athletes can view their currently assigned trainer and any pending
+        invitation codes.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" {"pendingInvitations": []models.Invitation, "activeTrainer":
+            map[string]interface{}{"relationship": models.Relationship, "trainer":
+            models.User}}'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized" {"error":"User not authenticated"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden" {"error":"Only athletes can view their trainer"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error" {"error":"Failed to retrieve invitations/relationships"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my trainer
+      tags:
+      - Relationships
+  /reviews/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an existing review. Only the author can delete their review.
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Review deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only the author can delete the review
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Review not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to delete review
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a review
+      tags:
+      - Reviews
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing review. Only the author can update their review.
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update review request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.UpdateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Review updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request body or validation failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only the author can update the review
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Review not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to update review
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a review
+      tags:
+      - Reviews
+  /trainers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of trainers with optional filtering by specialization,
+        location, minimum rating, and availability status. Supports pagination.
+      parameters:
+      - description: Filter by specialization (e.g., 'yoga', 'strength')
+        in: query
+        name: specialization
+        type: string
+      - description: Filter by location
+        in: query
+        name: location
+        type: string
+      - description: Minimum rating filter (0-5)
+        in: query
+        name: minRating
+        type: number
+      - description: Filter by availability for new clients (true/false)
+        in: query
+        name: availableForNewClients
+        type: boolean
+      - description: 'Number of results per page (default: 20)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of results to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved trainers" "{\"trainers\":[],\"total\":0,\"limit\":20,\"offset\":0}
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error" "{\"error\":\"error message\"}
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all trainers with optional filtering
+      tags:
+      - Trainers
+  /trainers/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves detailed profile information for a specific trainer by
+        their ID
+      parameters:
+      - description: Trainer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved trainer
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerWithProfile'
+        "404":
+          description: Trainer not found" "{\"error\":\"trainer not found\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error" "{\"error\":\"error message\"}
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get trainer by ID
+      tags:
+      - Trainers
+  /trainers/{id}/availability:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve availability slots for a specific trainer by ID (public
+        access)
+      parameters:
+      - description: Trainer ID
+        in: path
+        maxLength: 255
+        minLength: 1
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Slots retrieved successfully" "slots":{[]models.TrainerAvailability}
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Trainer not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get any trainer's availability slots
+      tags:
+      - Availability
+  /trainers/{id}/reviews:
+    get:
+      description: Retrieve all reviews for a specific trainer. This endpoint is publicly
+        accessible.
+      parameters:
+      - description: Trainer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Reviews retrieved successfully" {"reviews": []models.TrainerReview}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to retrieve reviews
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get reviews for a trainer
+      tags:
+      - Reviews
+    post:
+      consumes:
+      - application/json
+      description: Allows an athlete to create a review for a specific trainer. Requires
+        athlete role.
+      parameters:
+      - description: Trainer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create review request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.CreateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Review created successfully
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerReview'
+        "400":
+          description: Invalid request body or validation failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Only athletes can create reviews
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to create review
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a review for a trainer
+      tags:
+      - Reviews
+  /trainers/availability/{slotId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific availability slot by slot ID. Only the trainer
+        who owns the slot can delete it.
+      parameters:
+      - description: Availability Slot ID
+        in: path
+        maxLength: 255
+        minLength: 1
+        name: slotId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Slot deleted successfully" "message":"slot deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - not your slot
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Slot not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a specific availability slot
+      tags:
+      - Availability
+  /trainers/me/availability:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all availability slots for the currently authenticated
+        trainer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Slots retrieved successfully" "slots":{[]models.TrainerAvailability}
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get trainer's own availability slots
+      tags:
+      - Availability
+    put:
+      consumes:
+      - application/json
+      description: Update or create availability slots for the currently authenticated
+        trainer (replaces all existing slots)
+      parameters:
+      - description: Array of availability slots to set
+        in: body
+        name: slots
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerAvailability'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Availability updated successfully" "message":"availability
+            updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request - invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Set trainer's own availability slots
+      tags:
+      - Availability
+  /trainers/me/profile:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the profile information for the currently authenticated
+        trainer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved trainer profile
+          schema:
+            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerWithProfile'
+        "401":
+          description: Unauthorized" "{\"error\":\"unauthorized\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - only trainers can access" "{\"error\":\"Only trainers
+            can access profile\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Profile not found" "{\"error\":\"trainer profile not found\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error" "{\"error\":\"error message\"}
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current trainer's profile
+      tags:
+      - Trainers
+    put:
+      consumes:
+      - application/json
+      description: Updates the profile information for the currently authenticated
+        trainer
+      parameters:
+      - description: Profile update data
+        in: body
+        name: profile
+        required: true
+        schema:
+          $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully" "{\"message\":\"profile updated
+            successfully\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data" "{\"error\":\"error message\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized" "{\"error\":\"unauthorized\"}
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error" "{\"error\":\"error message\"}
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update current trainer's profile
+      tags:
+      - Trainers
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Returns the profile information of the user associated with the
+        provided JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved user profile
+          schema:
+            $ref: '#/definitions/internal_api_handlers.UserResponse'
+        "401":
+          description: Unauthorized - Invalid or missing JWT token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Updates the profile information for the authenticated user. Returns
+        the updated user data.
+      parameters:
+      - description: Update profile request containing the updated profile data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated user profile
+          schema:
+            $ref: '#/definitions/internal_api_handlers.UserResponse'
+        "400":
+          description: Bad request - Invalid input data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing JWT token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update current user profile
+      tags:
+      - User
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

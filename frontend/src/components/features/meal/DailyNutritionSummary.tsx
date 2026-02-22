@@ -2,21 +2,24 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, isSameDay } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mealApi } from "@/lib/api";
 import { withTiming } from "@/lib/performance";
+import dayjs from "dayjs";
 
 interface DailyNutritionSummaryProps {
-  date: Date;
+  date: dayjs.Dayjs;
 }
 
 export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
-  const dateStr = date.toISOString().split('T')[0];
-  
+  const dateStr = date.format("YYYY-MM-DD");
+
   const { data, isLoading } = useQuery({
     queryKey: ["meals", dateStr],
-    queryFn: () => withTiming("daily-meals-fetch", () => mealApi.getByDate(dateStr, { timeout: 5000 })),
+    queryFn: () =>
+      withTiming("daily-meals-fetch", () =>
+        mealApi.getByDate(dateStr, { timeout: 5000 }),
+      ),
   });
 
   const dailyMeals = React.useMemo(() => {
@@ -64,7 +67,9 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Nutrition Summary for {format(date, "PPP")}</CardTitle>
+        <CardTitle>
+          Nutrition Summary for {date.format("MMMM D, YYYY")}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">

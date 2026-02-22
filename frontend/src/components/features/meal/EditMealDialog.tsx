@@ -5,7 +5,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import dayjs from "dayjs";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { mealSchema, type MealFormData } from "@/lib/validations/meal";
-import { mealApi } from "@/lib/api"
+import { mealApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Meal } from "@/types";
 import { cn } from "@/lib/utils";
@@ -40,8 +40,8 @@ export function EditMealDialog({
   const form = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
     defaultValues: {
-      date: new Date(),
-      mealTime: format(new Date(), "HH:mm"),
+      date: dayjs().toDate(),
+      mealTime: dayjs().format("HH:mm"),
       mealType: "breakfast",
       items: [
         {
@@ -57,10 +57,10 @@ export function EditMealDialog({
   // Reset form when meal changes
   React.useEffect(() => {
     if (meal) {
-      const mealDate = parseISO(meal.date);
+      const mealDate = dayjs(meal.date);
       form.reset({
-        date: mealDate,
-        mealTime: format(mealDate, "HH:mm"),
+        date: mealDate.toDate(),
+        mealTime: mealDate.format("HH:mm"),
         mealType: meal.mealType,
         items: meal.items.map((item) => ({
           food: item.food,
@@ -86,9 +86,12 @@ export function EditMealDialog({
     mutationFn: async (data: MealFormData) => {
       if (!meal) return;
       // Combine date and time
-      const [hours, minutes] = data.mealTime.split(':').map(Number);
-      const combinedDate = new Date(data.date);
-      combinedDate.setHours(hours, minutes, 0, 0);
+      const [hours, minutes] = data.mealTime.split(":").map(Number);
+      const combinedDate = dayjs(data.date)
+        .hour(hours)
+        .minute(minutes)
+        .second(0)
+        .millisecond(0);
 
       return mealApi.update(meal.mealId, {
         date: combinedDate.toISOString(),
@@ -127,8 +130,8 @@ export function EditMealDialog({
         <DialogHeader>
           <DialogTitle>Edit Meal</DialogTitle>
           <DialogDescription>
-            Update your meal details. Changes can only be made within 24 hours of
-            logging.
+            Update your meal details. Changes can only be made within 24 hours
+            of logging.
           </DialogDescription>
         </DialogHeader>
 
@@ -160,7 +163,8 @@ export function EditMealDialog({
             </div>
             {(form.formState.errors.date || form.formState.errors.mealTime) && (
               <p className="text-sm text-destructive">
-                {form.formState.errors.date?.message || form.formState.errors.mealTime?.message}
+                {form.formState.errors.date?.message ||
+                  form.formState.errors.mealTime?.message}
               </p>
             )}
           </div>
@@ -191,7 +195,7 @@ export function EditMealDialog({
                       {...form.register(`items.${index}.food`)}
                       className={cn(
                         form.formState.errors.items?.[index]?.food &&
-                        "border-destructive",
+                          "border-destructive",
                       )}
                     />
                     {form.formState.errors.items?.[index]?.food && (

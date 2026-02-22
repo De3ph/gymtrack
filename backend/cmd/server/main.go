@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"gymtrack-backend/internal/api/handlers"
+	"gymtrack-backend/internal/api/middleware"
 	"gymtrack-backend/internal/api/routes"
 	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/repositories"
@@ -11,8 +12,24 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "gymtrack-backend/docs"
 )
 
+// @title GymTrack API
+// @version 1.0
+// @description Fitness tracking API for personal trainers and athletes
+// @host localhost:8080
+// @BasePath /api
+// @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and the JWT token.
+// @contact.name GymTrack API Support
+// @license.name MIT
 func main() {
 	cfg := config.LoadConfig()
 
@@ -56,11 +73,15 @@ func main() {
 	router := gin.Default()
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
-	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization"}
+	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"} // Restrict to frontend URLs
+	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	corsConfig.AllowCredentials = true
 
 	router.Use(cors.New(corsConfig))
+
+	// Initialize auth middleware with config
+	middleware.InitAuthMiddleware(cfg)
 
 	authHandler := handlers.NewAuthHandler(userRepo, cfg.JWTSecret)
 	userHandler := handlers.NewUserHandler(userRepo)
@@ -96,6 +117,8 @@ func main() {
 
 	routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler)
 	routes.RegisterCoachingRequestRoutes(router, coachingRequestHandler)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Fatal(router.Run(":8080"))
 }

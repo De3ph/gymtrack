@@ -22,6 +22,7 @@ func RegisterTrainerRoutes(router *gin.Engine,
 	trainerGroup := router.Group("/api/trainers/me")
 	trainerGroup.Use(middleware.JWTAuthMiddleware())
 	trainerGroup.PUT("/profile", trainerCatalogHandler.UpdateMyProfile)
+	trainerGroup.GET("/profile", trainerCatalogHandler.GetMyProfile)
 	trainerGroup.GET("/availability", availabilityHandler.GetMyAvailability)
 	trainerGroup.PUT("/availability", availabilityHandler.SetMyAvailability)
 	trainerGroup.DELETE("/availability/:slotId", availabilityHandler.DeleteSlot)

@@ -1,16 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { DayPicker } from "react-day-picker";
+import { Calendar } from "@/components/ui/calendar";
 import { useQuery } from "@tanstack/react-query";
-import { format, isSameDay } from "date-fns";
+import { format } from "date-fns";
+import dayjs from "dayjs";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { workoutApi } from "@/lib/api";
 
 export function WorkoutCalendar() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
-    new Date(),
+    dayjs().toDate(),
   );
 
   const { data: workoutsData } = useQuery({
@@ -21,13 +22,13 @@ export function WorkoutCalendar() {
   // Group workouts by date to show indicators
   const workoutDays = React.useMemo(() => {
     if (!workoutsData?.workouts) return [];
-    return workoutsData.workouts.map((w) => new Date(w.date));
+    return workoutsData.workouts.map((w) => dayjs(w.date).toDate());
   }, [workoutsData]);
 
   const selectedDayWorkouts = React.useMemo(() => {
     if (!selectedDate || !workoutsData?.workouts) return [];
     return workoutsData.workouts.filter((w) =>
-      isSameDay(new Date(w.date), selectedDate),
+      dayjs(w.date).isSame(selectedDate, "day"),
     );
   }, [selectedDate, workoutsData]);
 
@@ -38,20 +39,17 @@ export function WorkoutCalendar() {
           <CardTitle>Calendar</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center">
-          <DayPicker
+          <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
             modifiers={{
               workout: workoutDays,
             }}
-            modifiersStyles={{
-              workout: {
-                fontWeight: "bold",
-                color: "var(--primary)",
-                textDecoration: "underline",
-              }, // Simple style for now
+            modifiersClassNames={{
+              workout: "font-bold text-primary underline",
             }}
+            className="rounded-md border"
           />
         </CardContent>
       </Card>
@@ -71,7 +69,7 @@ export function WorkoutCalendar() {
                   className="border-b last:border-0 pb-2"
                 >
                   <div className="font-semibold">
-                    {format(new Date(workout.date), "p")}
+                    {dayjs(workout.date).format("h:mm A")}
                   </div>
                   <ul className="list-disc pl-5 mt-2">
                     {workout.exercises.map((ex) => (

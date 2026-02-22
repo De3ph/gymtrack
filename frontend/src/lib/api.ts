@@ -55,6 +55,7 @@ async function request<T>(
   }
 
   let url = `${API_BASE_URL}${endpoint}`
+  console.log('API Request URL:', url) // Debug log
   if (params) {
     const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
@@ -68,7 +69,7 @@ async function request<T>(
   const controller = timeout !== undefined ? new AbortController() : undefined;
   const timeoutId = timeout !== undefined ? setTimeout(() => controller?.abort(), timeout) : undefined;
 
-   const response = await fetch(url, {
+  const response = await fetch(url, {
     ...rest,
     headers: {
       ...defaultHeaders,
@@ -76,7 +77,7 @@ async function request<T>(
     },
     signal: controller?.signal
   })
-  
+
   // Clear timeout immediately to prevent memory leaks
   if (controller) {
     clearTimeout(timeoutId);
@@ -137,6 +138,14 @@ export const authApi = {
 
   login: async (data: LoginRequest) => {
     return api.post<LoginResponse>("/auth/login", data)
+  },
+
+  refreshToken: async (refreshToken: string) => {
+    return api.post<{ message: string; accessToken: string }>("/auth/refresh", { refreshToken })
+  },
+
+  logout: async () => {
+    return api.post<{ message: string }>("/auth/logout", {})
   }
 }
 

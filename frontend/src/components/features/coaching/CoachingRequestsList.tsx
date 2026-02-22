@@ -1,94 +1,94 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { coachingRequestApi } from "@/lib/api"
-import { CoachingRequestWithDetails } from "@/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { User, Calendar, MessageCircle } from "lucide-react"
+import { useState, useEffect } from "react";
+import dayjs from "dayjs";
+import { coachingRequestApi } from "@/lib/api";
+import { CoachingRequestWithDetails } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { User, Calendar, MessageCircle } from "lucide-react";
 
 interface CoachingRequestsListProps {
-  userType: "trainer" | "athlete"
+  userType: "trainer" | "athlete";
 }
 
 export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
-  const [requests, setRequests] = useState<CoachingRequestWithDetails[]>([])
-  const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [error, setError] = useState("")
+  const [requests, setRequests] = useState<CoachingRequestWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    loadRequests()
-  }, [])
+    loadRequests();
+  }, []);
 
   const loadRequests = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await coachingRequestApi.getMyRequests()
-      setRequests(response.requests)
+      const response = await coachingRequestApi.getMyRequests();
+      setRequests(response.requests);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to load requests")
+      setError(err.response?.data?.error || "Failed to load requests");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleAccept = async (requestId: string) => {
-    setActionLoading(requestId)
+    setActionLoading(requestId);
     try {
-      await coachingRequestApi.acceptRequest(requestId)
-      await loadRequests()
+      await coachingRequestApi.acceptRequest(requestId);
+      await loadRequests();
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to accept request")
+      setError(err.response?.data?.error || "Failed to accept request");
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleReject = async (requestId: string) => {
-    setActionLoading(requestId)
+    setActionLoading(requestId);
     try {
-      await coachingRequestApi.rejectRequest(requestId)
-      await loadRequests()
+      await coachingRequestApi.rejectRequest(requestId);
+      await loadRequests();
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to reject request")
+      setError(err.response?.data?.error || "Failed to reject request");
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
       pending: "default",
       accepted: "secondary",
-      rejected: "destructive"
-    }
+      rejected: "destructive",
+    };
     return (
       <Badge variant={variants[status] || "outline"}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
-    )
-  }
+    );
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    })
-  }
+    return dayjs(dateString).format("MMM D, YYYY h:mm A");
+  };
 
   if (loading) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-gray-500">Loading coaching requests...</div>
+          <div className="text-center text-gray-500">
+            Loading coaching requests...
+          </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (error) {
@@ -98,7 +98,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
           <div className="text-center text-red-600">Error: {error}</div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (requests.length === 0) {
@@ -106,14 +106,13 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
       <Card>
         <CardContent className="p-6">
           <div className="text-center text-gray-500">
-            {userType === "trainer" 
-              ? "No pending coaching requests" 
-              : "No coaching requests sent"
-            }
+            {userType === "trainer"
+              ? "No pending coaching requests"
+              : "No coaching requests sent"}
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -124,10 +123,9 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
             <div className="flex justify-between items-start">
               <div>
                 <CardTitle className="text-lg">
-                  {userType === "trainer" 
+                  {userType === "trainer"
                     ? `Request from ${request.athlete?.profile?.name || request.athlete?.email}`
-                    : `Request to ${request.trainer?.profile?.name || request.trainer?.email}`
-                  }
+                    : `Request to ${request.trainer?.profile?.name || request.trainer?.email}`}
                 </CardTitle>
                 <div className="flex items-center gap-2 mt-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
@@ -159,7 +157,9 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                   disabled={actionLoading === request.requestId}
                   className="flex-1"
                 >
-                  {actionLoading === request.requestId ? "Accepting..." : "Accept"}
+                  {actionLoading === request.requestId
+                    ? "Accepting..."
+                    : "Accept"}
                 </Button>
                 <Button
                   variant="outline"
@@ -167,25 +167,29 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                   disabled={actionLoading === request.requestId}
                   className="flex-1"
                 >
-                  {actionLoading === request.requestId ? "Rejecting..." : "Reject"}
+                  {actionLoading === request.requestId
+                    ? "Rejecting..."
+                    : "Reject"}
                 </Button>
               </div>
             )}
 
             {userType === "athlete" && request.status === "accepted" && (
               <div className="text-green-600 bg-green-50 p-3 rounded">
-                <strong>🎉 Request Accepted!</strong> You can now start working with your trainer.
+                <strong>🎉 Request Accepted!</strong> You can now start working
+                with your trainer.
               </div>
             )}
 
             {userType === "athlete" && request.status === "rejected" && (
               <div className="text-red-600 bg-red-50 p-3 rounded">
-                This request was declined by the trainer. You can try sending a new request or look for other trainers.
+                This request was declined by the trainer. You can try sending a
+                new request or look for other trainers.
               </div>
             )}
           </CardContent>
         </Card>
       ))}
     </div>
-  )
+  );
 }

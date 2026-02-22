@@ -1,61 +1,78 @@
-"use client"
+"use client";
 
-import { GenerateInvitationDialog } from "@/components/features/trainer/GenerateInvitationDialog"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { relationshipApi } from "@/lib/api"
-import { ClientWithAthlete } from "@/lib/api-types"
-import { useAuthStore } from "@/stores/authStore"
-import { Eye, Loader2, UserPlus, Users, Dumbbell, Utensils } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { GenerateInvitationDialog } from "@/components/features/trainer/GenerateInvitationDialog";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { relationshipApi } from "@/lib/api";
+import { ClientWithAthlete } from "@/lib/api-types";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  Eye,
+  Loader2,
+  UserPlus,
+  Users,
+  Dumbbell,
+  Utensils,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import dayjs from "dayjs";
 
 export default function TrainerClientsPage() {
-  const router = useRouter()
-  const { user } = useAuthStore()
-  const [clients, setClients] = useState<ClientWithAthlete[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showInviteDialog, setShowInviteDialog] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const [clients, setClients] = useState<ClientWithAthlete[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (user?.role !== "trainer") {
-      router.push("/")
-      return
+      router.push("/");
+      return;
     }
 
-    fetchClients()
-  }, [user, router])
+    fetchClients();
+  }, [user, router]);
 
   const fetchClients = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      const response = await relationshipApi.getMyClients()
-      setClients(response.clients ?? [])
+      setLoading(true);
+      setError(null);
+      const response = await relationshipApi.getMyClients();
+      setClients(response.clients ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load clients")
+      setError(err instanceof Error ? err.message : "Failed to load clients");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const filteredClients = clients.filter((client) =>
-    client.athlete?.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.athlete?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredClients = clients.filter(
+    (client) =>
+      client.athlete?.profile?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      client.athlete?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   const handleViewClient = (clientId: string) => {
-    router.push(`/trainer/client/${clientId}`)
-  }
+    router.push(`/trainer/client/${clientId}`);
+  };
 
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   return (
@@ -97,7 +114,8 @@ export default function TrainerClientsPage() {
             <Users className="mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="mb-2 text-lg font-semibold">No Clients Yet</h3>
             <p className="mb-4 text-center text-muted-foreground">
-              You don&apos;t have any active clients yet. Generate an invitation code to start working with athletes.
+              You don&apos;t have any active clients yet. Generate an invitation
+              code to start working with athletes.
             </p>
             <Button onClick={() => setShowInviteDialog(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
@@ -114,9 +132,7 @@ export default function TrainerClientsPage() {
                   <Users className="h-5 w-5" />
                   {client.athlete?.profile?.name || "Unknown Athlete"}
                 </CardTitle>
-                <CardDescription>
-                  {client.athlete?.email}
-                </CardDescription>
+                <CardDescription>{client.athlete?.email}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="mb-4 space-y-2 text-sm">
@@ -126,14 +142,21 @@ export default function TrainerClientsPage() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Client since {client.relationship?.createdAt ? new Date(client.relationship.createdAt).toLocaleDateString() : "N/A"}
+                    Client since{" "}
+                    {client.relationship?.createdAt
+                      ? dayjs(client.relationship.createdAt).format(
+                          "MMM D, YYYY",
+                        )
+                      : "N/A"}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => handleViewClient(client.athlete?.userId || "")}
+                    onClick={() =>
+                      handleViewClient(client.athlete?.userId || "")
+                    }
                   >
                     <Eye className="mr-2 h-4 w-4" />
                     View Details
@@ -148,7 +171,9 @@ export default function TrainerClientsPage() {
       {filteredClients.length === 0 && clients.length > 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground">No clients match your search.</p>
+            <p className="text-muted-foreground">
+              No clients match your search.
+            </p>
           </CardContent>
         </Card>
       )}
@@ -158,5 +183,5 @@ export default function TrainerClientsPage() {
         onOpenChange={setShowInviteDialog}
       />
     </div>
-  )
+  );
 }

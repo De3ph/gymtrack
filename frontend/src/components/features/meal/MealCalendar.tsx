@@ -1,18 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { DayPicker } from "react-day-picker";
+import { Calendar } from "@/components/ui/calendar";
 import { useQuery } from "@tanstack/react-query";
-import { format, isSameDay } from "date-fns";
-import "react-day-picker/dist/style.css";
+import { format } from "date-fns";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mealApi } from "@/lib/api";
 import { DailyNutritionSummary } from "./DailyNutritionSummary";
+import dayjs from "dayjs";
 
 export function MealCalendar() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
-    new Date(),
+    dayjs().toDate(),
   );
 
   const { data: mealsData } = useQuery({
@@ -23,19 +23,19 @@ export function MealCalendar() {
   // Group meals by date
   const mealDays = React.useMemo(() => {
     if (!mealsData?.meals) return [];
-    return mealsData.meals.map((m) => new Date(m.date));
+    return mealsData.meals.map((m) => dayjs(m.date).toDate());
   }, [mealsData]);
 
   const selectedDayMeals = React.useMemo(() => {
     if (!selectedDate || !mealsData?.meals) return [];
     return mealsData.meals.filter((m) =>
-      isSameDay(new Date(m.date), selectedDate),
+      dayjs(m.date).isSame(selectedDate, "day"),
     );
   }, [selectedDate, mealsData]);
 
   return (
     <div className="space-y-6">
-      {selectedDate && <DailyNutritionSummary date={selectedDate} />}
+      {selectedDate && <DailyNutritionSummary date={dayjs(selectedDate)} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
@@ -43,20 +43,17 @@ export function MealCalendar() {
             <CardTitle>Calendar</CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <DayPicker
+            <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
               modifiers={{
-                meal: mealDays,
+                meal: mealDays.map((d) => dayjs(d).toDate()),
               }}
-              modifiersStyles={{
-                meal: {
-                  fontWeight: "bold",
-                  color: "var(--primary)",
-                  textDecoration: "underline",
-                },
+              modifiersClassNames={{
+                meal: "font-bold text-primary underline",
               }}
+              className="rounded-md border"
             />
           </CardContent>
         </Card>
@@ -76,7 +73,7 @@ export function MealCalendar() {
                     className="border-b last:border-0 pb-2"
                   >
                     <div className="font-semibold capitalize">
-                      {meal.mealType} - {format(new Date(meal.date), "p")}
+                      {meal.mealType} - {format(dayjs(meal.date).toDate(), "p")}
                     </div>
                     <ul className="list-disc pl-5 mt-2 text-sm">
                       {meal.items.map((item, idx) => (

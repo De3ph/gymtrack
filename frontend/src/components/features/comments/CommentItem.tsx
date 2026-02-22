@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { MessageSquare, Edit2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -70,10 +70,8 @@ export function CommentItem({
       <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
         <span className="font-medium capitalize">{comment.authorRole}</span>
         <span>
-          {format(new Date(comment.createdAt), "PPp")}
-          {comment.editedAt && (
-            <span className="ml-1 text-xs">(edited)</span>
-          )}
+          {dayjs(comment.createdAt).format("MMM D, YYYY h:mm A")}
+          {comment.editedAt && <span className="ml-1 text-xs">(edited)</span>}
         </span>
       </div>
       {isEditing ? (

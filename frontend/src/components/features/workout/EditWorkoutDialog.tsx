@@ -5,7 +5,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import dayjs from "dayjs";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { workoutSchema, type WorkoutFormData } from "@/lib/validations/workout";
-import { workoutApi } from "@/lib/api"
+import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Workout } from "@/types";
 import { cn } from "@/lib/utils";
@@ -40,8 +40,8 @@ export function EditWorkoutDialog({
   const form = useForm<WorkoutFormData>({
     resolver: zodResolver(workoutSchema),
     defaultValues: {
-      date: new Date(),
-      workoutTime: format(new Date(), "HH:mm"),
+      date: dayjs().toDate(),
+      workoutTime: dayjs().format("HH:mm"),
       exercises: [
         {
           name: "",
@@ -58,10 +58,10 @@ export function EditWorkoutDialog({
   // Reset form when workout changes
   React.useEffect(() => {
     if (workout) {
-      const workoutDate = parseISO(workout.date);
+      const workoutDate = dayjs(workout.date);
       form.reset({
-        date: workoutDate,
-        workoutTime: format(workoutDate, "HH:mm"),
+        date: workoutDate.toDate(),
+        workoutTime: workoutDate.format("HH:mm"),
         exercises: workout.exercises.map((ex) => ({
           name: ex.name,
           weight: ex.weight,
@@ -84,9 +84,12 @@ export function EditWorkoutDialog({
     mutationFn: async (data: WorkoutFormData) => {
       if (!workout) return;
       // Combine date and time
-      const [hours, minutes] = data.workoutTime.split(':').map(Number);
-      const combinedDate = new Date(data.date);
-      combinedDate.setHours(hours, minutes, 0, 0);
+      const [hours, minutes] = data.workoutTime.split(":").map(Number);
+      const combinedDate = dayjs(data.date)
+        .hour(hours)
+        .minute(minutes)
+        .second(0)
+        .millisecond(0);
 
       return workoutApi.update(workout.workoutId, {
         date: combinedDate.toISOString(),
@@ -116,8 +119,8 @@ export function EditWorkoutDialog({
         <DialogHeader>
           <DialogTitle>Edit Workout</DialogTitle>
           <DialogDescription>
-            Update your workout details. Changes can only be made within 24 hours of
-            logging.
+            Update your workout details. Changes can only be made within 24
+            hours of logging.
           </DialogDescription>
         </DialogHeader>
 
@@ -138,9 +141,11 @@ export function EditWorkoutDialog({
                 className="w-full md:w-[120px]"
               />
             </div>
-            {(form.formState.errors.date || form.formState.errors.workoutTime) && (
+            {(form.formState.errors.date ||
+              form.formState.errors.workoutTime) && (
               <p className="text-sm text-destructive">
-                {form.formState.errors.date?.message || form.formState.errors.workoutTime?.message}
+                {form.formState.errors.date?.message ||
+                  form.formState.errors.workoutTime?.message}
               </p>
             )}
           </div>
@@ -171,7 +176,7 @@ export function EditWorkoutDialog({
                       {...form.register(`exercises.${index}.name`)}
                       className={cn(
                         form.formState.errors.exercises?.[index]?.name &&
-                        "border-destructive"
+                          "border-destructive",
                       )}
                     />
                     {form.formState.errors.exercises?.[index]?.name && (
@@ -203,7 +208,10 @@ export function EditWorkoutDialog({
                     </div>
                     {form.formState.errors.exercises?.[index]?.weight && (
                       <p className="text-xs text-destructive">
-                        {form.formState.errors.exercises[index]?.weight?.message}
+                        {
+                          form.formState.errors.exercises[index]?.weight
+                            ?.message
+                        }
                       </p>
                     )}
                   </div>

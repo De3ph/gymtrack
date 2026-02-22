@@ -21,12 +21,22 @@ func LoadConfig() *Config {
 		log.Println("No .env file found, using system environment variables")
 	}
 
+	jwtSecret := getEnv("JWT_SECRET", "")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
+	// Validate JWT secret is sufficiently strong
+	if len(jwtSecret) < 32 {
+		log.Fatal("JWT_SECRET must be at least 32 characters long")
+	}
+
 	return &Config{
 		CouchbaseConnectionString: getEnv("COUCHBASE_CONNECTION_STRING", "couchbase://localhost"),
 		CouchbaseUsername:         getEnv("COUCHBASE_USERNAME", "Administrator"),
 		CouchbasePassword:         getEnv("COUCHBASE_PASSWORD", "password"),
 		CouchbaseBucket:           getEnv("COUCHBASE_BUCKET", "gymtrack"),
-		JWTSecret:                 getEnv("JWT_SECRET", "supersecretjwtkey"),
+		JWTSecret:                 jwtSecret,
 	}
 }
 

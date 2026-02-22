@@ -2,8 +2,15 @@
 
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { Edit2, Trash2, Utensils, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import dayjs from "dayjs";
+import {
+  Edit2,
+  Trash2,
+  Utensils,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +30,16 @@ interface MealListProps {
   readOnly?: boolean;
 }
 
-export function MealList({ meals: propMeals, readOnly = false }: MealListProps) {
+export function MealList({
+  meals: propMeals,
+  readOnly = false,
+}: MealListProps) {
   const queryClient = useQueryClient();
   const [editingMeal, setEditingMeal] = React.useState<Meal | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [expandedCommentsId, setExpandedCommentsId] = React.useState<string | null>(null);
+  const [expandedCommentsId, setExpandedCommentsId] = React.useState<
+    string | null
+  >(null);
 
   // Only fetch data if not provided as props
   const { data, isLoading } = useQuery({
@@ -44,9 +56,9 @@ export function MealList({ meals: propMeals, readOnly = false }: MealListProps) 
   });
 
   const canEdit = (meal: Meal) => {
-    const createdAt = new Date(meal.createdAt);
-    const now = new Date();
-    return now.getTime() - createdAt.getTime() < 24 * 60 * 60 * 1000;
+    const createdAt = dayjs(meal.createdAt);
+    const now = dayjs();
+    return now.diff(createdAt, "hour") < 24;
   };
 
   const handleEditClick = (meal: Meal) => {
@@ -75,7 +87,7 @@ export function MealList({ meals: propMeals, readOnly = false }: MealListProps) 
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex flex-col">
               <CardTitle className="text-base font-semibold capitalize">
-                {meal.mealType} - {format(new Date(meal.date), "PPP")}
+                {meal.mealType} - {dayjs(meal.date).format("MMMM D, YYYY")}
               </CardTitle>
               <CardDescription>
                 {meal.items.length} Items -{" "}
@@ -139,7 +151,7 @@ export function MealList({ meals: propMeals, readOnly = false }: MealListProps) 
                 className="w-full justify-start text-muted-foreground"
                 onClick={() =>
                   setExpandedCommentsId((id) =>
-                    id === meal.mealId ? null : meal.mealId
+                    id === meal.mealId ? null : meal.mealId,
                   )
                 }
               >

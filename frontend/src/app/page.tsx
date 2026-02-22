@@ -6,30 +6,25 @@ import { useAuthStore } from '@/stores/authStore';
 
 export default function Home() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, initializeAuth, user } = useAuthStore();
+  const { isAuthenticated, isLoading, initializeAuth, user, isInitialized } = useAuthStore();
 
   useEffect(() => {
-    const initializeAndRedirect = async () => {
-      await initializeAuth();
-      
-      if (!isLoading && isAuthenticated) {
-        if (!user) {
-          // User is authenticated but user data is missing, reinitialize
-          await initializeAuth();
-          return;
-        }
+    // Initialize auth if not already done
+    if (!isInitialized) {
+      initializeAuth();
+    }
+  }, [initializeAuth, isInitialized]);
 
-        // Redirect based on user role
-        if (user.role === 'trainer') {
-          router.push('/trainer/clients');
-        } else {
-          router.push('/athlete/workouts');
-        }
+  useEffect(() => {
+    // Only redirect if fully loaded and authenticated
+    if (!isLoading && isAuthenticated && user) {
+      if (user.role === 'trainer') {
+        router.push('/trainer/clients');
+      } else {
+        router.push('/athlete/workouts');
       }
-    };
-    
-    initializeAndRedirect();
-  }, [initializeAuth, isAuthenticated, isLoading, router, user]);
+    }
+  }, [isAuthenticated, isLoading, router, user]);
 
   if (isLoading) {
     return (

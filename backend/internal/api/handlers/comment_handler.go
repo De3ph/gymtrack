@@ -30,7 +30,12 @@ func NewCommentHandler(
 	}
 }
 
-// CreateCommentRequest is the request body for creating a comment.
+// CreateCommentRequest represents the request body for creating a comment.
+// @Description Request body for creating a new comment on a workout or meal.
+// @Property targetType required true string "Type of target (workout or meal)" Enum(workout,meal)
+// @Property targetId required true string "ID of the target (workout or meal) to comment on"
+// @Property content required true string "Content of the comment (1-2000 characters)"
+// @Property parentCommentId string "ID of parent comment for threaded replies (optional)"
 type CreateCommentRequest struct {
 	TargetType      models.TargetType `json:"targetType" binding:"required"`
 	TargetID        string            `json:"targetId" binding:"required"`
@@ -38,12 +43,28 @@ type CreateCommentRequest struct {
 	ParentCommentID *string           `json:"parentCommentId,omitempty"`
 }
 
-// UpdateCommentRequest is the request body for updating a comment.
+// UpdateCommentRequest represents the request body for updating a comment.
+// @Description Request body for updating an existing comment's content.
+// @Property content required true string "Updated content of the comment (1-2000 characters)"
 type UpdateCommentRequest struct {
 	Content string `json:"content" binding:"required,min=1,max=2000"`
 }
 
 // CreateComment handles POST /api/comments
+// @Summary Create a comment
+// @Description Create a new comment on a workout or meal. The user must have permission to comment on the target.
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body handlers.CreateCommentRequest true "Create comment request"
+// @Success 201 {object} models.Comment "Comment created successfully"
+// @Failure 400 {object} map[string]string "Invalid request body or validation failed"
+// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 403 {object} map[string]string "Access denied or cannot comment on this target"
+// @Failure 404 {object} map[string]string "Target (workout or meal) not found"
+// @Failure 500 {object} map[string]string "Failed to create comment"
+// @Router /comments [post]
 func (h *CommentHandler) CreateComment(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
@@ -103,7 +124,22 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	c.JSON(http.StatusCreated, comment)
 }
 
-// GetComments handles GET /api/comments?targetId=&targetType=
+// GetComments handles GET /api/comments
+// @Summary Get comments for a target
+// @Description Retrieve all comments for a specific workout or meal. The user must have access to the target.
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param targetType query string true "Type of target (workout or meal)" Enum(workout,meal)
+// @Param targetId query string true "ID of the target (workout or meal)"
+// @Success 200 {object} map[string]interface{} "Comments retrieved successfully"
+// @Failure 400 {object} map[string]string "Missing or invalid query parameters"
+// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Target not found"
+// @Failure 500 {object} map[string]string "Failed to retrieve comments"
+// @Router /comments [get]
 func (h *CommentHandler) GetComments(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
@@ -150,6 +186,21 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 }
 
 // UpdateComment handles PUT /api/comments/:id
+// @Summary Update a comment
+// @Description Update the content of an existing comment. Only the author can edit their comment.
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Comment ID"
+// @Param request body handlers.UpdateCommentRequest true "Update comment request"
+// @Success 200 {object} models.Comment "Comment updated successfully"
+// @Failure 400 {object} map[string]string "Invalid request body or validation failed"
+// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 403 {object} map[string]string "Only the comment author can edit it"
+// @Failure 404 {object} map[string]string "Comment not found"
+// @Failure 500 {object} map[string]string "Failed to update comment"
+// @Router /comments/{id} [put]
 func (h *CommentHandler) UpdateComment(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
@@ -195,6 +246,19 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 }
 
 // DeleteComment handles DELETE /api/comments/:id
+// @Summary Delete a comment
+// @Description Delete an existing comment. Only the author can delete their comment.
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Comment ID"
+// @Success 200 {object} map[string]string "Comment deleted successfully"
+// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 403 {object} map[string]string "Only the comment author can delete it"
+// @Failure 404 {object} map[string]string "Comment not found"
+// @Failure 500 {object} map[string]string "Failed to delete comment"
+// @Router /comments/{id} [delete]
 func (h *CommentHandler) DeleteComment(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {

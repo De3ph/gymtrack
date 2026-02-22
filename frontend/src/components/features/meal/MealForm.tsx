@@ -5,7 +5,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,8 +26,8 @@ export function MealForm({ onSuccess }: MealFormProps) {
   const form = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
     defaultValues: {
-      date: new Date(),
-      mealTime: format(new Date(), "HH:mm"),
+      date: dayjs().toDate(),
+      mealTime: dayjs().format("HH:mm"),
       mealType: "breakfast",
       items: [
         {
@@ -62,9 +62,12 @@ export function MealForm({ onSuccess }: MealFormProps) {
 
   const mapAndSubmit = async (data: MealFormData) => {
     // Combine date and time
-    const [hours, minutes] = data.mealTime.split(':').map(Number);
-    const combinedDate = new Date(data.date);
-    combinedDate.setHours(hours, minutes, 0, 0);
+    const [hours, minutes] = data.mealTime.split(":").map(Number);
+    const combinedDate = dayjs(data.date)
+      .hour(hours)
+      .minute(minutes)
+      .second(0)
+      .millisecond(0);
 
     return mealApi.create({
       date: combinedDate.toISOString(),
@@ -114,7 +117,8 @@ export function MealForm({ onSuccess }: MealFormProps) {
         </div>
         {(form.formState.errors.date || form.formState.errors.mealTime) && (
           <p className="text-sm text-destructive">
-            {form.formState.errors.date?.message || form.formState.errors.mealTime?.message}
+            {form.formState.errors.date?.message ||
+              form.formState.errors.mealTime?.message}
           </p>
         )}
       </div>
@@ -145,7 +149,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
                   {...form.register(`items.${index}.food`)}
                   className={cn(
                     form.formState.errors.items?.[index]?.food &&
-                    "border-destructive",
+                      "border-destructive",
                   )}
                 />
                 {form.formState.errors.items?.[index]?.food && (

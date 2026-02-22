@@ -62,7 +62,9 @@ export interface RegisterResponse {
 
 export interface LoginResponse {
   message: string;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
+  user: import('@/types').User;
 }
 
 /**

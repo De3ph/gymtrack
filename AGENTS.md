@@ -10,66 +10,66 @@ Build a full-stack fitness tracking application that enables personal trainers t
 
 ### **1.1 User Management**
 
-* **User Types**: Trainer and Athlete (role-based access control)
-* **Authentication**:
-  * Email/password registration and login
-  * JWT-based session management
-  * Secure logout (token invalidation)
-  * Password reset functionality
-* **User Profiles**:
-  * Athletes: name, email, age, weight, height, fitness goals, trainer assignment
-  * Trainers: name, email, certifications, specializations, client list
+- **User Types**: Trainer and Athlete (role-based access control)
+- **Authentication**:
+  - Email/password registration and login
+  - JWT-based session management
+  - Secure logout (token invalidation)
+  - Password reset functionality
+- **User Profiles**:
+  - Athletes: name, email, age, weight, height, fitness goals, trainer assignment
+  - Trainers: name, email, certifications, specializations, client list
 
 ### **1.2 Trainer-Athlete Relationships**
 
-* Trainers can invite athletes via email/unique code
-* Athletes can accept/decline trainer invitations
-* Athletes can have only ONE active trainer at a time
-* Trainers can manage multiple athletes
-* Either party can terminate the relationship
+- Trainers can invite athletes via email/unique code
+- Athletes can accept/decline trainer invitations
+- Athletes can have only ONE active trainer at a time
+- Trainers can manage multiple athletes
+- Either party can terminate the relationship
 
 ### **1.3 Workout Tracking (Athlete)**
 
-* **Log Workouts** with:
-  * Date and time
-  * Exercise name (searchable dropdown with common exercises + custom entry)
-  * Weight (numeric input)
-  * Weight unit (kg/lbs toggle)
-  * Sets (number)
-  * Reps per set (number or array for varied reps)
-  * Rest time between sets (seconds/minutes)
-  * Optional: duration, intensity, notes
-* **View History**: Calendar view + list view of past workouts
-* **Edit/Delete**: Own workout entries (within 24 hours of logging)
+- **Log Workouts** with:
+  - Date and time
+  - Exercise name (searchable dropdown with common exercises + custom entry)
+  - Weight (numeric input)
+  - Weight unit (kg/lbs toggle)
+  - Sets (number)
+  - Reps per set (number or array for varied reps)
+  - Rest time between sets (seconds/minutes)
+  - Optional: duration, intensity, notes
+- **View History**: Calendar view + list view of past workouts
+- **Edit/Delete**: Own workout entries (within 24 hours of logging)
 
 ### **1.4 Meal Tracking (Athlete)**
 
-* **Log Meals** with:
-  * Date and meal time (breakfast/lunch/dinner/snack)
-  * Food items and quantities
-  * Optional: calories, macros (protein/carbs/fats), photos
-* **Daily Summary**: Total calories and macro breakdown
-* **View History**: Calendar and list views
-* **Edit/Delete**: Own meal entries (within 24 hours)
+- **Log Meals** with:
+  - Date and meal time (breakfast/lunch/dinner/snack)
+  - Food items and quantities
+  - Optional: calories, macros (protein/carbs/fats), photos
+- **Daily Summary**: Total calories and macro breakdown
+- **View History**: Calendar and list views
+- **Edit/Delete**: Own meal entries (within 24 hours)
 
 ### **1.5 Trainer Oversight Dashboard**
 
-* **Client List**: View all assigned athletes
-* **Client Details**: Switch between clients to view:
-  * Workout history (filterable by date range, exercise type)
-  * Meal logs (filterable by date range, meal type)
-  * Progress charts (workout volume, consistency, nutrition trends)
-* **Real-time Updates**: See new entries as athletes log them
+- **Client List**: View all assigned athletes
+- **Client Details**: Switch between clients to view:
+  - Workout history (filterable by date range, exercise type)
+  - Meal logs (filterable by date range, meal type)
+  - Progress charts (workout volume, consistency, nutrition trends)
+- **Real-time Updates**: See new entries as athletes log them
 
 ### **1.6 Communication & Feedback**
 
-* **Comments System**:
-  * Trainers can comment on specific workouts or meals
-  * Athletes receive notifications for new comments
-  * Athletes can reply to trainer comments
-  * Threaded conversation view
-  * Comment timestamps and edit history
-* **Feedback Types**: Positive reinforcement, corrections, suggestions
+- **Comments System**:
+  - Trainers can comment on specific workouts or meals
+  - Athletes receive notifications for new comments
+  - Athletes can reply to trainer comments
+  - Threaded conversation view
+  - Comment timestamps and edit history
+- **Feedback Types**: Positive reinforcement, corrections, suggestions
 
 ---
 
@@ -88,7 +88,7 @@ Build a full-stack fitness tracking application that enables personal trainers t
   - Server State: TanStack React Query (v5)
   - Client State: Zustand
 - Form Handling: React Hook Form + Zod validation
-- Date Handling: date-fns or dayjs
+- Date Handling: dayjs
 ```
 
 #### **Backend**
@@ -157,16 +157,16 @@ Build a full-stack fitness tracking application that enables personal trainers t
 
 #### **Design Patterns to Apply**
 
-* **Frontend**:
-  * Custom hooks for reusable logic
-  * Component composition pattern
-  * Render props for complex components
-  * Repository pattern for API calls
-* **Backend**:
-  * Repository pattern (data access abstraction)
-  * Service layer pattern (business logic)
-  * Dependency injection
-  * Factory pattern for entity creation
+- **Frontend**:
+  - Custom hooks for reusable logic
+  - Component composition pattern
+  - Render props for complex components
+  - Repository pattern for API calls
+- **Backend**:
+  - Repository pattern (data access abstraction)
+  - Service layer pattern (business logic)
+  - Dependency injection
+  - Factory pattern for entity creation
 
 ### **2.3 Database Schema (Couchbase)**
 
@@ -319,32 +319,32 @@ DELETE /api/comments/:id         - Delete comment
 
 ### **2.5 Security & Validation**
 
-* **Authentication**: All endpoints (except auth) require valid JWT
-* **Authorization**: Role-based access (trainers can't edit athlete entries, etc.)
-* **Input Validation**:
-  * Frontend: Zod schemas for all forms
-  * Backend: Go validator for all incoming data
-* **Sanitization**: Escape user inputs to prevent XSS
-* **Rate Limiting**: Limit API calls per user (e.g., 100 requests/minute)
-* **HTTPS Only**: Force secure connections in production
-* **Password Security**: Bcrypt hashing (cost factor 12)
+- **Authentication**: All endpoints (except auth) require valid JWT
+- **Authorization**: Role-based access (trainers can't edit athlete entries, etc.)
+- **Input Validation**:
+  - Frontend: Zod schemas for all forms
+  - Backend: Go validator for all incoming data
+- **Sanitization**: Escape user inputs to prevent XSS
+- **Rate Limiting**: Limit API calls per user (e.g., 100 requests/minute)
+- **HTTPS Only**: Force secure connections in production
+- **Password Security**: Bcrypt hashing (cost factor 12)
 
 ### **2.6 Code Quality Standards**
 
-* **Clean Code Principles**:
-  * Single Responsibility Principle
-  * DRY (Don't Repeat Yourself)
-  * Meaningful variable/function names
-  * Functions < 20 lines ideally
-  * Comments for complex logic only
-* **Error Handling**:
-  * Consistent error response format
-  * User-friendly error messages
-  * Logging for debugging
-* **Testing** (implement later):
-  * Unit tests for business logic
-  * Integration tests for API endpoints
-  * E2E tests for critical user flows
-* **Code Formatting**:
-  * Frontend: Prettier + ESLint
-  * Backend: gofmt + golint
+- **Clean Code Principles**:
+  - Single Responsibility Principle
+  - DRY (Don't Repeat Yourself)
+  - Meaningful variable/function names
+  - Functions < 20 lines ideally
+  - Comments for complex logic only
+- **Error Handling**:
+  - Consistent error response format
+  - User-friendly error messages
+  - Logging for debugging
+- **Testing** (implement later):
+  - Unit tests for business logic
+  - Integration tests for API endpoints
+  - E2E tests for critical user flows
+- **Code Formatting**:
+  - Frontend: Prettier + ESLint
+  - Backend: gofmt + golint

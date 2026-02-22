@@ -8,44 +8,54 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   setUser: (user: User) => void;
   initializeAuth: () => Promise<void>;
   handleAuthError: (error: unknown) => void;
+  refreshAccessToken: () => Promise<boolean>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
   isLoading: true,
+  isInitialized: false,
 
   login: async (email: string, password: string) => {
     const response = await authApi.login({ email, password });
-    const token = response.token;
+    const { accessToken, refreshToken, user } = response;
 
-    TokenService.set(token);
-
-    // Fetch user data
-    const user = await userApi.getCurrentUser();
+    TokenService.setTokens(accessToken, refreshToken);
 
     set({
-      token,
+      token: accessToken,
       user,
       isAuthenticated: true,
-      isLoading: false
+      isLoading: false,
+      isInitialized: true
     });
   },
 
-  logout: () => {
-    TokenService.remove();
-    set({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false
-    });
+  logout: async () => {
+    try {
+      // Call backend logout endpoint
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Always clear local tokens regardless of API call success
+      TokenService.remove();
+      set({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: false
+      });
+    }
   },
 
   setUser: (user: User) => {
@@ -53,23 +63,79 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   initializeAuth: async () => {
-    const token = TokenService.get();
+    const state = get();
 
-    if (!token) {
-      set({ isLoading: false, isAuthenticated: false });
+    // Prevent multiple initializations
+    if (state.isInitialized) {
+      return;
+    }
+
+    set({ isLoading: true });
+
+    const accessToken = TokenService.getAccessToken();
+
+    if (!accessToken) {
+      set({
+        isLoading: false,
+        isAuthenticated: false,
+        isInitialized: true
+      });
       return;
     }
 
     try {
-      const user = await userApi.getCurrentUser();
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Auth initialization timeout')), 3000)
+      );
+
+      const user = await Promise.race([
+        userApi.getCurrentUser(),
+        timeoutPromise
+      ]);
+
       set({
-        token,
+        token: accessToken,
         user,
         isAuthenticated: true,
-        isLoading: false
+        isLoading: false,
+        isInitialized: true
       });
     } catch (error) {
-      useAuthStore.getState().handleAuthError(error);
+      console.log('Auth initialization failed, treating as unauthenticated:', error);
+
+      // For any error (timeout, network, auth), clear tokens and mark as unauthenticated
+      TokenService.remove();
+      set({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: true
+      });
+    }
+  },
+
+  refreshAccessToken: async (): Promise<boolean> => {
+    const refreshToken = TokenService.getRefreshToken();
+
+    if (!refreshToken) {
+      return false;
+    }
+
+    try {
+      const response = await authApi.refreshToken(refreshToken);
+      const { accessToken } = response;
+
+      TokenService.setTokens(accessToken, refreshToken);
+
+      // Update the token in state
+      set({ token: accessToken });
+
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      return false;
     }
   },
 
@@ -79,17 +145,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Check for 401/403 errors or token-related issues
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase();
-      if (errorMessage.includes('401') ||
+      const isAuthError = errorMessage.includes('401') ||
         errorMessage.includes('403') ||
         errorMessage.includes('unauthorized') ||
-        errorMessage.includes('token')) {
+        errorMessage.includes('token') ||
+        errorMessage.includes('forbidden');
+
+      if (isAuthError) {
         // Clear auth state and redirect to login
         TokenService.remove();
         set({
           user: null,
           token: null,
           isAuthenticated: false,
-          isLoading: false
+          isLoading: false,
+          isInitialized: true // Keep as true to prevent re-initialization loops
         });
 
         // Navigate to login page

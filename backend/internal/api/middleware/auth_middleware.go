@@ -13,7 +13,19 @@ import (
 	"gymtrack-backend/internal/domain/models"
 )
 
+var (
+	appConfig *config.Config
+)
+
+func InitAuthMiddleware(cfg *config.Config) {
+	appConfig = cfg
+}
+
 func JWTAuthMiddleware() gin.HandlerFunc {
+	if appConfig == nil {
+		panic("Auth middleware not initialized. Call InitAuthMiddleware first.")
+	}
+
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -35,8 +47,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			cfg := config.LoadConfig() // Load config inside the parsing function
-			return []byte(cfg.JWTSecret), nil
+			return []byte(appConfig.JWTSecret), nil
 		})
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token", "details": err.Error()})
@@ -54,6 +65,14 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 				}
 			} else {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Token expiration claim missing"})
+				c.Abort()
+				return
+			}
+
+			// Verify token type is access (for API requests)
+			tokenType, ok := claims["type"].(string)
+			if !ok || tokenType != "access" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type for API access"})
 				c.Abort()
 				return
 			}
