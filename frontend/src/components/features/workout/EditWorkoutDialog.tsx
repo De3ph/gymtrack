@@ -23,6 +23,7 @@ import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Workout } from "@/types";
 import { cn } from "@/lib/utils";
+import { TIME_LIMITS } from "@/lib/constants";
 
 interface EditWorkoutDialogProps {
   workout: Workout | null;
@@ -48,8 +49,8 @@ export function EditWorkoutDialog({
           weight: 0,
           weightUnit: "kg",
           sets: 3,
-          reps: [10],
-          restTime: 60,
+          reps: [TIME_LIMITS.DEFAULT_REPS],
+          restTime: TIME_LIMITS.DEFAULT_REST_SECONDS,
         },
       ],
     },

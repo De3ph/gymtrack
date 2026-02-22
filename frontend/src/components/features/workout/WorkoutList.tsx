@@ -24,6 +24,7 @@ import { workoutApi } from "@/lib/api";
 import { Workout } from "@/types";
 import { EditWorkoutDialog } from "./EditWorkoutDialog";
 import { CommentThread } from "@/components/features/comments/CommentThread";
+import { TIME_LIMITS, TARGET_TYPES } from "@/lib/constants";
 
 interface WorkoutListProps {
   workouts?: Workout[];
@@ -57,11 +58,10 @@ export function WorkoutList({
     },
   });
 
-  // Helper to check 24h window
   const canEdit = (workout: Workout) => {
     const createdAt = dayjs(workout.createdAt);
     const now = dayjs();
-    return now.diff(createdAt, "hour") < 24;
+    return now.diff(createdAt, "hour") < TIME_LIMITS.EDIT_WINDOW_HOURS;
   };
 
   const handleEditClick = (workout: Workout) => {
@@ -157,7 +157,7 @@ export function WorkoutList({
               {expandedCommentsId === workout.workoutId && (
                 <div className="mt-3">
                   <CommentThread
-                    targetType="workout"
+                    targetType={TARGET_TYPES.WORKOUT}
                     targetId={workout.workoutId}
                     readOnly={false}
                     enabled={true}

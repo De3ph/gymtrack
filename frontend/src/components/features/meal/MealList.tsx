@@ -24,6 +24,7 @@ import { mealApi } from "@/lib/api";
 import { Meal } from "@/types";
 import { EditMealDialog } from "./EditMealDialog";
 import { CommentThread } from "@/components/features/comments/CommentThread";
+import { TIME_LIMITS, TARGET_TYPES } from "@/lib/constants";
 
 interface MealListProps {
   meals?: Meal[];
@@ -58,7 +59,7 @@ export function MealList({
   const canEdit = (meal: Meal) => {
     const createdAt = dayjs(meal.createdAt);
     const now = dayjs();
-    return now.diff(createdAt, "hour") < 24;
+    return now.diff(createdAt, "hour") < TIME_LIMITS.EDIT_WINDOW_HOURS;
   };
 
   const handleEditClick = (meal: Meal) => {
@@ -166,7 +167,7 @@ export function MealList({
               {expandedCommentsId === meal.mealId && (
                 <div className="mt-3">
                   <CommentThread
-                    targetType="meal"
+                    targetType={TARGET_TYPES.MEAL}
                     targetId={meal.mealId}
                     readOnly={false}
                     enabled={true}

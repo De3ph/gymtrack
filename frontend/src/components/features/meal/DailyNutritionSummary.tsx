@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mealApi } from "@/lib/api";
 import { withTiming } from "@/lib/performance";
 import dayjs from "dayjs";
+import { API } from "@/lib/constants";
 
 interface DailyNutritionSummaryProps {
   date: dayjs.Dayjs;
@@ -18,7 +19,7 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
     queryKey: ["meals", dateStr],
     queryFn: () =>
       withTiming("daily-meals-fetch", () =>
-        mealApi.getByDate(dateStr, { timeout: 5000 }),
+        mealApi.getByDate(dateStr, { timeout: API.DEFAULT_TIMEOUT_MS }),
       ),
   });
 

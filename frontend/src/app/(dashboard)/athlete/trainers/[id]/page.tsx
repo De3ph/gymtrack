@@ -14,16 +14,7 @@ import { Button } from "@/components/ui/button";
 import { CreateReviewDialog } from "@/components/features/reviews/CreateReviewDialog";
 import { ReviewActions } from "@/components/features/reviews/ReviewActions";
 import { CoachingRequestDialog } from "@/components/features/coaching/CoachingRequestDialog";
-
-const DAYS_OF_WEEK = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
+import { DAYS_OF_WEEK } from "@/lib/constants";
 
 export default function TrainerProfilePage() {
   const params = useParams();

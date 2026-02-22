@@ -14,6 +14,7 @@ import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { cn } from "@/lib/utils";
 import { workoutSchema, type WorkoutFormData } from "@/lib/validations/workout";
+import { TIME_LIMITS } from "@/lib/constants";
 
 interface WorkoutFormProps {
   onSuccess?: () => void;
@@ -33,8 +34,8 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
           weight: 0,
           weightUnit: "kg",
           sets: 3,
-          reps: [10],
-          restTime: 60,
+          reps: [TIME_LIMITS.DEFAULT_REPS],
+          restTime: TIME_LIMITS.DEFAULT_REST_SECONDS,
         },
       ],
     },

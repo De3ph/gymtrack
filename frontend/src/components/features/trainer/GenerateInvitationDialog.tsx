@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Copy, Check, Loader2, RefreshCw } from "lucide-react";
+import { TIME_LIMITS } from "@/lib/constants";
 
 interface GenerateInvitationDialogProps {
   open: boolean;
@@ -55,7 +56,7 @@ export function GenerateInvitationDialog({
         setCopying(true);
         await navigator.clipboard.writeText(code);
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setTimeout(() => setCopied(false), TIME_LIMITS.COPY_FEEDBACK_MS);
       } catch (err) {
         console.error("Failed to copy to clipboard:", err);
         // Optionally show error message to user
