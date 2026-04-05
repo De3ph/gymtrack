@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { motion } from "motion/react"
+import { staggerContainer, staggerItem } from "@/lib/animations"
 
 export default function TrainerCatalogPage() {
   const [trainers, setTrainers] = useState<TrainerWithProfile[]>([])
@@ -127,54 +129,64 @@ export default function TrainerCatalogPage() {
               No trainers found. Try adjusting your filters.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {trainers.map((trainer) => (
-                <Link key={trainer.userId} href={`/athlete/trainers/${trainer.userId}`}>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full" style={{ contentVisibility: 'auto' }}>
-                    <CardHeader>
-                      <CardTitle>{trainer.profile.name}</CardTitle>
-                      <p className="text-sm text-gray-500">{trainer.email}</p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {trainer.profile.specializations && (
-                          <div>
-                            <span className="font-medium">Specializations:</span>{" "}
-                            {trainer.profile.specializations}
+                <motion.div
+                  key={trainer.userId}
+                  variants={staggerItem}
+                >
+                  <Link href={`/athlete/trainers/${trainer.userId}`}>
+                    <Card animateHover className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                      <CardHeader>
+                        <CardTitle>{trainer.profile.name}</CardTitle>
+                        <p className="text-sm text-gray-500">{trainer.email}</p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {trainer.profile.specializations && (
+                            <div>
+                              <span className="font-medium">Specializations:</span>{" "}
+                              {trainer.profile.specializations}
+                            </div>
+                          )}
+                          {trainer.profile.certifications && (
+                            <div>
+                              <span className="font-medium">Certifications:</span>{" "}
+                              {trainer.profile.certifications}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">Rating:</span>
+                            <span className="text-yellow-500">
+                              {renderStars(trainer.averageRating || 0)}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              ({trainer.reviewCount || 0} reviews)
+                            </span>
                           </div>
-                        )}
-                        {trainer.profile.certifications && (
-                          <div>
-                            <span className="font-medium">Certifications:</span>{" "}
-                            {trainer.profile.certifications}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Rating:</span>
-                          <span className="text-yellow-500">
-                            {renderStars(trainer.averageRating || 0)}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            ({trainer.reviewCount || 0} reviews)
-                          </span>
+                          {trainer.trainerProfile?.hourlyRate && (
+                            <div>
+                              <span className="font-medium">Hourly Rate:</span> $
+                              {trainer.trainerProfile.hourlyRate}
+                            </div>
+                          )}
+                          {trainer.trainerProfile?.isAvailableForNewClients && (
+                            <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+                              Available for New Clients
+                            </span>
+                          )}
                         </div>
-                        {trainer.trainerProfile?.hourlyRate && (
-                          <div>
-                            <span className="font-medium">Hourly Rate:</span> $
-                            {trainer.trainerProfile.hourlyRate}
-                          </div>
-                        )}
-                        {trainer.trainerProfile?.isAvailableForNewClients && (
-                          <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
-                            Available for New Clients
-                          </span>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

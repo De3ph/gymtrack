@@ -1,20 +1,41 @@
 import * as React from "react";
+import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { cardHover } from "@/lib/animations";
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className,
-    )}
-    {...props}
-  />
-));
+  React.HTMLAttributes<HTMLDivElement> & { animateHover?: boolean }
+>(({ className, animateHover = false, children, ...props }, ref) => {
+  if (animateHover) {
+    return (
+      <motion.div
+        ref={ref}
+        className={cn(
+          "rounded-lg border bg-card text-card-foreground shadow-sm",
+          className,
+        )}
+        whileHover={cardHover.whileHover}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-lg border bg-card text-card-foreground shadow-sm",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<

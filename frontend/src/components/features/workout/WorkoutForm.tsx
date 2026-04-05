@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { FieldErrors, useFieldArray, useForm } from "react-hook-form";
 import dayjs from "dayjs";
+import { motion, AnimatePresence } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { ApiErrorHandler } from "@/lib/error-handler";
 import { cn } from "@/lib/utils";
 import { workoutSchema, type WorkoutFormData } from "@/lib/validations/workout";
 import { TIME_LIMITS } from "@/lib/constants";
+import { formField } from "@/lib/animations";
 
 interface WorkoutFormProps {
   onSuccess?: () => void;
@@ -124,122 +126,127 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
       </div>
 
       <div className="space-y-4">
-        {fields.map((field, index) => (
-          <Card key={field.id} className="relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive"
-              onClick={() => remove(index)}
-              disabled={fields.length === 1}
+        <AnimatePresence mode="popLayout">
+          {fields.map((field, index) => (
+            <motion.div
+              key={field.id}
+              variants={formField}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              layout
             >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-medium">
-                Exercise {index + 1}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-2 col-span-2">
-                <Label htmlFor={`exercises.${index}.name`}>Values</Label>
-                <Input
-                  placeholder="e.g. Bench Press"
-                  {...form.register(`exercises.${index}.name`)}
-                  className={cn(
-                    form.formState.errors.exercises?.[index]?.name &&
-                      "border-destructive",
-                  )}
-                />
-                {form.formState.errors.exercises?.[index]?.name && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.exercises[index]?.name?.message}
-                  </p>
-                )}
-              </div>
+              <Card className="relative">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => remove(index)}
+                  disabled={fields.length === 1}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium">
+                    Exercise {index + 1}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="space-y-2 col-span-2">
+                    <Label htmlFor={`exercises.${index}.name`}>Values</Label>
+                    <Input
+                      placeholder="e.g. Bench Press"
+                      {...form.register(`exercises.${index}.name`)}
+                      className={cn(
+                        form.formState.errors.exercises?.[index]?.name &&
+                        "border-destructive",
+                      )}
+                    />
+                    {form.formState.errors.exercises?.[index]?.name && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.exercises[index]?.name?.message}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label>Weight & Unit</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    type="number"
-                    step="0.5"
-                    className="flex-1"
-                    placeholder="Weight"
-                    {...form.register(`exercises.${index}.weight`, {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  <select
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                    {...form.register(`exercises.${index}.weightUnit`)}
-                  >
-                    <option value="kg">kg</option>
-                    <option value="lbs">lbs</option>
-                  </select>
-                </div>
-                {form.formState.errors.exercises?.[index]?.weight && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.exercises[index]?.weight?.message}
-                  </p>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <Label>Weight & Unit</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="number"
+                        step="0.5"
+                        className="flex-1"
+                        placeholder="Weight"
+                        {...form.register(`exercises.${index}.weight`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                      <select
+                        className="h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                        {...form.register(`exercises.${index}.weightUnit`)}
+                      >
+                        <option value="kg">kg</option>
+                        <option value="lbs">lbs</option>
+                      </select>
+                    </div>
+                    {form.formState.errors.exercises?.[index]?.weight && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.exercises[index]?.weight?.message}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label>Sets & Rest</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    type="number"
-                    placeholder="Sets"
-                    {...form.register(`exercises.${index}.sets`, {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Rest(s)"
-                    {...form.register(`exercises.${index}.restTime`, {
-                      valueAsNumber: true,
-                    })}
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label>Sets & Rest</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="number"
+                        placeholder="Sets"
+                        {...form.register(`exercises.${index}.sets`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Rest(s)"
+                        {...form.register(`exercises.${index}.restTime`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2 col-span-full">
-                <Label>Reps (comma separated for multiple sets)</Label>
-                <Input
-                  placeholder="e.g. 10, 10, 8"
-                  // Handling array of numbers is tricky with simple input.
-                  // We'll capture as string and transform? Or custom controller?
-                  // For simplicity in this iteration: simple input that we parse on submit?
-                  // No, Zod expects array. We should use a Controller or simple transform.
-                  // Let's use a simple text input and handle transform in a wrapper or register options?
-                  // register `setValueAs` works.
-                  {...form.register(`exercises.${index}.reps`, {
-                    setValueAs: (v) => {
-                      if (Array.isArray(v)) return v;
-                      if (typeof v === "string")
-                        return v
-                          .split(",")
-                          .map((n) => parseInt(n.trim()))
-                          .filter((n) => !isNaN(n));
-                      return [];
-                    },
-                  })}
-                />
-                {form.formState.errors.exercises?.[index]?.reps && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.exercises[index]?.reps?.message}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Enter reps for each set, separated by commas
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  <div className="space-y-2 col-span-full">
+                    <Label>Reps (comma separated for multiple sets)</Label>
+                    <Input
+                      placeholder="e.g. 10, 10, 8"
+                      {...form.register(`exercises.${index}.reps`, {
+                        setValueAs: (v) => {
+                          if (Array.isArray(v)) return v;
+                          if (typeof v === "string")
+                            return v
+                              .split(",")
+                              .map((n) => parseInt(n.trim()))
+                              .filter((n) => !isNaN(n));
+                          return [];
+                        },
+                      })}
+                    />
+                    {form.formState.errors.exercises?.[index]?.reps && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.exercises[index]?.reps?.message}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Enter reps for each set, separated by commas
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">

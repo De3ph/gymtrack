@@ -23,6 +23,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect } from "react"; import { useQuery } from "@tanstack/react-query"; // useEffect removed as data fetching handled by TanStack Query
 import dayjs from "dayjs";
+import { motion } from "motion/react";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 
 export default function TrainerClientsPage() {
   const router = useRouter();
@@ -40,12 +42,12 @@ export default function TrainerClientsPage() {
   });
   const clients = data?.clients ?? [];
 
-   // Guard: redirect if not a trainer
-   useEffect(() => {
-     if (user && user.role !== "trainer") {
-       router.push("/");
-     }
-   }, [user, router]);
+  // Guard: redirect if not a trainer
+  useEffect(() => {
+    if (user && user.role !== "trainer") {
+      router.push("/");
+    }
+  }, [user, router]);
 
   const filteredClients = clients.filter(
     (client) =>
@@ -65,13 +67,13 @@ export default function TrainerClientsPage() {
     router.push(`/trainer/client/${clientId}`);
   };
 
-   if (isLoading) {
-     return (
-       <div className="flex h-full items-center justify-center">
-         <Loader2 className="h-8 w-8 animate-spin" />
-       </div>
-     );
-   }
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6">
@@ -88,11 +90,11 @@ export default function TrainerClientsPage() {
         </Button>
       </div>
 
-       {error && (
-         <div className="mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
-           {error instanceof Error ? error.message : String(error)}
-         </div>
-       )}
+      {error && (
+        <div className="mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
+          {error instanceof Error ? error.message : String(error)}
+        </div>
+      )}
 
       {clients.length > 0 && (
         <div className="mb-4">
@@ -122,48 +124,58 @@ export default function TrainerClientsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {filteredClients.map((client) => (
-            <Card key={client.relationship?.relationshipId} style={{ contentVisibility: 'auto' }}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  {client.athlete?.profile?.name || "Unknown Athlete"}
-                </CardTitle>
-                <CardDescription>{client.athlete?.email}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 space-y-2 text-sm">
-                  {client.athlete?.profile?.fitnessGoals && (
-                    <p className="text-muted-foreground line-clamp-2">
-                      Goals: {client.athlete.profile.fitnessGoals}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    Client since{" "}
-                    {client.relationship?.createdAt
-                      ? dayjs(client.relationship.createdAt).format(
+            <motion.div
+              key={client.relationship?.relationshipId}
+              variants={staggerItem}
+            >
+              <Card animateHover>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    {client.athlete?.profile?.name || "Unknown Athlete"}
+                  </CardTitle>
+                  <CardDescription>{client.athlete?.email}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 space-y-2 text-sm">
+                    {client.athlete?.profile?.fitnessGoals && (
+                      <p className="text-muted-foreground line-clamp-2">
+                        Goals: {client.athlete.profile.fitnessGoals}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Client since{" "}
+                      {client.relationship?.createdAt
+                        ? dayjs(client.relationship.createdAt).format(
                           "MMM D, YYYY",
                         )
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() =>
-                      handleViewClient(client.athlete?.userId || "")
-                    }
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() =>
+                        handleViewClient(client.athlete?.userId || "")
+                      }
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {filteredClients.length === 0 && clients.length > 0 && (
