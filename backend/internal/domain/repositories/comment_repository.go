@@ -11,18 +11,28 @@ import (
 	"github.com/couchbase/gocb/v2"
 )
 
-type CommentRepository struct {
+type CommentRepository interface {
+	Create(comment *models.Comment) error
+	GetByID(commentID string) (*models.Comment, error)
+	GetByTarget(targetType models.TargetType, targetID string) ([]*models.Comment, error)
+	GetByAuthor(authorID string) ([]*models.Comment, error)
+	GetReplies(parentCommentID string) ([]*models.Comment, error)
+	Update(comment *models.Comment) error
+	Delete(commentID string) error
+}
+
+type CouchbaseCommentRepository struct {
 	collection *gocb.Collection
 }
 
-func NewCommentRepository(collection *gocb.Collection) *CommentRepository {
-	return &CommentRepository{
+func NewCommentRepository(collection *gocb.Collection) *CouchbaseCommentRepository {
+	return &CouchbaseCommentRepository{
 		collection: collection,
 	}
 }
 
 // Create inserts a new comment into the database
-func (r *CommentRepository) Create(comment *models.Comment) error {
+func (r *CouchbaseCommentRepository) Create(comment *models.Comment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -37,7 +47,7 @@ func (r *CommentRepository) Create(comment *models.Comment) error {
 }
 
 // GetByID retrieves a comment by its ID
-func (r *CommentRepository) GetByID(commentID string) (*models.Comment, error) {
+func (r *CouchbaseCommentRepository) GetByID(commentID string) (*models.Comment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -57,7 +67,7 @@ func (r *CommentRepository) GetByID(commentID string) (*models.Comment, error) {
 }
 
 // GetByTarget retrieves comments for a specific workout or meal
-func (r *CommentRepository) GetByTarget(targetType models.TargetType, targetID string) ([]*models.Comment, error) {
+func (r *CouchbaseCommentRepository) GetByTarget(targetType models.TargetType, targetID string) ([]*models.Comment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -90,7 +100,7 @@ func (r *CommentRepository) GetByTarget(targetType models.TargetType, targetID s
 }
 
 // GetByAuthor retrieves comments by a specific author
-func (r *CommentRepository) GetByAuthor(authorID string) ([]*models.Comment, error) {
+func (r *CouchbaseCommentRepository) GetByAuthor(authorID string) ([]*models.Comment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -123,7 +133,7 @@ func (r *CommentRepository) GetByAuthor(authorID string) ([]*models.Comment, err
 }
 
 // GetReplies retrieves replies to a specific comment
-func (r *CommentRepository) GetReplies(parentCommentID string) ([]*models.Comment, error) {
+func (r *CouchbaseCommentRepository) GetReplies(parentCommentID string) ([]*models.Comment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -156,7 +166,7 @@ func (r *CommentRepository) GetReplies(parentCommentID string) ([]*models.Commen
 }
 
 // Update updates an existing comment
-func (r *CommentRepository) Update(comment *models.Comment) error {
+func (r *CouchbaseCommentRepository) Update(comment *models.Comment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -171,7 +181,7 @@ func (r *CommentRepository) Update(comment *models.Comment) error {
 }
 
 // Delete removes a comment from the database
-func (r *CommentRepository) Delete(commentID string) error {
+func (r *CouchbaseCommentRepository) Delete(commentID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

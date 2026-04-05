@@ -14,12 +14,12 @@ import (
 )
 
 type WorkoutHandler struct {
-	repo             *repositories.WorkoutRepository
-	relationshipRepo *repositories.RelationshipRepository
+	repo             repositories.WorkoutRepository
+	relationshipRepo repositories.RelationshipRepository
 	validator        *validator.Validate
 }
 
-func NewWorkoutHandler(repo *repositories.WorkoutRepository, relationshipRepo *repositories.RelationshipRepository) *WorkoutHandler {
+func NewWorkoutHandler(repo repositories.WorkoutRepository, relationshipRepo repositories.RelationshipRepository) *WorkoutHandler {
 	return &WorkoutHandler{
 		repo:             repo,
 		relationshipRepo: relationshipRepo,

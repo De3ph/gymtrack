@@ -16,10 +16,10 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No .env file found, using system environment variables")
-	}
+	// Try loading .env from multiple possible locations
+	_ = godotenv.Load(".env")
+	_ = godotenv.Load("../.env")
+	_ = godotenv.Load("../../.env")
 
 	jwtSecret := getEnv("JWT_SECRET", "")
 	if jwtSecret == "" {

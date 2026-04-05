@@ -11,18 +11,27 @@ import (
 	"github.com/couchbase/gocb/v2"
 )
 
-type MealRepository struct {
+type MealRepository interface {
+	Create(meal *models.Meal) error
+	GetByID(mealID string) (*models.Meal, error)
+	GetByAthleteID(athleteID string, limit, offset int) ([]*models.Meal, error)
+	GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Meal, error)
+	Update(meal *models.Meal) error
+	Delete(mealID string) error
+}
+
+type CouchbaseMealRepository struct {
 	collection *gocb.Collection
 }
 
-func NewMealRepository(collection *gocb.Collection) *MealRepository {
-	return &MealRepository{
+func NewMealRepository(collection *gocb.Collection) *CouchbaseMealRepository {
+	return &CouchbaseMealRepository{
 		collection: collection,
 	}
 }
 
 // Create inserts a new meal into the database
-func (r *MealRepository) Create(meal *models.Meal) error {
+func (r *CouchbaseMealRepository) Create(meal *models.Meal) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -37,7 +46,7 @@ func (r *MealRepository) Create(meal *models.Meal) error {
 }
 
 // GetByID retrieves a meal by its ID
-func (r *MealRepository) GetByID(mealID string) (*models.Meal, error) {
+func (r *CouchbaseMealRepository) GetByID(mealID string) (*models.Meal, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -57,7 +66,7 @@ func (r *MealRepository) GetByID(mealID string) (*models.Meal, error) {
 }
 
 // GetByAthleteID retrieves meals for a specific athlete with pagination
-func (r *MealRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Meal, error) {
+func (r *CouchbaseMealRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Meal, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -90,7 +99,7 @@ func (r *MealRepository) GetByAthleteID(athleteID string, limit, offset int) ([]
 }
 
 // GetByAthleteDateRange retrieves meals for a specific athlete within a date range
-func (r *MealRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Meal, error) {
+func (r *CouchbaseMealRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Meal, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -123,7 +132,7 @@ func (r *MealRepository) GetByAthleteDateRange(athleteID string, startDate, endD
 }
 
 // Update updates an existing meal
-func (r *MealRepository) Update(meal *models.Meal) error {
+func (r *CouchbaseMealRepository) Update(meal *models.Meal) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -140,7 +149,7 @@ func (r *MealRepository) Update(meal *models.Meal) error {
 }
 
 // Delete removes a meal from the database
-func (r *MealRepository) Delete(mealID string) error {
+func (r *CouchbaseMealRepository) Delete(mealID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

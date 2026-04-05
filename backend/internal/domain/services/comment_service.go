@@ -16,18 +16,17 @@ var (
 
 // CommentService encapsulates comment authorization and target resolution.
 type CommentService struct {
-	commentRepo      *repositories.CommentRepository
-	relationshipRepo *repositories.RelationshipRepository
-	workoutRepo      *repositories.WorkoutRepository
-	mealRepo         *repositories.MealRepository
+	commentRepo      repositories.CommentRepository
+	relationshipRepo repositories.RelationshipRepository
+	workoutRepo      repositories.WorkoutRepository
+	mealRepo         repositories.MealRepository
 }
 
-// NewCommentService creates a new CommentService.
 func NewCommentService(
-	commentRepo *repositories.CommentRepository,
-	relationshipRepo *repositories.RelationshipRepository,
-	workoutRepo *repositories.WorkoutRepository,
-	mealRepo *repositories.MealRepository,
+	commentRepo repositories.CommentRepository,
+	relationshipRepo repositories.RelationshipRepository,
+	workoutRepo repositories.WorkoutRepository,
+	mealRepo repositories.MealRepository,
 ) *CommentService {
 	return &CommentService{
 		commentRepo:      commentRepo,

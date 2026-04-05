@@ -168,5 +168,28 @@ func (r *CouchbaseTrainerProfileRepository) SearchTrainers(ctx context.Context, 
 }
 
 func (r *CouchbaseTrainerProfileRepository) CountTrainers(ctx context.Context, filters *TrainerFilters) (int, error) {
-	return 0, nil
+	query, params := r.buildQuery(filters)
+	query = fmt.Sprintf("SELECT COUNT(*) as count FROM (%s) AS trainers", query)
+
+	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+		Context:              ctx,
+		PositionalParameters: params,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to count trainers: %w", err)
+	}
+	defer rows.Close()
+
+	var count int
+	for rows.Next() {
+		var row struct {
+			Count int `json:"count"`
+		}
+		if err := rows.Row(&row); err != nil {
+			return 0, fmt.Errorf("failed to unmarshal count: %w", err)
+		}
+		count = row.Count
+	}
+
+	return count, nil
 }

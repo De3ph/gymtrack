@@ -11,18 +11,28 @@ import (
 	"github.com/couchbase/gocb/v2"
 )
 
-type RelationshipRepository struct {
+type RelationshipRepository interface {
+	Create(relationship *models.Relationship) error
+	GetByID(relationshipID string) (*models.Relationship, error)
+	GetByTrainerID(trainerID string) ([]*models.Relationship, error)
+	GetByAthleteID(athleteID string) (*models.Relationship, error)
+	GetPendingByAthleteID(athleteID string) ([]*models.Relationship, error)
+	Update(relationship *models.Relationship) error
+	Delete(relationshipID string) error
+}
+
+type CouchbaseRelationshipRepository struct {
 	collection *gocb.Collection
 }
 
-func NewRelationshipRepository(collection *gocb.Collection) *RelationshipRepository {
-	return &RelationshipRepository{
+func NewRelationshipRepository(collection *gocb.Collection) *CouchbaseRelationshipRepository {
+	return &CouchbaseRelationshipRepository{
 		collection: collection,
 	}
 }
 
 // Create inserts a new relationship into the database
-func (r *RelationshipRepository) Create(relationship *models.Relationship) error {
+func (r *CouchbaseRelationshipRepository) Create(relationship *models.Relationship) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -37,7 +47,7 @@ func (r *RelationshipRepository) Create(relationship *models.Relationship) error
 }
 
 // GetByID retrieves a relationship by its ID
-func (r *RelationshipRepository) GetByID(relationshipID string) (*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetByID(relationshipID string) (*models.Relationship, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -57,7 +67,7 @@ func (r *RelationshipRepository) GetByID(relationshipID string) (*models.Relatio
 }
 
 // GetByTrainerID retrieves all relationships for a trainer
-func (r *RelationshipRepository) GetByTrainerID(trainerID string) ([]*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetByTrainerID(trainerID string) ([]*models.Relationship, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -90,7 +100,7 @@ func (r *RelationshipRepository) GetByTrainerID(trainerID string) ([]*models.Rel
 }
 
 // GetByAthleteID retrieves the active relationship for an athlete
-func (r *RelationshipRepository) GetByAthleteID(athleteID string) (*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetByAthleteID(athleteID string) (*models.Relationship, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -122,7 +132,7 @@ func (r *RelationshipRepository) GetByAthleteID(athleteID string) (*models.Relat
 }
 
 // GetPendingByAthleteID retrieves pending invitations for an athlete
-func (r *RelationshipRepository) GetPendingByAthleteID(athleteID string) ([]*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(athleteID string) ([]*models.Relationship, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -155,7 +165,7 @@ func (r *RelationshipRepository) GetPendingByAthleteID(athleteID string) ([]*mod
 }
 
 // Update updates an existing relationship
-func (r *RelationshipRepository) Update(relationship *models.Relationship) error {
+func (r *CouchbaseRelationshipRepository) Update(relationship *models.Relationship) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -172,7 +182,7 @@ func (r *RelationshipRepository) Update(relationship *models.Relationship) error
 }
 
 // Delete removes a relationship from the database
-func (r *RelationshipRepository) Delete(relationshipID string) error {
+func (r *CouchbaseRelationshipRepository) Delete(relationshipID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

@@ -1,6 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useState, useEffect } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { useParams, useRouter } from "next/navigation"
 import { trainerClientApi, relationshipApi } from "@/lib/api"
 import { Workout, Meal, User, ClientStats } from "@/types"
@@ -13,6 +15,7 @@ import { WorkoutList } from "@/components/features/workout/WorkoutList"
 import { MealList } from "@/components/features/meal/MealList"
 import { ClientProgressCharts } from "@/components/features/trainer/ClientProgressCharts"
 import { Loader2, ArrowLeft, UserX, Dumbbell, Utensils, Calendar } from "lucide-react"
+// useCallback removed; data fetching now via TanStack Query
 
 interface ClientDetails {
   athlete: User | null
@@ -25,85 +28,64 @@ export default function ClientDetailPage() {
   const { user } = useAuthStore()
   const clientId = params.id as string
 
-  const [clientDetails, setClientDetails] = useState<ClientDetails>({ athlete: null, stats: null })
-  const [workouts, setWorkouts] = useState<Workout[]>([])
-  const [meals, setMeals] = useState<Meal[]>([])
-  const [workoutStats, setWorkoutStats] = useState<WorkoutStats | null>(null)
-  const [mealStats, setMealStats] = useState<MealStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
+  const [terminateError, setTerminateError] = useState<string | null>(null)
 
   // Filter states
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" })
   const [exerciseType, setExerciseType] = useState("")
   const [mealType, setMealType] = useState("")
-  const [filterLoading, setFilterLoading] = useState(false)
 
-  const fetchClientData = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Fetch client details
-      const detailsResponse = await relationshipApi.getClientDetails(clientId)
-      setClientDetails({
-        athlete: detailsResponse.athlete,
-        stats: detailsResponse.stats
-      })
-
-      // Fetch workouts and meals in parallel
-      const [workoutsResponse, mealsResponse, statsResponse] = await Promise.all([
-        trainerClientApi.getClientWorkouts(clientId),
-        trainerClientApi.getClientMeals(clientId),
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["clientData", clientId, dateRange, exerciseType, mealType],
+    queryFn: async () => {
+      const details = await relationshipApi.getClientDetails(clientId);
+      const [workoutsResp, mealsResp, statsResp] = await Promise.all([
+        trainerClientApi.getClientWorkouts(clientId, {
+          ...(dateRange.start && { startDate: dateRange.start }),
+          ...(dateRange.end && { endDate: dateRange.end }),
+          ...(exerciseType && { exerciseType }),
+        }),
+        trainerClientApi.getClientMeals(clientId, {
+          ...(dateRange.start && { startDate: dateRange.start }),
+          ...(dateRange.end && { endDate: dateRange.end }),
+          ...(mealType && { mealType }),
+        }),
         trainerClientApi.getClientStats(clientId),
-      ])
+      ]);
+      return {
+        athlete: details.athlete,
+        stats: details.stats,
+        workouts: workoutsResp.workouts,
+        meals: mealsResp.meals,
+        workoutStats: statsResp.workoutStats,
+        mealStats: statsResp.mealStats,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: user?.role === "trainer",
+  });
 
-      setWorkouts(workoutsResponse.workouts)
-      setMeals(mealsResponse.meals)
-      setWorkoutStats(statsResponse.workoutStats)
-      setMealStats(statsResponse.mealStats)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load client data")
-    } finally {
-      setLoading(false)
-    }
-  }, [clientId])
+  const clientDetails = { athlete: data?.athlete ?? null, stats: data?.stats ?? null };
+  const workouts = data?.workouts ?? [];
+  const meals = data?.meals ?? [];
+  const workoutStats = data?.workoutStats ?? null;
+  const mealStats = data?.mealStats ?? null;
+  const loading = isLoading;
 
-  const applyFilters = async () => {
-    try {
-      setFilterLoading(true)
-      setError(null)
 
-      const workoutParams: Record<string, string> = {}
-      if (dateRange.start) workoutParams.startDate = dateRange.start
-      if (dateRange.end) workoutParams.endDate = dateRange.end
-      if (exerciseType) workoutParams.exerciseType = exerciseType
 
-      const mealParams: Record<string, string> = {}
-      if (dateRange.start) mealParams.startDate = dateRange.start
-      if (dateRange.end) mealParams.endDate = dateRange.end
-      if (mealType) mealParams.mealType = mealType
 
-      const [workoutsResponse, mealsResponse] = await Promise.all([
-        trainerClientApi.getClientWorkouts(clientId, workoutParams),
-        trainerClientApi.getClientMeals(clientId, mealParams),
-      ])
-
-      setWorkouts(workoutsResponse.workouts)
-      setMeals(mealsResponse.meals)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to apply filters")
-    } finally {
-      setFilterLoading(false)
-    }
-  }
 
   const clearFilters = () => {
     setDateRange({ start: "", end: "" })
     setExerciseType("")
     setMealType("")
-    fetchClientData()
+    // Query will refetch automatically due to queryKey change
+  }
+
+  const applyFilters = () => {
+    // No-op: query automatically refetches when filter state changes
   }
 
   useEffect(() => {
@@ -111,11 +93,7 @@ export default function ClientDetailPage() {
       router.push("/")
       return
     }
-
-    if (clientId) {
-      fetchClientData()
-    }
-  }, [user, router, clientId, fetchClientData])
+  }, [user, router])
 
   const handleTerminateRelationship = async () => {
     if (!confirm("Are you sure you want to end this relationship?")) {
@@ -125,9 +103,9 @@ export default function ClientDetailPage() {
     try {
       await relationshipApi.terminateRelationship(clientId)
       router.push("/trainer/clients")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to terminate relationship")
-    }
+     } catch (err) {
+       setTerminateError(err instanceof Error ? err.message : "Failed to terminate relationship")
+     }
   }
 
   if (loading) {
@@ -138,19 +116,19 @@ export default function ClientDetailPage() {
     )
   }
 
-  if (error && !clientDetails.athlete) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
-          {error}
-        </div>
-        <Button variant="outline" className="mt-4" onClick={() => router.push("/trainer/clients")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Clients
-        </Button>
-      </div>
-    )
-  }
+   if (terminateError && !clientDetails.athlete) {
+     return (
+       <div className="container mx-auto py-6">
+         <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
+           {terminateError}
+         </div>
+         <Button variant="outline" className="mt-4" onClick={() => router.push("/trainer/clients")}>
+           <ArrowLeft className="mr-2 h-4 w-4" />
+           Back to Clients
+         </Button>
+       </div>
+     )
+   }
 
   return (
     <div className="container mx-auto py-6">
@@ -310,13 +288,13 @@ export default function ClientDetailPage() {
                   </select>
                 </div>
                 <div className="flex items-end gap-2">
-                  <Button onClick={applyFilters} disabled={filterLoading}>
-                    {filterLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply Filters"}
-                  </Button>
-                  <Button variant="outline" onClick={clearFilters} disabled={filterLoading}>
-                    Clear
-                  </Button>
-                </div>
+                   <Button onClick={applyFilters}>
+                     Apply Filters
+                   </Button>
+                   <Button variant="outline" onClick={clearFilters}>
+                     Clear
+                   </Button>
+                 </div>
               </div>
             </CardContent>
           </Card>

@@ -11,18 +11,27 @@ import (
 	"github.com/couchbase/gocb/v2"
 )
 
-type WorkoutRepository struct {
+type WorkoutRepository interface {
+	Create(workout *models.Workout) error
+	GetByID(workoutID string) (*models.Workout, error)
+	GetByAthleteID(athleteID string, limit, offset int) ([]*models.Workout, error)
+	GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Workout, error)
+	Update(workout *models.Workout) error
+	Delete(workoutID string) error
+}
+
+type CouchbaseWorkoutRepository struct {
 	collection *gocb.Collection
 }
 
-func NewWorkoutRepository(collection *gocb.Collection) *WorkoutRepository {
-	return &WorkoutRepository{
+func NewWorkoutRepository(collection *gocb.Collection) *CouchbaseWorkoutRepository {
+	return &CouchbaseWorkoutRepository{
 		collection: collection,
 	}
 }
 
 // Create inserts a new workout into the database
-func (r *WorkoutRepository) Create(workout *models.Workout) error {
+func (r *CouchbaseWorkoutRepository) Create(workout *models.Workout) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -37,7 +46,7 @@ func (r *WorkoutRepository) Create(workout *models.Workout) error {
 }
 
 // GetByID retrieves a workout by its ID
-func (r *WorkoutRepository) GetByID(workoutID string) (*models.Workout, error) {
+func (r *CouchbaseWorkoutRepository) GetByID(workoutID string) (*models.Workout, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -57,7 +66,7 @@ func (r *WorkoutRepository) GetByID(workoutID string) (*models.Workout, error) {
 }
 
 // GetByAthleteID retrieves workouts for a specific athlete with pagination
-func (r *WorkoutRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Workout, error) {
+func (r *CouchbaseWorkoutRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Workout, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -90,7 +99,7 @@ func (r *WorkoutRepository) GetByAthleteID(athleteID string, limit, offset int) 
 }
 
 // GetByAthleteDateRange retrieves workouts for a specific athlete within a date range
-func (r *WorkoutRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Workout, error) {
+func (r *CouchbaseWorkoutRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Workout, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -123,7 +132,7 @@ func (r *WorkoutRepository) GetByAthleteDateRange(athleteID string, startDate, e
 }
 
 // Update updates an existing workout
-func (r *WorkoutRepository) Update(workout *models.Workout) error {
+func (r *CouchbaseWorkoutRepository) Update(workout *models.Workout) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -140,7 +149,7 @@ func (r *WorkoutRepository) Update(workout *models.Workout) error {
 }
 
 // Delete removes a workout from the database
-func (r *WorkoutRepository) Delete(workoutID string) error {
+func (r *CouchbaseWorkoutRepository) Delete(workoutID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

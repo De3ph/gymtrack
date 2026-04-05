@@ -151,14 +151,14 @@ func generateUUID() string {
 // InvitationService manages invitations using an adapter pattern
 type InvitationService struct {
 	method           InvitationMethod
-	relationshipRepo *repositories.RelationshipRepository
+	relationshipRepo repositories.RelationshipRepository
 	userRepo         repositories.UserRepository
 }
 
 // NewInvitationService creates a new invitation service
 func NewInvitationService(
 	method InvitationMethod,
-	relationshipRepo *repositories.RelationshipRepository,
+	relationshipRepo repositories.RelationshipRepository,
 	userRepo repositories.UserRepository,
 ) *InvitationService {
 	return &InvitationService{

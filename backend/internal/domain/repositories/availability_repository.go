@@ -13,6 +13,7 @@ import (
 
 type AvailabilityRepository interface {
 	GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerAvailability, error)
+	GetBySlotID(ctx context.Context, slotID string) (*models.TrainerAvailability, error)
 	UpsertAvailability(ctx context.Context, slot *models.TrainerAvailability) error
 	DeleteAvailability(ctx context.Context, slotID string) error
 	GetAvailableSlots(ctx context.Context, trainerID string, dayOfWeek int) ([]models.TrainerAvailability, error)
@@ -51,6 +52,26 @@ func (r *CouchbaseAvailabilityRepository) GetByTrainerID(ctx context.Context, tr
 	}
 
 	return slots, nil
+}
+
+func (r *CouchbaseAvailabilityRepository) GetBySlotID(ctx context.Context, slotID string) (*models.TrainerAvailability, error) {
+	var slot models.TrainerAvailability
+	getResult, err := r.collection.Get(slotID, &gocb.GetOptions{
+		Context: ctx,
+	})
+	if err != nil {
+		if err == gocb.ErrDocumentNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get availability slot: %w", err)
+	}
+
+	err = getResult.Content(&slot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal slot: %w", err)
+	}
+
+	return &slot, nil
 }
 
 func (r *CouchbaseAvailabilityRepository) UpsertAvailability(ctx context.Context, slot *models.TrainerAvailability) error {

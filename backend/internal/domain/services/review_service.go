@@ -10,11 +10,11 @@ import (
 )
 
 type ReviewService struct {
-	reviewRepo       *repositories.CouchbaseReviewRepository
-	relationshipRepo *repositories.RelationshipRepository
+	reviewRepo       repositories.ReviewRepository
+	relationshipRepo repositories.RelationshipRepository
 }
 
-func NewReviewService(reviewRepo *repositories.CouchbaseReviewRepository, relationshipRepo *repositories.RelationshipRepository) *ReviewService {
+func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo repositories.RelationshipRepository) *ReviewService {
 	return &ReviewService{
 		reviewRepo:       reviewRepo,
 		relationshipRepo: relationshipRepo,
@@ -117,8 +117,11 @@ func (s *ReviewService) GetTrainerReviews(ctx context.Context, trainerID string)
 }
 
 func (s *ReviewService) CanReview(athleteID string, trainerID string) bool {
-	// This is a placeholder - in real implementation would check active relationship
-	return true
+	relationship, err := s.relationshipRepo.GetByAthleteID(athleteID)
+	if err != nil || relationship == nil {
+		return false
+	}
+	return relationship.TrainerID == trainerID && relationship.IsActive()
 }
 
 func (s *ReviewService) CalculateTrainerStats(ctx context.Context, trainerID string) (float64, int, error) {

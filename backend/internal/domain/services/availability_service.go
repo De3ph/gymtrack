@@ -3,16 +3,17 @@ package services
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
 
 type AvailabilityService struct {
-	availabilityRepo *repositories.CouchbaseAvailabilityRepository
+	availabilityRepo repositories.AvailabilityRepository
 }
 
-func NewAvailabilityService(availabilityRepo *repositories.CouchbaseAvailabilityRepository) *AvailabilityService {
+func NewAvailabilityService(availabilityRepo repositories.AvailabilityRepository) *AvailabilityService {
 	return &AvailabilityService{
 		availabilityRepo: availabilityRepo,
 	}
@@ -49,7 +50,22 @@ func (s *AvailabilityService) GetAvailableSlots(ctx context.Context, trainerID s
 }
 
 func (s *AvailabilityService) BookSlot(ctx context.Context, slotID string) error {
-	// For now, just mark as booked - in a real system this would be more complex
+	slot, err := s.availabilityRepo.GetBySlotID(ctx, slotID)
+	if err != nil {
+		return fmt.Errorf("failed to get availability slot: %w", err)
+	}
+	if slot == nil {
+		return fmt.Errorf("availability slot not found")
+	}
+
+	slot.IsBooked = true
+	slot.UpdatedAt = time.Now()
+
+	err = s.availabilityRepo.UpsertAvailability(ctx, slot)
+	if err != nil {
+		return fmt.Errorf("failed to book availability slot: %w", err)
+	}
+
 	return nil
 }
 

@@ -13,14 +13,14 @@ import (
 
 // CommentHandler handles HTTP requests for comments.
 type CommentHandler struct {
-	commentRepo *repositories.CommentRepository
+	commentRepo repositories.CommentRepository
 	commentSvc  *services.CommentService
 	validator   *validator.Validate
 }
 
 // NewCommentHandler creates a new CommentHandler.
 func NewCommentHandler(
-	commentRepo *repositories.CommentRepository,
+	commentRepo repositories.CommentRepository,
 	commentSvc *services.CommentService,
 ) *CommentHandler {
 	return &CommentHandler{

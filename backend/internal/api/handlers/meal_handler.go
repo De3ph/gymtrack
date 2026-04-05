@@ -14,12 +14,12 @@ import (
 )
 
 type MealHandler struct {
-	repo             *repositories.MealRepository
-	relationshipRepo *repositories.RelationshipRepository
+	repo             repositories.MealRepository
+	relationshipRepo repositories.RelationshipRepository
 	validator        *validator.Validate
 }
 
-func NewMealHandler(repo *repositories.MealRepository, relationshipRepo *repositories.RelationshipRepository) *MealHandler {
+func NewMealHandler(repo repositories.MealRepository, relationshipRepo repositories.RelationshipRepository) *MealHandler {
 	return &MealHandler{
 		repo:             repo,
 		relationshipRepo: relationshipRepo,

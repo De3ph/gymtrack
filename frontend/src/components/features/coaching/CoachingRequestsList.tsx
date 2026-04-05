@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// import { useState } from "react"; // not needed
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { coachingRequestApi } from "@/lib/api";
 import { CoachingRequestWithDetails } from "@/types";
@@ -14,49 +15,42 @@ interface CoachingRequestsListProps {
 }
 
 export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
-  const [requests, setRequests] = useState<CoachingRequestWithDetails[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["coachingRequests", userType],
+    queryFn: () => coachingRequestApi.getMyRequests(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const requests = data?.requests ?? [];
 
-  useEffect(() => {
-    loadRequests();
-  }, []);
+  const queryClient = useQueryClient();
 
-  const loadRequests = async () => {
-    setLoading(true);
-    try {
-      const response = await coachingRequestApi.getMyRequests();
-      setRequests(response.requests);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to load requests");
-    } finally {
-      setLoading(false);
-    }
+  const { mutate: acceptMutate, isPending: acceptPending } = useMutation({
+    mutationFn: (requestId: string) => coachingRequestApi.acceptRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
+    },
+    onError: (err: any) => {
+      // handle error via toast or console; keeping simple
+      console.error(err);
+    },
+  });
+
+  const { mutate: rejectMutate, isPending: rejectPending } = useMutation({
+    mutationFn: (requestId: string) => coachingRequestApi.rejectRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
+    },
+    onError: (err: any) => {
+      console.error(err);
+    },
+  });
+
+  const handleAccept = (requestId: string) => {
+    acceptMutate(requestId);
   };
 
-  const handleAccept = async (requestId: string) => {
-    setActionLoading(requestId);
-    try {
-      await coachingRequestApi.acceptRequest(requestId);
-      await loadRequests();
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to accept request");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleReject = async (requestId: string) => {
-    setActionLoading(requestId);
-    try {
-      await coachingRequestApi.rejectRequest(requestId);
-      await loadRequests();
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to reject request");
-    } finally {
-      setActionLoading(null);
-    }
+  const handleReject = (requestId: string) => {
+    rejectMutate(requestId);
   };
 
   const getStatusBadge = (status: string) => {
@@ -79,7 +73,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     return dayjs(dateString).format("MMM D, YYYY h:mm A");
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -91,15 +85,15 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     );
   }
 
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-red-600">Error: {error}</div>
-        </CardContent>
-      </Card>
-    );
-  }
+   if (error) {
+     return (
+       <Card>
+         <CardContent className="p-6">
+           <div className="text-center text-red-600">Error: {error instanceof Error ? error.message : String(error)}</div>
+         </CardContent>
+       </Card>
+     );
+   }
 
   if (requests.length === 0) {
     return (
@@ -154,22 +148,18 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
               <div className="flex gap-2">
                 <Button
                   onClick={() => handleAccept(request.requestId)}
-                  disabled={actionLoading === request.requestId}
+                  disabled={acceptPending || rejectPending}
                   className="flex-1"
                 >
-                  {actionLoading === request.requestId
-                    ? "Accepting..."
-                    : "Accept"}
+{acceptPending ? "Accepting..." : "Accept"}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => handleReject(request.requestId)}
-                  disabled={actionLoading === request.requestId}
+                  disabled={acceptPending || rejectPending}
                   className="flex-1"
                 >
-                  {actionLoading === request.requestId
-                    ? "Rejecting..."
-                    : "Reject"}
+{rejectPending ? "Rejecting..." : "Reject"}
                 </Button>
               </div>
             )}

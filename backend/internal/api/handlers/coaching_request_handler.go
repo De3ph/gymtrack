@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
@@ -37,14 +38,14 @@ type CreateCoachingRequestRequest struct {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /coaching-requests [post]
 func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	userRole, _ := c.Get("role")
-	if userRole != "athlete" {
+	userRole, _ := c.Get("userRole")
+	if userRole != models.RoleAthlete {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only athletes can create coaching requests"})
 		return
 	}
@@ -75,15 +76,15 @@ func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /coaching-requests/my [get]
 func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	userRole, _ := c.Get("role")
+	userRole, _ := c.Get("userRole")
 
-	requests, err := h.service.GetMyRequests(c.Request.Context(), userID.(string), userRole.(string))
+	requests, err := h.service.GetMyRequests(c.Request.Context(), userID.(string), string(userRole.(models.UserRole)))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -106,14 +107,14 @@ func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /coaching-requests/{id}/accept [post]
 func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	userRole, _ := c.Get("role")
-	if userRole != "trainer" {
+	userRole, _ := c.Get("userRole")
+	if userRole.(models.UserRole) != models.RoleTrainer {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only trainers can accept coaching requests"})
 		return
 	}
@@ -146,14 +147,14 @@ func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /coaching-requests/{id}/reject [post]
 func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	userRole, _ := c.Get("role")
-	if userRole != "trainer" {
+	userRole, _ := c.Get("userRole")
+	if userRole.(models.UserRole) != models.RoleTrainer {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only trainers can reject coaching requests"})
 		return
 	}
@@ -181,14 +182,14 @@ func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /coaching-requests/pending [get]
 func (h *CoachingRequestHandler) GetPendingRequests(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	userRole, _ := c.Get("role")
-	if userRole != "trainer" {
+	userRole, _ := c.Get("userRole")
+	if userRole.(models.UserRole) != models.RoleTrainer {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only trainers can view pending requests"})
 		return
 	}

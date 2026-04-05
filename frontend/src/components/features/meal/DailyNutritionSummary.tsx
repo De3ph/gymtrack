@@ -51,7 +51,7 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Loading Nutrition Data...</CardTitle>
+          <CardTitle>Loading Nutrition Summary...</CardTitle>
         </CardHeader>
         <CardContent className="p-4 space-y-4">
           {[...Array(4)].map((_, index) => (

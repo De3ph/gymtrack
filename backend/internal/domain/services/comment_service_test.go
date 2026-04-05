@@ -2,13 +2,13 @@ package services_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"gymtrack-backend/internal/domain/models"
-	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
 )
 
@@ -25,9 +25,19 @@ func (m *MockCommentRepository) GetByID(id string) (*models.Comment, error) {
 	return args.Get(0).(*models.Comment), args.Error(1)
 }
 
-func (m *MockCommentRepository) GetByTarget(targetType models.TargetType, targetID string) ([]models.Comment, error) {
+func (m *MockCommentRepository) GetByTarget(targetType models.TargetType, targetID string) ([]*models.Comment, error) {
 	args := m.Called(targetType, targetID)
-	return args.Get(0).([]models.Comment), args.Error(1)
+	return args.Get(0).([]*models.Comment), args.Error(1)
+}
+
+func (m *MockCommentRepository) GetByAuthor(authorID string) ([]*models.Comment, error) {
+	args := m.Called(authorID)
+	return args.Get(0).([]*models.Comment), args.Error(1)
+}
+
+func (m *MockCommentRepository) GetReplies(parentCommentID string) ([]*models.Comment, error) {
+	args := m.Called(parentCommentID)
+	return args.Get(0).([]*models.Comment), args.Error(1)
 }
 
 func (m *MockCommentRepository) Create(comment *models.Comment) error {
@@ -50,9 +60,9 @@ type MockRelationshipRepository struct {
 	mock.Mock
 }
 
-func (m *MockRelationshipRepository) GetByTrainerID(trainerID string) ([]models.Relationship, error) {
+func (m *MockRelationshipRepository) GetByTrainerID(trainerID string) ([]*models.Relationship, error) {
 	args := m.Called(trainerID)
-	return args.Get(0).([]models.Relationship), args.Error(1)
+	return args.Get(0).([]*models.Relationship), args.Error(1)
 }
 
 func (m *MockRelationshipRepository) GetByAthleteID(athleteID string) (*models.Relationship, error) {
@@ -61,6 +71,11 @@ func (m *MockRelationshipRepository) GetByAthleteID(athleteID string) (*models.R
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.Relationship), args.Error(1)
+}
+
+func (m *MockRelationshipRepository) GetPendingByAthleteID(athleteID string) ([]*models.Relationship, error) {
+	args := m.Called(athleteID)
+	return args.Get(0).([]*models.Relationship), args.Error(1)
 }
 
 func (m *MockRelationshipRepository) Create(rel *models.Relationship) error {
@@ -78,6 +93,14 @@ func (m *MockRelationshipRepository) Delete(id string) error {
 	return args.Error(0)
 }
 
+func (m *MockRelationshipRepository) GetByID(id string) (*models.Relationship, error) {
+	args := m.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Relationship), args.Error(1)
+}
+
 // MockWorkoutRepository for testing
 type MockWorkoutRepository struct {
 	mock.Mock
@@ -91,9 +114,14 @@ func (m *MockWorkoutRepository) GetByID(id string) (*models.Workout, error) {
 	return args.Get(0).(*models.Workout), args.Error(1)
 }
 
-func (m *MockWorkoutRepository) GetByAthleteID(athleteID string, startDate, endDate string) ([]models.Workout, error) {
+func (m *MockWorkoutRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Workout, error) {
+	args := m.Called(athleteID, limit, offset)
+	return args.Get(0).([]*models.Workout), args.Error(1)
+}
+
+func (m *MockWorkoutRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Workout, error) {
 	args := m.Called(athleteID, startDate, endDate)
-	return args.Get(0).([]models.Workout), args.Error(1)
+	return args.Get(0).([]*models.Workout), args.Error(1)
 }
 
 func (m *MockWorkoutRepository) Create(workout *models.Workout) error {
@@ -124,9 +152,14 @@ func (m *MockMealRepository) GetByID(id string) (*models.Meal, error) {
 	return args.Get(0).(*models.Meal), args.Error(1)
 }
 
-func (m *MockMealRepository) GetByAthleteID(athleteID string, startDate, endDate string) ([]models.Meal, error) {
+func (m *MockMealRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Meal, error) {
+	args := m.Called(athleteID, limit, offset)
+	return args.Get(0).([]*models.Meal), args.Error(1)
+}
+
+func (m *MockMealRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Meal, error) {
 	args := m.Called(athleteID, startDate, endDate)
-	return args.Get(0).([]models.Meal), args.Error(1)
+	return args.Get(0).([]*models.Meal), args.Error(1)
 }
 
 func (m *MockMealRepository) Create(meal *models.Meal) error {
@@ -288,7 +321,7 @@ func TestCommentService_CanAccessComments_TrainerOnClientWorkout(t *testing.T) {
 		AthleteID: "athlete1",
 	}, nil)
 
-	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]models.Relationship{
+	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]*models.Relationship{
 		{
 			RelationshipID: "r1",
 			TrainerID:      "trainer1",
@@ -318,7 +351,7 @@ func TestCommentService_CanAccessComments_TrainerOnNonClientWorkout(t *testing.T
 		AthleteID: "athlete1",
 	}, nil)
 
-	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]models.Relationship{
+	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]*models.Relationship{
 		{
 			RelationshipID: "r1",
 			TrainerID:      "trainer1",
@@ -349,7 +382,7 @@ func TestCommentService_CanAccessComments_TrainerOnInactiveRelationship(t *testi
 		AthleteID: "athlete1",
 	}, nil)
 
-	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]models.Relationship{
+	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]*models.Relationship{
 		{
 			RelationshipID: "r1",
 			TrainerID:      "trainer1",
@@ -422,7 +455,7 @@ func TestCommentService_CanCreateComment_TrainerReplyToClientComment(t *testing.
 		AthleteID: "athlete1",
 	}, nil)
 
-	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]models.Relationship{
+	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]*models.Relationship{
 		{
 			RelationshipID: "r1",
 			TrainerID:      "trainer1",
@@ -541,7 +574,7 @@ func TestCommentService_CanAccessComments_TrainerWithNoRelationships(t *testing.
 		AthleteID: "athlete1",
 	}, nil)
 
-	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]models.Relationship{}, nil)
+	mockRelRepo.On("GetByTrainerID", "trainer1").Return([]*models.Relationship{}, nil)
 
 	// Execute - trainer with no clients
 	err := svc.CanAccessComments("trainer1", models.RoleTrainer, models.TargetTypeWorkout, "w1")

@@ -15,7 +15,7 @@ export function MealCalendar() {
     dayjs().toDate(),
   );
 
-  const { data: mealsData } = useQuery({
+  const { data: mealsData, isLoading } = useQuery({
     queryKey: ["meals"],
     queryFn: () => mealApi.getAll(),
   });
@@ -32,6 +32,33 @@ export function MealCalendar() {
       dayjs(m.date).isSame(selectedDate, "day"),
     );
   }, [selectedDate, mealsData]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading Meals...</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="h-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading Meal Details...</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

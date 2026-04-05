@@ -117,7 +117,7 @@ func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error" "{\"error\":\"error message\"}"
 // @Router /trainers/me/profile [put]
 func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -151,7 +151,7 @@ func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error" "{\"error\":\"error message\"}"
 // @Router /trainers/me/profile [get]
 func (h *TrainerCatalogHandler) GetMyProfile(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return

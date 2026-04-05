@@ -21,40 +21,31 @@ import {
   Utensils,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react"; import { useQuery } from "@tanstack/react-query"; // useEffect removed as data fetching handled by TanStack Query
 import dayjs from "dayjs";
 
 export default function TrainerClientsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const [clients, setClients] = useState<ClientWithAthlete[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (user?.role !== "trainer") {
-      router.push("/");
-      return;
-    }
+  // Fetch clients using TanStack Query
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["myClients"],
+    queryFn: () => relationshipApi.getMyClients(),
+    staleTime: 5 * 60 * 1000,
+    enabled: user?.role === "trainer",
+  });
+  const clients = data?.clients ?? [];
 
-    fetchClients();
-  }, [user, router]);
-
-  const fetchClients = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await relationshipApi.getMyClients();
-      setClients(response.clients ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load clients");
-    } finally {
-      setLoading(false);
-    }
-  };
+   // Guard: redirect if not a trainer
+   useEffect(() => {
+     if (user && user.role !== "trainer") {
+       router.push("/");
+     }
+   }, [user, router]);
 
   const filteredClients = clients.filter(
     (client) =>
@@ -74,13 +65,13 @@ export default function TrainerClientsPage() {
     router.push(`/trainer/client/${clientId}`);
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+   if (isLoading) {
+     return (
+       <div className="flex h-full items-center justify-center">
+         <Loader2 className="h-8 w-8 animate-spin" />
+       </div>
+     );
+   }
 
   return (
     <div className="container mx-auto py-6">
@@ -97,11 +88,11 @@ export default function TrainerClientsPage() {
         </Button>
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
-          {error}
-        </div>
-      )}
+       {error && (
+         <div className="mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
+           {error instanceof Error ? error.message : String(error)}
+         </div>
+       )}
 
       {clients.length > 0 && (
         <div className="mb-4">

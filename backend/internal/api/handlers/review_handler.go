@@ -55,14 +55,14 @@ type UpdateReviewRequest struct {
 // @Security BearerAuth
 // @Router /trainers/{id}/reviews [post]
 func (h *ReviewHandler) CreateReview(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	userRole, _ := c.Get("role")
-	if userRole != "athlete" {
+	userRole, _ := c.Get("userRole")
+	if userRole.(models.UserRole) != models.RoleAthlete {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only athletes can create reviews"})
 		return
 	}
@@ -122,7 +122,7 @@ func (h *ReviewHandler) GetTrainerReviews(c *gin.Context) {
 // @Security BearerAuth
 // @Router /reviews/{id} [put]
 func (h *ReviewHandler) UpdateReview(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -160,7 +160,7 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 // @Security BearerAuth
 // @Router /reviews/{id} [delete]
 func (h *ReviewHandler) DeleteReview(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return

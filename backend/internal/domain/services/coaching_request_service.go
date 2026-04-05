@@ -14,13 +14,13 @@ import (
 type CoachingRequestService struct {
 	coachingRequestRepo repositories.CoachingRequestRepository
 	userRepo            repositories.UserRepository
-	relationshipRepo    *repositories.RelationshipRepository
+	relationshipRepo    repositories.RelationshipRepository
 }
 
 func NewCoachingRequestService(
 	coachingRequestRepo repositories.CoachingRequestRepository,
 	userRepo repositories.UserRepository,
-	relationshipRepo *repositories.RelationshipRepository,
+	relationshipRepo repositories.RelationshipRepository,
 ) *CoachingRequestService {
 	return &CoachingRequestService{
 		coachingRequestRepo: coachingRequestRepo,

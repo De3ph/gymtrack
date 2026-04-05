@@ -15,19 +15,19 @@ import (
 
 type RelationshipHandler struct {
 	invitationService *services.InvitationService
-	relationshipRepo  *repositories.RelationshipRepository
+	relationshipRepo  repositories.RelationshipRepository
 	userRepo          repositories.UserRepository
-	workoutRepo       *repositories.WorkoutRepository
-	mealRepo          *repositories.MealRepository
+	workoutRepo       repositories.WorkoutRepository
+	mealRepo          repositories.MealRepository
 	validator         *validator.Validate
 }
 
 func NewRelationshipHandler(
 	invitationService *services.InvitationService,
-	relationshipRepo *repositories.RelationshipRepository,
+	relationshipRepo repositories.RelationshipRepository,
 	userRepo repositories.UserRepository,
-	workoutRepo *repositories.WorkoutRepository,
-	mealRepo *repositories.MealRepository,
+	workoutRepo repositories.WorkoutRepository,
+	mealRepo repositories.MealRepository,
 ) *RelationshipHandler {
 	return &RelationshipHandler{
 		invitationService: invitationService,

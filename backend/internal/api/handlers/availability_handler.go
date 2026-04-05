@@ -30,7 +30,7 @@ func NewAvailabilityHandler(service *services.AvailabilityService) *Availability
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /trainers/me/availability [get]
 func (h *AvailabilityHandler) GetMyAvailability(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -58,7 +58,7 @@ func (h *AvailabilityHandler) GetMyAvailability(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /trainers/me/availability [put]
 func (h *AvailabilityHandler) SetMyAvailability(c *gin.Context) {
-	userID, exists := c.Get("userId")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
