@@ -19,9 +19,14 @@ Based on the codebase analysis, the following features are implemented:
 - Meal history and daily nutrition summary
 - Trainer invitation system for athletes
 
-### Phase 3: Partial Implementation ✅
+### Phase 3: Advanced Features ✅
 - Basic trainer-athlete relationship system
 - Invitation code generation and acceptance
+- **NEW**: Trainer availability management
+- **NEW**: Coaching request system
+- **NEW**: Trainer catalog with filtering
+- **NEW**: Review and rating system
+- **NEW**: Comment system for workouts/meals
 
 ## Testing Framework Setup
 
@@ -163,15 +168,70 @@ Based on the codebase analysis, the following features are implemented:
     - Get trainer info (athlete)
     - Terminate relationship
 
+#### Availability Management
+17. **Availability Handler**
+    - Get trainer's own availability slots
+    - Set/update trainer availability slots
+    - Delete availability slots
+    - Validate time slot format (HH:MM)
+    - Validate day of week range (0-6)
+    - Prevent overlapping time slots
+    - Unauthorized access prevention
+
+#### Coaching Request Management
+18. **Coaching Request Handler**
+    - Create coaching request (athlete only)
+    - Get coaching requests for trainer
+    - Accept coaching request (trainer only)
+    - Reject coaching request (trainer only)
+    - Get coaching request status
+    - Validate request status transitions
+    - Prevent duplicate requests
+    - Unauthorized access prevention
+
+#### Trainer Catalog Management
+19. **Trainer Catalog Handler**
+    - Get all trainers (paginated)
+    - Filter trainers by specialization
+    - Filter trainers by location
+    - Filter trainers by minimum rating
+    - Filter by availability for new clients
+    - Search trainers by name
+    - Sort trainers (rating, name, location)
+    - Get trainer profile details
+    - Get trainer reviews
+
+#### Review Management
+20. **Review Handler**
+    - Create trainer review (athlete only)
+    - Update own review (athlete only)
+    - Delete own review (athlete only)
+    - Get trainer reviews
+    - Get review by ID
+    - Validate rating range (1-5)
+    - Prevent duplicate reviews
+    - Unauthorized access prevention
+
+#### Comment Management
+21. **Comment Handler**
+    - Create comment on workout/meal
+    - Get comments for target (workout/meal)
+    - Update own comment
+    - Delete own comment
+    - Create reply comment
+    - Get comment thread (replies)
+    - Validate comment permissions
+    - Unauthorized access prevention
+
 #### Repository Layer
-17. **User Repository**
+22. **User Repository**
     - Create user
     - Get user by email
     - Get user by ID
     - Update user
     - User existence checks
 
-18. **Workout Repository**
+23. **Workout Repository**
     - Create workout
     - Get workout by ID
     - Get workouts by user ID
@@ -179,7 +239,7 @@ Based on the codebase analysis, the following features are implemented:
     - Delete workout
     - Date-based queries
 
-19. **Meal Repository**
+24. **Meal Repository**
     - Create meal
     - Get meal by ID
     - Get meals by user ID
@@ -187,26 +247,56 @@ Based on the codebase analysis, the following features are implemented:
     - Delete meal
     - Daily nutrition aggregation
 
+25. **Availability Repository**
+    - Create availability slot
+    - Get availability by trainer ID
+    - Update availability slot
+    - Delete availability slot
+    - Check for overlapping slots
+
+26. **Coaching Request Repository**
+    - Create coaching request
+    - Get requests by trainer ID
+    - Get requests by athlete ID
+    - Update request status
+    - Check for existing requests
+
+27. **Review Repository**
+    - Create review
+    - Get reviews by trainer ID
+    - Get review by ID
+    - Update review
+    - Delete review
+    - Check for existing reviews
+
+28. **Comment Repository**
+    - Create comment
+    - Get comments by target
+    - Get comment by ID
+    - Update comment
+    - Delete comment
+    - Get replies by parent ID
+
 ## Integration Test Scenarios
 
 ### Frontend Integration Tests
 
 #### Authentication Flow
-20. **Complete Registration to Dashboard Flow**
+29. **Complete Registration to Dashboard Flow**
     - Navigate to registration
     - Fill form with valid data
     - Submit and redirect to login
     - Login with new credentials
     - Verify dashboard access
 
-21. **Login to Profile Flow**
+30. **Login to Profile Flow**
     - Login with existing credentials
     - Navigate to profile
     - Update profile information
     - Verify changes persist
 
 #### Workout Management Flow
-22. **Workout Creation to History Flow**
+31. **Workout Creation to History Flow**
     - Navigate to workout logging
     - Create new workout with multiple exercises
     - Submit and verify success
@@ -216,7 +306,7 @@ Based on the codebase analysis, the following features are implemented:
     - Delete workout and verify removal
 
 #### Meal Management Flow
-23. **Meal Creation to Nutrition Summary Flow**
+32. **Meal Creation to Nutrition Summary Flow**
     - Navigate to meal logging
     - Create multiple meals for a day
     - Verify daily nutrition summary updates
@@ -224,36 +314,97 @@ Based on the codebase analysis, the following features are implemented:
     - Delete meal and verify summary updates
 
 #### Trainer Invitation Flow
-24. **Invitation Acceptance Flow**
+33. **Invitation Acceptance Flow**
     - Navigate to invitation dialog
     - Enter valid invitation code
     - Verify success state
     - Check trainer relationship established
 
+#### Advanced Features Integration Flows
+34. **Trainer Availability Management Flow**
+    - Login as trainer
+    - Navigate to availability settings
+    - Set weekly availability slots
+    - Update existing slots
+    - Delete availability slots
+    - Verify availability persists
+
+35. **Coaching Request Flow**
+    - Login as athlete
+    - Browse trainer catalog
+    - Send coaching request to trainer
+    - Login as trainer
+    - View and accept coaching request
+    - Verify relationship establishment
+
+36. **Trainer Catalog and Review Flow**
+    - Browse trainer catalog with filters
+    - View trainer profiles and reviews
+    - Establish coaching relationship
+    - Create workout/meal data
+    - Leave trainer review
+    - Verify review appears in catalog
+
+37. **Comment System Integration Flow**
+    - Login as athlete
+    - Create workout and meal entries
+    - Login as trainer
+    - View client data
+    - Add comments to workouts/meals
+    - Login as athlete
+    - View and reply to comments
+    - Verify comment thread functionality
+
 ### Backend Integration Tests
 
 #### API Integration
-25. **Authentication API Integration**
+38. **Authentication API Integration**
     - Registration → Login → Protected API access
     - Token refresh mechanism
     - Logout token invalidation
 
-26. **Workout API Integration**
+39. **Workout API Integration**
     - Create workout → Get workout → Update workout → Delete workout
     - Permission validation for different user roles
     - Date-based filtering
 
-27. **Meal API Integration**
+40. **Meal API Integration**
     - Create meal → Get meal → Update meal → Delete meal
     - Daily nutrition aggregation
     - Permission validation
+
+41. **Availability API Integration**
+    - Set availability → Get availability → Update availability
+    - Time slot validation
+    - Overlap prevention
+
+42. **Coaching Request API Integration**
+    - Create request → Get requests → Accept/Reject request
+    - Status transition validation
+    - Permission validation
+
+43. **Trainer Catalog API Integration**
+    - Get trainers with filters
+    - Pagination testing
+    - Search functionality
+    - Review aggregation
+
+44. **Review API Integration**
+    - Create review → Get reviews → Update review → Delete review
+    - Rating validation
+    - Duplicate prevention
+
+45. **Comment API Integration**
+    - Create comment → Get comments → Update comment → Delete comment
+    - Permission validation
+    - Thread functionality
 
 ## E2E Test Scenarios
 
 ### Critical User Journeys
 
 #### New Athlete Onboarding
-28. **Complete Athlete Registration Journey**
+46. **Complete Athlete Registration Journey**
     - Visit application
     - Register as new athlete
     - Login successfully
@@ -264,7 +415,7 @@ Based on the codebase analysis, the following features are implemented:
     - Verify data appears in history
 
 #### Existing User Daily Workflow
-29. **Athlete Daily Workout and Meal Logging**
+47. **Athlete Daily Workout and Meal Logging**
     - Login as existing athlete
     - Log morning workout with multiple exercises
     - Log breakfast meal
@@ -275,7 +426,7 @@ Based on the codebase analysis, the following features are implemented:
     - View workout history
 
 #### Trainer Workflow
-30. **Trainer Client Management**
+48. **Trainer Client Management**
     - Login as trainer
     - Generate invitation code
     - View client list
@@ -283,8 +434,18 @@ Based on the codebase analysis, the following features are implemented:
     - Monitor client nutrition data
     - View client progress over time
 
+#### Advanced Trainer Workflow
+49. **Complete Trainer Business Flow**
+    - Login as trainer
+    - Set up weekly availability
+    - Browse coaching requests
+    - Accept new client
+    - Monitor client activities
+    - Provide feedback via comments
+    - Receive client review
+
 #### Data Management
-31. **Workout and Meal Data Management**
+50. **Workout and Meal Data Management**
     - Create comprehensive workout data
     - Create comprehensive meal data
     - Test edit functionality (within 24h window)
@@ -292,15 +453,43 @@ Based on the codebase analysis, the following features are implemented:
     - Verify data persistence after refresh
     - Test data filtering and sorting
 
+#### Trainer Discovery and Engagement
+51. **Athlete Trainer Discovery Journey**
+    - Login as athlete
+    - Browse trainer catalog
+    - Filter by specialization and location
+    - View trainer profiles and reviews
+    - Send coaching request
+    - Monitor request status
+    - Establish coaching relationship
+
+#### Communication and Feedback
+52. **Trainer-Athlete Communication Flow**
+    - Establish trainer-athlete relationship
+    - Athlete logs workout and meal
+    - Trainer provides feedback via comments
+    - Athlete responds to feedback
+    - Verify notification system
+    - Test comment threading
+
+#### Review and Rating System
+53. **Trainer Review Lifecycle**
+    - Complete coaching engagement
+    - Athlete leaves review and rating
+    - Verify review appears in trainer catalog
+    - Test review update functionality
+    - Test review deletion
+    - Verify rating aggregation
+
 ### Cross-Browser and Device Testing
-32. **Responsive Design Testing**
+54. **Responsive Design Testing**
     - Mobile view workout logging
     - Tablet view meal history
     - Desktop view dashboard
     - Touch interactions on mobile
 
 ### Performance Testing
-33. **Load Testing Scenarios**
+55. **Load Testing Scenarios**
     - Multiple concurrent users
     - Large dataset handling
     - API response times
@@ -314,6 +503,11 @@ Based on the codebase analysis, the following features are implemented:
 - Sample meal data
 - Invitation codes
 - Relationship data
+- **NEW**: Trainer availability slots
+- **NEW**: Coaching request data
+- **NEW**: Trainer profiles with specializations
+- **NEW**: Review and rating data
+- **NEW**: Comment threads and replies
 
 ### Test Environment Setup
 - Isolated test database
@@ -369,3 +563,69 @@ Based on the codebase analysis, the following features are implemented:
 - Performance metrics
 
 This testing strategy ensures comprehensive coverage of all implemented features while maintaining high quality and reliability of the fitness tracking application.
+
+## Missing Test Files to Create
+
+Based on the backend analysis, the following test files are missing and need to be created:
+
+### Backend Handler Tests
+- `internal/api/handlers/availability_handler_test.go`
+- `internal/api/handlers/coaching_request_handler_test.go`
+- `internal/api/handlers/review_handler_test.go`
+- `internal/api/handlers/trainer_catalog_handler_test.go`
+- `internal/api/handlers/comment_handler_test.go`
+
+### Backend Service Tests
+- `internal/domain/services/availability_service_test.go`
+- `internal/domain/services/coaching_request_service_test.go`
+- `internal/domain/services/review_service_test.go`
+- `internal/domain/services/trainer_catalog_service_test.go`
+- `internal/domain/services/invitation_service_test.go`
+
+### Backend Repository Tests
+- `internal/domain/repositories/availability_repository_test.go`
+- `internal/domain/repositories/coaching_request_repository_test.go`
+- `internal/domain/repositories/review_repository_test.go`
+- `internal/domain/repositories/trainer_profile_repository_test.go`
+- `internal/domain/repositories/comment_repository_test.go`
+
+### Frontend Component Tests
+- `src/components/features/availability/__tests__/AvailabilityManager.test.tsx`
+- `src/components/features/coaching/__tests__/CoachingRequest.test.tsx`
+- `src/components/features/catalog/__tests__/TrainerCatalog.test.tsx`
+- `src/components/features/reviews/__tests__/ReviewSystem.test.tsx`
+- `src/components/features/comments/__tests__/CommentSystem.test.tsx`
+
+### Integration Test Files
+- `tests/integration/availability.integration.test.ts`
+- `tests/integration/coaching-requests.integration.test.ts`
+- `tests/integration/trainer-catalog.integration.test.ts`
+- `tests/integration/reviews.integration.test.ts`
+- `tests/integration/comments.integration.test.ts`
+
+### E2E Test Files
+- `tests/e2e/trainer-workflow.e2e.test.ts`
+- `tests/e2e/coaching-requests.e2e.test.ts`
+- `tests/e2e/trainer-discovery.e2e.test.ts`
+- `tests/e2e/reviews.e2e.test.ts`
+- `tests/e2e/comments.e2e.test.ts`
+
+## Test Implementation Priority
+
+### Phase 1: Critical Backend Tests (Week 1)
+1. Availability handler and service tests
+2. Coaching request handler and service tests
+3. Review handler and service tests
+4. Comment handler and service tests (partially done)
+
+### Phase 2: Advanced Features Tests (Week 2)
+5. Trainer catalog handler and service tests
+6. Repository layer tests for all new features
+7. Integration tests for advanced features
+8. Frontend component tests for new features
+
+### Phase 3: Complete Coverage (Week 3)
+9. E2E tests for advanced workflows
+10. Cross-browser and performance tests
+11. Security and accessibility tests
+12. Visual regression tests for new components

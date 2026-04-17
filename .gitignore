@@ -180,3 +180,12 @@
 .windsurf/skills/vercel-react-best-practices/rules/server-parallel-fetching.md
 .windsurf/skills/vercel-react-best-practices/rules/server-serialization.md
 .vscode/settings.json
+.agents/skills/react-query/AGENTS.md
+.agents/skills/react-query/CLAUDE.md
+.agents/skills/react-query/SKILL.md
+.claude/settings.local.json
+.vscode/settings.json
+.windsurf/skills/react-query/AGENTS.md
+.windsurf/skills/react-query/CLAUDE.md
+.windsurf/skills/react-query/SKILL.md
+.vscode/settings.json

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "react-query": {
+      "source": "umxr/react-query-skills",
+      "sourceType": "github",
+      "computedHash": "4173a4739ad35185a883c9b32377071208dfe6d46b1a708cf5f7a60b75d70fb3"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "61f8c307aa8ce0c4c52da8886d42e344dab83f76f9b5360cf8923b25fb1d67bb"
+    }
+  }
+}
