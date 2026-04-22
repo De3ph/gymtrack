@@ -1,6 +1,6 @@
 # GymTrack Project Context Map
 
-> Generated: 2026-04-05
+> Generated: 2026-04-22
 > Status: Phases 1-5 Complete ✅ | Phase 6 (Polish) In Progress
 
 ---
@@ -29,17 +29,18 @@
 | Layer | Technology | Version |
 |-------|-----------|---------|
 | **Frontend Framework** | Next.js (App Router) | 16.1.6 |
-| **Frontend Language** | TypeScript + React | 19.2.3 |
-| **Frontend Styling** | Tailwind CSS + ShadCN UI | v4 |
+| **Frontend Language** | TypeScript + React | 5.9.3 + 19.2.3 |
+| **Frontend Styling** | Tailwind CSS v4 | v4 |
+| **Animation** | Motion + tw-animate-css | v12.38.0 + v1.4.0 |
 | **Server State** | TanStack React Query | v5.90.20 |
 | **Client State** | Zustand | v5.0.11 |
 | **Forms** | React Hook Form + Zod | v7.71.1 + v4.3.6 |
 | **Charts** | Recharts | v3.7.0 |
+| **Date Handling** | dayjs + date-fns | v1.11.19 + v4.1.0 |
 | **Backend Language** | Go | 1.24.0 |
 | **Backend Framework** | Gin | v1.11.0 |
 | **Database** | Couchbase Server (gocb) | v2.11.2 |
-| **Auth** | JWT (golang-jwt) | v5.3.1 |
-| **API Docs** | Swagger (gin-swagger) | v1.6.1 |
+| **Auth** | JWT (golang-jwt) + bcrypt | v5.3.1 |
 
 ### Phase Status
 
@@ -62,32 +63,30 @@
 backend/
 ├── cmd/server/
 │   ├── main.go              # Application entry point, DI wiring
-│   ├── main.exe             # Compiled binary
-│   └── server.exe           # Compiled binary
 ├── internal/
 │   ├── api/
-│   │   ├── handlers/        # HTTP request handlers
+│   │   ├── handlers/        # HTTP request handlers (14 handlers)
 │   │   ├── middleware/      # JWT auth middleware
 │   │   └── routes/          # Route definitions per domain
 │   ├── config/
 │   │   ├── config.go        # Env config loading (godotenv)
 │   │   ├── db.go            # Couchbase connection management
 │   │   └── collections.go   # Bucket/scope/collection setup
-│   └── domain/
-│       ├── models/          # Data structures + factory methods
-│       ├── repositories/    # Couchbase data access layer
-│       └── services/        # Business logic layer
+│   ├── domain/
+│   │   ├── models/          # Data structures + factory methods (10 entities)
+│   │   ├── repositories/  # Couchbase data access layer (9 repos)
+│   │   ├── services/       # Business logic layer (7 services)
+│   │   └── errors/         # Custom error types
+│   ├── testutils/
+│   │   └── mocks.go        # Test mocks
+│   └── test/              # Integration test utilities
 ├── docs/
-│   ├── docs.go              # Swagger auto-generated docs
+│   ├── docs.go            # Swagger auto-generated docs
 │   ├── swagger.json
 │   └── swagger.yaml
-├── tests/
-│   └── comment_handler_test.go
 ├── go.mod
 ├── go.sum
-├── .env                     # Environment config (gitignored)
-├── test_register.json       # Test fixture
-└── test-server              # Test binary
+└── .env                   # Environment config (gitignored)
 ```
 
 ### 2.2 Architecture Pattern: Clean Architecture (Layered)
@@ -95,44 +94,44 @@ backend/
 ```
 ┌─────────────────────────────────────────────┐
 │              cmd/server/main.go              │  ← Composition Root
-│         (DI wiring, server startup)          │
+│         (DI wiring, server startup)           │
 ├─────────────────────────────────────────────┤
 │              internal/api/                   │
-│  ┌──────────┬────────────┬──────────────┐   │
-│  │  routes  │  handlers  │  middleware   │   │  ← Presentation Layer
-│  └────┬─────┴─────┬──────┴──────┬───────┘   │
-│       │           │             │            │
-├───────┼───────────┼─────────────┼────────────┤
-│       ▼           ▼             │            │
-│         internal/domain/        │            │
-│  ┌──────────────┬───────────────┐│            │  ← Business Layer
-│  │  services    │   models      ││            │
-│  └──────┬───────┴───────────────┘│            │
-│         │                        │            │
-├─────────┼────────────────────────┼────────────┤
-│         ▼                        │            │
-│    repositories                  │            │  ← Data Access Layer
-│                                  │            │
-├──────────────────────────────────┼────────────┤
-│         Couchbase                │            │  ← Infrastructure
-│    (gocb/v2 SDK)                 │            │
-└──────────────────────────────────┴────────────┘
+│  ┌──────────┬────────────┬──────────────┐      │
+│  │  routes │  handlers  │  middleware  │      │  ← Presentation Layer
+│  └────┬─────┴─────┬──────┴──────┬──────┘      │
+│       │           │             │              │
+├───────┼───────────┼─────────────┼────────────────┤
+│       ▼           ▼             │              │
+│         internal/domain/     │              │
+│  ┌──────────────┬─────────────┐│              │  ← Business Layer
+│  │  services   │   models   ││              │
+│  └──────┬──────┴───────────┘│              │
+│         │                   │              │
+├─────────┼───────────────────┼─────────────────┤
+│         ▼                   │              │
+│    repositories            │              │  ← Data Access Layer
+│                           │              │
+├─────────────────────────────┼──────────────────┤
+│         Couchbase          │              │  ← Infrastructure
+│    (gocb/v2 SDK)        │              │
+└─────────────────────────┴──────────────────┘
 ```
 
 ### 2.3 Domain Models (10 entities)
 
 | Model | File | Key Fields | Business Rules |
 |-------|------|-----------|----------------|
-| **User** | `user.go` | userId, email, role, profile | Roles: `trainer` \| `athlete`. Profile is role-agnostic with optional trainer fields |
-| **Workout** | `workout.go` | workoutId, athleteId, date, exercises[] | Editable within 24h of creation. Exercises have weight (kg/lbs), sets, reps[], restTime |
-| **Meal** | `meal.go` | mealId, athleteId, date, mealType, items[] | Editable within 24h. MealType: breakfast\|lunch\|dinner\|snack. Items have calories + macros |
-| **Comment** | `comment.go` | commentId, targetType, targetId, authorId, authorRole, content | Threaded (parentCommentId). Targets: workout\|meal. Content max 2000 chars |
-| **Relationship** | `relationship.go` | relationshipId, trainerId, athleteId, status | Status: pending\|active\|terminated. Athlete has ONE active trainer at a time |
-| **Invitation** | `invitation.go` | invitationId, trainerId, code, status, expiresAt | Code-based invitation system. Status: pending\|used\|expired |
-| **TrainerProfile** | `trainer_profile.go` | bio, profilePhotoUrl, hourlyRate, yearsOfExperience, isAvailableForNewClients, location, languages | Embedded in User document. Separate TrainerWithProfile struct for catalog views |
-| **TrainerAvailability** | `availability.go` | availabilityId, trainerId, dayOfWeek(0-6), startTime, endTime, isBooked | Weekly recurring slots. Stored in User collection |
-| **CoachingRequest** | `coaching_request.go` | requestId, athleteId, trainerId, message, status | Status: pending\|accepted\|rejected. Athlete-initiated |
-| **TrainerReview** | `review.go` | reviewId, trainerId, athleteId, rating(1-5), comment | Stored in User collection. AthleteName enriched in ReviewWithAthlete |
+| **User** | `user.go` | userId, email, role, profile | Roles: `trainer` \| `athlete`. Profile is role-agnostic |
+| **Workout** | `workout.go` | workoutId, athleteId, date, exercises[] | Editable within 24h of creation |
+| **Meal** | `meal.go` | mealId, athleteId, date, mealType, items[] | Editable within 24h |
+| **Comment** | `comment.go` | commentId, targetType, targetId, authorId, content | Threaded (parentCommentId). Max 2000 chars |
+| **Relationship** | `relationship.go` | relationshipId, trainerId, athleteId, status | Status: pending\|active\|terminated |
+| **Invitation** | `invitation.go` | invitationId, trainerId, code, status, expiresAt | Code-based invitation system |
+| **TrainerProfile** | `trainer_profile.go` | bio, profilePhotoUrl, hourlyRate, isAvailableForNewClients | Stored in User document |
+| **TrainerAvailability** | `availability.go` | availabilityId, trainerId, dayOfWeek(0-6), startTime, endTime | Weekly recurring slots |
+| **CoachingRequest** | `coaching_request.go` | requestId, athleteId, trainerId, message, status | Status: pending\|accepted\|rejected |
+| **TrainerReview** | `review.go` | reviewId, trainerId, athleteId, rating(1-5), comment | AthleteName enriched in response |
 
 ### 2.4 API Endpoints (by domain)
 
@@ -141,77 +140,77 @@ backend/
 POST   /api/auth/register          - Register (email, password, role, profile)
 POST   /api/auth/login             - Login (returns accessToken + refreshToken)
 POST   /api/auth/logout            - Logout
-POST   /api/auth/refresh           - Refresh access token
-GET    /api/users/me               - Get current user profile
-PUT    /api/users/me               - Update current user profile
+POST   /api/auth/refresh         - Refresh access token
+GET    /api/users/me             - Get current user profile
+PUT    /api/users/me             - Update current user profile
 ```
 
 #### Workouts
 ```
-POST   /api/workouts               - Create workout (auth required)
-GET    /api/workouts               - Get own workout history (paginated, date filtered)
-GET    /api/workouts/:id           - Get specific workout
-PUT    /api/workouts/:id           - Update workout (24h window)
-DELETE /api/workouts/:id           - Delete workout (24h window)
-GET    /api/clients/:id/workouts   - Trainer view client workouts
+POST   /api/workouts             - Create workout (auth required)
+GET    /api/workouts            - Get own workout history (paginated, date filtered)
+GET    /api/workouts/:id        - Get specific workout
+PUT    /api/workouts/:id        - Update workout (24h window)
+DELETE /api/workouts/:id        - Delete workout (24h window)
+GET    /api/clients/:id/workouts  - Trainer view client workouts
 ```
 
 #### Meals
 ```
-POST   /api/meals                  - Create meal entry
-GET    /api/meals                  - Get own meal history
-GET    /api/meals/:id              - Get specific meal
-PUT    /api/meals/:id              - Update meal
-DELETE /api/meals/:id              - Delete meal
-GET    /api/clients/:id/meals      - Trainer view client meals
+POST   /api/meals                - Create meal entry
+GET    /api/meals               - Get own meal history
+GET    /api/meals/:id          - Get specific meal
+PUT    /api/meals/:id          - Update meal
+DELETE /api/meals/:id          - Delete meal
+GET    /api/clients/:id/meals   - Trainer view client meals
 ```
 
 #### Relationships
 ```
 POST   /api/relationships/invite         - Generate invitation code
-POST   /api/relationships/accept         - Accept invitation with code
-DELETE /api/relationships/:id            - Terminate relationship
-GET    /api/relationships/my-clients     - Trainer's active clients
-GET    /api/relationships/my-trainer     - Athlete's trainer info
+POST   /api/relationships/accept      - Accept invitation with code
+DELETE /api/relationships/:id       - Terminate relationship
+GET    /api/relationships/my-clients  - Trainer's active clients
+GET    /api/relationships/my-trainer - Athlete's trainer info
 GET    /api/relationships/client/:id     - Client details + stats
 GET    /api/relationships/client/:id/stats - Client statistics
 ```
 
 #### Comments
 ```
-POST   /api/comments                     - Add comment to workout/meal
+POST   /api/comments                - Add comment to workout/meal
 GET    /api/comments?targetId=&targetType= - Get comments for target
-PUT    /api/comments/:id                 - Edit comment
-DELETE /api/comments/:id                 - Delete comment
+PUT    /api/comments/:id         - Edit comment
+DELETE /api/comments/:id         - Delete comment
 ```
 
 #### Trainer Catalog (Phase 5)
 ```
-GET    /api/trainers                     - Search/browse trainers (public)
-GET    /api/trainers/:id                 - Get trainer profile with reviews
-PUT    /api/trainers/me/profile          - Update own trainer profile
-GET    /api/trainers/me/availability     - Get own availability
-PUT    /api/trainers/me/availability     - Set availability slots
+GET    /api/trainers              - Search/browse trainers (public)
+GET    /api/trainers/:id          - Get trainer profile with reviews
+PUT    /api/trainers/me/profile   - Update own trainer profile
+GET    /api/trainers/me/availability - Get own availability
+PUT    /api/trainers/me/availability - Set availability slots
 DELETE /api/trainers/me/availability/:id - Delete availability slot
-GET    /api/trainers/:id/availability    - Get trainer's availability (public)
+GET    /api/trainers/:id/availability  - Get trainer's availability (public)
 POST   /api/trainers/:id/reviews         - Create review for trainer
-GET    /api/trainers/:id/reviews         - Get trainer's reviews
-PUT    /api/reviews/:id                  - Update review
-DELETE /api/reviews/:id                  - Delete review
+GET    /api/trainers/:id/reviews       - Get trainer's reviews
+PUT    /api/reviews/:id                - Update review
+DELETE /api/reviews/:id                - Delete review
 ```
 
 #### Coaching Requests (Phase 5)
 ```
 POST   /api/coaching-requests            - Athlete sends coaching request
-GET    /api/coaching-requests/my         - Athlete's own requests
-GET    /api/coaching-requests/pending    - Trainer's pending requests
+GET    /api/coaching-requests/my      - Athlete's own requests
+GET    /api/coaching-requests/pending - Trainer's pending requests
 PUT    /api/coaching-requests/:id/accept - Trainer accepts request
 PUT    /api/coaching-requests/:id/reject - Trainer rejects request
 ```
 
 #### Swagger
 ```
-GET    /swagger/*any                     - Swagger UI
+GET    /swagger/*any              - Swagger UI
 ```
 
 ### 2.5 Middleware
@@ -227,42 +226,33 @@ GET    /swagger/*any                     - Swagger UI
 Couchbase Cluster
 └── Bucket: "gymtrack"
     ├── Scope: "_default"
-    │   ├── Collection: "users"        → User docs, TrainerProfiles, Reviews, Availability
-    │   ├── Collection: "workouts"     → Workout docs
-    │   ├── Collection: "meals"        → Meal docs
+    │   ├── Collection: "users"         → User docs, TrainerProfiles, Reviews, Availability
+    │   ├── Collection: "workouts"      → Workout docs
+    │   ├── Collection: "meals"       → Meal docs
     │   ├── Collection: "relationships" → Relationship docs
     │   ├── Collection: "comments"     → Comment docs
-    │   └── Collection: "invitations"  → Invitation docs
+    │   └── Collection: "invitations"   → Invitation docs
     └── Scope: "coaching_requests"     → Coaching request docs (separate scope)
 ```
-
-**Key insight:** Trainer profiles, reviews, and availability are stored in the `users` collection (not separate collections), likely as sub-documents or related documents keyed by trainerId.
 
 ### 2.7 Dependency Injection Pattern
 
 All wiring happens in `main.go`:
-
 ```
 Config → Couchbase → Collections → Repositories → Services → Handlers → Routes
-```
-
-Each handler receives its dependencies via constructor:
-```go
-NewAuthHandler(userRepo, jwtSecret)
-NewWorkoutHandler(workoutRepo, relationshipRepo)
-NewCommentHandler(commentRepo, commentService)
 ```
 
 ### 2.8 Service Layer
 
 | Service | File | Key Responsibilities |
 |---------|------|---------------------|
-| **InvitationService** | `invitation_service.go` | Code-based invitation flow. Uses strategy pattern (CodeBasedInvitation) for invitation method. Validates athlete has no active trainer |
-| **CommentService** | `comment_service.go` | Comment creation with authorization checks. Verifies trainer-athlete relationship before allowing comments |
-| **TrainerCatalogService** | `trainer_catalog_service.go` | Trainer search, profile retrieval with ratings |
+| **InvitationService** | `invitation_service.go` | Code-based invitation flow. Validates athlete has no active trainer |
+| **CommentService** | `comment_service.go` | Comment creation with authorization checks |
+| **TrainerCatalogService** | `trainer_catalog_service.go` | Trainer search, profile retrieval |
 | **AvailabilityService** | `availability_service.go` | CRUD for trainer availability slots |
 | **ReviewService** | `review_service.go` | Review creation with relationship validation |
-| **CoachingRequestService** | `coaching_request_service.go` | Coaching request lifecycle (create, accept, reject) |
+| **CoachingRequestService** | `coaching_request_service.go` | Coaching request lifecycle |
+| **RelationshipService** | (in relationship_repository.go) | Relationship CRUD operations |
 
 ---
 
@@ -274,94 +264,60 @@ NewCommentHandler(commentRepo, commentService)
 frontend/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx                 # Root layout (Providers wrapper)
-│   │   ├── page.tsx                   # Landing page (redirects based on auth)
-│   │   ├── providers.tsx              # TanStack Query provider
-│   │   ├── globals.css                # Global styles
-│   │   ├── favicon.ico
+│   │   ├── layout.tsx            # Root layout (Providers wrapper)
+│   │   ├── page.tsx              # Landing page (redirects based on auth)
+│   │   ├── providers.tsx         # TanStack Query provider
+│   │   ├── globals.css           # Global styles + Tailwind v4
 │   │   ├── (auth)/
-│   │   │   ├── layout.tsx             # Auth layout
-│   │   │   ├── login/page.tsx         # Login page
-│   │   │   └── register/page.tsx      # Registration page
+│   │   │   ├── layout.tsx       # Auth layout
+│   │   │   ├── login/page.tsx   # Login page
+│   │   │   └── register/page.tsx # Registration page
 │   │   └── (dashboard)/
-│   │       ├── layout.tsx             # Dashboard layout with nav + auth guard
-│   │       ├── page.tsx               # Dashboard home
+│   │       ├── layout.tsx        # Dashboard layout + nav (auth guard)
+│   │       ├── page.tsx         # Dashboard home
 │   │       ├── athlete/
-│   │       │   ├── workouts/          # Workout logging + history
-│   │       │   ├── meals/             # Meal logging + history
-│   │       │   ├── trainers/          # Browse trainers catalog
-│   │       │   ├── trainer/           # Current trainer view
-│   │       │   └── requests/          # Coaching requests
-│   │       ├── trainer/
-│   │       │   ├── clients/           # Client list dashboard
-│   │       │   ├── client/[id]/       # Individual client detail view
-│   │       │   ├── profile/           # Trainer profile management
-│   │       │   └── requests/          # Incoming coaching requests
-│   │       └── profile/               # Shared profile page
+│   │       │   ├── workouts/    # Workout logging + history
+│   │       │   ├── meals/       # Meal logging + history
+│   │       │   ├── trainers/    # Browse trainers catalog
+│   │       │   ├── trainer/[id]/ # Current trainer view
+│   │       │   └── requests/   # Coaching request management
+│   │       └── trainer/
+│   │           ├── clients/      # Client list dashboard
+│   │           ├── client/[id]/   # Individual client detail
+│   │           ├── profile/      # Trainer profile management
+│   │           └── requests/   # Incoming coaching requests
 │   ├── components/
-│   │   ├── ui/                        # ShadCN base components (9)
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── label.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── dialog.tsx
-│   │   │   ├── tabs.tsx
-│   │   │   ├── badge.tsx
-│   │   │   ├── calendar.tsx
-│   │   │   ├── textarea.tsx
-│   │   │   └── popover.tsx (via radix)
-│   │   └── features/                  # Feature-specific components (7 domains)
+│   │   ├── ui/                 # ShadCN base components (9)
+│   │   │   ├── button.tsx, input.tsx, label.tsx
+│   │   │   ├── card.tsx, dialog.tsx, tabs.tsx
+│   │   │   ├── badge.tsx, calendar.tsx, textarea.tsx
+│   │   └── features/           # Feature-specific components (7 domains)
 │   │       ├── workout/
-│   │       │   ├── WorkoutForm.tsx
-│   │       │   ├── WorkoutList.tsx
-│   │       │   ├── WorkoutCalendar.tsx
-│   │       │   └── EditWorkoutDialog.tsx
 │   │       ├── meal/
-│   │       │   ├── MealForm.tsx
-│   │       │   ├── MealList.tsx
-│   │       │   ├── MealCalendar.tsx
-│   │       │   ├── EditMealDialog.tsx
-│   │       │   └── DailyNutritionSummary.tsx
 │   │       ├── comments/
-│   │       │   ├── CommentForm.tsx
-│   │       │   ├── CommentList.tsx
-│   │       │   ├── CommentItem.tsx
-│   │       │   └── CommentThread.tsx
 │   │       ├── athlete/
-│   │       │   ├── AcceptInvitationDialog.tsx
-│   │       │   └── MyTrainerButton.tsx
 │   │       ├── trainer/
-│   │       │   ├── GenerateInvitationDialog.tsx
-│   │       │   └── ClientProgressCharts.tsx
 │   │       ├── coaching/
-│   │       │   ├── CoachingRequestDialog.tsx
-│   │       │   └── CoachingRequestsList.tsx
 │   │       └── reviews/
-│   │           ├── CreateReviewDialog.tsx
-│   │           └── ReviewActions.tsx
 │   ├── lib/
-│   │   ├── api.ts                     # Centralized API client (435 lines)
-│   │   ├── api-types.ts               # API response types
-│   │   ├── token-service.ts           # JWT token storage/management
-│   │   ├── error-handler.ts           # Error handling utilities
-│   │   ├── performance.ts             # Performance utilities
-│   │   ├── constants.ts               # App constants
-│   │   ├── utils.ts                   # General utilities (cn, etc.)
-│   │   └── validations/               # Zod validation schemas
-│   │       ├── auth.ts
-│   │       ├── workout.ts
-│   │       ├── meal.ts
-│   │       └── comment.ts
+│   │   ├── api.ts              # Centralized API client
+│   │   ├── api-types.ts        # API response types
+│   │   ├── token-service.ts    # JWT token storage/management
+│   │   ├── error-handler.ts   # Error handling utilities
+│   │   ├── animations.ts     # Animation utilities (Motion)
+│   │   ├── constants.ts       # App constants
+│   │   ├── utils.ts           # General utilities (cn, etc.)
+│   │   └── validations/        # Zod validation schemas
 │   ├── stores/
-│   │   └── authStore.ts               # Zustand auth state (180 lines)
+│   │   └── authStore.ts       # Zustand auth state
 │   ├── types/
-│   │   └── index.ts                   # All TypeScript types (243 lines)
-│   ├── e2e/                           # Playwright E2E tests
-│   └── test/                          # Vitest test utilities + MSW
+│   │   └── index.ts         # All TypeScript types
+│   ├── e2e/               # Playwright E2E tests
+│   └── test/               # Vitest setup + MSW + component tests
 ├── package.json
 ├── next.config.ts
 ├── tsconfig.json
-├── components.json                    # ShadCN config
+├── components.json          # ShadCN config
 ├── vitest.config.ts
 ├── playwright.config.ts
 ├── postcss.config.mjs
@@ -374,18 +330,18 @@ frontend/
 ```
 /                              → Landing page (redirects if authenticated)
 /(auth)/login                  → Login form
-/(auth)/register               → Registration form (role selection)
+/(auth)/register              → Registration form (role selection)
 /(dashboard)/                  → Dashboard home (auth-guarded)
 /(dashboard)/athlete/workouts  → Workout logging + calendar + list
 /(dashboard)/athlete/meals     → Meal logging + calendar + list
 /(dashboard)/athlete/trainers  → Browse trainer catalog
-/(dashboard)/athlete/trainer   → View current trainer
-/(dashboard)/athlete/requests  → Coaching request management
-/(dashboard)/trainer/clients   → Client list dashboard
-/(dashboard)/trainer/client/[id] → Individual client detail
-/(dashboard)/trainer/profile   → Trainer profile management
-/(dashboard)/trainer/requests  → Incoming coaching requests
-/(dashboard)/profile           → Profile editing (role-agnostic)
+/(dashboard)/athlete/trainer/:id → View specific trainer
+/(dashboard)/athlete/requests → Coaching request management
+/(dashboard)/trainer/clients  → Client list dashboard
+/(dashboard)/trainer/client/:id → Individual client detail
+/(dashboard)/trainer/profile → Trainer profile management
+/(dashboard)/trainer/requests -> Incoming coaching requests
+/(dashboard)/profile          → Profile editing (role-agnostic)
 ```
 
 ### 3.3 State Management Architecture
@@ -393,86 +349,63 @@ frontend/
 ```
 ┌─────────────────────────────────────────────────────┐
 │                 Zustand Store                       │
-│  ┌─────────────────────────────────────────────┐    │
-│  │  authStore.ts                               │    │
-│  │  - user: User | null                        │    │
-│  │  - token: string | null                     │    │
-│  │  - isAuthenticated: boolean                 │    │
-│  │  - isLoading, isInitialized                 │    │
-│  │  Actions: login, logout, setUser,           │    │
+│  ┌─────────────────────────────────────────────┐      │
+│  │  authStore.ts                               │      │
+│  │  - user: User | null                       │      │
+│  │  - token: string | null                    │      │
+│  │  - isAuthenticated: boolean                │      │
+│  │  - isLoading, isInitialized               │      │
+│  │  Actions: login, logout, setUser,          │      │
 │  │           initializeAuth, refreshAccessToken │    │
-│  └─────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────┘
+│  └─────────────────────────────────────────────┘      │
+└──────────────────────────────────────────────────��─��┘
 
-┌─────────────────────────────────────────────────────┐
-│              TanStack React Query                    │
-│  ┌─────────────────────────────────────────────┐    │
-│  │  QueryClient (providers.tsx)                │    │
-│  │  - staleTime: 5 minutes                     │    │
-│  │  - gcTime: 10 minutes                       │    │
-│  │  - retry: 1                                 │    │
-│  │  Exposed via window.__TANSTACK_QUERY_CLIENT__│    │
-│  └─────────────────────────────────────────────┘    │
-│  Queries are defined inline in page components      │
-│  using useQuery/useMutation hooks                   │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│              TokenService (localStorage)             │
-│  - accessToken  → localStorage                      │
-│  - refreshToken → localStorage                      │
-│  - Auto-attached to API requests via api.ts          │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│              TanStack React Query                       │
+│  ┌────────────────────────────────────────────────┐   │
+│  │  QueryClient (providers.tsx)                  │   │
+│  │  - staleTime: 5 minutes                        │   │
+│  │  - gcTime: 10 minutes                          │   │
+│  │  - retry: 1                                   │   │
+│  └────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────┘
 ```
 
 ### 3.4 API Client Architecture
 
 ```
-┌──────────────────────────────────────────────┐
-│                 api.ts                        │
-│  ┌────────────────────────────────────────┐  │
-│  │  request<T>(endpoint, options)         │  │  ← Core fetch wrapper
-│  │  - Adds Authorization header           │  │
-│  │  - Handles query params                │  │
-│  │  - Timeout support                     │  │
-│  │  - Error parsing                       │  │
-│  └────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────┐  │
-│  │  api.get/post/put/delete<T>()          │  │  ← HTTP method helpers
-│  └────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────┐  │
-│  │  Domain API modules:                   │  │
-│  │  - authApi                             │  │
-│  │  - userApi                             │  │
-│  │  - workoutApi                          │  │
-│  │  - mealApi                             │  │
-│  │  - commentApi                          │  │
-│  │  - relationshipApi                     │  │
-│  │  - trainerClientApi                    │  │
-│  │  - trainerCatalogApi                   │  │
-│  │  - availabilityApi                     │  │
-│  │  - reviewApi                           │  │
-│  │  - coachingRequestApi                  │  │
-│  └────────────────────────────────────────┘  │
-└──────────────────────────────────────────────┘
+api.ts                        →  Centralized request wrapper
+api.get/post/put/delete<T>() →  HTTP method helpers
+Domain API modules:
+  - authApi                  →  Authentication
+  - userApi                →  User operations
+  - workoutApi            →  Workout CRUD
+  - mealApi               →  Meal CRUD
+  - commentApi            →  Comment CRUD
+  - relationshipApi       →  Trainer-athlete relationships
+  - trainerClientApi      →  Trainer client data
+  - trainerCatalogApi    →  Public trainer catalog
+  - availabilityApi     →  Availability CRUD
+  - reviewApi            →  Review CRUD
+  - coachingRequestApi   →  Coaching requests
 ```
 
 ### 3.5 Validation Schemas (Zod v4)
 
 | Schema | File | Covers |
 |--------|------|--------|
-| **auth** | `validations/auth.ts` | Login (email, password), Register (email, password, role, profile fields) |
-| **workout** | `validations/workout.ts` | Exercise (name, weight ≥0, sets >0, reps[], restTime ≥0), Workout (date, exercises[]) |
-| **meal** | `validations/meal.ts` | FoodItem (food, quantity, calories ≥0, macros), Meal (date, mealType, items[]) |
-| **comment** | `validations/comment.ts` | Comment (content 1-2000 chars) |
+| **auth** | `validations/auth.ts` | Login, Register |
+| **workout** | `validations/workout.ts` | Exercise, Workout |
+| **meal** | `validations/meal.ts` | FoodItem, Meal |
+| **comment** | `validations/comment.ts` | Comment content (1-2000 chars) |
 
 ### 3.6 UI Component Library
 
-**ShadCN UI** with Radix UI primitives. Components are locally owned (not from npm):
+**ShadCN UI** with Radix UI primitives:
 
 | Component | Base | Purpose |
 |-----------|------|---------|
-| Button | Radix Slot | Primary interactive element with variants |
+| Button | Radix Slot | Primary interactive element |
 | Input | HTML input | Text/number inputs |
 | Label | Radix Label | Form field labels |
 | Card | Div composition | Content containers |
@@ -481,8 +414,6 @@ frontend/
 | Badge | Div + CVA | Status indicators |
 | Calendar | react-day-picker | Date selection |
 | Textarea | HTML textarea | Multi-line text |
-| Popover | Radix Popover | Floating panels |
-| Select | Radix Select | Dropdown selections |
 
 ---
 
@@ -501,39 +432,39 @@ Athlete fills WorkoutForm
        ↓
   POST /api/workouts (Go backend)
        ↓
-  JWTAuthMiddleware validates token → sets userID, userRole
+  JWTAuthMiddleware validates token
        ↓
-  WorkoutHandler validates input (go-playground/validator)
+  WorkoutHandler validates input
        ↓
-  WorkoutRepository saves to Couchbase "workouts" collection
+  WorkoutRepository saves to Couchbase
        ↓
   React Query invalidates workout queries
        ↓
-  WorkoutList/WorkoutCalendar re-render with new data
+  WorkoutList/WorkoutCalendar re-renders
 ```
 
 ### 4.2 Trainer Comment Flow
 
 ```
-Trainer views client workout detail
+Trainer views client workout
        ↓
   commentApi.getByTarget("workout", workoutId)
        ↓
   GET /api/comments?targetType=workout&targetId=xxx
        ↓
-  CommentHandler → CommentService (validates relationship)
+  CommentHandler → CommentService validates relationship
        ↓
-  CommentRepository queries Couchbase "comments" collection
+  CommentRepository queries Couchbase
        ↓
-  Comments returned → CommentThread renders
+  CommentThread renders
        ↓
   Trainer submits comment via CommentForm
        ↓
-  POST /api/comments → CommentService validates trainer-athlete relationship
+  POST /api/comments
        ↓
-  Comment saved → React Query invalidates comments query
+  Comment saved → React Query invalidates
        ↓
-  CommentThread updates with new comment
+  CommentThread updates
 ```
 
 ### 4.3 Coaching Request Flow (Phase 5)
@@ -543,23 +474,19 @@ Athlete browses /athlete/trainers
        ↓
   trainerCatalogApi.searchTrainers()
        ↓
-  GET /api/trainers (public, no auth needed for browse)
+  GET /api/trainers (public)
        ↓
-  TrainerCatalogService searches users collection
+  Athlete clicks "Request Coaching"
        ↓
-  Athlete clicks "Request Coaching" on trainer profile
-       ↓
-  CoachingRequestDialog → coachingRequestApi.createCoachingRequest()
+  CoachingRequestDialog → coachingRequestApi.create()
        ↓
   POST /api/coaching-requests
        ↓
-  CoachingRequestService creates request in coaching_requests scope
+  CoachingRequestService creates request
        ↓
   Trainer sees request in /trainer/requests
        ↓
   Trainer accepts → CoachingRequestService creates relationship
-       ↓
-  Both parties notified, relationship becomes active
 ```
 
 ---
@@ -569,56 +496,44 @@ Athlete browses /athlete/trainers
 ### 5.1 Token Architecture
 
 ```
-┌──────────────────────────────────────────┐
-│          Login Flow                       │
-│                                           │
-│  1. User submits email/password           │
-│  2. POST /api/auth/login                  │
-│  3. Backend validates, returns:           │
-│     - accessToken  (short-lived, JWT)     │
-│     - refreshToken (long-lived, JWT)      │
-│     - user object                         │
-│  4. TokenService stores both in           │
-│     localStorage                          │
-│  5. Zustand authStore sets user + token   │
-│  6. Redirect to role-specific dashboard   │
-└──────────────────────────────────────────┘
+Login Flow:
+1. User submits email/password
+2. POST /api/auth/login
+3. Backend validates, returns: accessToken + refreshToken + user
+4. TokenService stores both in localStorage
+5. Zustand authStore sets user + token
+6. Redirect to role-specific dashboard
+```
 
-┌──────────────────────────────────────────┐
-│          Request Flow                     │
-│                                           │
-│  1. api.ts request() called               │
-│  2. TokenService.getAuthHeader()          │
-│     → "Bearer <accessToken>"              │
-│  3. Header attached to fetch              │
-│  4. Backend JWTAuthMiddleware validates   │
-│  5. If 401 → authStore.handleAuthError()  │
-│     → clears tokens → redirects to login  │
-│     → clears React Query cache            │
-└──────────────────────────────────────────┘
+```
+Request Flow:
+1. api.ts request() called
+2. TokenService.getAuthHeader() → "Bearer <token>"
+3. Header attached to fetch
+4. Backend JWTAuthMiddleware validates
+5. If 401 → authStore.handleAuthError()
+   → clears tokens → redirects to login
+```
 
-┌──────────────────────────────────────────┐
-│          Token Refresh                    │
-│                                           │
-│  1. accessToken expires                   │
-│  2. authStore.refreshAccessToken()        │
-│  3. POST /api/auth/refresh with           │
-│     refreshToken                          │
-│  4. New accessToken returned               │
-│  5. Both tokens re-stored                 │
-└──────────────────────────────────────────┘
+```
+Token Refresh:
+1. accessToken expires
+2. authStore.refreshAccessToken()
+3. POST /api/auth/refresh with refreshToken
+4. New accessToken returned
+5. Both tokens re-stored
 ```
 
 ### 5.2 Auth Guard Pattern
 
 ```typescript
-// Dashboard layout (dashboard)/layout.tsx
+// Dashboard layout
 useEffect(() => {
   if (!isInitialized) initializeAuth();
   if (!isLoading && !isAuthenticated) router.push("/login");
 }, [isAuthenticated, isLoading, router]);
 
-// Landing page page.tsx
+// Landing page
 useEffect(() => {
   if (!isLoading && isAuthenticated && user) {
     router.push(user.role === 'trainer' ? '/trainer/clients' : '/athlete/workouts');
@@ -635,42 +550,39 @@ useEffect(() => {
 | Pattern | Implementation |
 |---------|---------------|
 | **Repository Pattern** | Each entity has its own repository interface + Couchbase implementation |
-| **Service Layer** | Business logic isolated in services (invitation, comment, catalog, etc.) |
+| **Service Layer** | Business logic isolated in services |
 | **Factory Methods** | Models have `New*()` constructors that generate UUIDs and timestamps |
-| **Domain Methods** | Models have behavior methods: `CanEdit()`, `Accept()`, `Terminate()`, `Edit()`, `IsReply()` |
-| **Strategy Pattern** | InvitationService uses InvitationMethod interface (CodeBasedInvitation implementation) |
-| **Dependency Injection** | All dependencies wired in main.go, passed via constructors |
-| **Global State** | Couchbase cluster/bucket stored in package-level globals (`GlobalCluster`, `GlobalBucket`) |
-| **Validation** | go-playground/validator struct tags on models |
+| **Domain Methods** | Models have behavior methods: `CanEdit()`, `Accept()`, `Terminate()` |
+| **Strategy Pattern** | InvitationService uses InvitationMethod interface |
+| **Dependency Injection** | All dependencies wired in main.go |
+| **Global State** | Couchbase cluster/bucket stored in package-level globals |
 | **Error Response** | Consistent `{"error": "message"}` JSON format |
 
 ### 6.2 Frontend Patterns
 
 | Pattern | Implementation |
 |---------|---------------|
-| **Route Groups** | `(auth)` and `(dashboard)` for layout separation without URL segments |
+| **Route Groups** | `(auth)` and `(dashboard)` for layout separation |
 | **Client Components** | All interactive pages use `'use client'` directive |
 | **API Client Pattern** | Centralized `api.ts` with typed domain modules |
-| **Inline React Query** | useQuery/useMutation defined in page components (not extracted to custom hooks) |
-| **Zod + RHF** | React Hook Form with `@hookform/resolvers/zod` for form validation |
-| **Dialog Pattern** | Feature dialogs (EditMealDialog, CoachingRequestDialog, etc.) for CRUD operations |
-| **Calendar + List** | Dual view pattern for workouts and meals (WorkoutCalendar + WorkoutList) |
-| **Token Service** | Dedicated `token-service.ts` for localStorage management |
-| **Error Handling** | `handleAuthError()` in authStore clears state and redirects on 401/403 |
+| **Inline React Query** | useQuery/useMutation defined in page components |
+| **Zod + RHF** | React Hook Form with `@hookform/resolvers/zod` |
+| **Dialog Pattern** | Feature dialogs for CRUD operations |
+| **Calendar + List** | Dual view pattern for workouts and meals |
+| **Token Service** | Dedicated `token-service.ts` for localStorage |
+| **Error Handling** | `handleAuthError()` clears state and redirects on 401/403 |
+| **Animations** | Motion library for transitions (new!) |
 
 ### 6.3 Naming Conventions
 
 | Aspect | Convention | Example |
 |--------|-----------|---------|
-| **Go files** | snake_case | `auth_handler.go`, `workout_repository.go` |
-| **Go packages** | single word, lowercase | `handlers`, `repositories`, `services` |
-| **Go types** | PascalCase | `Workout`, `Exercise`, `MealType` |
-| **Go functions** | PascalCase (exported) | `NewWorkout()`, `ConnectCouchbase()` |
+| **Go files** | snake_case | `auth_handler.go` |
+| **Go types** | PascalCase | `Workout`, `MealType` |
 | **TS files** | PascalCase (components), camelCase (utils) | `WorkoutForm.tsx`, `api.ts` |
 | **TS types** | PascalCase | `Workout`, `CreateWorkoutRequest` |
-| **TS functions** | camelCase | `createWorkout()`, `getMyClients()` |
-| **API endpoints** | kebab-case | `/api/auth/login`, `/api/coaching-requests` |
-| **DB fields** | camelCase in JSON | `workoutId`, `athleteId`, `createdAt` |
+| **API endpoints** | kebab-case | `/api/auth/login` |
+| **DB fields** | camelCase in JSON | `workoutId`, `athleteId` |
 
 ---
 
@@ -685,7 +597,7 @@ go run cmd/server/main.go          # Starts on :8080
 
 # Frontend
 cd frontend
-pnpm dev                           # Starts on :3000
+pnpm dev                        # Starts on :3000
 ```
 
 ### 7.2 Testing Commands
@@ -694,13 +606,13 @@ pnpm dev                           # Starts on :3000
 # Backend tests
 cd backend && go test ./...
 
-# Frontend unit tests
-cd frontend && pnpm test           # Vitest watch mode
-cd frontend && pnpm test:run       # Vitest run once
+# Frontend unit tests (Vitest)
+cd frontend && pnpm test         # Watch mode
+cd frontend && pnpm test:run    # Run once
 
-# Frontend E2E tests
-cd frontend && pnpm test:e2e       # Playwright headless
-cd frontend && pnpm test:e2e:ui    # Playwright UI mode
+# Frontend E2E tests (Playwright)
+cd frontend && pnpm test:e2e    # Headless
+cd frontend && pnpm test:e2e:ui # UI mode
 ```
 
 ### 7.3 Swagger Generation
@@ -724,21 +636,27 @@ Backend allows:
 
 ### 8.1 Backend Tests
 
-| Test File | Coverage |
-|-----------|----------|
-| `auth_handler_test.go` | Auth handler (login, register) |
-| `user_handler_test.go` | User profile operations |
-| `comment_handler_test.go` | Comment CRUD operations |
-| `comment_service_test.go` | Comment business logic |
+| Test Coverage | Handler/Service Tests |
+|--------------|-------------------|
+| Auth | login, register, logout operations |
+| User | Profile operations |
+| Workout | CRUD + authorization |
+| Meal | CRUD + authorization |
+| Comment | CRUD + threading |
+| Relationship | Invite, accept, terminate |
+| Trainer Catalog | Search, profiles |
+| Availability | CRUD operations |
+| Review | CRUD + relationship validation |
+| Coaching Request | Lifecycle operations |
 
 ### 8.2 Frontend Tests
 
 | Framework | Purpose | Config |
 |-----------|---------|--------|
-| **Vitest** | Unit tests for components, utils | `vitest.config.ts` + jsdom |
-| **Playwright** | E2E tests for user flows | `playwright.config.ts` |
-| **MSW** | API mocking for tests | `src/test/` directory |
-| **Testing Library** | Component testing | `@testing-library/react` + `@testing-library/jest-dom` |
+| **Vitest** | Unit tests + component tests | `vitest.config.ts` + jsdom |
+| **Playwright** | E2E tests | `playwright.config.ts` |
+| **MSW** | API mocking | `src/test/mocks/` |
+| **Testing Library** | Component testing | `@testing-library/react` |
 
 ---
 
@@ -756,8 +674,7 @@ Backend allows:
 | `github.com/joho/godotenv` | .env file loading |
 | `github.com/golang-jwt/jwt/v5` | JWT token handling |
 | `github.com/stretchr/testify` | Testing assertions |
-| `github.com/swaggo/swag` | Swagger doc generation |
-| `github.com/swaggo/gin-swagger` | Swagger UI integration |
+| `golang.org/x/crypto/bcrypt` | Password hashing |
 
 ### 9.2 Frontend Dependencies (key)
 
@@ -766,15 +683,17 @@ Backend allows:
 | `next` | React framework (App Router) |
 | `react` / `react-dom` | UI library |
 | `@tanstack/react-query` | Server state management |
-| `zustand` | Client state management (auth) |
+| `zustand` | Client state management |
 | `react-hook-form` | Form management |
 | `@hookform/resolvers` | Zod resolver for RHF |
 | `zod` | Schema validation |
-| `radix-ui` / `@radix-ui/*` | Accessible UI primitives |
+| `radix-ui/*` | Accessible UI primitives |
 | `class-variance-authority` | Component variant system |
 | `tailwind-merge` | Tailwind class merging |
+| `motion` | Animation library (new!) |
+| `tw-animate-css` | Tailwind animations (new!) |
 | `recharts` | Charting library |
-| `dayjs` | Date manipulation |
+| `dayjs` + `date-fns` | Date manipulation |
 | `react-day-picker` | Calendar component |
 | `lucide-react` | Icon library |
 | `@playwright/test` | E2E testing |
@@ -785,142 +704,59 @@ Backend allows:
 
 ## 10. File Inventory
 
-### 10.1 Backend Files (47 files)
+### 10.1 Backend Files (67 Go files)
 
 ```
-cmd/server/main.go                        # Entry point (124 lines)
-internal/config/config.go                 # Config loading (48 lines)
-internal/config/db.go                     # Couchbase connection (45 lines)
-internal/config/collections.go            # Collection initialization
-internal/api/middleware/auth_middleware.go # JWT middleware (89 lines)
-internal/api/handlers/auth_handler.go     # Auth endpoints
-internal/api/handlers/auth_handler_test.go
-internal/api/handlers/user_handler.go     # User endpoints
-internal/api/handlers/user_handler_test.go
-internal/api/handlers/workout_handler.go  # Workout CRUD
-internal/api/handlers/meal_handler.go     # Meal CRUD
-internal/api/handlers/comment_handler.go  # Comment CRUD
-internal/api/handlers/comment_handler_test.go
-internal/api/handlers/relationship_handler.go  # Relationship management
-internal/api/handlers/trainer_catalog_handler.go  # Trainer browse
-internal/api/handlers/availability_handler.go     # Availability CRUD
-internal/api/handlers/review_handler.go           # Review CRUD
-internal/api/handlers/coaching_request_handler.go # Coaching requests
-internal/api/routes/auth_routes.go        # Auth route definitions
-internal/api/routes/user_routes.go
-internal/api/routes/workout_routes.go
-internal/api/routes/meal_routes.go
-internal/api/routes/comment_routes.go
-internal/api/routes/relationship_routes.go
-internal/api/routes/trainer_routes.go     # Trainer + coaching routes
-internal/api/routes/coaching_request_routes.go
-internal/domain/models/user.go            # User model (37 lines)
-internal/domain/models/workout.go         # Workout model (62 lines)
-internal/domain/models/meal.go            # Meal model (82 lines)
-internal/domain/models/comment.go         # Comment model (62 lines)
-internal/domain/models/relationship.go    # Relationship model (56 lines)
-internal/domain/models/invitation.go      # Invitation model (16 lines)
-internal/domain/models/trainer_profile.go # Trainer profile (18 lines)
-internal/domain/models/availability.go    # Availability model (25 lines)
-internal/domain/models/coaching_request.go # Coaching request (30 lines)
-internal/domain/models/review.go          # Review model (19 lines)
-internal/domain/repositories/user_repository.go
-internal/domain/repositories/workout_repository.go
-internal/domain/repositories/meal_repository.go
-internal/domain/repositories/comment_repository.go
-internal/domain/repositories/relationship_repository.go
-internal/domain/repositories/trainer_profile_repository.go
-internal/domain/repositories/availability_repository.go
-internal/domain/repositories/review_repository.go
-internal/domain/repositories/coaching_request_repository.go
-internal/domain/services/invitation_service.go
-internal/domain/services/comment_service.go
-internal/domain/services/comment_service_test.go
-internal/domain/services/trainer_catalog_service.go
-internal/domain/services/availability_service.go
-internal/domain/services/review_service.go
-internal/domain/services/coaching_request_service.go
-docs/docs.go                              # Swagger auto-generated
-docs/swagger.json
-docs/swagger.yaml
-.env                                      # Environment config
-go.mod                                    # Go module definition
-go.sum
+cmd/server/main.go
+internal/config/config.go, db.go, collections.go
+internal/api/middleware/auth_middleware.go
+internal/api/handlers/
+  - auth_handler.go, auth_handler_test.go
+  - user_handler.go, user_handler_test.go
+  - workout_handler.go, workout_handler_test.go
+  - meal_handler.go, meal_handler_test.go
+  - comment_handler.go, comment_handler_test.go
+  - relationship_handler.go, relationship_handler_test.go
+  - trainer_catalog_handler.go, trainer_catalog_handler_test.go
+  - availability_handler.go, availability_handler_test.go
+  - review_handler.go, review_handler_test.go
+  - coaching_request_handler.go, coaching_request_handler_test.go
+internal/api/routes/
+  - auth_routes.go, user_routes.go
+  - workout_routes.go, meal_routes.go
+  - comment_routes.go, relationship_routes.go
+  - trainer_routes.go, coaching_request_routes.go
+internal/domain/
+  - models/ (10 entity models)
+  - repositories/ (9 repositories)
+  - services/ (7 services + custom errors)
+  - errors/errors.go
+  - testutils/mocks.go
+internal/docs/{docs.go, swagger.json, swagger.yaml}
+go.mod, go.sum, .env
 ```
 
 ### 10.2 Frontend Files (60+ files)
 
 ```
-src/app/layout.tsx                        # Root layout
-src/app/page.tsx                          # Landing page (64 lines)
-src/app/providers.tsx                     # QueryClient provider (36 lines)
-src/app/globals.css                       # Global styles
-src/app/(auth)/layout.tsx
-src/app/(auth)/login/page.tsx
-src/app/(auth)/register/page.tsx
-src/app/(dashboard)/layout.tsx            # Dashboard layout + nav (114 lines)
-src/app/(dashboard)/page.tsx
-src/app/(dashboard)/athlete/workouts/page.tsx
-src/app/(dashboard)/athlete/meals/page.tsx
-src/app/(dashboard)/athlete/trainers/page.tsx
-src/app/(dashboard)/athlete/trainer/page.tsx
-src/app/(dashboard)/athlete/requests/page.tsx
-src/app/(dashboard)/trainer/clients/page.tsx
-src/app/(dashboard)/trainer/client/[id]/page.tsx
-src/app/(dashboard)/trainer/profile/page.tsx
-src/app/(dashboard)/trainer/requests/page.tsx
-src/app/(dashboard)/profile/page.tsx
-src/components/ui/button.tsx
-src/components/ui/input.tsx
-src/components/ui/label.tsx
-src/components/ui/card.tsx
-src/components/ui/dialog.tsx
-src/components/ui/tabs.tsx
-src/components/ui/badge.tsx
-src/components/ui/calendar.tsx
-src/components/ui/textarea.tsx
-src/components/features/workout/WorkoutForm.tsx
-src/components/features/workout/WorkoutList.tsx
-src/components/features/workout/WorkoutCalendar.tsx
-src/components/features/workout/EditWorkoutDialog.tsx
-src/components/features/meal/MealForm.tsx
-src/components/features/meal/MealList.tsx
-src/components/features/meal/MealCalendar.tsx
-src/components/features/meal/EditMealDialog.tsx
-src/components/features/meal/DailyNutritionSummary.tsx
-src/components/features/comments/CommentForm.tsx
-src/components/features/comments/CommentList.tsx
-src/components/features/comments/CommentItem.tsx
-src/components/features/comments/CommentThread.tsx
-src/components/features/athlete/AcceptInvitationDialog.tsx
-src/components/features/athlete/MyTrainerButton.tsx
-src/components/features/trainer/GenerateInvitationDialog.tsx
-src/components/features/trainer/ClientProgressCharts.tsx
-src/components/features/coaching/CoachingRequestDialog.tsx
-src/components/features/coaching/CoachingRequestsList.tsx
-src/components/features/reviews/CreateReviewDialog.tsx
-src/components/features/reviews/ReviewActions.tsx
-src/lib/api.ts                            # API client (435 lines)
-src/lib/api-types.ts                      # API types (208 lines)
-src/lib/token-service.ts                  # Token management
-src/lib/error-handler.ts                  # Error utilities
-src/lib/performance.ts                    # Performance utils
-src/lib/constants.ts                      # App constants
-src/lib/utils.ts                          # General utils
-src/lib/validations/auth.ts
-src/lib/validations/workout.ts
-src/lib/validations/meal.ts
-src/lib/validations/comment.ts
-src/stores/authStore.ts                   # Auth state (180 lines)
-src/types/index.ts                        # TypeScript types (243 lines)
-src/e2e/                                  # Playwright E2E tests
-src/test/                                 # Vitest setup + MSW
-package.json
-next.config.ts
-tsconfig.json
-components.json
-vitest.config.ts
-playwright.config.ts
+src/app/
+  - layout.tsx, page.tsx, providers.tsx, globals.css
+  - (auth)/layout.tsx, login/page.tsx, register/page.tsx
+  - (dashboard)/layout.tsx, page.tsx
+  - (dashboard)/athlete/workouts/page.tsx, meals/page.tsx, trainers/page.tsx
+  - (dashboard)/athlete/trainer/[id]/page.tsx, requests/page.tsx
+  - (dashboard)/trainer/clients/page.tsx
+  - (dashboard)/trainer/client/[id]/page.tsx, profile/page.tsx, requests/page.tsx
+  - (dashboard)/profile/page.tsx
+src/components/ui/ (9 components)
+src/components/features/ (7 feature domains)
+src/lib/ (api.ts, api-types.ts, token-service.ts, etc.)
+src/stores/authStore.ts
+src/types/index.ts
+src/e2e/ (auth.spec.ts, comments.spec.ts)
+src/test/ (component tests + MSW setup)
+package.json, next.config.ts, tsconfig.json
+components.json, vitest.config.ts, playwright.config.ts
 ```
 
 ---
@@ -933,7 +769,6 @@ playwright.config.ts
 |---------|---------------|
 | **Password Hashing** | bcrypt (Go `golang.org/x/crypto/bcrypt`) |
 | **JWT** | HS256 signing, access + refresh token pattern |
-| **JWT Secret** | Must be ≥32 characters, validated at startup |
 | **Authorization** | Role-based checks in handlers + services |
 | **CORS** | Restricted to localhost origins only |
 | **Input Validation** | Frontend: Zod. Backend: go-playground/validator |
@@ -943,16 +778,16 @@ playwright.config.ts
 
 | Layer | Strategy |
 |-------|----------|
-| **Backend** | Consistent `{"error": "message"}` JSON responses. HTTP status codes match error types |
-| **Frontend API** | `api.ts` parses error responses, throws `Error` with message |
-| **Frontend Forms** | Zod validation errors displayed inline via React Hook Form |
-| **Auth Errors** | `handleAuthError()` clears state, redirects to login, clears query cache |
+| **Backend** | Consistent `{"error": "message"}` JSON responses |
+| **Frontend API** | `api.ts` parses error responses, throws `Error` |
+| **Frontend Forms** | Zod validation errors via React Hook Form |
+| **Auth Errors** | `handleAuthError()` clears state, redirects to login |
 
 ### 11.3 Date Handling
 
 | Context | Library |
 |---------|---------|
-| **Frontend** | `dayjs` for manipulation, `react-day-picker` for calendar UI |
+| **Frontend** | `dayjs` + `date-fns` for manipulation |
 | **Backend** | Go `time.Time` with JSON marshaling |
 | **API** | ISO 8601 string format for date fields |
 
@@ -960,7 +795,7 @@ playwright.config.ts
 
 ## 12. Known Gaps & Phase 6 Opportunities
 
-Based on the PHASES.md and codebase analysis:
+Based on the codebase:
 
 1. **Loading states** - Basic "Loading..." text used everywhere, no skeleton loaders
 2. **Error boundaries** - No React error boundaries implemented
@@ -968,10 +803,8 @@ Based on the PHASES.md and codebase analysis:
 4. **Error handling** - Inconsistent error UI across pages
 5. **Real-time updates** - Comments mention optional WebSockets but not implemented
 6. **Optimistic updates** - No optimistic mutations in React Query
-7. **Accessibility** - No explicit a11y testing beyond Radix primitives
-8. **Performance** - `performance.ts` exists but content unknown
-9. **Mobile responsiveness** - Tailwind classes present but mobile UX untested
-10. **Notification system** - No push/in-app notifications for new comments
+7. **Mobile responsiveness** - Tailwind classes present but mobile UX untested
+8. **Notification system** - No push/in-app notifications for new comments
 
 ---
 
