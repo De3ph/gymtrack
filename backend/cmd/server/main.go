@@ -86,10 +86,13 @@ func main() {
 
 	router.Use(cors.New(corsConfig))
 
-	// Initialize auth middleware with config
-	middleware.InitAuthMiddleware(cfg)
+	// Create auth service
+	authService := services.NewAuthService(userRepo, cfg.JWTSecret, availableClock)
 
-	authHandler := handlers.NewAuthHandler(userRepo, cfg.JWTSecret)
+	// Initialize auth middleware with config and service
+	middleware.InitAuthMiddleware(cfg, authService)
+
+	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userRepo)
 
 	apiGroup := router.Group("/api")
