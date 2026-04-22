@@ -354,7 +354,7 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 	}
 
 	// Verify that the trainer has an active relationship with this client
-	relationships, err := h.relationshipRepo.GetByTrainerID(trainerID.(string))
+	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify relationship", "details": err.Error()})
 		return

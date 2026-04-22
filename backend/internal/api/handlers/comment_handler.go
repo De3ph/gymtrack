@@ -87,7 +87,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
-	if err := h.commentSvc.CanCreateComment(userID.(string), userRole.(models.UserRole), req.TargetType, req.TargetID, req.ParentCommentID); err != nil {
+	if err := h.commentSvc.CanCreateComment(c, userID.(string), userRole.(models.UserRole), req.TargetType, req.TargetID, req.ParentCommentID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Workout or meal not found"})
 			return
@@ -164,7 +164,7 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 		return
 	}
 
-	if err := h.commentSvc.CanAccessComments(userID.(string), userRole.(models.UserRole), targetType, targetID); err != nil {
+	if err := h.commentSvc.CanAccessComments(c, userID.(string), userRole.(models.UserRole), targetType, targetID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Workout or meal not found"})
 			return

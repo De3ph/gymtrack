@@ -31,7 +31,7 @@ func NewCoachingRequestService(
 
 func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athleteID string, trainerID string, message string) (*models.CoachingRequest, error) {
 	// Check if athlete already has an active relationship
-	activeRelationship, err := s.relationshipRepo.GetByAthleteID(athleteID)
+	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
 	if err == nil && activeRelationship != nil {
 		return nil, fmt.Errorf("athlete already has an active trainer")
 	}
@@ -92,7 +92,7 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	}
 
 	// Check if athlete already has an active relationship
-	activeRelationship, err := s.relationshipRepo.GetByAthleteID(request.AthleteID)
+	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, request.AthleteID)
 	if err == nil && activeRelationship != nil {
 		return nil, fmt.Errorf("athlete already has an active trainer")
 	}
@@ -107,7 +107,7 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 		UpdatedAt:      time.Now(),
 	}
 
-	err = s.relationshipRepo.Create(relationship)
+	err = s.relationshipRepo.Create(ctx, relationship)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create relationship: %w", err)
 	}

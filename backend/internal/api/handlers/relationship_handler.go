@@ -248,7 +248,7 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 	}
 
 	// Get active trainer relationship
-	activeRelationship, err := h.relationshipRepo.GetByAthleteID(athleteID.(string))
+	activeRelationship, err := h.relationshipRepo.GetByAthleteID(c, athleteID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve relationships", "details": err.Error()})
 		return
@@ -303,7 +303,7 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 	}
 
 	// Get all relationships for this trainer
-	relationships, err := h.relationshipRepo.GetByTrainerID(trainerID.(string))
+	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve clients", "details": err.Error()})
 		return
@@ -368,7 +368,7 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 	}
 
 	// Verify relationship
-	relationships, err := h.relationshipRepo.GetByTrainerID(trainerID.(string))
+	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify relationship", "details": err.Error()})
 		return
@@ -449,7 +449,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 	userRole, _ := c.Get("userRole")
 
 	// Get the relationship
-	relationship, err := h.relationshipRepo.GetByID(relationshipID)
+	relationship, err := h.relationshipRepo.GetByID(c, relationshipID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Relationship not found"})
 		return
@@ -470,7 +470,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 
 	// Terminate the relationship
 	relationship.Terminate()
-	if err := h.relationshipRepo.Update(relationship); err != nil {
+	if err := h.relationshipRepo.Update(c, relationship); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to terminate relationship", "details": err.Error()})
 		return
 	}
@@ -520,7 +520,7 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 	}
 
 	// Verify relationship
-	relationships, err := h.relationshipRepo.GetByTrainerID(trainerID.(string))
+	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify relationship", "details": err.Error()})
 		return

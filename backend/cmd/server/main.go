@@ -67,7 +67,7 @@ func main() {
 	coachingRequestRepo := repositories.NewCoachingRequestRepository(config.GlobalCluster)
 
 	// Initialize invitation service with adapter pattern
-	invitationMethod := services.NewCodeBasedInvitation(invitationCollection)
+	invitationMethod := services.NewCodeBasedInvitation(services.NewGocbCollectionAdapter(invitationCollection))
 	invitationService := services.NewInvitationService(invitationMethod, relationshipRepo, userRepo)
 
 	router := gin.Default()

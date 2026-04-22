@@ -71,7 +71,7 @@ func (s *AvailabilityService) BookSlot(ctx context.Context, slotID string) error
 func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID string, olderThanDays int) error {
 	slots, err := s.availabilityRepo.GetByTrainerID(ctx, trainerID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get trainer availability for cleanup: %w", err)
 	}
 
 	cutoff := time.Now().AddDate(0, 0, -olderThanDays)
@@ -79,7 +79,7 @@ func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID st
 		if slot.IsBooked && slot.CreatedAt.Before(cutoff) {
 			err := s.availabilityRepo.DeleteAvailability(ctx, slot.AvailabilityID)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to delete expired slot %s: %w", slot.AvailabilityID, err)
 			}
 		}
 	}

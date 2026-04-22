@@ -61,7 +61,10 @@ func (s *TrainerCatalogService) SearchTrainers(ctx context.Context, filters *Tra
 		}
 	}
 
-	count, _ := s.profileRepo.CountTrainers(ctx, repoFiltersPtr)
+	count, err := s.profileRepo.CountTrainers(ctx, repoFiltersPtr)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count trainers: %w", err)
+	}
 	return trainers, count, nil
 }
 

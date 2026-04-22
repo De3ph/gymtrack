@@ -23,7 +23,7 @@ func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo
 
 func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athleteID string, rating int, comment string) (*models.TrainerReview, error) {
 	// Check if athlete has active relationship with trainer
-	relationship, err := s.relationshipRepo.GetByAthleteID(athleteID)
+	relationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check relationship: %w", err)
 	}
@@ -121,9 +121,13 @@ func (s *ReviewService) GetTrainerReviews(ctx context.Context, trainerID string)
 	return reviews, nil
 }
 
-func (s *ReviewService) CanReview(athleteID string, trainerID string) bool {
-	relationship, err := s.relationshipRepo.GetByAthleteID(athleteID)
-	if err != nil || relationship == nil {
+func (s *ReviewService) CanReview(ctx context.Context, athleteID string, trainerID string) bool {
+	relationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
+	if err != nil {
+		// Log error but don't fail the boolean check
+		return false
+	}
+	if relationship == nil {
 		return false
 	}
 	return relationship.TrainerID == trainerID && relationship.IsActive()
