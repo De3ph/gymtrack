@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
-	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
