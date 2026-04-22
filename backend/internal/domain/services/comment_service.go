@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -59,7 +60,7 @@ func (s *CommentService) ResolveTargetAthlete(targetType models.TargetType, targ
 
 // CanAccessComments returns nil if the user (trainer or athlete) is allowed to list comments on the target.
 // Athlete: must own the target. Trainer: must have an active relationship with the target's athlete.
-func (s *CommentService) CanAccessComments(userID string, userRole models.UserRole, targetType models.TargetType, targetID string) error {
+func (s *CommentService) CanAccessComments(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string) error {
 	athleteID, err := s.ResolveTargetAthlete(targetType, targetID)
 	if err != nil {
 		return err
@@ -71,9 +72,9 @@ func (s *CommentService) CanAccessComments(userID string, userRole models.UserRo
 		return nil
 	}
 	if userRole == models.RoleTrainer {
-		relationships, err := s.relationshipRepo.GetByTrainerID(userID)
+		relationships, err := s.relationshipRepo.GetByTrainerID(ctx, userID)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get trainer relationships: %w", err)
 		}
 		for _, rel := range relationships {
 			if rel.AthleteID == athleteID && rel.IsActive() {
@@ -88,8 +89,8 @@ func (s *CommentService) CanAccessComments(userID string, userRole models.UserRo
 // CanCreateComment returns nil if the user can create a comment (top-level or reply) on the target.
 // Trainer: allowed if they have an active relationship with the target's athlete.
 // Athlete: allowed on own target (top-level or reply).
-func (s *CommentService) CanCreateComment(userID string, userRole models.UserRole, targetType models.TargetType, targetID string, parentCommentID *string) error {
-	return s.CanAccessComments(userID, userRole, targetType, targetID)
+func (s *CommentService) CanCreateComment(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string, parentCommentID *string) error {
+	return s.CanAccessComments(ctx, userID, userRole, targetType, targetID)
 }
 
 // CanEditOrDeleteComment returns nil if the user can edit or delete the comment (must be the author).

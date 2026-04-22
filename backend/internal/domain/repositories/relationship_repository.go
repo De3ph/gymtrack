@@ -12,13 +12,13 @@ import (
 )
 
 type RelationshipRepository interface {
-	Create(relationship *models.Relationship) error
-	GetByID(relationshipID string) (*models.Relationship, error)
-	GetByTrainerID(trainerID string) ([]*models.Relationship, error)
-	GetByAthleteID(athleteID string) (*models.Relationship, error)
-	GetPendingByAthleteID(athleteID string) ([]*models.Relationship, error)
-	Update(relationship *models.Relationship) error
-	Delete(relationshipID string) error
+	Create(ctx context.Context, relationship *models.Relationship) error
+	GetByID(ctx context.Context, relationshipID string) (*models.Relationship, error)
+	GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error)
+	GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error)
+	GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error)
+	Update(ctx context.Context, relationship *models.Relationship) error
+	Delete(ctx context.Context, relationshipID string) error
 }
 
 type CouchbaseRelationshipRepository struct {
@@ -32,9 +32,7 @@ func NewRelationshipRepository(collection *gocb.Collection) *CouchbaseRelationsh
 }
 
 // Create inserts a new relationship into the database
-func (r *CouchbaseRelationshipRepository) Create(relationship *models.Relationship) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (r *CouchbaseRelationshipRepository) Create(ctx context.Context, relationship *models.Relationship) error {
 
 	_, err := r.collection.Insert(relationship.RelationshipID, relationship, &gocb.InsertOptions{
 		Context: ctx,
@@ -47,9 +45,7 @@ func (r *CouchbaseRelationshipRepository) Create(relationship *models.Relationsh
 }
 
 // GetByID retrieves a relationship by its ID
-func (r *CouchbaseRelationshipRepository) GetByID(relationshipID string) (*models.Relationship, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (r *CouchbaseRelationshipRepository) GetByID(ctx context.Context, relationshipID string) (*models.Relationship, error) {
 
 	result, err := r.collection.Get(relationshipID, &gocb.GetOptions{
 		Context: ctx,
@@ -67,9 +63,7 @@ func (r *CouchbaseRelationshipRepository) GetByID(relationshipID string) (*model
 }
 
 // GetByTrainerID retrieves all relationships for a trainer
-func (r *CouchbaseRelationshipRepository) GetByTrainerID(trainerID string) ([]*models.Relationship, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+func (r *CouchbaseRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.trainerId = $1",
 		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
@@ -99,10 +93,8 @@ func (r *CouchbaseRelationshipRepository) GetByTrainerID(trainerID string) ([]*m
 	return relationships, nil
 }
 
-// GetByAthleteID retrieves the active relationship for an athlete
-func (r *CouchbaseRelationshipRepository) GetByAthleteID(athleteID string) (*models.Relationship, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+// GetByAthleteID retrieves active relationship for an athlete
+func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.athleteId = $1 AND r.status = 'active' LIMIT 1",
 		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
@@ -132,9 +124,7 @@ func (r *CouchbaseRelationshipRepository) GetByAthleteID(athleteID string) (*mod
 }
 
 // GetPendingByAthleteID retrieves pending invitations for an athlete
-func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(athleteID string) ([]*models.Relationship, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.athleteId = $1 AND r.status = 'pending'",
 		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
@@ -165,9 +155,7 @@ func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(athleteID string
 }
 
 // Update updates an existing relationship
-func (r *CouchbaseRelationshipRepository) Update(relationship *models.Relationship) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (r *CouchbaseRelationshipRepository) Update(ctx context.Context, relationship *models.Relationship) error {
 
 	relationship.UpdatedAt = time.Now()
 
@@ -182,9 +170,7 @@ func (r *CouchbaseRelationshipRepository) Update(relationship *models.Relationsh
 }
 
 // Delete removes a relationship from the database
-func (r *CouchbaseRelationshipRepository) Delete(relationshipID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (r *CouchbaseRelationshipRepository) Delete(ctx context.Context, relationshipID string) error {
 
 	_, err := r.collection.Remove(relationshipID, &gocb.RemoveOptions{
 		Context: ctx,

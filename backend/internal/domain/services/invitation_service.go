@@ -31,6 +31,27 @@ type InvitationCollection interface {
 	Replace(id string, value interface{}, opts *gocb.ReplaceOptions) (*gocb.MutationResult, error)
 }
 
+// GocbCollectionAdapter adapts gocb.Collection to InvitationCollection interface
+type GocbCollectionAdapter struct {
+	collection *gocb.Collection
+}
+
+func NewGocbCollectionAdapter(collection *gocb.Collection) InvitationCollection {
+	return &GocbCollectionAdapter{collection: collection}
+}
+
+func (a *GocbCollectionAdapter) Insert(id string, value interface{}, opts *gocb.InsertOptions) (*gocb.MutationResult, error) {
+	return a.collection.Insert(id, value, opts)
+}
+
+func (a *GocbCollectionAdapter) Get(id string, opts *gocb.GetOptions) (InvitationGetResult, error) {
+	return a.collection.Get(id, opts)
+}
+
+func (a *GocbCollectionAdapter) Replace(id string, value interface{}, opts *gocb.ReplaceOptions) (*gocb.MutationResult, error) {
+	return a.collection.Replace(id, value, opts)
+}
+
 // CodeBasedInvitation implements InvitationMethod using unique codes
 type CodeBasedInvitation struct {
 	collection InvitationCollection
@@ -216,7 +237,9 @@ func (s *InvitationService) AcceptInvitation(code string, athleteID string) (*mo
 	}
 
 	// Check if athlete already has an active trainer
-	existingRelationship, err := s.relationshipRepo.GetByAthleteID(athleteID)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	existingRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
 	}
@@ -229,14 +252,11 @@ func (s *InvitationService) AcceptInvitation(code string, athleteID string) (*mo
 	relationship.Accept() // Set as active immediately
 
 	// Save relationship
-	if err := s.relationshipRepo.Create(relationship); err != nil {
+	if err := s.relationshipRepo.Create(ctx, relationship); err != nil {
 		return nil, fmt.Errorf("failed to create relationship: %w", err)
 	}
 
 	// Update athlete's profile with trainer assignment
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	athlete, err := s.userRepo.GetUserByID(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get athlete: %w", err)
@@ -257,5 +277,11 @@ func (s *InvitationService) AcceptInvitation(code string, athleteID string) (*mo
 
 // GetPendingInvitations gets pending invitations for an athlete
 func (s *InvitationService) GetPendingInvitations(athleteID string) ([]*models.Relationship, error) {
-	return s.relationshipRepo.GetPendingByAthleteID(athleteID)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	relationships, err := s.relationshipRepo.GetPendingByAthleteID(ctx, athleteID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pending invitations: %w", err)
+	}
+	return relationships, nil
 }
