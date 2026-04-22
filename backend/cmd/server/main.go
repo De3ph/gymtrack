@@ -9,6 +9,7 @@ import (
 	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
+	"gymtrack-backend/internal/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -66,9 +67,14 @@ func main() {
 	reviewRepo := repositories.NewCouchbaseReviewRepository(userCollection)
 	coachingRequestRepo := repositories.NewCoachingRequestRepository(config.GlobalCluster)
 
-	// Initialize invitation service with adapter pattern
-	invitationMethod := services.NewCodeBasedInvitation(services.NewGocbCollectionAdapter(invitationCollection))
-	invitationService := services.NewInvitationService(invitationMethod, relationshipRepo, userRepo)
+	// Trainer feature services
+	availableClock := utils.RealClock{}
+	trainerCatalogService := services.NewTrainerCatalogService(trainerProfileRepo, reviewRepo)
+	availabilityService := services.NewAvailabilityService(availabilityRepo, availableClock)
+	reviewService := services.NewReviewService(reviewRepo, relationshipRepo, availableClock)
+	coachingRequestService := services.NewCoachingRequestService(coachingRequestRepo, userRepo, relationshipRepo, availableClock)
+	invitationMethod := services.NewCodeBasedInvitation(services.NewGocbCollectionAdapter(invitationCollection), utils.RealClock{})
+	invitationService := services.NewInvitationService(invitationMethod, relationshipRepo, userRepo, utils.RealClock{})
 
 	router := gin.Default()
 
@@ -102,12 +108,6 @@ func main() {
 	commentService := services.NewCommentService(commentRepo, relationshipRepo, workoutRepo, mealRepo)
 	commentHandler := handlers.NewCommentHandler(commentRepo, commentService)
 	routes.CommentRoutes(apiGroup, commentHandler)
-
-	// Trainer feature services
-	trainerCatalogService := services.NewTrainerCatalogService(trainerProfileRepo, reviewRepo)
-	availabilityService := services.NewAvailabilityService(availabilityRepo)
-	reviewService := services.NewReviewService(reviewRepo, relationshipRepo)
-	coachingRequestService := services.NewCoachingRequestService(coachingRequestRepo, userRepo, relationshipRepo)
 
 	// Trainer feature handlers
 	trainerCatalogHandler := handlers.NewTrainerCatalogHandler(trainerCatalogService)
