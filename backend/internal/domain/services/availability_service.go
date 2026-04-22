@@ -3,19 +3,24 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
+	"gymtrack-backend/internal/utils"
 )
 
 type AvailabilityService struct {
 	availabilityRepo repositories.AvailabilityRepository
+	clock          utils.Clock
 }
 
-func NewAvailabilityService(availabilityRepo repositories.AvailabilityRepository) *AvailabilityService {
+func NewAvailabilityService(availabilityRepo repositories.AvailabilityRepository, clock utils.Clock) *AvailabilityService {
+	if clock == nil {
+		clock = utils.RealClock{}
+	}
 	return &AvailabilityService{
 		availabilityRepo: availabilityRepo,
+		clock:           clock,
 	}
 }
 
@@ -74,7 +79,7 @@ func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID st
 		return fmt.Errorf("failed to get trainer availability for cleanup: %w", err)
 	}
 
-	cutoff := time.Now().AddDate(0, 0, -olderThanDays)
+	cutoff := s.clock.Now().AddDate(0, 0, -olderThanDays)
 	for _, slot := range slots {
 		if slot.IsBooked && slot.CreatedAt.Before(cutoff) {
 			err := s.availabilityRepo.DeleteAvailability(ctx, slot.AvailabilityID)

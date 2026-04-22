@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
+	"gymtrack-backend/internal/utils"
 
 	"github.com/google/uuid"
 )
@@ -15,17 +15,23 @@ type CoachingRequestService struct {
 	coachingRequestRepo repositories.CoachingRequestRepository
 	userRepo            repositories.UserRepository
 	relationshipRepo    repositories.RelationshipRepository
+	clock               utils.Clock
 }
 
 func NewCoachingRequestService(
 	coachingRequestRepo repositories.CoachingRequestRepository,
 	userRepo repositories.UserRepository,
 	relationshipRepo repositories.RelationshipRepository,
+	clock utils.Clock,
 ) *CoachingRequestService {
+	if clock == nil {
+		clock = utils.RealClock{}
+	}
 	return &CoachingRequestService{
 		coachingRequestRepo: coachingRequestRepo,
 		userRepo:            userRepo,
 		relationshipRepo:    relationshipRepo,
+		clock:               clock,
 	}
 }
 
@@ -98,13 +104,14 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	}
 
 	// Create the relationship
+	now := s.clock.Now()
 	relationship := &models.Relationship{
 		RelationshipID: uuid.New().String(),
 		TrainerID:      trainerID,
 		AthleteID:      request.AthleteID,
 		Status:         models.RelationshipStatusActive,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 
 	err = s.relationshipRepo.Create(ctx, relationship)
@@ -126,7 +133,7 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 
 	// Update the coaching request status
 	request.Status = models.CoachingRequestStatusAccepted
-	request.UpdatedAt = time.Now()
+	request.UpdatedAt = s.clock.Now()
 	err = s.coachingRequestRepo.Update(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update coaching request: %w", err)
@@ -154,7 +161,7 @@ func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requ
 
 	// Update the coaching request status
 	request.Status = models.CoachingRequestStatusRejected
-	request.UpdatedAt = time.Now()
+	request.UpdatedAt = s.clock.Now()
 	err = s.coachingRequestRepo.Update(ctx, request)
 	if err != nil {
 		return fmt.Errorf("failed to update coaching request: %w", err)
