@@ -23,7 +23,11 @@ func (s *AvailabilityService) SetAvailability(ctx context.Context, trainerID str
 	for i := range slots {
 		slots[i].TrainerID = trainerID
 		if slots[i].AvailabilityID == "" {
-			slots[i].AvailabilityID = generateUUID()
+			id, err := generateUUIDSafe(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to generate availability UUID: %w", err)
+			}
+			slots[i].AvailabilityID = id
 		}
 		err := s.availabilityRepo.UpsertAvailability(ctx, &slots[i])
 		if err != nil {
@@ -57,26 +61,22 @@ func (s *AvailabilityService) BookSlot(ctx context.Context, slotID string) error
 	if slot == nil {
 		return fmt.Errorf("availability slot not found")
 	}
-
-	slot.IsBooked = true
-	slot.UpdatedAt = time.Now()
-
-	err = s.availabilityRepo.UpsertAvailability(ctx, slot)
-	if err != nil {
-		return fmt.Errorf("failed to book availability slot: %w", err)
+	if slot.IsBooked {
+		return fmt.Errorf("slot already booked")
 	}
 
-	return nil
+	return s.availabilityRepo.BookSlotAtomic(ctx, slotID)
 }
 
-func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID string) error {
+func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID string, olderThanDays int) error {
 	slots, err := s.availabilityRepo.GetByTrainerID(ctx, trainerID)
 	if err != nil {
 		return err
 	}
 
+	cutoff := time.Now().AddDate(0, 0, -olderThanDays)
 	for _, slot := range slots {
-		if slot.IsBooked {
+		if slot.IsBooked && slot.CreatedAt.Before(cutoff) {
 			err := s.availabilityRepo.DeleteAvailability(ctx, slot.AvailabilityID)
 			if err != nil {
 				return err
@@ -88,4 +88,8 @@ func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID st
 
 func (s *AvailabilityService) DeleteSlot(ctx context.Context, slotID string) error {
 	return s.availabilityRepo.DeleteAvailability(ctx, slotID)
+}
+
+func (s *AvailabilityService) CleanupExpiredSlots(ctx context.Context, retentionDays int) error {
+	return s.availabilityRepo.CleanupExpiredSlots(ctx, retentionDays)
 }

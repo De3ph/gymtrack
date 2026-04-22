@@ -14,44 +14,68 @@ import (
 	"github.com/couchbase/gocb/v2"
 )
 
-// InvitationMethod defines the interface for different invitation methods
 type InvitationMethod interface {
 	GenerateInvitation(trainerID string, athleteID string) (*models.Invitation, error)
 	ValidateInvitation(code string) (*models.Invitation, error)
 	MarkInvitationUsed(invitationID string) error
 }
 
+type InvitationGetResult interface {
+	Content(valuePtr interface{}) error
+	Cas() gocb.Cas
+}
+
+type InvitationCollection interface {
+	Insert(id string, value interface{}, opts *gocb.InsertOptions) (*gocb.MutationResult, error)
+	Get(id string, opts *gocb.GetOptions) (InvitationGetResult, error)
+	Replace(id string, value interface{}, opts *gocb.ReplaceOptions) (*gocb.MutationResult, error)
+}
+
 // CodeBasedInvitation implements InvitationMethod using unique codes
 type CodeBasedInvitation struct {
-	collection *gocb.Collection
+	collection InvitationCollection
 }
 
 // NewCodeBasedInvitation creates a new code-based invitation service
-func NewCodeBasedInvitation(collection *gocb.Collection) *CodeBasedInvitation {
+func NewCodeBasedInvitation(collection InvitationCollection) *CodeBasedInvitation {
 	return &CodeBasedInvitation{
 		collection: collection,
 	}
 }
 
+// generateUUIDSafe generates a UUID with error handling
+var generateUUIDSafe = func(ctx context.Context) (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to read random bytes: %w", err)
+	}
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:]), nil
+}
+
 // GenerateInvitation creates a new invitation code
 func (c *CodeBasedInvitation) GenerateInvitation(trainerID string, athleteID string) (*models.Invitation, error) {
-	code, err := generateRandomCode(8)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	code, err := generateRandomCode(ctx, 8)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate invitation code: %w", err)
 	}
 
+	invitationID, err := generateUUIDSafe(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate invitation UUID: %w", err)
+	}
+
 	invitation := &models.Invitation{
 		Type:         "invitation",
-		InvitationID: generateUUID(),
+		InvitationID: invitationID,
 		TrainerID:    trainerID,
 		Code:         code,
 		Status:       "pending",
 		CreatedAt:    time.Now(),
 		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour), // 7 days expiry
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	_, err = c.collection.Insert(invitation.InvitationID, invitation, &gocb.InsertOptions{
 		Context: ctx,
@@ -65,6 +89,9 @@ func (c *CodeBasedInvitation) GenerateInvitation(trainerID string, athleteID str
 
 // ValidateInvitation checks if an invitation code is valid
 func (c *CodeBasedInvitation) ValidateInvitation(code string) (*models.Invitation, error) {
+	if code == "" {
+		return nil, fmt.Errorf("code cannot be empty")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -102,7 +129,7 @@ func (c *CodeBasedInvitation) ValidateInvitation(code string) (*models.Invitatio
 	return &invitation, nil
 }
 
-// MarkInvitationUsed marks an invitation as used
+// MarkInvitationUsed marks an invitation as used with concurrency safety
 func (c *CodeBasedInvitation) MarkInvitationUsed(invitationID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -119,11 +146,16 @@ func (c *CodeBasedInvitation) MarkInvitationUsed(invitationID string) error {
 		return fmt.Errorf("failed to decode invitation: %w", err)
 	}
 
+	if invitation.Status != "pending" {
+		return fmt.Errorf("invitation already used or not pending")
+	}
+
 	invitation.Status = "used"
 	invitation.UsedAt = time.Now()
 
 	_, err = c.collection.Replace(invitationID, invitation, &gocb.ReplaceOptions{
 		Context: ctx,
+		Cas:     result.Cas(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update invitation: %w", err)
@@ -132,20 +164,22 @@ func (c *CodeBasedInvitation) MarkInvitationUsed(invitationID string) error {
 	return nil
 }
 
-// generateRandomCode generates a random hex code of specified length
-func generateRandomCode(length int) (string, error) {
+// generateRandomCode generates a random hex code of specified length with context timeout
+func generateRandomCode(ctx context.Context, length int) (string, error) {
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	default:
+	}
 	bytes := make([]byte, length/2)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+	n, err := rand.Read(bytes)
+	if err != nil {
+		return "", fmt.Errorf("failed to read random bytes: %w", err)
+	}
+	if n == 0 {
+		return "", fmt.Errorf("no random bytes read")
 	}
 	return hex.EncodeToString(bytes), nil
-}
-
-// generateUUID generates a simple UUID (for simplicity, using timestamp + random)
-func generateUUID() string {
-	b := make([]byte, 16)
-	rand.Read(b)
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
 // InvitationService manages invitations using an adapter pattern
@@ -212,7 +246,7 @@ func (s *InvitationService) AcceptInvitation(code string, athleteID string) (*mo
 		return nil, fmt.Errorf("failed to update athlete profile: %w", err)
 	}
 
-	// Mark invitation as used
+	// Mark invitation as used with concurrency safety
 	if err := s.method.MarkInvitationUsed(invitation.InvitationID); err != nil {
 		// Log error but don't fail the operation
 		fmt.Printf("Warning: failed to mark invitation as used: %v\n", err)

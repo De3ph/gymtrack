@@ -43,9 +43,14 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athl
 		return nil, fmt.Errorf("you have already reviewed this trainer")
 	}
 
+	id, err := generateUUIDSafe(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate review ID: %w", err)
+	}
+
 	review := &models.TrainerReview{
 		Type:      "review",
-		ReviewID:  generateUUID(),
+		ReviewID:  id,
 		TrainerID: trainerID,
 		AthleteID: athleteID,
 		Rating:    rating,

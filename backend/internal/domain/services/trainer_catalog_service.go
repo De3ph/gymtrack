@@ -9,11 +9,11 @@ import (
 )
 
 type TrainerCatalogService struct {
-	profileRepo *repositories.CouchbaseTrainerProfileRepository
-	reviewRepo  *repositories.CouchbaseReviewRepository
+	profileRepo repositories.TrainerProfileRepository
+	reviewRepo  repositories.ReviewRepository
 }
 
-func NewTrainerCatalogService(profileRepo *repositories.CouchbaseTrainerProfileRepository, reviewRepo *repositories.CouchbaseReviewRepository) *TrainerCatalogService {
+func NewTrainerCatalogService(profileRepo repositories.TrainerProfileRepository, reviewRepo repositories.ReviewRepository) *TrainerCatalogService {
 	return &TrainerCatalogService{
 		profileRepo: profileRepo,
 		reviewRepo:  reviewRepo,

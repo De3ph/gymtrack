@@ -17,6 +17,8 @@ type AvailabilityRepository interface {
 	UpsertAvailability(ctx context.Context, slot *models.TrainerAvailability) error
 	DeleteAvailability(ctx context.Context, slotID string) error
 	GetAvailableSlots(ctx context.Context, trainerID string, dayOfWeek int) ([]models.TrainerAvailability, error)
+	BookSlotAtomic(ctx context.Context, slotID string) error
+	CleanupExpiredSlots(ctx context.Context, retentionDays int) error
 }
 
 type CouchbaseAvailabilityRepository struct {
@@ -123,4 +125,42 @@ func (r *CouchbaseAvailabilityRepository) GetAvailableSlots(ctx context.Context,
 	}
 
 	return slots, nil
+}
+
+func (r *CouchbaseAvailabilityRepository) BookSlotAtomic(ctx context.Context, slotID string) error {
+	_, err := r.collection.MutateIn(slotID, []gocb.MutateInSpec{
+		gocb.UpsertSpec("isBooked", true, nil),
+		gocb.UpsertSpec("updatedAt", time.Now(), nil),
+	}, &gocb.MutateInOptions{
+		Context: ctx,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to book slot atomically: %w", err)
+	}
+	return nil
+}
+
+func (r *CouchbaseAvailabilityRepository) CleanupExpiredSlots(ctx context.Context, retentionDays int) error {
+	cutoff := time.Now().AddDate(0, 0, -retentionDays)
+	query := fmt.Sprintf("SELECT a.availabilityId FROM `%s`.`%s`.`%s` a WHERE a.type = 'availability' AND a.createdAt < $1",
+		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+
+	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+		Context:              ctx,
+		PositionalParameters: []interface{}{cutoff},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to query expired slots: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var slotID string
+		if err := rows.Row(&slotID); err != nil {
+			continue
+		}
+		_, _ = r.collection.Remove(slotID, &gocb.RemoveOptions{Context: ctx})
+	}
+
+	return nil
 }
