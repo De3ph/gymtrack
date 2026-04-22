@@ -17,6 +17,7 @@ type RelationshipRepository interface {
 	GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error)
 	GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error)
 	GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error)
+	HasActiveRelationship(ctx context.Context, trainerID, athleteID string) (bool, error)
 	Update(ctx context.Context, relationship *models.Relationship) error
 	Delete(ctx context.Context, relationshipID string) error
 }
@@ -152,6 +153,38 @@ func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Cont
 	}
 
 	return relationships, nil
+}
+
+// HasActiveRelationship checks if an active relationship exists between a trainer and athlete
+func (r *CouchbaseRelationshipRepository) HasActiveRelationship(ctx context.Context, trainerID, athleteID string) (bool, error) {
+	query := fmt.Sprintf("SELECT COUNT(r) as count FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.trainerId = $1 AND r.athleteId = $2 AND r.status = 'active' LIMIT 1",
+		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
+
+	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+		PositionalParameters: []interface{}{trainerID, athleteID},
+		Context:              ctx,
+	})
+	if err != nil {
+		return false, fmt.Errorf("failed to query active relationship: %w", err)
+	}
+	defer result.Close()
+
+	type countResult struct {
+		Count int `json:"count"`
+	}
+
+	var res countResult
+	if result.Next() {
+		if err := result.Row(&res); err != nil {
+			return false, fmt.Errorf("failed to decode count result: %w", err)
+		}
+	}
+
+	if err := result.Err(); err != nil {
+		return false, fmt.Errorf("query iteration error: %w", err)
+	}
+
+	return res.Count > 0, nil
 }
 
 // Update updates an existing relationship

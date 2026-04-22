@@ -19,6 +19,10 @@ type ReviewRepository interface {
 	GetByAthleteID(ctx context.Context, athleteID string) (*models.TrainerReview, error)
 	GetAverageRating(ctx context.Context, trainerID string) (float64, int, error)
 	GetReviewByID(ctx context.Context, reviewID string) (*models.TrainerReview, error)
+	GetRatingsForTrainers(ctx context.Context, trainerIDs []string) (map[string]struct {
+		Avg   float64
+		Count int
+	}, error)
 }
 
 type CouchbaseReviewRepository struct {
@@ -162,4 +166,65 @@ func (r *CouchbaseReviewRepository) GetReviewByID(ctx context.Context, reviewID 
 	}
 
 	return &review, nil
+}
+
+// GetRatingsForTrainers retrieves average ratings and review counts for multiple trainers in a single query
+func (r *CouchbaseReviewRepository) GetRatingsForTrainers(ctx context.Context, trainerIDs []string) (map[string]struct {
+	Avg   float64
+	Count int
+}, error) {
+	if len(trainerIDs) == 0 {
+		return make(map[string]struct {
+			Avg   float64
+			Count int
+		}), nil
+	}
+
+	query := fmt.Sprintf("SELECT rev.trainerId, AVG(rev.rating) as avgRating, COUNT(rev) as reviewCount FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.trainerId IN $1 GROUP BY rev.trainerId",
+		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+
+	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+		Context:              ctx,
+		PositionalParameters: []interface{}{trainerIDs},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query ratings for trainers: %w", err)
+	}
+	defer rows.Close()
+
+	type result struct {
+		TrainerID   string  `json:"trainerId"`
+		AvgRating   float64 `json:"avgRating"`
+		ReviewCount int     `json:"reviewCount"`
+	}
+
+	ratings := make(map[string]struct {
+		Avg   float64
+		Count int
+	})
+	for rows.Next() {
+		var res result
+		if err := rows.Row(&res); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal rating result: %w", err)
+		}
+		ratings[res.TrainerID] = struct {
+			Avg   float64
+			Count int
+		}{
+			Avg:   res.AvgRating,
+			Count: res.ReviewCount,
+		}
+	}
+
+	// Ensure all requested trainer IDs have an entry (even if 0 ratings)
+	for _, trainerID := range trainerIDs {
+		if _, exists := ratings[trainerID]; !exists {
+			ratings[trainerID] = struct {
+				Avg   float64
+				Count int
+			}{Avg: 0, Count: 0}
+		}
+	}
+
+	return ratings, nil
 }

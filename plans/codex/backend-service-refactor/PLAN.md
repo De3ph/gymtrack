@@ -15,10 +15,10 @@
   |-------------|------|--------|
   | SP‑01 | Wrap all external/repository errors with %w for traceability | done |
   | SP‑02 | Propagate context.Context to every repository/DB call | done |
-  | SP‑03 | Introduce a Clock interface to replace time.Now() in services | todo |
-  | SP‑04 | Extract duplicated enrichment logic in CoachingRequestService | todo |
-  | SP‑05 | Add helper repository method HasActiveRelationship(trainerID, athleteID) and use it in comment & review services | todo |
-  | SP‑06 | Reduce N+1 rating queries in TrainerCatalogService by adding batch rating retrieval | todo |
+  | SP‑03 | Introduce a Clock interface to replace time.Now() in services | done |
+  | SP‑04 | Extract duplicated enrichment logic in CoachingRequestService | done |
+  | SP‑05 | Add helper repository method HasActiveRelationship(trainerID, athleteID) and use it in comment & review services | done |
+  | SP‑06 | Reduce N+1 rating queries in TrainerCatalogService by adding batch rating retrieval | done |
   | SP‑07 | Validate invitation code length & odd‑length handling in InvitationService | todo |
   | SP‑08 | Ensure all repository calls accept ctx (e.g., relationshipRepo.Create, userRepo.UpdateUser) | done |
   | SP‑09 | Enforce immutability of input slices (e.g., copy slots in AvailabilityService) or document mutation | todo |
@@ -151,8 +151,8 @@
 
   ## Execution flow (suggested)
 
-  1. SP‑01 → SP‑02 → SP‑08 (error and context upgrades are foundational; they may require interface adjustments, so perform together).
-  2. SP‑03 (clock) can run in parallel once repository signatures are stable.
+  1. SP‑01 → SP‑02 → SP‑08 (error and context upgrades are foundational; they may require interface adjustments, so perform together). - DONE
+  2. SP‑03 (clock) can run in parallel once repository signatures are stable. - DONE
   3. SP‑04, SP‑05, SP‑06 (deduplication & performance helpers) depend on updated repository interfaces, so schedule after step 1.
   4. SP‑07, SP‑09, SP‑10 are isolated edits; they can be applied once the baseline refactor is complete.
   5. SP‑11 (tests) and SP‑12 (lint) run after the functional changes are merged.

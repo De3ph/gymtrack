@@ -12,7 +12,7 @@ import (
 type ReviewService struct {
 	reviewRepo       repositories.ReviewRepository
 	relationshipRepo repositories.RelationshipRepository
-	clock           utils.Clock
+	clock            utils.Clock
 }
 
 func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo repositories.RelationshipRepository, clock utils.Clock) *ReviewService {
@@ -128,15 +128,12 @@ func (s *ReviewService) GetTrainerReviews(ctx context.Context, trainerID string)
 }
 
 func (s *ReviewService) CanReview(ctx context.Context, athleteID string, trainerID string) bool {
-	relationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
+	hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
 	if err != nil {
 		// Log error but don't fail the boolean check
 		return false
 	}
-	if relationship == nil {
-		return false
-	}
-	return relationship.TrainerID == trainerID && relationship.IsActive()
+	return hasActive
 }
 
 func (s *ReviewService) CalculateTrainerStats(ctx context.Context, trainerID string) (float64, int, error) {

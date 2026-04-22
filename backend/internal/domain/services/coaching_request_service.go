@@ -189,26 +189,31 @@ func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID strin
 	// Enrich with user details
 	var requestsWithDetails []*models.CoachingRequestWithDetails
 	for _, req := range requests {
-		requestWithDetails := &models.CoachingRequestWithDetails{
-			CoachingRequest: req,
-		}
-
-		// Get athlete details
-		athlete, err := s.userRepo.GetUserByID(ctx, req.AthleteID)
-		if err == nil {
-			requestWithDetails.Athlete = athlete
-		}
-
-		// Get trainer details
-		trainer, err := s.userRepo.GetUserByID(ctx, req.TrainerID)
-		if err == nil {
-			requestWithDetails.Trainer = trainer
-		}
-
-		requestsWithDetails = append(requestsWithDetails, requestWithDetails)
+		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
 	}
 
 	return requestsWithDetails, nil
+}
+
+// enrich loads athlete and trainer details for a coaching request
+func (s *CoachingRequestService) enrich(ctx context.Context, req *models.CoachingRequest) *models.CoachingRequestWithDetails {
+	requestWithDetails := &models.CoachingRequestWithDetails{
+		CoachingRequest: req,
+	}
+
+	// Get athlete details
+	athlete, err := s.userRepo.GetUserByID(ctx, req.AthleteID)
+	if err == nil {
+		requestWithDetails.Athlete = athlete
+	}
+
+	// Get trainer details
+	trainer, err := s.userRepo.GetUserByID(ctx, req.TrainerID)
+	if err == nil {
+		requestWithDetails.Trainer = trainer
+	}
+
+	return requestWithDetails
 }
 
 func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Context, trainerID string) ([]*models.CoachingRequestWithDetails, error) {
@@ -220,17 +225,7 @@ func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Contex
 	// Enrich with athlete details
 	var requestsWithDetails []*models.CoachingRequestWithDetails
 	for _, req := range requests {
-		requestWithDetails := &models.CoachingRequestWithDetails{
-			CoachingRequest: req,
-		}
-
-		// Get athlete details
-		athlete, err := s.userRepo.GetUserByID(ctx, req.AthleteID)
-		if err == nil {
-			requestWithDetails.Athlete = athlete
-		}
-
-		requestsWithDetails = append(requestsWithDetails, requestWithDetails)
+		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
 	}
 
 	return requestsWithDetails, nil
