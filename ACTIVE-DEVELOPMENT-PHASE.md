@@ -1,0 +1,56 @@
+**Development Phase**
+
+## Phase 1: Create an arhitectural overview in Obsidian
+
+- [ ] Create a new vault in Obsidian
+- [ ] Create a new note called "Architecture Overview"
+- [ ] Create a new note called "Database Schema"
+- [ ] Create a new note called "API Endpoints"
+- [ ] Create a new note called "UI Components"
+- [ ] Create a new note called "Business Logic"
+- [ ] Create a new note called "Testing Strategy"
+- [ ] Create a new note called "Deployment Strategy"
+- [ ] Create a new note called "Security Considerations"
+- [ ] Create a new note called "Performance Considerations"
+- [ ] Create a new note called "Future Enhancements"
+
+## Phase 2: Enhance AI support
+
+- [ ] Revising existing files (deleting, refactor, reorganize etc.)
+- [ ] Update context-map.md
+- [ ] Update README.md
+- [ ] Universial architecturial patterns should be documented
+    - [ ] handler - service - repository pattern
+    - [ ] custom errors
+    - [ ] validation patterns
+    - [ ] code style guidelines (e.g. early returns, descriptive comments, TODO and FIXME tags)
+
+## Phase 3: Code Quality and Testing
+
+- [ ] Extracting common functions into reusable modules with configurable parameters (date formatting, etc.)
+- [ ] Service and handler tests should be rewritten, most of them are broken or outdated
+- [ ] For each user case, there has to be a e2e test (Playwright)
+- [ ] Create a regression test suite to ensure that new changes don't break existing functionality
+- [ ] Git hooks to format code before commit
+- [ ] CI / CD pipeline to run tests via GitHub Actions
+
+## Phase 4: Enhance Workout and Meal Logging
+
+Currently, the workout and meal logging is quite basic.
+
+- [ ] User should pick predefined exercises from a list
+- [ ] Sets and weight options should be more convenient to use
+    - [ ] Weight should be able to enter for each set, instead of just for the entire exercise
+- [ ] Each set should have its own entires
+    - [ ] reps
+    - [ ] weight
+    - [ ] rest time
+
+
+## Phase 5: UI Polishments
+
+- [ ] Considiring migrate to Base UI from Radix UI based system (shadcn/ui)
+- [ ] Add loading states and spinners
+- [ ] Decide on a consistent color scheme and design
+- [ ] Add theme toggle (light/dark)
+- [ ] Replacing custom components with shadcn/ui components
