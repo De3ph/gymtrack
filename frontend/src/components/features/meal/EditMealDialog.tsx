@@ -195,7 +195,7 @@ export function EditMealDialog({
                       {...form.register(`items.${index}.food`)}
                       className={cn(
                         form.formState.errors.items?.[index]?.food &&
-                          "border-destructive",
+                        "border-destructive",
                       )}
                     />
                     {form.formState.errors.items?.[index]?.food && (

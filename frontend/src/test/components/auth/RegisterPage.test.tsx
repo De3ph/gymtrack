@@ -25,7 +25,7 @@ vi.mock('@/lib/api', () => ({
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(useRouter as any).mockReturnValue({ push: mockPush })
+      ; (useRouter as any).mockReturnValue({ push: mockPush })
   })
 
   it('renders registration form with all fields', () => {

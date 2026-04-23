@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { relationshipApi } from "@/lib/api";
-import { ClientWithAthlete } from "@/lib/api-types";
+import { ClientWithAthlete } from "@/lib/api/api-types";
 import { useAuthStore } from "@/stores/authStore";
 import {
   Eye,
@@ -136,7 +136,7 @@ export default function TrainerClientsPage() {
               key={client.relationship?.relationshipId}
               variants={staggerItem}
             >
-              <Card animateHover>
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
@@ -154,9 +154,7 @@ export default function TrainerClientsPage() {
                     <p className="text-xs text-muted-foreground">
                       Client since{" "}
                       {client.relationship?.createdAt
-                        ? dayjs(client.relationship.createdAt).format(
-                          "MMM D, YYYY",
-                        )
+                        ? dayjs(client.relationship.createdAt).format("DD/MM/YYYY")
                         : "N/A"}
                     </p>
                   </div>

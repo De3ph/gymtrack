@@ -144,11 +144,11 @@ export function EditWorkoutDialog({
             </div>
             {(form.formState.errors.date ||
               form.formState.errors.workoutTime) && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.date?.message ||
-                  form.formState.errors.workoutTime?.message}
-              </p>
-            )}
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.date?.message ||
+                    form.formState.errors.workoutTime?.message}
+                </p>
+              )}
           </div>
 
           <div className="space-y-4">
@@ -177,7 +177,7 @@ export function EditWorkoutDialog({
                       {...form.register(`exercises.${index}.name`)}
                       className={cn(
                         form.formState.errors.exercises?.[index]?.name &&
-                          "border-destructive",
+                        "border-destructive",
                       )}
                     />
                     {form.formState.errors.exercises?.[index]?.name && (

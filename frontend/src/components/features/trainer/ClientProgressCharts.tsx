@@ -16,7 +16,7 @@ import {
   Cell,
 } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { WorkoutStats, MealStats } from "@/lib/api-types"
+import { WorkoutStats, MealStats } from "@/lib/api/api-types"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 

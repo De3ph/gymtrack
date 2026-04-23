@@ -67,7 +67,7 @@ describe('WorkoutList', () => {
 
   it('shows loading state when fetching and no props', () => {
     vi.mocked(workoutApi.getAll).mockImplementation(
-      () => new Promise(() => {})
+      () => new Promise(() => { })
     )
     renderWithProvider(<WorkoutList />)
 

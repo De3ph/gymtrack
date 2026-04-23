@@ -85,15 +85,15 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     );
   }
 
-   if (error) {
-     return (
-       <Card>
-         <CardContent className="p-6">
-           <div className="text-center text-red-600">Error: {error instanceof Error ? error.message : String(error)}</div>
-         </CardContent>
-       </Card>
-     );
-   }
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">Error: {error instanceof Error ? error.message : String(error)}</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (requests.length === 0) {
     return (
@@ -151,7 +151,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                   disabled={acceptPending || rejectPending}
                   className="flex-1"
                 >
-{acceptPending ? "Accepting..." : "Accept"}
+                  {acceptPending ? "Accepting..." : "Accept"}
                 </Button>
                 <Button
                   variant="outline"
@@ -159,7 +159,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                   disabled={acceptPending || rejectPending}
                   className="flex-1"
                 >
-{rejectPending ? "Rejecting..." : "Reject"}
+                  {rejectPending ? "Rejecting..." : "Reject"}
                 </Button>
               </div>
             )}

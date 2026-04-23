@@ -74,7 +74,7 @@ describe('MealList', () => {
   })
 
   it('shows loading state when fetching and no props', () => {
-    vi.mocked(mealApi.getAll).mockImplementation(() => new Promise(() => {}))
+    vi.mocked(mealApi.getAll).mockImplementation(() => new Promise(() => { }))
     renderWithProvider(<MealList />)
 
     expect(screen.getByText(/loading meals/i)).toBeInTheDocument()
