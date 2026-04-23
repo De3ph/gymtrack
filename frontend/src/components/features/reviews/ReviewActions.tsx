@@ -68,11 +68,10 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
             className="focus:outline-none"
           >
             <Star
-              className={`w-6 h-6 transition-colors ${
-                star <= currentRating
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-gray-300 hover:text-yellow-200"
-              }`}
+              className={`w-6 h-6 transition-colors ${star <= currentRating
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300 hover:text-yellow-200"
+                }`}
             />
           </button>
         ))}
@@ -105,7 +104,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
                   {renderStars(rating)}
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="comment">Comment</Label>
                 <Textarea
@@ -158,7 +157,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
             </DialogHeader>
             <div className="space-y-4">
               <p>Are you sure you want to delete this review? This action cannot be undone.</p>
-              
+
               {error && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                   {error}

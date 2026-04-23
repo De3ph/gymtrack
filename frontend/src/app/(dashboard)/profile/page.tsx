@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import { userApi } from '@/lib/api';
 import { relationshipApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { athleteProfileSchema, trainerProfileSchema } from '@/lib/validations/auth';
 import type { User, UserProfile } from '@/types';
 import { AcceptInvitationDialog } from '@/components/features/athlete/AcceptInvitationDialog';
 import { MyTrainerButton } from '@/components/features/athlete/MyTrainerButton';
+import { Input } from '@/components/ui/input';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { FieldInfo } from '@/components/ui/form-field';
 
 export default function ProfilePage() {
   const { user, setUser } = useAuthStore();
@@ -38,24 +39,32 @@ export default function ProfilePage() {
     },
   });
 
-  const schema = currentUser?.role === 'athlete' ? athleteProfileSchema : trainerProfileSchema;
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<UserProfile>({
-    resolver: zodResolver(schema),
-    defaultValues: currentUser?.profile,
+  const form = useForm({
+    defaultValues: {
+      name: currentUser?.profile?.name || '',
+      age: currentUser?.profile?.age?.toString() || '',
+      weight: currentUser?.profile?.weight?.toString() || '',
+      height: currentUser?.profile?.height?.toString() || '',
+      fitnessGoals: currentUser?.profile?.fitnessGoals || '',
+      certifications: currentUser?.profile?.certifications || '',
+      specializations: currentUser?.profile?.specializations || '',
+    },
+    onSubmit: async ({ value }) => {
+      const profile: UserProfile = {
+        name: value.name,
+        age: value.age ? Number(value.age) : undefined,
+        weight: value.weight ? Number(value.weight) : undefined,
+        height: value.height ? Number(value.height) : undefined,
+        fitnessGoals: value.fitnessGoals,
+        certifications: value.certifications,
+        specializations: value.specializations,
+      };
+      updateMutation.mutate({ profile });
+    },
   });
 
-  const onSubmit = (data: UserProfile) => {
-    updateMutation.mutate({ profile: data });
-  };
-
   const handleCancel = () => {
-    reset(currentUser?.profile);
+    form.reset();
     setIsEditing(false);
   };
 
@@ -197,123 +206,142 @@ export default function ProfilePage() {
             ) : null}
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Full Name
-              </label>
-              <input
-                {...register('name')}
-                type="text"
-                id="name"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.name.message}
-                </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit();
+            }}
+            className="space-y-4"
+          >
+            <form.Field
+              name="name"
+              validators={{
+                onChange: ({ value }) => {
+                  if (!value || value.trim().length === 0) {
+                    return 'Name is required';
+                  }
+                  return undefined;
+                },
+              }}
+            >
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="name">Full Name</FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    type="text"
+                    id="name"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                  <FieldInfo field={field} />
+                </Field>
               )}
-            </div>
+            </form.Field>
 
             {currentUser.role === 'athlete' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="age"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Age
-                    </label>
-                    <input
-                      {...register('age', { valueAsNumber: true })}
-                      type="number"
-                      id="age"
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="weight"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Weight (kg)
-                    </label>
-                    <input
-                      {...register('weight', { valueAsNumber: true })}
-                      type="number"
-                      id="weight"
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
+                  <form.Field name="age">
+                    {(field) => (
+                      <Field>
+                        <FieldLabel htmlFor="age">Age</FieldLabel>
+                        <Input
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          type="number"
+                          id="age"
+                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <form.Field name="weight">
+                    {(field) => (
+                      <Field>
+                        <FieldLabel htmlFor="weight">Weight (kg)</FieldLabel>
+                        <Input
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          type="number"
+                          id="weight"
+                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="height"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Height (cm)
-                  </label>
-                  <input
-                    {...register('height', { valueAsNumber: true })}
-                    type="number"
-                    id="height"
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
+                <form.Field name="height">
+                  {(field) => (
+                    <Field>
+                      <FieldLabel htmlFor="height">Height (cm)</FieldLabel>
+                      <Input
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        type="number"
+                        id="height"
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                    </Field>
+                  )}
+                </form.Field>
 
-                <div>
-                  <label
-                    htmlFor="fitnessGoals"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Fitness Goals
-                  </label>
-                  <textarea
-                    {...register('fitnessGoals')}
-                    id="fitnessGoals"
-                    rows={3}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
+                <form.Field name="fitnessGoals">
+                  {(field) => (
+                    <Field>
+                      <FieldLabel htmlFor="fitnessGoals">Fitness Goals</FieldLabel>
+                      <textarea
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        id="fitnessGoals"
+                        rows={3}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                    </Field>
+                  )}
+                </form.Field>
               </>
             )}
 
             {currentUser.role === 'trainer' && (
               <>
-                <div>
-                  <label
-                    htmlFor="certifications"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Certifications
-                  </label>
-                  <input
-                    {...register('certifications')}
-                    type="text"
-                    id="certifications"
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
+                <form.Field name="certifications">
+                  {(field) => (
+                    <Field>
+                      <FieldLabel htmlFor="certifications">Certifications</FieldLabel>
+                      <Input
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        type="text"
+                        id="certifications"
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                    </Field>
+                  )}
+                </form.Field>
 
-                <div>
-                  <label
-                    htmlFor="specializations"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Specializations
-                  </label>
-                  <input
-                    {...register('specializations')}
-                    type="text"
-                    id="specializations"
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
+                <form.Field name="specializations">
+                  {(field) => (
+                    <Field>
+                      <FieldLabel htmlFor="specializations">Specializations</FieldLabel>
+                      <Input
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        type="text"
+                        id="specializations"
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                    </Field>
+                  )}
+                </form.Field>
               </>
             )}
 

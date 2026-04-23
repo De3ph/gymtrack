@@ -10,20 +10,22 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/testutils"
 )
 
 type UserHandlerTestSuite struct {
 	suite.Suite
-	router      *gin.Engine
-	mockUserRepo *MockUserRepository
+	router       *gin.Engine
+	mockUserRepo *testutils.MockUserRepository
 }
 
 func (suite *UserHandlerTestSuite) SetupTest() {
 	gin.SetMode(gin.TestMode)
-	suite.mockUserRepo = NewMockUserRepository()
+	suite.mockUserRepo = new(testutils.MockUserRepository)
 	userHandler := NewUserHandler(suite.mockUserRepo)
 
 	suite.router = gin.New()
@@ -38,14 +40,16 @@ func (suite *UserHandlerTestSuite) SetupTest() {
 }
 
 func (suite *UserHandlerTestSuite) TestGetCurrentUser_Success() {
-	suite.mockUserRepo.users["test-user-123"] = &models.User{
-		UserID:       "test-user-123",
-		Email:        "user@example.com",
-		Role:         models.RoleAthlete,
-		Profile:      models.UserProfile{Name: "Test User", Age: 25},
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+	testUser := &models.User{
+		UserID:    "test-user-123",
+		Email:     "user@example.com",
+		Role:      models.RoleAthlete,
+		Profile:   models.UserProfile{Name: "Test User", Age: 25},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
+
+	suite.mockUserRepo.On("GetUserByID", mock.AnythingOfType("context.backgroundCtx"), "test-user-123").Return(testUser, nil)
 
 	req, _ := http.NewRequest("GET", "/api/users/me", nil)
 	w := httptest.NewRecorder()

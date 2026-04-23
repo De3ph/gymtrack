@@ -3,6 +3,7 @@
 import { CoachingRequestsList } from "@/components/features/coaching/CoachingRequestsList"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import { ROUTES } from "@/lib/routes"
 
 export default function MyCoachingRequestsPage() {
   return (
@@ -22,7 +23,7 @@ export default function MyCoachingRequestsPage() {
           <p className="text-gray-600 mb-4">
             Browse our catalog of qualified trainers and send them coaching requests.
           </p>
-          <Link href="/athlete/trainers">
+          <Link href={ROUTES.ATHLETE_TRAINERS}>
             <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
               Browse Trainers
             </button>

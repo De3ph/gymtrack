@@ -1,30 +1,28 @@
 "use client";
 
 import { GenerateInvitationDialog } from "@/components/features/trainer/GenerateInvitationDialog";
+import { ClientCard } from "@/components/features/trainer/ClientCard";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { relationshipApi } from "@/lib/api";
-import { ClientWithAthlete } from "@/lib/api-types";
 import { useAuthStore } from "@/stores/authStore";
 import {
-  Eye,
   Loader2,
   UserPlus,
   Users,
-  Dumbbell,
-  Utensils,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect } from "react"; import { useQuery } from "@tanstack/react-query"; // useEffect removed as data fetching handled by TanStack Query
-import dayjs from "dayjs";
+import { ROUTES, buildRoute } from "@/lib/routes";
 import { motion } from "motion/react";
-import { staggerContainer, staggerItem } from "@/lib/animations";
+import { staggerContainer } from "@/lib/animations";
 
 export default function TrainerClientsPage() {
   const router = useRouter();
@@ -45,7 +43,7 @@ export default function TrainerClientsPage() {
   // Guard: redirect if not a trainer
   useEffect(() => {
     if (user && user.role !== "trainer") {
-      router.push("/");
+      router.push(ROUTES.HOME);
     }
   }, [user, router]);
 
@@ -64,7 +62,7 @@ export default function TrainerClientsPage() {
   };
 
   const handleViewClient = (clientId: string) => {
-    router.push(`/trainer/client/${clientId}`);
+    router.push(buildRoute('TRAINER_CLIENT_DETAIL', clientId));
   };
 
   if (isLoading) {
@@ -109,20 +107,24 @@ export default function TrainerClientsPage() {
       )}
 
       {clients.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Users className="mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="mb-2 text-lg font-semibold">No Clients Yet</h3>
-            <p className="mb-4 text-center text-muted-foreground">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Users className="size-6" />
+            </EmptyMedia>
+            <EmptyTitle>No Clients Yet</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <EmptyDescription>
               You don&apos;t have any active clients yet. Generate an invitation
               code to start working with athletes.
-            </p>
+            </EmptyDescription>
             <Button onClick={() => setShowInviteDialog(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
               Invite Your First Athlete
             </Button>
-          </CardContent>
-        </Card>
+          </EmptyContent>
+        </Empty>
       ) : (
         <motion.div
           className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
@@ -131,61 +133,26 @@ export default function TrainerClientsPage() {
           animate="visible"
         >
           {filteredClients.map((client) => (
-            <motion.div
+            <ClientCard
               key={client.relationship?.relationshipId}
-              variants={staggerItem}
-            >
-              <Card animateHover>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    {client.athlete?.profile?.name || "Unknown Athlete"}
-                  </CardTitle>
-                  <CardDescription>{client.athlete?.email}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 space-y-2 text-sm">
-                    {client.athlete?.profile?.fitnessGoals && (
-                      <p className="text-muted-foreground line-clamp-2">
-                        Goals: {client.athlete.profile.fitnessGoals}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Client since{" "}
-                      {client.relationship?.createdAt
-                        ? dayjs(client.relationship.createdAt).format(
-                          "MMM D, YYYY",
-                        )
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() =>
-                        handleViewClient(client.athlete?.userId || "")
-                      }
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+              client={client}
+              onViewClient={handleViewClient}
+            />
           ))}
         </motion.div>
       )}
 
       {filteredClients.length === 0 && clients.length > 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground">
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No Results Found</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <EmptyDescription>
               No clients match your search.
-            </p>
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyContent>
+        </Empty>
       )}
 
       <GenerateInvitationDialog

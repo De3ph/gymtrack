@@ -58,7 +58,7 @@ describe('CommentThread', () => {
     render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
 
   it('shows loading spinner while fetching', async () => {
-    mockGet.mockImplementation(() => new Promise(() => {}))
+    mockGet.mockImplementation(() => new Promise(() => { }))
     renderWithProvider(<CommentThread targetType="workout" targetId="w1" />)
     const spinner = document.querySelector('.animate-spin')
     expect(spinner).toBeInTheDocument()

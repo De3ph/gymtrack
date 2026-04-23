@@ -3,32 +3,35 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
+	"gymtrack-backend/internal/utils"
 )
 
 type ReviewService struct {
 	reviewRepo       repositories.ReviewRepository
 	relationshipRepo repositories.RelationshipRepository
+	clock            utils.Clock
 }
 
-func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo repositories.RelationshipRepository) *ReviewService {
+func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo repositories.RelationshipRepository, clock utils.Clock) *ReviewService {
+	if clock == nil {
+		clock = utils.RealClock{}
+	}
 	return &ReviewService{
 		reviewRepo:       reviewRepo,
 		relationshipRepo: relationshipRepo,
+		clock:            clock,
 	}
 }
 
 func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athleteID string, rating int, comment string) (*models.TrainerReview, error) {
-	// Check if athlete has active relationship with trainer
-	relationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
+	// Verify active relationship using repository helper
+	hasActiveRelationship, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check relationship: %w", err)
+		return nil, fmt.Errorf("failed to check active relationship: %w", err)
 	}
-
-	hasActiveRelationship := relationship != nil && relationship.TrainerID == trainerID && relationship.Status == "active"
 
 	if !hasActiveRelationship {
 		return nil, fmt.Errorf("you must have an active relationship with this trainer to leave a review")
@@ -48,6 +51,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athl
 		return nil, fmt.Errorf("failed to generate review ID: %w", err)
 	}
 
+	now := s.clock.Now()
 	review := &models.TrainerReview{
 		Type:      "review",
 		ReviewID:  id,
@@ -55,8 +59,8 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athl
 		AthleteID: athleteID,
 		Rating:    rating,
 		Comment:   comment,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	err = s.reviewRepo.CreateReview(ctx, review)
@@ -82,7 +86,7 @@ func (s *ReviewService) UpdateReview(ctx context.Context, reviewID string, athle
 
 	review.Rating = rating
 	review.Comment = comment
-	review.UpdatedAt = time.Now()
+	review.UpdatedAt = s.clock.Now()
 
 	err = s.reviewRepo.UpdateReview(ctx, review)
 	if err != nil {
@@ -122,15 +126,12 @@ func (s *ReviewService) GetTrainerReviews(ctx context.Context, trainerID string)
 }
 
 func (s *ReviewService) CanReview(ctx context.Context, athleteID string, trainerID string) bool {
-	relationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
+	hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
 	if err != nil {
 		// Log error but don't fail the boolean check
 		return false
 	}
-	if relationship == nil {
-		return false
-	}
-	return relationship.TrainerID == trainerID && relationship.IsActive()
+	return hasActive
 }
 
 func (s *ReviewService) CalculateTrainerStats(ctx context.Context, trainerID string) (float64, int, error) {

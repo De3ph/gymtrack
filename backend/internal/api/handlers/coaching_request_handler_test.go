@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
-	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -63,8 +63,8 @@ func (m *MockCoachingRequestService) GetPendingRequestsForTrainer(ctx context.Co
 // CoachingRequestHandlerTestSuite is the test suite for CoachingRequestHandler
 type CoachingRequestHandlerTestSuite struct {
 	suite.Suite
-	handler                     *CoachingRequestHandler
-	mockCoachingRequestService  *MockCoachingRequestService
+	handler                    *CoachingRequestHandler
+	mockCoachingRequestService *MockCoachingRequestService
 }
 
 func (suite *CoachingRequestHandlerTestSuite) SetupTest() {
@@ -99,7 +99,7 @@ func createTestRelationship(trainerID, athleteID string, status models.Relations
 // Helper function to create Gin context with user authentication
 func createTestContext(method, path string, body interface{}, userID string, userRole models.UserRole) (*gin.Context, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.TestMode)
-	
+
 	var req *http.Request
 	if body != nil {
 		jsonBody, _ := json.Marshal(body)
@@ -108,15 +108,15 @@ func createTestContext(method, path string, body interface{}, userID string, use
 	} else {
 		req = httptest.NewRequest(method, path, nil)
 	}
-	
+
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request = req
-	
+
 	// Set user authentication context
 	c.Set("userID", userID)
 	c.Set("userRole", userRole)
-	
+
 	return c, w
 }
 
@@ -126,19 +126,19 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_Success(
 	trainerID := "trainer-123"
 	message := "I would like to request coaching for strength training"
 	request := createTestCoachingRequest("req-123", athleteID, trainerID, models.CoachingRequestStatusPending, message)
-	
+
 	req := CreateCoachingRequestRequest{
 		TrainerID: trainerID,
 		Message:   message,
 	}
-	
+
 	suite.mockCoachingRequestService.On("CreateCoachingRequest", mock.AnythingOfType("*gin.Context"), athleteID, trainerID, message).Return(request, nil)
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests", req, athleteID, models.RoleAthlete)
 	suite.handler.CreateCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusCreated, w.Code)
-	
+
 	var response models.CoachingRequest
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -147,7 +147,7 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_Success(
 	assert.Equal(suite.T(), request.TrainerID, response.TrainerID)
 	assert.Equal(suite.T(), request.Status, response.Status)
 	assert.Equal(suite.T(), request.Message, response.Message)
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
@@ -156,12 +156,12 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_Unauthor
 		TrainerID: "trainer-123",
 		Message:   "I need coaching",
 	}
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests", req, "", models.RoleAthlete)
 	suite.handler.CreateCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -174,12 +174,12 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_Forbidde
 		TrainerID: trainerID,
 		Message:   "I need coaching",
 	}
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -188,12 +188,12 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_Forbidde
 
 func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_InvalidJSON() {
 	athleteID := "athlete-123"
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests", "invalid json", athleteID, models.RoleAthlete)
 	suite.handler.CreateCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -206,12 +206,12 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_MissingT
 		TrainerID: "", // Missing trainer ID
 		Message:   "I need coaching",
 	}
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests", req, athleteID, models.RoleAthlete)
 	suite.handler.CreateCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -222,24 +222,24 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_ServiceE
 	athleteID := "athlete-123"
 	trainerID := "trainer-123"
 	message := "I would like to request coaching"
-	
+
 	req := CreateCoachingRequestRequest{
 		TrainerID: trainerID,
 		Message:   message,
 	}
-	
+
 	suite.mockCoachingRequestService.On("CreateCoachingRequest", mock.AnythingOfType("*gin.Context"), athleteID, trainerID, message).Return(nil, errors.New("athlete already has an active trainer"))
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests", req, athleteID, models.RoleAthlete)
 	suite.handler.CreateCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "athlete already has an active trainer", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
@@ -247,24 +247,24 @@ func (suite *CoachingRequestHandlerTestSuite) TestCreateCoachingRequest_EmptyMes
 	athleteID := "athlete-123"
 	trainerID := "trainer-123"
 	request := createTestCoachingRequest("req-123", athleteID, trainerID, models.CoachingRequestStatusPending, "")
-	
+
 	req := CreateCoachingRequestRequest{
 		TrainerID: trainerID,
 		Message:   "", // Empty message should be allowed
 	}
-	
+
 	suite.mockCoachingRequestService.On("CreateCoachingRequest", mock.AnythingOfType("*gin.Context"), athleteID, trainerID, "").Return(request, nil)
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests", req, athleteID, models.RoleAthlete)
 	suite.handler.CreateCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusCreated, w.Code)
-	
+
 	var response models.CoachingRequest
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), request.ID, response.ID)
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
@@ -275,19 +275,19 @@ func (suite *CoachingRequestHandlerTestSuite) TestGetMyRequests_Success_Athlete(
 		createTestCoachingRequest("req-1", athleteID, "trainer-123", models.CoachingRequestStatusPending, "Need coaching"),
 		createTestCoachingRequest("req-2", athleteID, "trainer-456", models.CoachingRequestStatusRejected, "Previous request"),
 	}
-	
+
 	suite.mockCoachingRequestService.On("GetMyRequests", mock.AnythingOfType("*gin.Context"), athleteID, "athlete").Return(requests, nil)
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/my", nil, athleteID, models.RoleAthlete)
 	suite.handler.GetMyRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), response["requests"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
@@ -297,28 +297,28 @@ func (suite *CoachingRequestHandlerTestSuite) TestGetMyRequests_Success_Trainer(
 		createTestCoachingRequest("req-1", "athlete-123", trainerID, models.CoachingRequestStatusPending, "Need coaching"),
 		createTestCoachingRequest("req-2", "athlete-456", trainerID, models.CoachingRequestStatusAccepted, "Accepted request"),
 	}
-	
+
 	suite.mockCoachingRequestService.On("GetMyRequests", mock.AnythingOfType("*gin.Context"), trainerID, "trainer").Return(requests, nil)
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/my", nil, trainerID, models.RoleTrainer)
 	suite.handler.GetMyRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), response["requests"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestGetMyRequests_Unauthorized() {
 	c, w := createTestContext("GET", "/api/coaching-requests/my", nil, "", models.RoleAthlete)
 	suite.handler.GetMyRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -328,37 +328,37 @@ func (suite *CoachingRequestHandlerTestSuite) TestGetMyRequests_Unauthorized() {
 func (suite *CoachingRequestHandlerTestSuite) TestGetMyRequests_EmptyRequests() {
 	athleteID := "athlete-123"
 	requests := []*models.CoachingRequest{}
-	
+
 	suite.mockCoachingRequestService.On("GetMyRequests", mock.AnythingOfType("*gin.Context"), athleteID, "athlete").Return(requests, nil)
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/my", nil, athleteID, models.RoleAthlete)
 	suite.handler.GetMyRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), response["requests"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestGetMyRequests_ServiceError() {
 	athleteID := "athlete-123"
-	
+
 	suite.mockCoachingRequestService.On("GetMyRequests", mock.AnythingOfType("*gin.Context"), athleteID, "athlete").Return(nil, errors.New("database error"))
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/my", nil, athleteID, models.RoleAthlete)
 	suite.handler.GetMyRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusInternalServerError, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "database error", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
@@ -367,33 +367,33 @@ func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_Success(
 	trainerID := "trainer-123"
 	requestID := "req-123"
 	relationship := createTestRelationship(trainerID, "athlete-123", models.RelationshipStatusActive)
-	
+
 	suite.mockCoachingRequestService.On("AcceptCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(relationship, nil)
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/accept", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.AcceptCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "coaching request accepted", response["message"])
 	assert.NotNil(suite.T(), response["relationship"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_Unauthorized() {
 	requestID := "req-123"
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/accept", nil, "", models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.AcceptCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -403,13 +403,13 @@ func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_Unauthor
 func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_Forbidden_Athlete() {
 	athleteID := "athlete-123"
 	requestID := "req-123"
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/accept", nil, athleteID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.AcceptCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -419,60 +419,60 @@ func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_Forbidde
 func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_RequestNotFound() {
 	trainerID := "trainer-123"
 	requestID := "nonexistent"
-	
+
 	suite.mockCoachingRequestService.On("AcceptCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(nil, errors.New("coaching request not found"))
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/accept", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.AcceptCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "coaching request not found", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_NotAuthorized() {
 	trainerID := "trainer-123"
 	requestID := "req-123"
-	
+
 	suite.mockCoachingRequestService.On("AcceptCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(nil, errors.New("not authorized to accept this request"))
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/accept", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.AcceptCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "not authorized to accept this request", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_ServiceError() {
 	trainerID := "trainer-123"
 	requestID := "req-123"
-	
+
 	suite.mockCoachingRequestService.On("AcceptCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(nil, errors.New("database error"))
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/accept", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.AcceptCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "database error", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
@@ -480,32 +480,32 @@ func (suite *CoachingRequestHandlerTestSuite) TestAcceptCoachingRequest_ServiceE
 func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_Success() {
 	trainerID := "trainer-123"
 	requestID := "req-123"
-	
+
 	suite.mockCoachingRequestService.On("RejectCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(nil)
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/reject", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.RejectCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "coaching request rejected", response["message"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_Unauthorized() {
 	requestID := "req-123"
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/reject", nil, "", models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.RejectCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -515,13 +515,13 @@ func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_Unauthor
 func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_Forbidden_Athlete() {
 	athleteID := "athlete-123"
 	requestID := "req-123"
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/reject", nil, athleteID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.RejectCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -531,60 +531,60 @@ func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_Forbidde
 func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_RequestNotFound() {
 	trainerID := "trainer-123"
 	requestID := "nonexistent"
-	
+
 	suite.mockCoachingRequestService.On("RejectCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(errors.New("coaching request not found"))
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/reject", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.RejectCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "coaching request not found", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_NotAuthorized() {
 	trainerID := "trainer-123"
 	requestID := "req-123"
-	
+
 	suite.mockCoachingRequestService.On("RejectCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(errors.New("not authorized to reject this request"))
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/reject", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.RejectCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "not authorized to reject this request", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestRejectCoachingRequest_ServiceError() {
 	trainerID := "trainer-123"
 	requestID := "req-123"
-	
+
 	suite.mockCoachingRequestService.On("RejectCoachingRequest", mock.AnythingOfType("*gin.Context"), requestID, trainerID).Return(errors.New("database error"))
-	
+
 	c, w := createTestContext("POST", "/api/coaching-requests/"+requestID+"/reject", nil, trainerID, models.RoleTrainer)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: requestID}}
 	suite.handler.RejectCoachingRequest(c)
-	
+
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "database error", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
@@ -595,28 +595,28 @@ func (suite *CoachingRequestHandlerTestSuite) TestGetPendingRequests_Success() {
 		createTestCoachingRequest("req-1", "athlete-123", trainerID, models.CoachingRequestStatusPending, "Need coaching"),
 		createTestCoachingRequest("req-2", "athlete-456", trainerID, models.CoachingRequestStatusPending, "Want to start training"),
 	}
-	
+
 	suite.mockCoachingRequestService.On("GetPendingRequestsForTrainer", mock.AnythingOfType("*gin.Context"), trainerID).Return(requests, nil)
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/pending", nil, trainerID, models.RoleTrainer)
 	suite.handler.GetPendingRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), response["requests"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestGetPendingRequests_Unauthorized() {
 	c, w := createTestContext("GET", "/api/coaching-requests/pending", nil, "", models.RoleTrainer)
 	suite.handler.GetPendingRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -625,12 +625,12 @@ func (suite *CoachingRequestHandlerTestSuite) TestGetPendingRequests_Unauthorize
 
 func (suite *CoachingRequestHandlerTestSuite) TestGetPendingRequests_Forbidden_Athlete() {
 	athleteID := "athlete-123"
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/pending", nil, athleteID, models.RoleAthlete)
 	suite.handler.GetPendingRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -640,37 +640,37 @@ func (suite *CoachingRequestHandlerTestSuite) TestGetPendingRequests_Forbidden_A
 func (suite *CoachingRequestHandlerTestSuite) TestGetPendingRequests_EmptyRequests() {
 	trainerID := "trainer-123"
 	requests := []*models.CoachingRequest{}
-	
+
 	suite.mockCoachingRequestService.On("GetPendingRequestsForTrainer", mock.AnythingOfType("*gin.Context"), trainerID).Return(requests, nil)
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/pending", nil, trainerID, models.RoleTrainer)
 	suite.handler.GetPendingRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), response["requests"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 
 func (suite *CoachingRequestHandlerTestSuite) TestGetPendingRequests_ServiceError() {
 	trainerID := "trainer-123"
-	
+
 	suite.mockCoachingRequestService.On("GetPendingRequestsForTrainer", mock.AnythingOfType("*gin.Context"), trainerID).Return(nil, errors.New("database error"))
-	
+
 	c, w := createTestContext("GET", "/api/coaching-requests/pending", nil, trainerID, models.RoleTrainer)
 	suite.handler.GetPendingRequests(c)
-	
+
 	assert.Equal(suite.T(), http.StatusInternalServerError, w.Code)
-	
+
 	var response map[string]string
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "database error", response["error"])
-	
+
 	suite.mockCoachingRequestService.AssertExpectations(suite.T())
 }
 

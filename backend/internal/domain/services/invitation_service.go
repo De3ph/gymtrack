@@ -10,6 +10,7 @@ import (
 	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
+	"gymtrack-backend/internal/utils"
 
 	"github.com/couchbase/gocb/v2"
 )
@@ -55,12 +56,17 @@ func (a *GocbCollectionAdapter) Replace(id string, value interface{}, opts *gocb
 // CodeBasedInvitation implements InvitationMethod using unique codes
 type CodeBasedInvitation struct {
 	collection InvitationCollection
+	clock      utils.Clock
 }
 
 // NewCodeBasedInvitation creates a new code-based invitation service
-func NewCodeBasedInvitation(collection InvitationCollection) *CodeBasedInvitation {
+func NewCodeBasedInvitation(collection InvitationCollection, clock utils.Clock) *CodeBasedInvitation {
+	if clock == nil {
+		clock = utils.RealClock{}
+	}
 	return &CodeBasedInvitation{
 		collection: collection,
+		clock:      clock,
 	}
 }
 
@@ -88,14 +94,15 @@ func (c *CodeBasedInvitation) GenerateInvitation(trainerID string, athleteID str
 		return nil, fmt.Errorf("failed to generate invitation UUID: %w", err)
 	}
 
+	now := c.clock.Now()
 	invitation := &models.Invitation{
 		Type:         "invitation",
 		InvitationID: invitationID,
 		TrainerID:    trainerID,
 		Code:         code,
 		Status:       "pending",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour), // 7 days expiry
+		CreatedAt:    now,
+		ExpiresAt:    now.Add(7 * 24 * time.Hour),
 	}
 
 	_, err = c.collection.Insert(invitation.InvitationID, invitation, &gocb.InsertOptions{
@@ -143,7 +150,7 @@ func (c *CodeBasedInvitation) ValidateInvitation(code string) (*models.Invitatio
 		return nil, fmt.Errorf("invitation has already been used")
 	}
 
-	if time.Now().After(invitation.ExpiresAt) {
+	if c.clock.Now().After(invitation.ExpiresAt) {
 		return nil, fmt.Errorf("invitation has expired")
 	}
 
@@ -172,7 +179,7 @@ func (c *CodeBasedInvitation) MarkInvitationUsed(invitationID string) error {
 	}
 
 	invitation.Status = "used"
-	invitation.UsedAt = time.Now()
+	invitation.UsedAt = c.clock.Now()
 
 	_, err = c.collection.Replace(invitationID, invitation, &gocb.ReplaceOptions{
 		Context: ctx,
@@ -208,6 +215,7 @@ type InvitationService struct {
 	method           InvitationMethod
 	relationshipRepo repositories.RelationshipRepository
 	userRepo         repositories.UserRepository
+	clock           utils.Clock
 }
 
 // NewInvitationService creates a new invitation service
@@ -215,11 +223,16 @@ func NewInvitationService(
 	method InvitationMethod,
 	relationshipRepo repositories.RelationshipRepository,
 	userRepo repositories.UserRepository,
+	clock utils.Clock,
 ) *InvitationService {
+	if clock == nil {
+		clock = utils.RealClock{}
+	}
 	return &InvitationService{
 		method:           method,
 		relationshipRepo: relationshipRepo,
 		userRepo:         userRepo,
+		clock:           clock,
 	}
 }
 

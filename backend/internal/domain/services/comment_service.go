@@ -72,16 +72,14 @@ func (s *CommentService) CanAccessComments(ctx context.Context, userID string, u
 		return nil
 	}
 	if userRole == models.RoleTrainer {
-		relationships, err := s.relationshipRepo.GetByTrainerID(ctx, userID)
+		hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, userID, athleteID)
 		if err != nil {
-			return fmt.Errorf("failed to get trainer relationships: %w", err)
+			return fmt.Errorf("failed to check active relationship: %w", err)
 		}
-		for _, rel := range relationships {
-			if rel.AthleteID == athleteID && rel.IsActive() {
-				return nil
-			}
+		if !hasActive {
+			return ErrAccessDenied
 		}
-		return ErrAccessDenied
+		return nil
 	}
 	return ErrAccessDenied
 }

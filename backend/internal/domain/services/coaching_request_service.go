@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
+	"gymtrack-backend/internal/utils"
 
 	"github.com/google/uuid"
 )
@@ -15,17 +15,23 @@ type CoachingRequestService struct {
 	coachingRequestRepo repositories.CoachingRequestRepository
 	userRepo            repositories.UserRepository
 	relationshipRepo    repositories.RelationshipRepository
+	clock               utils.Clock
 }
 
 func NewCoachingRequestService(
 	coachingRequestRepo repositories.CoachingRequestRepository,
 	userRepo repositories.UserRepository,
 	relationshipRepo repositories.RelationshipRepository,
+	clock utils.Clock,
 ) *CoachingRequestService {
+	if clock == nil {
+		clock = utils.RealClock{}
+	}
 	return &CoachingRequestService{
 		coachingRequestRepo: coachingRequestRepo,
 		userRepo:            userRepo,
 		relationshipRepo:    relationshipRepo,
+		clock:               clock,
 	}
 }
 
@@ -98,13 +104,14 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	}
 
 	// Create the relationship
+	now := s.clock.Now()
 	relationship := &models.Relationship{
 		RelationshipID: uuid.New().String(),
 		TrainerID:      trainerID,
 		AthleteID:      request.AthleteID,
 		Status:         models.RelationshipStatusActive,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 
 	err = s.relationshipRepo.Create(ctx, relationship)
@@ -126,7 +133,7 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 
 	// Update the coaching request status
 	request.Status = models.CoachingRequestStatusAccepted
-	request.UpdatedAt = time.Now()
+	request.UpdatedAt = s.clock.Now()
 	err = s.coachingRequestRepo.Update(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update coaching request: %w", err)
@@ -154,7 +161,7 @@ func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requ
 
 	// Update the coaching request status
 	request.Status = models.CoachingRequestStatusRejected
-	request.UpdatedAt = time.Now()
+	request.UpdatedAt = s.clock.Now()
 	err = s.coachingRequestRepo.Update(ctx, request)
 	if err != nil {
 		return fmt.Errorf("failed to update coaching request: %w", err)
@@ -182,26 +189,31 @@ func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID strin
 	// Enrich with user details
 	var requestsWithDetails []*models.CoachingRequestWithDetails
 	for _, req := range requests {
-		requestWithDetails := &models.CoachingRequestWithDetails{
-			CoachingRequest: req,
-		}
-
-		// Get athlete details
-		athlete, err := s.userRepo.GetUserByID(ctx, req.AthleteID)
-		if err == nil {
-			requestWithDetails.Athlete = athlete
-		}
-
-		// Get trainer details
-		trainer, err := s.userRepo.GetUserByID(ctx, req.TrainerID)
-		if err == nil {
-			requestWithDetails.Trainer = trainer
-		}
-
-		requestsWithDetails = append(requestsWithDetails, requestWithDetails)
+		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
 	}
 
 	return requestsWithDetails, nil
+}
+
+// enrich loads athlete and trainer details for a coaching request
+func (s *CoachingRequestService) enrich(ctx context.Context, req *models.CoachingRequest) *models.CoachingRequestWithDetails {
+	requestWithDetails := &models.CoachingRequestWithDetails{
+		CoachingRequest: req,
+	}
+
+	// Get athlete details
+	athlete, err := s.userRepo.GetUserByID(ctx, req.AthleteID)
+	if err == nil {
+		requestWithDetails.Athlete = athlete
+	}
+
+	// Get trainer details
+	trainer, err := s.userRepo.GetUserByID(ctx, req.TrainerID)
+	if err == nil {
+		requestWithDetails.Trainer = trainer
+	}
+
+	return requestWithDetails
 }
 
 func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Context, trainerID string) ([]*models.CoachingRequestWithDetails, error) {
@@ -213,17 +225,7 @@ func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Contex
 	// Enrich with athlete details
 	var requestsWithDetails []*models.CoachingRequestWithDetails
 	for _, req := range requests {
-		requestWithDetails := &models.CoachingRequestWithDetails{
-			CoachingRequest: req,
-		}
-
-		// Get athlete details
-		athlete, err := s.userRepo.GetUserByID(ctx, req.AthleteID)
-		if err == nil {
-			requestWithDetails.Athlete = athlete
-		}
-
-		requestsWithDetails = append(requestsWithDetails, requestWithDetails)
+		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
 	}
 
 	return requestsWithDetails, nil

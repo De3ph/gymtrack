@@ -1,20 +1,27 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
-	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"gymtrack-backend/internal/domain/services"
 )
 
 // CommentHandler handles HTTP requests for comments.
+type CommentServiceInterface interface {
+	CanCreateComment(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string, parentCommentID *string) error
+	CanAccessComments(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string) error
+	CanEditOrDeleteComment(userID string, commentID string) error
+}
+
 type CommentHandler struct {
 	commentRepo repositories.CommentRepository
-	commentSvc  *services.CommentService
+	commentSvc  CommentServiceInterface
 	validator   *validator.Validate
 }
 

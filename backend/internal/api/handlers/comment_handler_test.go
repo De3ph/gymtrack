@@ -1,16 +1,13 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
-	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
@@ -18,43 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"gymtrack-backend/internal/testutils"
 )
 
 // MockCommentRepository is a mock implementation of CommentRepository
-type MockCommentRepository struct {
-	mock.Mock
-}
-
-func (m *MockCommentRepository) Create(comment *models.Comment) error {
-	args := m.Called(comment)
-	return args.Error(0)
-}
-
-func (m *MockCommentRepository) GetByID(id string) (*models.Comment, error) {
-	args := m.Called(id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.Comment), args.Error(1)
-}
-
-func (m *MockCommentRepository) GetByTarget(targetType models.TargetType, targetID string) ([]*models.Comment, error) {
-	args := m.Called(targetType, targetID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*models.Comment), args.Error(1)
-}
-
-func (m *MockCommentRepository) Update(comment *models.Comment) error {
-	args := m.Called(comment)
-	return args.Error(0)
-}
-
-func (m *MockCommentRepository) Delete(id string) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
 
 // MockCommentService is a mock implementation of CommentService
 type MockCommentService struct {
@@ -80,58 +44,26 @@ func (m *MockCommentService) CanEditOrDeleteComment(userID string, commentID str
 type CommentHandlerTestSuite struct {
 	suite.Suite
 	handler            *CommentHandler
-	mockCommentRepo    *MockCommentRepository
+	mockCommentRepo    *testutils.MockCommentRepository
 	mockCommentService *MockCommentService
 	validator          *validator.Validate
 }
 
 func (suite *CommentHandlerTestSuite) SetupTest() {
-	suite.mockCommentRepo = new(MockCommentRepository)
+	suite.mockCommentRepo = &testutils.MockCommentRepository{}
 	suite.mockCommentService = new(MockCommentService)
 	suite.validator = validator.New()
 	suite.handler = NewCommentHandler(suite.mockCommentRepo, suite.mockCommentService)
 }
 
-// Test data factory functions
-func createTestComment(id string, targetType models.TargetType, targetID string, authorID string, authorRole models.AuthorRole, content string) *models.Comment {
-	comment := models.NewComment(targetType, targetID, authorID, authorRole, content, nil)
-	comment.ID = id
-	comment.CreatedAt = time.Now().UTC()
-	comment.UpdatedAt = time.Now().UTC()
-	return comment
-}
 
 func createTestCommentWithParent(id string, targetType models.TargetType, targetID string, authorID string, authorRole models.AuthorRole, content string, parentID *string) *models.Comment {
 	comment := models.NewComment(targetType, targetID, authorID, authorRole, content, parentID)
-	comment.ID = id
+	comment.CommentID = id
 	comment.CreatedAt = time.Now().UTC()
-	comment.UpdatedAt = time.Now().UTC()
 	return comment
 }
 
-// Helper function to create Gin context with user authentication
-func createTestContext(method, path string, body interface{}, userID string, userRole models.UserRole) (*gin.Context, *httptest.ResponseRecorder) {
-	gin.SetMode(gin.TestMode)
-	
-	var req *http.Request
-	if body != nil {
-		jsonBody, _ := json.Marshal(body)
-		req = httptest.NewRequest(method, path, bytes.NewBuffer(jsonBody))
-		req.Header.Set("Content-Type", "application/json")
-	} else {
-		req = httptest.NewRequest(method, path, nil)
-	}
-	
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = req
-	
-	// Set user authentication context
-	c.Set("userID", userID)
-	c.Set("userRole", userRole)
-	
-	return c, w
-}
 
 // CreateComment Tests
 func (suite *CommentHandlerTestSuite) TestCreateComment_Success_Trainer() {
@@ -146,12 +78,12 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_Success_Trainer() {
 		Content:    content,
 	}
 	
-	comment := createTestComment("comment-123", targetType, targetID, trainerID, models.AuthorRoleTrainer, content)
+	comment := testutils.CreateTestComment("comment-123", targetType, targetID, trainerID, models.AuthorRoleTrainer, content)
 	
 	suite.mockCommentService.On("CanCreateComment", trainerID, models.RoleTrainer, targetType, targetID, (*string)(nil)).Return(nil)
 	suite.mockCommentRepo.On("Create", mock.AnythingOfType("*models.Comment")).Return(nil)
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusCreated, w.Code)
@@ -181,12 +113,12 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_Success_Athlete() {
 		Content:    content,
 	}
 	
-	comment := createTestComment("comment-123", targetType, targetID, athleteID, models.AuthorRoleAthlete, content)
+	comment := testutils.CreateTestComment("comment-123", targetType, targetID, athleteID, models.AuthorRoleAthlete, content)
 	
 	suite.mockCommentService.On("CanCreateComment", athleteID, models.RoleAthlete, targetType, targetID, (*string)(nil)).Return(nil)
 	suite.mockCommentRepo.On("Create", mock.AnythingOfType("*models.Comment")).Return(nil)
 	
-	c, w := createTestContext("POST", "/api/comments", req, athleteID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, athleteID, models.RoleAthlete)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusCreated, w.Code)
@@ -218,13 +150,13 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_Success_WithParent() {
 		ParentCommentID: &parentID,
 	}
 	
-	parentComment := createTestComment(parentID, targetType, targetID, "trainer-456", models.AuthorRoleTrainer, "Original comment")
+	parentComment := testutils.CreateTestComment(parentID, targetType, targetID, "trainer-456", models.AuthorRoleTrainer, "Original comment")
 	
 	suite.mockCommentService.On("CanCreateComment", trainerID, models.RoleTrainer, targetType, targetID, &parentID).Return(nil)
 	suite.mockCommentRepo.On("GetByID", parentID).Return(parentComment, nil)
 	suite.mockCommentRepo.On("Create", mock.AnythingOfType("*models.Comment")).Return(nil)
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusCreated, w.Code)
@@ -245,7 +177,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_Unauthorized() {
 		Content:    "Great workout!",
 	}
 	
-	c, w := createTestContext("POST", "/api/comments", req, "", models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, "", models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
@@ -264,7 +196,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_MissingUserRole() {
 		Content:    "Great workout!",
 	}
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, "") // No user role set
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, "") // No user role set
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
@@ -278,7 +210,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_MissingUserRole() {
 func (suite *CommentHandlerTestSuite) TestCreateComment_InvalidJSON() {
 	trainerID := "trainer-123"
 	
-	c, w := createTestContext("POST", "/api/comments", "invalid json", trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", "invalid json", trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -297,7 +229,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_ValidationFailed_Missing
 		Content:    "Great workout!",
 	}
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -316,7 +248,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_ValidationFailed_EmptyCo
 		Content:    "", // Empty content
 	}
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -336,7 +268,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_ValidationFailed_Content
 		Content:    longContent,
 	}
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -357,7 +289,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_TargetNotFound() {
 	
 	suite.mockCommentService.On("CanCreateComment", trainerID, models.RoleTrainer, req.TargetType, req.TargetID, (*string)(nil)).Return(services.ErrTargetNotFound)
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusNotFound, w.Code)
@@ -380,7 +312,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_AccessDenied() {
 	
 	suite.mockCommentService.On("CanCreateComment", trainerID, models.RoleTrainer, req.TargetType, req.TargetID, (*string)(nil)).Return(services.ErrAccessDenied)
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
@@ -406,7 +338,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_ParentCommentNotFound() 
 	suite.mockCommentService.On("CanCreateComment", trainerID, models.RoleTrainer, req.TargetType, req.TargetID, &parentID).Return(nil)
 	suite.mockCommentRepo.On("GetByID", parentID).Return(nil, errors.New("not found"))
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -431,12 +363,12 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_ParentCommentWrongTarget
 	}
 	
 	// Parent comment belongs to a different target
-	parentComment := createTestComment(parentID, models.TargetTypeMeal, "meal-456", "trainer-456", models.AuthorRoleTrainer, "Original comment")
+	parentComment := testutils.CreateTestComment(parentID, models.TargetTypeMeal, "meal-456", "trainer-456", models.AuthorRoleTrainer, "Original comment")
 	
 	suite.mockCommentService.On("CanCreateComment", trainerID, models.RoleTrainer, req.TargetType, req.TargetID, &parentID).Return(nil)
 	suite.mockCommentRepo.On("GetByID", parentID).Return(parentComment, nil)
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -461,7 +393,7 @@ func (suite *CommentHandlerTestSuite) TestCreateComment_RepositoryError() {
 	suite.mockCommentService.On("CanCreateComment", trainerID, models.RoleTrainer, req.TargetType, req.TargetID, (*string)(nil)).Return(nil)
 	suite.mockCommentRepo.On("Create", mock.AnythingOfType("*models.Comment")).Return(errors.New("database error"))
 	
-	c, w := createTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
+	c, w := testutils.CreateTestContext("POST", "/api/comments", req, trainerID, models.RoleTrainer)
 	suite.handler.CreateComment(c)
 	
 	assert.Equal(suite.T(), http.StatusInternalServerError, w.Code)
@@ -481,14 +413,14 @@ func (suite *CommentHandlerTestSuite) TestGetComments_Success() {
 	targetType := models.TargetTypeWorkout
 	targetID := "workout-123"
 	comments := []*models.Comment{
-		createTestComment("comment-1", targetType, targetID, "trainer-123", models.AuthorRoleTrainer, "Great workout!"),
-		createTestComment("comment-2", targetType, targetID, "athlete-456", models.AuthorRoleAthlete, "Thanks!"),
+		testutils.CreateTestComment("comment-1", targetType, targetID, "trainer-123", models.AuthorRoleTrainer, "Great workout!"),
+		testutils.CreateTestComment("comment-2", targetType, targetID, "athlete-456", models.AuthorRoleAthlete, "Thanks!"),
 	}
 	
 	suite.mockCommentService.On("CanAccessComments", userID, models.RoleAthlete, targetType, targetID).Return(nil)
 	suite.mockCommentRepo.On("GetByTarget", targetType, targetID).Return(comments, nil)
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
@@ -503,7 +435,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_Success() {
 }
 
 func (suite *CommentHandlerTestSuite) TestGetComments_Unauthorized() {
-	c, w := createTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, "", models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, "", models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
@@ -517,7 +449,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_Unauthorized() {
 func (suite *CommentHandlerTestSuite) TestGetComments_MissingUserRole() {
 	userID := "user-123"
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, "") // No user role set
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, "") // No user role set
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
@@ -531,7 +463,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_MissingUserRole() {
 func (suite *CommentHandlerTestSuite) TestGetComments_MissingTargetType() {
 	userID := "user-123"
 	
-	c, w := createTestContext("GET", "/api/comments?targetId=workout-123", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetId=workout-123", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -545,7 +477,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_MissingTargetType() {
 func (suite *CommentHandlerTestSuite) TestGetComments_MissingTargetID() {
 	userID := "user-123"
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=workout", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -559,7 +491,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_MissingTargetID() {
 func (suite *CommentHandlerTestSuite) TestGetComments_InvalidTargetType() {
 	userID := "user-123"
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=invalid&targetId=workout-123", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=invalid&targetId=workout-123", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
@@ -577,7 +509,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_TargetNotFound() {
 	
 	suite.mockCommentService.On("CanAccessComments", userID, models.RoleAthlete, targetType, targetID).Return(services.ErrTargetNotFound)
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=workout&targetId=nonexistent", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout&targetId=nonexistent", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusNotFound, w.Code)
@@ -597,7 +529,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_AccessDenied() {
 	
 	suite.mockCommentService.On("CanAccessComments", userID, models.RoleAthlete, targetType, targetID).Return(services.ErrAccessDenied)
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
@@ -618,7 +550,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_RepositoryError() {
 	suite.mockCommentService.On("CanAccessComments", userID, models.RoleAthlete, targetType, targetID).Return(nil)
 	suite.mockCommentRepo.On("GetByTarget", targetType, targetID).Return(nil, errors.New("database error"))
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusInternalServerError, w.Code)
@@ -641,7 +573,7 @@ func (suite *CommentHandlerTestSuite) TestGetComments_EmptyComments() {
 	suite.mockCommentService.On("CanAccessComments", userID, models.RoleAthlete, targetType, targetID).Return(nil)
 	suite.mockCommentRepo.On("GetByTarget", targetType, targetID).Return(comments, nil)
 	
-	c, w := createTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("GET", "/api/comments?targetType=workout&targetId=workout-123", nil, userID, models.RoleAthlete)
 	suite.handler.GetComments(c)
 	
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
@@ -665,13 +597,13 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_Success() {
 		Content: newContent,
 	}
 	
-	comment := createTestComment(commentID, models.TargetTypeWorkout, "workout-123", userID, models.AuthorRoleAthlete, "Original content")
+	comment := testutils.CreateTestComment(commentID, models.TargetTypeWorkout, "workout-123", userID, models.AuthorRoleAthlete, "Original content")
 	
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(nil)
 	suite.mockCommentRepo.On("GetByID", commentID).Return(comment, nil)
 	suite.mockCommentRepo.On("Update", mock.AnythingOfType("*models.Comment")).Return(nil)
 	
-	c, w := createTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.UpdateComment(c)
 	
@@ -681,7 +613,6 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_Success() {
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), newContent, response.Content)
-	assert.NotEqual(suite.T(), comment.UpdatedAt, response.UpdatedAt) // Should be updated
 	
 	suite.mockCommentService.AssertExpectations(suite.T())
 	suite.mockCommentRepo.AssertExpectations(suite.T())
@@ -693,7 +624,7 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_Unauthorized() {
 		Content: "Updated content",
 	}
 	
-	c, w := createTestContext("PUT", "/api/comments/"+commentID, req, "", models.RoleAthlete)
+	c, w := testutils.CreateTestContext("PUT", "/api/comments/"+commentID, req, "", models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.UpdateComment(c)
 	
@@ -709,7 +640,7 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_InvalidJSON() {
 	userID := "user-123"
 	commentID := "comment-123"
 	
-	c, w := createTestContext("PUT", "/api/comments/"+commentID, "invalid json", userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("PUT", "/api/comments/"+commentID, "invalid json", userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.UpdateComment(c)
 	
@@ -728,7 +659,7 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_ValidationFailed_EmptyCo
 		Content: "", // Empty content
 	}
 	
-	c, w := createTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.UpdateComment(c)
 	
@@ -749,7 +680,7 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_CommentNotFound() {
 	
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(services.ErrTargetNotFound)
 	
-	c, w := createTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.UpdateComment(c)
 	
@@ -772,7 +703,7 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_NotAuthor() {
 	
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(services.ErrNotAuthor)
 	
-	c, w := createTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.UpdateComment(c)
 	
@@ -793,13 +724,13 @@ func (suite *CommentHandlerTestSuite) TestUpdateComment_RepositoryError() {
 		Content: "Updated content",
 	}
 	
-	comment := createTestComment(commentID, models.TargetTypeWorkout, "workout-123", userID, models.AuthorRoleAthlete, "Original content")
+	comment := testutils.CreateTestComment(commentID, models.TargetTypeWorkout, "workout-123", userID, models.AuthorRoleAthlete, "Original content")
 	
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(nil)
 	suite.mockCommentRepo.On("GetByID", commentID).Return(comment, nil)
 	suite.mockCommentRepo.On("Update", mock.AnythingOfType("*models.Comment")).Return(errors.New("database error"))
 	
-	c, w := createTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("PUT", "/api/comments/"+commentID, req, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.UpdateComment(c)
 	
@@ -822,7 +753,7 @@ func (suite *CommentHandlerTestSuite) TestDeleteComment_Success() {
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(nil)
 	suite.mockCommentRepo.On("Delete", commentID).Return(nil)
 	
-	c, w := createTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.DeleteComment(c)
 	
@@ -840,7 +771,7 @@ func (suite *CommentHandlerTestSuite) TestDeleteComment_Success() {
 func (suite *CommentHandlerTestSuite) TestDeleteComment_Unauthorized() {
 	commentID := "comment-123"
 	
-	c, w := createTestContext("DELETE", "/api/comments/"+commentID, nil, "", models.RoleAthlete)
+	c, w := testutils.CreateTestContext("DELETE", "/api/comments/"+commentID, nil, "", models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.DeleteComment(c)
 	
@@ -858,7 +789,7 @@ func (suite *CommentHandlerTestSuite) TestDeleteComment_CommentNotFound() {
 	
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(services.ErrTargetNotFound)
 	
-	c, w := createTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.DeleteComment(c)
 	
@@ -878,7 +809,7 @@ func (suite *CommentHandlerTestSuite) TestDeleteComment_NotAuthor() {
 	
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(services.ErrNotAuthor)
 	
-	c, w := createTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.DeleteComment(c)
 	
@@ -899,7 +830,7 @@ func (suite *CommentHandlerTestSuite) TestDeleteComment_RepositoryError() {
 	suite.mockCommentService.On("CanEditOrDeleteComment", userID, commentID).Return(nil)
 	suite.mockCommentRepo.On("Delete", commentID).Return(errors.New("database error"))
 	
-	c, w := createTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
+	c, w := testutils.CreateTestContext("DELETE", "/api/comments/"+commentID, nil, userID, models.RoleAthlete)
 	c.Params = gin.Params{gin.Param{Key: "id", Value: commentID}}
 	suite.handler.DeleteComment(c)
 	

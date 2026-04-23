@@ -37,7 +37,6 @@ func (suite *MealHandlerTestSuite) SetupTest() {
 	suite.handler = NewMealHandler(
 		suite.mockMealRepo,
 		suite.mockRelationRepo,
-		suite.validator,
 	)
 }
 

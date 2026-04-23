@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { Loader2 } from 'lucide-react';
+import { ROUTES } from '@/lib/routes';
 
 export default function DashboardHomePage() {
   const router = useRouter();
@@ -12,13 +13,13 @@ export default function DashboardHomePage() {
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        router.push('/login');
+        router.push(ROUTES.LOGIN);
       } else if (user) {
         // Redirect based on user role
         if (user.role === 'trainer') {
-          router.push('/trainer/clients');
+          router.push(ROUTES.TRAINER_CLIENTS);
         } else {
-          router.push('/athlete/workouts');
+          router.push(ROUTES.ATHLETE_WORKOUTS);
         }
       }
     }

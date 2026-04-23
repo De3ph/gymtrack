@@ -52,12 +52,21 @@ func (s *TrainerCatalogService) SearchTrainers(ctx context.Context, filters *Tra
 		return nil, 0, fmt.Errorf("failed to get trainers: %w", err)
 	}
 
-	// Enrich with ratings
-	for i := range trainers {
-		avgRating, reviewCount, err := s.reviewRepo.GetAverageRating(ctx, trainers[i].UserID)
-		if err == nil {
-			trainers[i].AverageRating = avgRating
-			trainers[i].ReviewCount = reviewCount
+	// Collect trainer IDs for batch rating retrieval
+	trainerIDs := make([]string, len(trainers))
+	for i, trainer := range trainers {
+		trainerIDs[i] = trainer.UserID
+	}
+
+	// Batch fetch ratings for all trainers
+	ratings, err := s.reviewRepo.GetRatingsForTrainers(ctx, trainerIDs)
+	if err == nil {
+		// Enrich with batch ratings
+		for i := range trainers {
+			if rating, exists := ratings[trainers[i].UserID]; exists {
+				trainers[i].AverageRating = rating.Avg
+				trainers[i].ReviewCount = rating.Count
+			}
 		}
 	}
 

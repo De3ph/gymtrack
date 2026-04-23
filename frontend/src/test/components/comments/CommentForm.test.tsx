@@ -43,11 +43,11 @@ describe('CommentForm', () => {
 
   it('renders with "Reply" button when parentCommentId provided', () => {
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
-        parentCommentId="parent1" 
-        queryKey={['comments']} 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
+        parentCommentId="parent1"
+        queryKey={['comments']}
       />
     )
 
@@ -57,9 +57,9 @@ describe('CommentForm', () => {
   it('renders cancel button when onCancel provided', () => {
     const onCancel = vi.fn()
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
         queryKey={['comments']}
         onCancel={onCancel}
       />
@@ -74,9 +74,9 @@ describe('CommentForm', () => {
     mockCreate.mockResolvedValue({ commentId: 'c1' })
 
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
         queryKey={['comments']}
         onSuccess={onSuccess}
       />
@@ -103,9 +103,9 @@ describe('CommentForm', () => {
     mockCreate.mockResolvedValue({ commentId: 'c1' })
 
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
         queryKey={['comments']}
       />
     )
@@ -124,9 +124,9 @@ describe('CommentForm', () => {
     mockCreate.mockResolvedValue({ commentId: 'c1' })
 
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
         queryKey={['comments']}
         onSuccess={onSuccess}
       />
@@ -149,9 +149,9 @@ describe('CommentForm', () => {
     mockCreate.mockResolvedValue({ commentId: 'c1' })
 
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
         queryKey={['comments']}
         onSuccess={onSuccess}
       />
@@ -173,9 +173,9 @@ describe('CommentForm', () => {
     mockCreate.mockRejectedValue(new Error('Failed to create comment'))
 
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
         queryKey={['comments']}
       />
     )
@@ -193,9 +193,9 @@ describe('CommentForm', () => {
 
   it('uses custom placeholder when provided', () => {
     renderWithQueryClient(
-      <CommentForm 
-        targetType="workout" 
-        targetId="w1" 
+      <CommentForm
+        targetType="workout"
+        targetId="w1"
         queryKey={['comments']}
         placeholder="Write your thoughts..."
       />

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { motion } from 'motion/react';
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
+import { ROUTES } from '@/lib/routes';
 
 export default function Home() {
   const router = useRouter();
@@ -21,9 +22,9 @@ export default function Home() {
     // Only redirect if fully loaded and authenticated
     if (!isLoading && isAuthenticated && user) {
       if (user.role === 'trainer') {
-        router.push('/trainer/clients');
+        router.push(ROUTES.TRAINER_CLIENTS);
       } else {
-        router.push('/athlete/workouts');
+        router.push(ROUTES.ATHLETE_WORKOUTS);
       }
     }
   }, [isAuthenticated, isLoading, router, user]);
@@ -62,7 +63,7 @@ export default function Home() {
           variants={staggerItem}
         >
           <motion.a
-            href="/login"
+            href={ROUTES.LOGIN}
             className="rounded-lg bg-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-colors hover:bg-indigo-700"
             whileHover={{ opacity: 0.9 }}
             whileTap={{ opacity: 0.8 }}
@@ -70,7 +71,7 @@ export default function Home() {
             Login
           </motion.a>
           <motion.a
-            href="/register"
+            href={ROUTES.REGISTER}
             className="rounded-lg border-2 border-indigo-600 px-8 py-3 text-lg font-semibold text-indigo-600 transition-colors hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-gray-800"
             whileHover={{ opacity: 0.9 }}
             whileTap={{ opacity: 0.8 }}

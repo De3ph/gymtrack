@@ -2,10 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/stores/authStore';
+import { ROUTES } from '@/lib/routes';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { FieldInfo } from '@/components/ui/form-field';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,28 +17,38 @@ export default function LoginPage() {
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+    } satisfies LoginFormData,
+    onSubmit: async ({ value }) => {
+      setIsLoading(true)
+      setError("")
+
+      try {
+        const user = await login(value.email, value.password)
+
+        // Add a small delay to ensure tokens are persisted in localStorage
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
+        // Redirect based on user role
+        if (user?.role === "athlete") {
+          router.push(ROUTES.ATHLETE_WORKOUTS)
+        } else if (user?.role === "trainer") {
+          router.push(ROUTES.TRAINER_CLIENTS)
+        } else {
+          router.push(ROUTES.PROFILE)
+        }
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Login failed. Please try again."
+        setError(errorMessage)
+      } finally {
+        setIsLoading(false)
+      }
+    },
   });
-
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await login(data.email, data.password);
-      router.push('/profile');
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800">
@@ -48,60 +62,86 @@ export default function LoginPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Email
-          </label>
-          <input
-            {...register('email')}
-            type="email"
-            id="email"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {errors.email.message}
-            </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+        className="space-y-4"
+      >
+        <form.Field
+          name="email"
+          validators={{
+            onChange: ({ value }) => {
+              if (!value || value.trim().length === 0) {
+                return "Email is required"
+              }
+              if (!/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
+                return "Invalid email address"
+              }
+              return undefined
+            },
+          }}
+        >
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type="email"
+                id="email"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <FieldInfo field={field} />
+            </Field>
           )}
-        </div>
+        </form.Field>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Password
-          </label>
-          <input
-            {...register('password')}
-            type="password"
-            id="password"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          />
-          {errors.password && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {errors.password.message}
-            </p>
+        <form.Field
+          name="password"
+          validators={{
+            onChange: ({ value }) => {
+              if (!value || value.length === 0) {
+                return "Password is required"
+              }
+              if (value.length < 6) {
+                return "Password must be at least 6 characters"
+              }
+              return undefined
+            },
+          }}
+        >
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type="password"
+                id="password"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <FieldInfo field={field} />
+            </Field>
           )}
-        </div>
+        </form.Field>
 
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
           className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-semibold shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Logging in...' : 'Login'}
-        </button>
+        </Button>
       </form>
 
       <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
         Don&apos;t have an account?{' '}
         <a
-          href="/register"
+          href={ROUTES.REGISTER}
           className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
         >
           Sign up

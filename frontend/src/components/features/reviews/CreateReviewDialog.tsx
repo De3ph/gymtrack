@@ -51,11 +51,10 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
             className="focus:outline-none"
           >
             <Star
-              className={`w-6 h-6 transition-colors ${
-                star <= currentRating
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-gray-300 hover:text-yellow-200"
-              }`}
+              className={`w-6 h-6 transition-colors ${star <= currentRating
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300 hover:text-yellow-200"
+                }`}
             />
           </button>
         ))}
@@ -79,7 +78,7 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
               {renderStars(rating)}
             </div>
           </div>
-          
+
           <div>
             <Label htmlFor="comment">Comment (optional)</Label>
             <Textarea
