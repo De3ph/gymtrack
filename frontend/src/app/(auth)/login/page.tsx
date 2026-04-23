@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/stores/authStore';
+import { ROUTES } from '@/lib/routes';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,11 +34,11 @@ export default function LoginPage() {
 
       // Redirect based on user role
       if (user?.role === "athlete") {
-        router.push("/athlete/workouts")
+        router.push(ROUTES.ATHLETE_WORKOUTS)
       } else if (user?.role === "trainer") {
-        router.push("/trainer/clients")
+        router.push(ROUTES.TRAINER_CLIENTS)
       } else {
-        router.push("/profile")
+        router.push(ROUTES.PROFILE)
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -113,7 +114,7 @@ export default function LoginPage() {
       <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
         Don&apos;t have an account?{' '}
         <a
-          href="/register"
+          href={ROUTES.REGISTER}
           className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
         >
           Sign up

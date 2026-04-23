@@ -15,6 +15,7 @@ import { WorkoutList } from "@/components/features/workout/WorkoutList"
 import { MealList } from "@/components/features/meal/MealList"
 import { ClientProgressCharts } from "@/components/features/trainer/ClientProgressCharts"
 import { Loader2, ArrowLeft, UserX, Dumbbell, Utensils, Calendar } from "lucide-react"
+import { ROUTES, buildRoute } from "@/lib/routes";
 // useCallback removed; data fetching now via TanStack Query
 
 interface ClientDetails {
@@ -90,7 +91,7 @@ export default function ClientDetailPage() {
 
   useEffect(() => {
     if (user?.role !== "trainer") {
-      router.push("/")
+      router.push(ROUTES.HOME)
       return
     }
   }, [user, router])
@@ -102,10 +103,10 @@ export default function ClientDetailPage() {
 
     try {
       await relationshipApi.terminateRelationship(clientId)
-      router.push("/trainer/clients")
-     } catch (err) {
-       setTerminateError(err instanceof Error ? err.message : "Failed to terminate relationship")
-     }
+      router.push(ROUTES.TRAINER_CLIENTS)
+    } catch (err) {
+      setTerminateError(err instanceof Error ? err.message : "Failed to terminate relationship")
+    }
   }
 
   if (loading) {
@@ -116,25 +117,25 @@ export default function ClientDetailPage() {
     )
   }
 
-   if (terminateError && !clientDetails.athlete) {
-     return (
-       <div className="container mx-auto py-6">
-         <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
-           {terminateError}
-         </div>
-         <Button variant="outline" className="mt-4" onClick={() => router.push("/trainer/clients")}>
-           <ArrowLeft className="mr-2 h-4 w-4" />
-           Back to Clients
-         </Button>
-       </div>
-     )
-   }
+  if (terminateError && !clientDetails.athlete) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
+          {terminateError}
+        </div>
+        <Button variant="outline" className="mt-4" onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Clients
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => router.push("/trainer/clients")}>
+          <Button variant="outline" onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
@@ -288,13 +289,13 @@ export default function ClientDetailPage() {
                   </select>
                 </div>
                 <div className="flex items-end gap-2">
-                   <Button onClick={applyFilters}>
-                     Apply Filters
-                   </Button>
-                   <Button variant="outline" onClick={clearFilters}>
-                     Clear
-                   </Button>
-                 </div>
+                  <Button onClick={applyFilters}>
+                    Apply Filters
+                  </Button>
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

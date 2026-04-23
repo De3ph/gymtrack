@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { ROUTES } from "@/lib/routes"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -50,7 +51,7 @@ export default function RegisterPage() {
 
       // Auto-login after registration
       await login(data.email, data.password)
-      router.push("/")
+      router.push(ROUTES.HOME)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
       setError(errorMessage)
@@ -309,7 +310,7 @@ export default function RegisterPage() {
       <p className='mt-4 text-center text-sm text-gray-600 dark:text-gray-400'>
         Already have an account?{" "}
         <a
-          href='/login'
+          href={ROUTES.LOGIN}
           className='font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400'
         >
           Login

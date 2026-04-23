@@ -5,6 +5,7 @@ import { relationshipApi } from "@/lib/api"
 import { User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
+import { buildRoute } from "@/lib/routes"
 
 export function MyTrainerButton() {
   const router = useRouter()
@@ -30,7 +31,7 @@ export function MyTrainerButton() {
 
   const handleClick = () => {
     if (trainerData?.activeTrainer) {
-      router.push(`/athlete/trainer/${trainerData.activeTrainer.trainer.userId}`)
+      router.push(buildRoute('ATHLETE_TRAINER_DETAIL', trainerData.activeTrainer.trainer.userId))
     }
   }
 

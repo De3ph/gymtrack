@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Calendar, Mail, Award, Users } from "lucide-react";
 import type { User } from "@/types";
+import { ROUTES } from "@/lib/routes";
 
 export default function TrainerDetailPage() {
   const params = useParams();
@@ -163,11 +164,11 @@ export default function TrainerDetailPage() {
       <div className="mt-8 flex gap-4">
         <Button
           variant="outline"
-          onClick={() => router.push("/athlete/workouts")}
+          onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
         >
           View My Workouts
         </Button>
-        <Button variant="outline" onClick={() => router.push("/athlete/meals")}>
+        <Button variant="outline" onClick={() => router.push(ROUTES.ATHLETE_MEALS)}>
           View My Meals
         </Button>
       </div>

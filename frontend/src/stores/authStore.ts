@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { User } from '@/types';
 import { authApi, userApi } from '@/lib/api';
 import { TokenService } from '@/lib/token-service';
+import { ROUTES } from '@/lib/routes';
 
 interface AuthState {
   user: User | null
@@ -175,7 +176,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           if (window.__TANSTACK_QUERY_CLIENT__) {
             window.__TANSTACK_QUERY_CLIENT__.clear()
           }
-          window.location.href = "/login"
+          window.location.href = ROUTES.LOGIN
         }
         return
       }

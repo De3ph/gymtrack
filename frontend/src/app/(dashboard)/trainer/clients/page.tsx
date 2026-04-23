@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect } from "react"; import { useQuery } from "@tanstack/react-query"; // useEffect removed as data fetching handled by TanStack Query
+import { ROUTES, buildRoute } from "@/lib/routes";
 import dayjs from "dayjs";
 import { motion } from "motion/react";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -45,7 +46,7 @@ export default function TrainerClientsPage() {
   // Guard: redirect if not a trainer
   useEffect(() => {
     if (user && user.role !== "trainer") {
-      router.push("/");
+      router.push(ROUTES.HOME);
     }
   }, [user, router]);
 
@@ -64,7 +65,7 @@ export default function TrainerClientsPage() {
   };
 
   const handleViewClient = (clientId: string) => {
-    router.push(`/trainer/client/${clientId}`);
+    router.push(buildRoute('TRAINER_CLIENT_DETAIL', clientId));
   };
 
   if (isLoading) {

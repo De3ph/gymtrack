@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { ROUTES } from "@/lib/routes";
 
 export default function DashboardLayout({
   children,
@@ -23,7 +24,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push(ROUTES.LOGIN);
     }
   }, [isAuthenticated, isLoading, router]);
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { linkStyles } from "./dashboard-styles";
 import { AthleteNav } from "./athlete-nav";
 import { TrainerNav } from "./trainer-nav";
+import { ROUTES } from "@/lib/routes";
 
 interface DashboardNavProps {
   userRole?: string;
@@ -16,7 +17,7 @@ export function DashboardNav({ userRole, userName, onLogout }: DashboardNavProps
         <div className='flex h-16 justify-between items-center'>
           <div className='flex items-center'>
             <Link
-              href='/profile'
+              href={ROUTES.PROFILE}
               className={linkStyles.brand}
             >
               GymTrack

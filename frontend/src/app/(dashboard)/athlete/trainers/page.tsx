@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { motion } from "motion/react"
 import { staggerContainer, staggerItem } from "@/lib/animations"
+import { buildRoute } from "@/lib/routes"
 
 export default function TrainerCatalogPage() {
   const [trainers, setTrainers] = useState<TrainerWithProfile[]>([])
@@ -140,7 +141,7 @@ export default function TrainerCatalogPage() {
                   key={trainer.userId}
                   variants={staggerItem}
                 >
-                  <Link href={`/athlete/trainers/${trainer.userId}`}>
+                  <Link href={buildRoute('ATHLETE_TRAINERS_DETAIL', trainer.userId)}>
                     <Card animateHover className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                       <CardHeader>
                         <CardTitle>{trainer.profile.name}</CardTitle>
