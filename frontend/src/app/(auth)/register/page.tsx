@@ -4,11 +4,13 @@ import { authApi } from "@/lib/api"
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth"
 import { useAuthStore } from "@/stores/authStore"
 import type { UserRole } from "@/types"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm } from "@tanstack/react-form"
 import { ROUTES } from "@/lib/routes"
+import { Input } from '@/components/ui/input';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { FieldInfo } from '@/components/ui/form-field';
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -16,53 +18,57 @@ export default function RegisterPage() {
   const [error, setError] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors }
-  } = useForm({
-    resolver: zodResolver(registerSchema),
+  const form = useForm({
     defaultValues: {
-      role: "athlete",
-      profile: {
-        name: "",
-        age: undefined,
-        weight: undefined,
-        height: undefined
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: "athlete" as UserRole,
+      name: "",
+      age: "",
+      weight: "",
+      height: "",
+      fitnessGoals: "",
+      certifications: "",
+      specializations: ""
+    },
+    onSubmit: async ({ value }) => {
+      setIsLoading(true)
+      setError("")
+
+      try {
+        // Reconstruct profile object
+        const profile = {
+          name: value.name,
+          age: value.age ? Number(value.age) : undefined,
+          weight: value.weight ? Number(value.weight) : undefined,
+          height: value.height ? Number(value.height) : undefined,
+          fitnessGoals: value.fitnessGoals,
+          certifications: value.certifications,
+          specializations: value.specializations
+        }
+
+        // Register user
+        await authApi.register({
+          email: value.email,
+          password: value.password,
+          role: value.role,
+          profile
+        })
+
+        // Auto-login after registration
+        await login(value.email, value.password)
+        router.push(ROUTES.HOME)
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
+        setError(errorMessage)
+      } finally {
+        setIsLoading(false)
       }
-    }
-  } as const)
+    },
+  })
 
-  const selectedRole = watch("role") as UserRole
-
-  const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true)
-    setError("")
-
-    try {
-      // Register user
-      await authApi.register({
-        email: data.email,
-        password: data.password,
-        role: data.role,
-        profile: data.profile
-      })
-
-      // Auto-login after registration
-      await login(data.email, data.password)
-      router.push(ROUTES.HOME)
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
-      setError(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const onError = (formErrors: unknown) => {
-    console.log("🚀 ~ RegisterPage ~ formErrors:", formErrors)
-  }
+  const selectedRole = form.getFieldValue("role") as UserRole
 
   return (
     <div className='rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800'>
@@ -76,225 +82,263 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit, onError)} className='space-y-4'>
-        <div>
-          <label
-            htmlFor='email'
-            className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-          >
-            Email
-          </label>
-          <input
-            {...register("email")}
-            type='email'
-            id='email'
-            className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-          />
-          {errors.email && (
-            <p className='mt-1 text-sm text-red-600 dark:text-red-400'>
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor='password'
-            className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-          >
-            Password
-          </label>
-          <input
-            {...register("password")}
-            type='password'
-            id='password'
-            className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-          />
-          {errors.password && (
-            <p className='mt-1 text-sm text-red-600 dark:text-red-400'>
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor='confirmPassword'
-            className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-          >
-            Confirm Password
-          </label>
-          <input
-            {...register("confirmPassword")}
-            type='password'
-            id='confirmPassword'
-            className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-          />
-          {errors.confirmPassword && (
-            <p className='mt-1 text-sm text-red-600 dark:text-red-400'>
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-            I am a
-          </label>
-          <div className='flex gap-4'>
-            <label className='flex items-center'>
-              <input
-                {...register("role")}
-                type='radio'
-                value='athlete'
-                className='mr-2'
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+        className='space-y-4'
+      >
+        <form.Field
+          name="email"
+          validators={{
+            onChange: ({ value }) => {
+              if (!value || value.trim().length === 0) {
+                return "Email is required"
+              }
+              if (!/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
+                return "Invalid email address"
+              }
+              return undefined
+            },
+          }}
+        >
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor='email'>Email</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type='email'
+                id='email'
+                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
               />
-              <span className='text-gray-700 dark:text-gray-300'>Athlete</span>
-            </label>
-            <label className='flex items-center'>
-              <input
-                {...register("role")}
-                type='radio'
-                value='trainer'
-                className='mr-2'
-              />
-              <span className='text-gray-700 dark:text-gray-300'>Trainer</span>
-            </label>
-          </div>
-          {errors.role && (
-            <p className='mt-1 text-sm text-red-600 dark:text-red-400'>
-              {errors.role.message}
-            </p>
+              <FieldInfo field={field} />
+            </Field>
           )}
-        </div>
+        </form.Field>
 
-        <div>
-          <label
-            htmlFor='name'
-            className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-          >
-            Full Name
-          </label>
-          <input
-            {...register("profile.name")}
-            type='text'
-            id='name'
-            className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-          />
-          {errors.profile?.name && (
-            <p className='mt-1 text-sm text-red-600 dark:text-red-400'>
-              {errors.profile.name.message}
-            </p>
+        <form.Field
+          name="password"
+          validators={{
+            onChange: ({ value }) => {
+              if (!value || value.length === 0) {
+                return "Password is required"
+              }
+              if (value.length < 6) {
+                return "Password must be at least 6 characters"
+              }
+              return undefined
+            },
+          }}
+        >
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor='password'>Password</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type='password'
+                id='password'
+                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+              />
+              <FieldInfo field={field} />
+            </Field>
           )}
-        </div>
+        </form.Field>
+
+        <form.Field
+          name="confirmPassword"
+          validators={{
+            onChange: ({ value, fieldApi }) => {
+              const password = fieldApi.form.state.values.password
+              if (!value || value.length === 0) {
+                return "Please confirm your password"
+              }
+              if (value !== password) {
+                return "Passwords do not match"
+              }
+              return undefined
+            },
+          }}
+        >
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor='confirmPassword'>Confirm Password</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type='password'
+                id='confirmPassword'
+                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+              />
+              <FieldInfo field={field} />
+            </Field>
+          )}
+        </form.Field>
+
+        <form.Field name="role">
+          {(field) => (
+            <Field>
+              <FieldLabel>I am a</FieldLabel>
+              <div className='flex gap-4'>
+                <label className='flex items-center'>
+                  <input
+                    type='radio'
+                    checked={field.state.value === 'athlete'}
+                    onChange={() => field.handleChange('athlete')}
+                    className='mr-2'
+                  />
+                  <span className='text-gray-700 dark:text-gray-300'>Athlete</span>
+                </label>
+                <label className='flex items-center'>
+                  <input
+                    type='radio'
+                    checked={field.state.value === 'trainer'}
+                    onChange={() => field.handleChange('trainer')}
+                    className='mr-2'
+                  />
+                  <span className='text-gray-700 dark:text-gray-300'>Trainer</span>
+                </label>
+              </div>
+            </Field>
+          )}
+        </form.Field>
+
+        <form.Field
+          name="name"
+          validators={{
+            onChange: ({ value }) => {
+              if (!value || value.trim().length === 0) {
+                return "Name is required"
+              }
+              return undefined
+            },
+          }}
+        >
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor='name'>Full Name</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type='text'
+                id='name'
+                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+              />
+              <FieldInfo field={field} />
+            </Field>
+          )}
+        </form.Field>
 
         {selectedRole === "athlete" && (
           <>
             <div className='grid grid-cols-2 gap-4'>
-              <div>
-                <label
-                  htmlFor='age'
-                  className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-                >
-                  Age (optional)
-                </label>
-                <input
-                  {...register("profile.age", {
-                    valueAsNumber: true,
-                    required: false
-                  })}
-                  type='number'
-                  id='age'
-                  className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor='weight'
-                  className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-                >
-                  Weight (kg, optional)
-                </label>
-                <input
-                  {...register("profile.weight", {
-                    valueAsNumber: true,
-                    required: false
-                  })}
-                  type='number'
-                  id='weight'
-                  className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-                />
-              </div>
+              <form.Field name="age">
+                {(field) => (
+                  <Field>
+                    <FieldLabel htmlFor='age'>Age (optional)</FieldLabel>
+                    <Input
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      type='number'
+                      id='age'
+                      className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                    />
+                  </Field>
+                )}
+              </form.Field>
+              <form.Field name="weight">
+                {(field) => (
+                  <Field>
+                    <FieldLabel htmlFor='weight'>Weight (kg, optional)</FieldLabel>
+                    <Input
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      type='number'
+                      id='weight'
+                      className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                    />
+                  </Field>
+                )}
+              </form.Field>
             </div>
 
-            <div>
-              <label
-                htmlFor='height'
-                className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-              >
-                Height (cm, optional)
-              </label>
-              <input
-                {...register("profile.height", {
-                  valueAsNumber: true,
-                  required: false
-                })}
-                type='number'
-                id='height'
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-              />
-            </div>
+            <form.Field name="height">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor='height'>Height (cm, optional)</FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    type='number'
+                    id='height'
+                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                  />
+                </Field>
+              )}
+            </form.Field>
 
-            <div>
-              <label
-                htmlFor='fitnessGoals'
-                className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-              >
-                Fitness Goals (optional)
-              </label>
-              <textarea
-                {...register("profile.fitnessGoals", { required: false })}
-                id='fitnessGoals'
-                rows={3}
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-              />
-            </div>
+            <form.Field name="fitnessGoals">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor='fitnessGoals'>Fitness Goals (optional)</FieldLabel>
+                  <textarea
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    id='fitnessGoals'
+                    rows={3}
+                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                  />
+                </Field>
+              )}
+            </form.Field>
           </>
         )}
 
         {selectedRole === "trainer" && (
           <>
-            <div>
-              <label
-                htmlFor='certifications'
-                className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-              >
-                Certifications (optional)
-              </label>
-              <input
-                {...register("profile.certifications")}
-                type='text'
-                id='certifications'
-                placeholder='e.g., NASM CPT, ACE'
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-              />
-            </div>
+            <form.Field name="certifications">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor='certifications'>Certifications (optional)</FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    type='text'
+                    id='certifications'
+                    placeholder='e.g., NASM CPT, ACE'
+                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                  />
+                </Field>
+              )}
+            </form.Field>
 
-            <div>
-              <label
-                htmlFor='specializations'
-                className='block text-sm font-medium text-gray-700 dark:text-gray-300'
-              >
-                Specializations (optional)
-              </label>
-              <input
-                {...register("profile.specializations")}
-                type='text'
-                id='specializations'
-                placeholder='e.g., Strength Training, Nutrition'
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-              />
-            </div>
+            <form.Field name="specializations">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor='specializations'>Specializations (optional)</FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    type='text'
+                    id='specializations'
+                    placeholder='e.g., Strength Training, Nutrition'
+                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                  />
+                </Field>
+              )}
+            </form.Field>
           </>
         )}
 

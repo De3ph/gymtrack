@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "@tanstack/react-form";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { FieldInfo } from "@/components/ui/form-field";
 import { commentApi } from "@/lib/api";
 import {
   createCommentSchema,
@@ -34,26 +35,25 @@ export function CommentForm({
 }: CommentFormProps) {
   const queryClient = useQueryClient();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<CreateCommentFormData>({
-    resolver: zodResolver(createCommentSchema),
+  const form = useForm({
     defaultValues: {
-      targetType,
-      targetId,
       content: "",
-      parentCommentId: parentCommentId ?? undefined,
+    } satisfies Pick<CreateCommentFormData, "content">,
+    onSubmit: async ({ value }) => {
+      mutate({
+        targetType,
+        targetId,
+        content: value.content,
+        parentCommentId: parentCommentId ?? undefined,
+      });
     },
   });
 
-  const { mutate } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: (data: CreateCommentFormData) => commentApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      reset({ content: "", targetType, targetId, parentCommentId: undefined });
+      form.reset();
       onSuccess?.();
       onCancel?.();
     },
@@ -61,28 +61,43 @@ export function CommentForm({
 
   return (
     <form
-      onSubmit={handleSubmit((data) =>
-        mutate({
-          targetType,
-          targetId,
-          content: data.content,
-          parentCommentId: parentCommentId ?? undefined,
-        })
-      )}
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
       className="space-y-2"
     >
-      <Textarea
-        {...register("content")}
-        placeholder={placeholder}
-        rows={3}
-        className="resize-none"
-      />
-      {errors.content && (
-        <p className="text-sm text-destructive">{errors.content.message}</p>
-      )}
+      <form.Field
+        name="content"
+        validators={{
+          onChange: ({ value }) => {
+            if (!value || value.trim().length === 0) {
+              return "Content is required"
+            }
+            if (value.length > 1000) {
+              return "Content must be less than 1000 characters"
+            }
+            return undefined
+          },
+        }}
+      >
+        {(field) => (
+          <Field>
+            <FieldLabel>{placeholder}</FieldLabel>
+            <Textarea
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+              rows={3}
+              className="resize-none"
+            />
+            <FieldInfo field={field} />
+          </Field>
+        )}
+      </form.Field>
       <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={isSubmitting}>
-          {isSubmitting ? "Posting..." : parentCommentId ? "Reply" : "Comment"}
+        <Button type="submit" size="sm" disabled={isPending}>
+          {isPending ? "Posting..." : parentCommentId ? "Reply" : "Comment"}
         </Button>
         {onCancel && (
           <Button type="button" size="sm" variant="outline" onClick={onCancel}>
