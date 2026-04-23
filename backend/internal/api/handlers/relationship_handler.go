@@ -566,8 +566,8 @@ func calculateWorkoutStats(workouts []*models.Workout) *WorkoutStats {
 	for _, w := range workouts {
 		// Calculate volume (sets * reps * weight)
 		for _, e := range w.Exercises {
-			for _, reps := range e.Reps {
-				volume := float64(e.Sets) * float64(reps) * e.Weight
+			for _, set := range e.Sets {
+				volume := set.Weight * float64(set.Reps)
 				totalVolume += volume
 			}
 
@@ -575,13 +575,12 @@ func calculateWorkoutStats(workouts []*models.Workout) *WorkoutStats {
 			if _, ok := exerciseMap[e.Name]; !ok {
 				exerciseMap[e.Name] = &ExerciseStat{Name: e.Name}
 			}
-			exerciseMap[e.Name].TotalSets += e.Sets
-			maxWeight := exerciseMap[e.Name].MaxWeight
-			if e.Weight > maxWeight {
-				exerciseMap[e.Name].MaxWeight = e.Weight
-			}
-			for _, reps := range e.Reps {
-				exerciseMap[e.Name].TotalReps += reps
+			exerciseMap[e.Name].TotalSets += len(e.Sets)
+			for _, set := range e.Sets {
+				if set.Weight > exerciseMap[e.Name].MaxWeight {
+					exerciseMap[e.Name].MaxWeight = set.Weight
+				}
+				exerciseMap[e.Name].TotalReps += set.Reps
 			}
 		}
 
@@ -596,8 +595,8 @@ func calculateWorkoutStats(workouts []*models.Workout) *WorkoutStats {
 		var weekVol float64
 		for _, w := range ws {
 			for _, e := range w.Exercises {
-				for _, reps := range e.Reps {
-					weekVol += float64(e.Sets) * float64(reps) * e.Weight
+				for _, set := range e.Sets {
+					weekVol += set.Weight * float64(set.Reps)
 				}
 			}
 		}

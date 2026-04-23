@@ -143,8 +143,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		Email:     response.User.Email,
 		Role:      response.User.Role,
 		Profile:   response.User.Profile,
-		CreatedAt: response.User.CreatedAt,
-		UpdatedAt: response.User.UpdatedAt,
+		CreatedAt: response.User.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: response.User.UpdatedAt.Format(time.RFC3339),
 	}
 
 	c.JSON(http.StatusOK, gin.H{

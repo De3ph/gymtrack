@@ -28,10 +28,10 @@ func NewWorkoutService(workoutRepo repositories.WorkoutRepository, relationshipR
 }
 
 type CreateWorkoutInput struct {
-	AthleteID  string
-	Date       time.Time
-	Exercises  []models.Exercise
-	UserRole   models.UserRole
+	AthleteID string
+	Date      time.Time
+	Exercises []models.WorkoutExercise
+	UserRole  models.UserRole
 }
 
 func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutInput) (*models.Workout, error) {
@@ -57,8 +57,8 @@ func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutI
 }
 
 type GetWorkoutInput struct {
-	WorkoutID  string
-	RequesterID string
+	WorkoutID     string
+	RequesterID   string
 	RequesterRole models.UserRole
 }
 
@@ -114,10 +114,10 @@ func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput
 }
 
 type UpdateWorkoutInput struct {
-	WorkoutID  string
-	AthleteID  string
-	Date       time.Time
-	Exercises  []models.Exercise
+	WorkoutID string
+	AthleteID string
+	Date      time.Time
+	Exercises []models.WorkoutExercise
 }
 
 func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutInput) (*models.Workout, error) {
@@ -170,12 +170,12 @@ func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID
 }
 
 type GetClientWorkoutsInput struct {
-	TrainerID   string
-	ClientID    string
-	Limit       int
-	Offset      int
-	StartDate   *time.Time
-	EndDate     *time.Time
+	TrainerID    string
+	ClientID     string
+	Limit        int
+	Offset       int
+	StartDate    *time.Time
+	EndDate      *time.Time
 	ExerciseType string
 }
 

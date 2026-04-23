@@ -23,15 +23,15 @@ func NewWorkoutHandler(workoutService *services.WorkoutService) *WorkoutHandler 
 // CreateWorkoutRequest represents the request to create a workout
 // @Description Request to create a new workout
 type CreateWorkoutRequest struct {
-	Date      time.Time         `json:"date" validate:"required"`
-	Exercises []models.Exercise `json:"exercises" validate:"required,min=1,dive"`
+	Date      time.Time                `json:"date" validate:"required"`
+	Exercises []models.WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
 }
 
 // UpdateWorkoutRequest represents the request to update a workout
 // @Description Request to update an existing workout
 type UpdateWorkoutRequest struct {
-	Date      time.Time         `json:"date" validate:"required"`
-	Exercises []models.Exercise `json:"exercises" validate:"required,min=1,dive"`
+	Date      time.Time                `json:"date" validate:"required"`
+	Exercises []models.WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
 }
 
 // CreateWorkout handles POST /api/workouts

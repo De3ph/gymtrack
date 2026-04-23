@@ -46,6 +46,12 @@ func main() {
 		log.Fatalf("Failed to initialize collections: %v", err)
 	}
 
+	// Seed initial data
+	err = config.SeedAllData(config.GlobalBucket)
+	if err != nil {
+		log.Fatalf("Failed to seed initial data: %v", err)
+	}
+
 	// Get specific collections
 	userCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
 	workoutCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts)
@@ -53,6 +59,9 @@ func main() {
 	relationshipCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships)
 	commentCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionComments)
 	invitationCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionInvitations)
+	muscleGroupCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionMuscleGroups)
+	equipmentCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionEquipment)
+	exerciseCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises)
 
 	// Initialize repositories with specific collections
 	userRepo := repositories.NewCouchbaseUserRepository(userCollection)
@@ -60,6 +69,11 @@ func main() {
 	mealRepo := repositories.NewMealRepository(mealCollection)
 	relationshipRepo := repositories.NewRelationshipRepository(relationshipCollection)
 	commentRepo := repositories.NewCommentRepository(commentCollection)
+
+	// Exercise feature repositories
+	muscleGroupRepo := repositories.NewCouchbaseMuscleGroupRepository(muscleGroupCollection)
+	equipmentRepo := repositories.NewCouchbaseEquipmentRepository(equipmentCollection)
+	exerciseRepo := repositories.NewCouchbaseExerciseRepository(exerciseCollection)
 
 	// Trainer feature repositories
 	trainerProfileRepo := repositories.NewCouchbaseTrainerProfileRepository(userCollection)
@@ -75,6 +89,9 @@ func main() {
 	coachingRequestService := services.NewCoachingRequestService(coachingRequestRepo, userRepo, relationshipRepo, availableClock)
 	invitationMethod := services.NewCodeBasedInvitation(services.NewGocbCollectionAdapter(invitationCollection), utils.RealClock{})
 	invitationService := services.NewInvitationService(invitationMethod, relationshipRepo, userRepo, utils.RealClock{})
+
+	// Exercise feature service
+	exerciseService := services.NewExerciseService(exerciseRepo, muscleGroupRepo, equipmentRepo)
 
 	router := gin.Default()
 
@@ -93,16 +110,19 @@ func main() {
 	middleware.InitAuthMiddleware(cfg, authService)
 
 	authHandler := handlers.NewAuthHandler(authService)
-	userHandler := handlers.NewUserHandler(userRepo)
+	userService := services.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
 
 	apiGroup := router.Group("/api")
 	routes.AuthRoutes(apiGroup, authHandler)
 	routes.UserRoutes(apiGroup, userHandler)
 
-	workoutHandler := handlers.NewWorkoutHandler(workoutRepo, relationshipRepo)
+	workoutService := services.NewWorkoutService(workoutRepo, relationshipRepo)
+	workoutHandler := handlers.NewWorkoutHandler(workoutService)
 	routes.WorkoutRoutes(apiGroup, workoutHandler)
 
-	mealHandler := handlers.NewMealHandler(mealRepo, relationshipRepo)
+	mealService := services.NewMealService(mealRepo, relationshipRepo)
+	mealHandler := handlers.NewMealHandler(mealService)
 	routes.MealRoutes(apiGroup, mealHandler)
 
 	relationshipHandler := handlers.NewRelationshipHandler(invitationService, relationshipRepo, userRepo, workoutRepo, mealRepo)
@@ -118,8 +138,12 @@ func main() {
 	reviewHandler := handlers.NewReviewHandler(reviewService)
 	coachingRequestHandler := handlers.NewCoachingRequestHandler(coachingRequestService)
 
+	// Exercise feature handler
+	exerciseHandler := handlers.NewExerciseHandler(exerciseService)
+
 	routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler)
 	routes.RegisterCoachingRequestRoutes(router, coachingRequestHandler)
+	routes.RegisterExerciseRoutes(router, exerciseHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
