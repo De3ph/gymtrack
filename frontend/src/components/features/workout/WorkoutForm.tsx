@@ -223,13 +223,24 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
                       placeholder="e.g. 10, 10, 8"
                       {...form.register(`exercises.${index}.reps`, {
                         setValueAs: (v) => {
+                          // If it's already an array, return as-is to prevent recursion
                           if (Array.isArray(v)) return v;
-                          if (typeof v === "string")
+
+                          // Handle string input
+                          if (typeof v === "string" && v.trim()) {
                             return v
                               .split(",")
                               .map((n) => parseInt(n.trim()))
                               .filter((n) => !isNaN(n));
-                          return [];
+                          }
+
+                          // Handle number input (single rep)
+                          if (typeof v === "number" && !isNaN(v)) {
+                            return [v];
+                          }
+
+                          // Default fallback
+                          return [10]; // Default to 10 reps instead of empty array
                         },
                       })}
                     />

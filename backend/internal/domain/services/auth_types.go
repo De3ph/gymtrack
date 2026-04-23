@@ -47,11 +47,11 @@ type TokenClaims struct {
 
 // Service errors
 var (
-	ErrUserAlreadyExists = NewServiceError("user with this email already exists", "USER_EXISTS")
+	ErrUserAlreadyExists  = NewServiceError("user with this email already exists", "USER_EXISTS")
 	ErrInvalidCredentials = NewServiceError("invalid credentials", "INVALID_CREDENTIALS")
-	ErrInvalidToken = NewServiceError("invalid token", "INVALID_TOKEN")
-	ErrTokenExpired = NewServiceError("token expired", "TOKEN_EXPIRED")
-	ErrInvalidTokenType = NewServiceError("invalid token type", "INVALID_TOKEN_TYPE")
+	ErrInvalidToken       = NewServiceError("invalid token", "INVALID_TOKEN")
+	ErrTokenExpired       = NewServiceError("token expired", "TOKEN_EXPIRED")
+	ErrInvalidTokenType   = NewServiceError("invalid token type", "INVALID_TOKEN_TYPE")
 )
 
 // ServiceError represents a business logic error with a code

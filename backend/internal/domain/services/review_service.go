@@ -27,13 +27,11 @@ func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo
 }
 
 func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athleteID string, rating int, comment string) (*models.TrainerReview, error) {
-	// Check if athlete has active relationship with trainer
-	relationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
+	// Verify active relationship using repository helper
+	hasActiveRelationship, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check relationship: %w", err)
+		return nil, fmt.Errorf("failed to check active relationship: %w", err)
 	}
-
-	hasActiveRelationship := relationship != nil && relationship.TrainerID == trainerID && relationship.Status == "active"
 
 	if !hasActiveRelationship {
 		return nil, fmt.Errorf("you must have an active relationship with this trainer to leave a review")

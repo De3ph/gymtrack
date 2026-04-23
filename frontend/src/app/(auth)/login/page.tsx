@@ -22,19 +22,31 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    setError('');
+    setIsLoading(true)
+    setError("")
 
     try {
-      await login(data.email, data.password);
-      router.push('/profile');
+      const user = await login(data.email, data.password)
+
+      // Add a small delay to ensure tokens are persisted in localStorage
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      // Redirect based on user role
+      if (user?.role === "athlete") {
+        router.push("/athlete/workouts")
+      } else if (user?.role === "trainer") {
+        router.push("/trainer/clients")
+      } else {
+        router.push("/profile")
+      }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
-      setError(errorMessage);
+      const errorMessage =
+        err instanceof Error ? err.message : "Login failed. Please try again."
+      setError(errorMessage)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800">

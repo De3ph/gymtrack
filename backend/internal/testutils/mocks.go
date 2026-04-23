@@ -91,48 +91,53 @@ type MockRelationshipRepository struct {
 	mock.Mock
 }
 
-func (m *MockRelationshipRepository) Create(relationship *models.Relationship) error {
-	args := m.Called(relationship)
+func (m *MockRelationshipRepository) Create(ctx context.Context, relationship *models.Relationship) error {
+	args := m.Called(ctx, relationship)
 	return args.Error(0)
 }
 
-func (m *MockRelationshipRepository) GetByAthleteID(athleteID string) (*models.Relationship, error) {
-	args := m.Called(athleteID)
+func (m *MockRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error) {
+	args := m.Called(ctx, athleteID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.Relationship), args.Error(1)
 }
 
-func (m *MockRelationshipRepository) GetPendingByAthleteID(athleteID string) ([]*models.Relationship, error) {
-	args := m.Called(athleteID)
+func (m *MockRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error) {
+	args := m.Called(ctx, athleteID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*models.Relationship), args.Error(1)
 }
 
-func (m *MockRelationshipRepository) Delete(relationshipID string) error {
-	args := m.Called(relationshipID)
+func (m *MockRelationshipRepository) Delete(ctx context.Context, relationshipID string) error {
+	args := m.Called(ctx, relationshipID)
 	return args.Error(0)
 }
 
-func (m *MockRelationshipRepository) GetByID(relationshipID string) (*models.Relationship, error) {
-	args := m.Called(relationshipID)
+func (m *MockRelationshipRepository) GetByID(ctx context.Context, relationshipID string) (*models.Relationship, error) {
+	args := m.Called(ctx, relationshipID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.Relationship), args.Error(1)
 }
 
-func (m *MockRelationshipRepository) GetByTrainerID(trainerID string) ([]*models.Relationship, error) {
-	args := m.Called(trainerID)
+func (m *MockRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error) {
+	args := m.Called(ctx, trainerID)
 	return args.Get(0).([]*models.Relationship), args.Error(1)
 }
 
-func (m *MockRelationshipRepository) Update(relationship *models.Relationship) error {
-	args := m.Called(relationship)
+func (m *MockRelationshipRepository) Update(ctx context.Context, relationship *models.Relationship) error {
+	args := m.Called(ctx, relationship)
 	return args.Error(0)
+}
+
+func (m *MockRelationshipRepository) HasActiveRelationship(ctx context.Context, trainerID, athleteID string) (bool, error) {
+	args := m.Called(ctx, trainerID, athleteID)
+	return args.Bool(0), args.Error(1)
 }
 
 // MockCoachingRequestRepository is a mock implementation of CoachingRequestRepository
@@ -455,9 +460,92 @@ func (m *MockAvailabilityRepository) CleanupExpiredSlots(ctx context.Context, re
 	return args.Error(0)
 }
 
-// Helper function to create test context
-func CreateTestContext() context.Context {
-	return context.Background()
+// MockWorkoutRepository is a mock implementation of WorkoutRepository
+type MockWorkoutRepository struct {
+	mock.Mock
+}
+
+func (m *MockWorkoutRepository) GetByID(id string) (*models.Workout, error) {
+	args := m.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Workout), args.Error(1)
+}
+
+func (m *MockWorkoutRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Workout, error) {
+	args := m.Called(athleteID, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Workout), args.Error(1)
+}
+
+func (m *MockWorkoutRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Workout, error) {
+	args := m.Called(athleteID, startDate, endDate)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Workout), args.Error(1)
+}
+
+func (m *MockWorkoutRepository) Create(workout *models.Workout) error {
+	args := m.Called(workout)
+	return args.Error(0)
+}
+
+func (m *MockWorkoutRepository) Update(workout *models.Workout) error {
+	args := m.Called(workout)
+	return args.Error(0)
+}
+
+func (m *MockWorkoutRepository) Delete(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+// MockMealRepository is a mock implementation of MealRepository
+type MockMealRepository struct {
+	mock.Mock
+}
+
+func (m *MockMealRepository) Create(meal *models.Meal) error {
+	args := m.Called(meal)
+	return args.Error(0)
+}
+
+func (m *MockMealRepository) GetByID(id string) (*models.Meal, error) {
+	args := m.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Meal), args.Error(1)
+}
+
+func (m *MockMealRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Meal, error) {
+	args := m.Called(athleteID, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Meal), args.Error(1)
+}
+
+func (m *MockMealRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Meal, error) {
+	args := m.Called(athleteID, startDate, endDate)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Meal), args.Error(1)
+}
+
+func (m *MockMealRepository) Update(meal *models.Meal) error {
+	args := m.Called(meal)
+	return args.Error(0)
+}
+
+func (m *MockMealRepository) Delete(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
 }
 
 // Helper function to create mock arguments for float64 return values

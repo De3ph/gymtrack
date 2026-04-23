@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -12,51 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/testutils"
 )
-
-// MockUserRepository for testing
-type MockUserRepository struct {
-	users map[string]*models.User
-}
-
-func NewMockUserRepository() *MockUserRepository {
-	return &MockUserRepository{
-		users: make(map[string]*models.User),
-	}
-}
-
-func (m *MockUserRepository) CreateUser(ctx context.Context, user *models.User) error {
-	m.users[user.UserID] = user
-	return nil
-}
-
-func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	for _, user := range m.users {
-		if user.Email == email {
-			return user, nil
-		}
-	}
-	return nil, nil
-}
-
-func (m *MockUserRepository) GetUserByID(ctx context.Context, id string) (*models.User, error) {
-	user, exists := m.users[id]
-	if !exists {
-		return nil, nil
-	}
-	return user, nil
-}
-
-func (m *MockUserRepository) UpdateUser(ctx context.Context, user *models.User) error {
-	m.users[user.UserID] = user
-	return nil
-}
-
-func (m *MockUserRepository) DeleteUser(ctx context.Context, id string) error {
-	delete(m.users, id)
-	return nil
-}
 
 type AuthHandlerTestSuite struct {
 	suite.Suite
@@ -66,9 +22,9 @@ type AuthHandlerTestSuite struct {
 func (suite *AuthHandlerTestSuite) SetupTest() {
 	gin.SetMode(gin.TestMode)
 	suite.router = gin.New()
-	
+
 	// Mock user repository for testing
-	mockRepo := NewMockUserRepository()
+	mockRepo := new(testutils.MockUserRepository)
 	authHandler := NewAuthHandler(mockRepo, "test-secret")
 	suite.router.POST("/api/auth/register", authHandler.Register)
 	suite.router.POST("/api/auth/login", authHandler.Login)
@@ -81,8 +37,8 @@ func (suite *AuthHandlerTestSuite) TestRegister_ValidData() {
 		"password": "password123",
 		"role":     "athlete",
 		"profile": map[string]interface{}{
-			"name":  "Test User",
-			"age":   25,
+			"name":   "Test User",
+			"age":    25,
 			"weight": 70,
 			"height": 175,
 		},
@@ -96,7 +52,7 @@ func (suite *AuthHandlerTestSuite) TestRegister_ValidData() {
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), http.StatusCreated, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -123,7 +79,7 @@ func (suite *AuthHandlerTestSuite) TestRegister_InvalidEmail() {
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)
@@ -202,7 +158,7 @@ func (suite *AuthHandlerTestSuite) TestLogin_InvalidCredentials() {
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
-	
+
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(suite.T(), err)

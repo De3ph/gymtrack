@@ -137,11 +137,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Convert to UserResponse to exclude password hash
+	userResponse := UserResponse{
+		UserID:    response.User.UserID,
+		Email:     response.User.Email,
+		Role:      response.User.Role,
+		Profile:   response.User.Profile,
+		CreatedAt: response.User.CreatedAt,
+		UpdatedAt: response.User.UpdatedAt,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":      "Login successful",
 		"accessToken":  response.AccessToken,
 		"refreshToken": response.RefreshToken,
-		"user":         response.User,
+		"user":         userResponse,
 	})
 }
 
