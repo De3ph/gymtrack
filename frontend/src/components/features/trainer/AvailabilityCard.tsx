@@ -135,9 +135,11 @@ export default function AvailabilityCard({
             </div>
           )
         })}
-        <Button onClick={handleAvailabilitySave} disabled={saving}>
-          {saving ? "Saving..." : "Save Availability"}
-        </Button>
+        <div className='flex justify-end'>
+          <Button onClick={handleAvailabilitySave} disabled={saving}>
+            {saving ? "Saving..." : "Save Availability"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

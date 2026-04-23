@@ -10,6 +10,13 @@ import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+} from "@/components/ui/combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -151,15 +158,20 @@ export function EditMealDialog({
                 {...form.register("mealTime")}
                 className="w-full md:w-[120px]"
               />
-              <select
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                {...form.register("mealType")}
-              >
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-                <option value="snack">Snack</option>
-              </select>
+              <Combobox>
+                <ComboboxInput
+                  placeholder="Select meal type"
+                  {...form.register("mealType")}
+                />
+                <ComboboxContent>
+                  <ComboboxList>
+                    <ComboboxItem value="breakfast">Breakfast</ComboboxItem>
+                    <ComboboxItem value="lunch">Lunch</ComboboxItem>
+                    <ComboboxItem value="dinner">Dinner</ComboboxItem>
+                    <ComboboxItem value="snack">Snack</ComboboxItem>
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
             </div>
             {(form.formState.errors.date || form.formState.errors.mealTime) && (
               <p className="text-sm text-destructive">

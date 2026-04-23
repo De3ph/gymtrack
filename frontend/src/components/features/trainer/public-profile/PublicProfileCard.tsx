@@ -134,9 +134,11 @@ export default function PublicProfileCard({
           />
           <Label htmlFor='isAvailable'>Available for new clients</Label>
         </div>
-        <Button onClick={handleProfileSave} disabled={saving}>
-          {saving ? "Saving..." : "Save Profile"}
-        </Button>
+        <div className='flex justify-end'>
+          <Button onClick={handleProfileSave} disabled={saving}>
+            {saving ? "Saving..." : "Save Profile"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

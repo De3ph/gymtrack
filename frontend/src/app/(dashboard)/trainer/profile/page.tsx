@@ -1,6 +1,6 @@
 "use client";
 
-import PublicProfileCard from "@/components/features/trainer/PublicProfileCard"
+import PublicProfileCard from "@/components/features/trainer/public-profile/PublicProfileCard"
 import AvailabilityCard from "@/components/features/trainer/AvailabilityCard"
 import { useState } from "react";
 
