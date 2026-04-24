@@ -73,7 +73,7 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger >
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

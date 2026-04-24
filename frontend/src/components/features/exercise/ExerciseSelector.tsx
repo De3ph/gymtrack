@@ -95,13 +95,11 @@ export function ExerciseSelector({
     equipment: equipment.find(eq => eq.id === exercise.equipmentId),
   }));
 
-  const selectedExercise = exercises.find((ex: ExerciseLibrary) => ex.exerciseId === selectedExerciseId);
-
   return (
     <div className="flex items-center gap-2">
       {/* Pick Exercise Button */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
+        <DialogTrigger>
           <Button
             type="button"
             variant="outline"

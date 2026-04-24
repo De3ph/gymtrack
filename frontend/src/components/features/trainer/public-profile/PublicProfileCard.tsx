@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -121,14 +122,13 @@ export default function PublicProfileCard({
           />
         </PublicProfileField>
         <div className='flex items-center gap-2'>
-          <input
-            type='checkbox'
+          <Checkbox
             id='isAvailable'
             checked={profile.isAvailableForNewClients ?? true}
-            onChange={(e) =>
+            onCheckedChange={(checked) =>
               setProfile({
                 ...profile,
-                isAvailableForNewClients: e.target.checked
+                isAvailableForNewClients: checked === true
               })
             }
           />

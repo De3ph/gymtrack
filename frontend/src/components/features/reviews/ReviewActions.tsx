@@ -87,7 +87,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
     <>
       <div className="flex gap-2">
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger >
             <Button variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-1" />
               Edit
@@ -148,7 +148,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
         </Dialog>
 
         <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger >
             <Button variant="destructive" size="sm">
               <Trash2 className="w-4 h-4 mr-1" />
               Delete

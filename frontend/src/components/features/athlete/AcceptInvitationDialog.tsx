@@ -80,7 +80,7 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button variant="outline">
           <UserPlus className="mr-2 h-4 w-4" />
           Connect with Trainer
