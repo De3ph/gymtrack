@@ -21,20 +21,10 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { workoutApi } from "@/lib/api";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import { EditWorkoutDialog } from "./EditWorkoutDialog";
+import { DeleteWorkoutDialog } from "./DeleteWorkoutDialog";
 import { CommentThread } from "@/components/features/comments/CommentThread";
 import { TIME_LIMITS, TARGET_TYPES } from "@/lib/constants";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -56,7 +46,8 @@ export function WorkoutList({
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<
     string | null
   >(null);
-  const [deleteConfirm, setDeleteConfirm] = React.useState<Workout | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = React.useState<Workout | null>(null);
 
   // Only fetch data if not provided as props
   const { data, isLoading } = useQuery({
@@ -65,19 +56,10 @@ export function WorkoutList({
     enabled: !propWorkouts, // Don't fetch if workouts are provided as props
   });
 
-  const { mutate: deleteWorkout } = useMutation({
-    mutationFn: (id: string) => workoutApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["workouts"],
-        refetchType: "active" // Only refetch active queries
-      });
-    },
-    onError: (error) => {
-      // TODO: Show toast notification with error message
-      console.error("Failed to delete workout:", error);
-    },
-  });
+  const handleDeleteClick = (workout: Workout) => {
+    setWorkoutToDelete(workout);
+    setDeleteDialogOpen(true);
+  };
 
   const canEdit = (workout: Workout) => {
     const createdAt = dayjs(workout.createdAt);
@@ -139,34 +121,10 @@ export function WorkoutList({
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Workout</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this workout? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                variant="destructive"
-                                onClick={() => {
-                                  if (deleteConfirm) {
-                                    deleteWorkout(deleteConfirm.workoutId);
-                                    setDeleteConfirm(null);
-                                  }
-                                }}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setDeleteConfirm(workout)}
+                          onClick={() => handleDeleteClick(workout)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -237,11 +195,18 @@ export function WorkoutList({
       </AnimatePresence>
 
       {!readOnly && (
-        <EditWorkoutDialog
-          workout={editingWorkout}
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-        />
+        <>
+          <EditWorkoutDialog
+            workout={editingWorkout}
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+          />
+          <DeleteWorkoutDialog
+            workout={workoutToDelete}
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+          />
+        </>
       )}
     </motion.div>
   );

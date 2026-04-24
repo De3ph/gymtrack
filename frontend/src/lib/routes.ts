@@ -25,7 +25,7 @@ export const ROUTES = {
 // Dynamic route builders - for routes with parameters
 export const DYNAMIC_ROUTES = {
   // Athlete viewing specific trainer
-  ATHLETE_TRAINER_DETAIL: (id: string) => `/athlete/trainer/${id}`,
+  ATHLETE_TRAINER_DETAIL: (id: string) => `/athlete/my-trainer/${id}`,
   ATHLETE_TRAINERS_DETAIL: (id: string) => `/athlete/trainers/${id}`,
 
   // Trainer viewing specific client
