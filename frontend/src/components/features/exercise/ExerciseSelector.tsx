@@ -99,16 +99,18 @@ export function ExerciseSelector({
     <div className="flex items-center gap-2">
       {/* Pick Exercise Button */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={disabled}
-          >
-            Pick Exercise
-          </Button>
-        </DialogTrigger>
+        <DialogTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={disabled}
+            >
+              Pick Exercise
+            </Button>
+          }
+        />
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Select Exercise</DialogTitle>
