@@ -1,6 +1,328 @@
 basePath: /api
 definitions:
-  gymtrack-backend_internal_domain_models.AuthorRole:
+  handlers.AcceptInvitationRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
+    type: object
+  handlers.ClientStats:
+    properties:
+      mealsThisWeek:
+        type: integer
+      totalMeals:
+        type: integer
+      totalWorkouts:
+        type: integer
+      workoutsThisWeek:
+        type: integer
+    type: object
+  handlers.CreateCoachingRequestRequest:
+    properties:
+      message:
+        type: string
+      trainerId:
+        type: string
+    required:
+    - trainerId
+    type: object
+  handlers.CreateCommentRequest:
+    description: Request body for creating a new comment on a workout or meal.
+    properties:
+      content:
+        maxLength: 2000
+        minLength: 1
+        type: string
+      parentCommentId:
+        type: string
+      targetId:
+        type: string
+      targetType:
+        $ref: '#/definitions/models.TargetType'
+    required:
+    - content
+    - targetId
+    - targetType
+    type: object
+  handlers.CreateExerciseRequest:
+    properties:
+      category:
+        type: string
+      equipmentId:
+        type: integer
+      muscleGroupId:
+        type: integer
+      name:
+        type: string
+    required:
+    - category
+    - equipmentId
+    - muscleGroupId
+    - name
+    type: object
+  handlers.CreateMealRequest:
+    description: Request body for creating a new meal entry
+    properties:
+      date:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/models.FoodItem'
+        minItems: 1
+        type: array
+      mealType:
+        allOf:
+        - $ref: '#/definitions/models.MealType'
+        enum:
+        - breakfast
+        - lunch
+        - dinner
+        - snack
+    required:
+    - date
+    - items
+    - mealType
+    type: object
+  handlers.CreateReviewRequest:
+    description: Request body for creating a review for a trainer.
+    properties:
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - rating
+    type: object
+  handlers.CreateWorkoutRequest:
+    description: Request to create a new workout
+    properties:
+      date:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/models.WorkoutExercise'
+        minItems: 1
+        type: array
+    required:
+    - date
+    - exercises
+    type: object
+  handlers.ExerciseStat:
+    properties:
+      maxWeight:
+        type: number
+      name:
+        type: string
+      totalReps:
+        type: integer
+      totalSets:
+        type: integer
+    type: object
+  handlers.GetClientDetailsResponse:
+    properties:
+      athlete:
+        $ref: '#/definitions/models.User'
+      relationship:
+        $ref: '#/definitions/models.Relationship'
+      stats:
+        $ref: '#/definitions/handlers.ClientStats'
+    type: object
+  handlers.GetClientStatsResponse:
+    properties:
+      mealStats:
+        $ref: '#/definitions/handlers.MealStats'
+      workoutStats:
+        $ref: '#/definitions/handlers.WorkoutStats'
+    type: object
+  handlers.LoginRequest:
+    properties:
+      email:
+        example: test@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.MealStats:
+    properties:
+      averageCalories:
+        type: number
+      averageCarbs:
+        type: number
+      averageFats:
+        type: number
+      averageProtein:
+        type: number
+      mealTypeBreakdown:
+        items:
+          $ref: '#/definitions/handlers.MealTypeStat'
+        type: array
+      weeklyAverages:
+        items:
+          $ref: '#/definitions/handlers.WeeklyMealAvg'
+        type: array
+    type: object
+  handlers.MealTypeStat:
+    properties:
+      count:
+        type: integer
+      mealType:
+        type: string
+    type: object
+  handlers.RefreshTokenRequest:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        example: test@example.com
+        type: string
+      password:
+        example: password123
+        minLength: 8
+        type: string
+      profile: {}
+      role:
+        enum:
+        - trainer
+        - athlete
+        example: athlete
+        type: string
+    required:
+    - email
+    - password
+    - role
+    type: object
+  handlers.UpdateCommentRequest:
+    description: Request body for updating an existing comment's content.
+    properties:
+      content:
+        maxLength: 2000
+        minLength: 1
+        type: string
+    required:
+    - content
+    type: object
+  handlers.UpdateMealRequest:
+    description: Request body for updating an existing meal entry
+    properties:
+      date:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/models.FoodItem'
+        minItems: 1
+        type: array
+      mealType:
+        allOf:
+        - $ref: '#/definitions/models.MealType'
+        enum:
+        - breakfast
+        - lunch
+        - dinner
+        - snack
+    required:
+    - date
+    - items
+    - mealType
+    type: object
+  handlers.UpdateProfileRequest:
+    properties:
+      profile:
+        $ref: '#/definitions/models.UserProfile'
+    required:
+    - profile
+    type: object
+  handlers.UpdateReviewRequest:
+    description: Request body for updating an existing review.
+    properties:
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - rating
+    type: object
+  handlers.UpdateWorkoutRequest:
+    description: Request to update an existing workout
+    properties:
+      date:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/models.WorkoutExercise'
+        minItems: 1
+        type: array
+    required:
+    - date
+    - exercises
+    type: object
+  handlers.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      profile:
+        $ref: '#/definitions/models.UserProfile'
+      role:
+        $ref: '#/definitions/models.UserRole'
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  handlers.WeeklyMealAvg:
+    properties:
+      calories:
+        type: number
+      carbs:
+        type: number
+      fats:
+        type: number
+      protein:
+        type: number
+      week:
+        type: string
+    type: object
+  handlers.WeeklyVolumePoint:
+    properties:
+      volume:
+        type: number
+      week:
+        type: string
+      workouts:
+        type: integer
+    type: object
+  handlers.WorkoutStats:
+    properties:
+      consistency:
+        description: percentage
+        type: number
+      exerciseBreakdown:
+        items:
+          $ref: '#/definitions/handlers.ExerciseStat'
+        type: array
+      totalVolume:
+        type: number
+      weeklyVolume:
+        items:
+          $ref: '#/definitions/handlers.WeeklyVolumePoint'
+        type: array
+    type: object
+  models.AuthorRole:
     enum:
     - trainer
     - athlete
@@ -8,13 +330,13 @@ definitions:
     x-enum-varnames:
     - AuthorRoleTrainer
     - AuthorRoleAthlete
-  gymtrack-backend_internal_domain_models.Comment:
+  models.Comment:
     properties:
       authorId:
         type: string
       authorRole:
         allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.AuthorRole'
+        - $ref: '#/definitions/models.AuthorRole'
         enum:
         - trainer
         - athlete
@@ -34,7 +356,7 @@ definitions:
         type: string
       targetType:
         allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.TargetType'
+        - $ref: '#/definitions/models.TargetType'
         enum:
         - workout
         - meal
@@ -48,40 +370,64 @@ definitions:
     - targetId
     - targetType
     type: object
-  gymtrack-backend_internal_domain_models.Exercise:
+  models.EquipmentDefinition:
     properties:
+      code:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+    type: object
+  models.Exercise:
+    properties:
+      category:
+        description: strength, cardio, flexibility
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        description: athlete ID for custom exercises
+        type: string
+      equipmentId:
+        type: integer
       exerciseId:
         type: string
+      instructions:
+        type: string
+      muscleGroupId:
+        type: integer
       name:
         type: string
+    required:
+    - name
+    type: object
+  models.ExerciseSet:
+    properties:
+      completed:
+        description: for workout tracking
+        type: boolean
       reps:
-        items:
-          type: integer
-        minItems: 1
-        type: array
+        type: integer
       restTime:
         description: in seconds
         minimum: 0
         type: integer
-      sets:
-        type: integer
+      setId:
+        type: string
       weight:
         minimum: 0
         type: number
       weightUnit:
         allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.WeightUnit'
+        - $ref: '#/definitions/models.WeightUnit'
         enum:
         - kg
         - lbs
     required:
-    - name
-    - reps
-    - sets
-    - weight
     - weightUnit
     type: object
-  gymtrack-backend_internal_domain_models.FoodItem:
+  models.FoodItem:
     properties:
       calories:
         minimum: 0
@@ -89,14 +435,14 @@ definitions:
       food:
         type: string
       macros:
-        $ref: '#/definitions/gymtrack-backend_internal_domain_models.Macros'
+        $ref: '#/definitions/models.Macros'
       quantity:
         type: string
     required:
     - food
     - quantity
     type: object
-  gymtrack-backend_internal_domain_models.Macros:
+  models.Macros:
     properties:
       carbs:
         minimum: 0
@@ -108,7 +454,7 @@ definitions:
         minimum: 0
         type: number
     type: object
-  gymtrack-backend_internal_domain_models.Meal:
+  models.Meal:
     properties:
       athleteId:
         type: string
@@ -118,14 +464,14 @@ definitions:
         type: string
       items:
         items:
-          $ref: '#/definitions/gymtrack-backend_internal_domain_models.FoodItem'
+          $ref: '#/definitions/models.FoodItem'
         minItems: 1
         type: array
       mealId:
         type: string
       mealType:
         allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.MealType'
+        - $ref: '#/definitions/models.MealType'
         enum:
         - breakfast
         - lunch
@@ -142,7 +488,7 @@ definitions:
     - items
     - mealType
     type: object
-  gymtrack-backend_internal_domain_models.MealType:
+  models.MealType:
     enum:
     - breakfast
     - lunch
@@ -154,7 +500,16 @@ definitions:
     - MealTypeLunch
     - MealTypeDinner
     - MealTypeSnack
-  gymtrack-backend_internal_domain_models.Relationship:
+  models.MuscleGroupDefinition:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+    type: object
+  models.Relationship:
     properties:
       athleteId:
         type: string
@@ -164,7 +519,7 @@ definitions:
         type: string
       status:
         allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.RelationshipStatus'
+        - $ref: '#/definitions/models.RelationshipStatus'
         enum:
         - pending
         - active
@@ -181,7 +536,7 @@ definitions:
     - status
     - trainerId
     type: object
-  gymtrack-backend_internal_domain_models.RelationshipStatus:
+  models.RelationshipStatus:
     enum:
     - pending
     - active
@@ -191,7 +546,7 @@ definitions:
     - RelationshipStatusPending
     - RelationshipStatusActive
     - RelationshipStatusTerminated
-  gymtrack-backend_internal_domain_models.TargetType:
+  models.TargetType:
     enum:
     - workout
     - meal
@@ -199,7 +554,7 @@ definitions:
     x-enum-varnames:
     - TargetTypeWorkout
     - TargetTypeMeal
-  gymtrack-backend_internal_domain_models.TrainerAvailability:
+  models.TrainerAvailability:
     description: TrainerAvailability model representing a single availability slot
     properties:
       availabilityId:
@@ -238,7 +593,7 @@ definitions:
         description: '@Description Timestamp when the slot was last updated'
         type: string
     type: object
-  gymtrack-backend_internal_domain_models.TrainerProfile:
+  models.TrainerProfile:
     properties:
       bio:
         type: string
@@ -257,7 +612,7 @@ definitions:
       yearsOfExperience:
         type: integer
     type: object
-  gymtrack-backend_internal_domain_models.TrainerReview:
+  models.TrainerReview:
     properties:
       athleteId:
         type: string
@@ -281,7 +636,7 @@ definitions:
     required:
     - rating
     type: object
-  gymtrack-backend_internal_domain_models.TrainerWithProfile:
+  models.TrainerWithProfile:
     properties:
       averageRating:
         type: number
@@ -292,12 +647,12 @@ definitions:
       passwordHash:
         type: string
       profile:
-        $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerProfile'
+        $ref: '#/definitions/models.TrainerProfile'
       reviewCount:
         type: integer
       role:
         allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
+        - $ref: '#/definitions/models.UserRole'
         enum:
         - trainer
         - athlete
@@ -312,7 +667,7 @@ definitions:
     - email
     - role
     type: object
-  gymtrack-backend_internal_domain_models.User:
+  models.User:
     properties:
       createdAt:
         type: string
@@ -321,10 +676,10 @@ definitions:
       passwordHash:
         type: string
       profile:
-        $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
+        $ref: '#/definitions/models.UserProfile'
       role:
         allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
+        - $ref: '#/definitions/models.UserRole'
         enum:
         - trainer
         - athlete
@@ -339,7 +694,7 @@ definitions:
     - email
     - role
     type: object
-  gymtrack-backend_internal_domain_models.UserProfile:
+  models.UserProfile:
     properties:
       age:
         type: integer
@@ -365,7 +720,7 @@ definitions:
       weight:
         type: integer
     type: object
-  gymtrack-backend_internal_domain_models.UserRole:
+  models.UserRole:
     enum:
     - trainer
     - athlete
@@ -373,7 +728,7 @@ definitions:
     x-enum-varnames:
     - RoleTrainer
     - RoleAthlete
-  gymtrack-backend_internal_domain_models.WeightUnit:
+  models.WeightUnit:
     enum:
     - kg
     - lbs
@@ -381,7 +736,7 @@ definitions:
     x-enum-varnames:
     - WeightUnitKg
     - WeightUnitLbs
-  gymtrack-backend_internal_domain_models.Workout:
+  models.Workout:
     properties:
       athleteId:
         type: string
@@ -391,7 +746,7 @@ definitions:
         type: string
       exercises:
         items:
-          $ref: '#/definitions/gymtrack-backend_internal_domain_models.Exercise'
+          $ref: '#/definitions/models.WorkoutExercise'
         minItems: 1
         type: array
       type:
@@ -406,338 +761,22 @@ definitions:
     - date
     - exercises
     type: object
-  internal_api_handlers.AcceptInvitationRequest:
+  models.WorkoutExercise:
     properties:
-      code:
+      exerciseId:
         type: string
-    required:
-    - code
-    type: object
-  internal_api_handlers.ClientStats:
-    properties:
-      mealsThisWeek:
-        type: integer
-      totalMeals:
-        type: integer
-      totalWorkouts:
-        type: integer
-      workoutsThisWeek:
-        type: integer
-    type: object
-  internal_api_handlers.CreateCoachingRequestRequest:
-    properties:
-      message:
-        type: string
-      trainerId:
-        type: string
-    required:
-    - trainerId
-    type: object
-  internal_api_handlers.CreateCommentRequest:
-    description: Request body for creating a new comment on a workout or meal.
-    properties:
-      content:
-        maxLength: 2000
-        minLength: 1
-        type: string
-      parentCommentId:
-        type: string
-      targetId:
-        type: string
-      targetType:
-        $ref: '#/definitions/gymtrack-backend_internal_domain_models.TargetType'
-    required:
-    - content
-    - targetId
-    - targetType
-    type: object
-  internal_api_handlers.CreateMealRequest:
-    description: Request body for creating a new meal entry
-    properties:
-      date:
-        type: string
-      items:
-        items:
-          $ref: '#/definitions/gymtrack-backend_internal_domain_models.FoodItem'
-        minItems: 1
-        type: array
-      mealType:
-        allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.MealType'
-        enum:
-        - breakfast
-        - lunch
-        - dinner
-        - snack
-    required:
-    - date
-    - items
-    - mealType
-    type: object
-  internal_api_handlers.CreateReviewRequest:
-    description: Request body for creating a review for a trainer.
-    properties:
-      comment:
-        type: string
-      rating:
-        maximum: 5
-        minimum: 1
-        type: integer
-    required:
-    - rating
-    type: object
-  internal_api_handlers.CreateWorkoutRequest:
-    description: Request to create a new workout
-    properties:
-      date:
-        type: string
-      exercises:
-        items:
-          $ref: '#/definitions/gymtrack-backend_internal_domain_models.Exercise'
-        minItems: 1
-        type: array
-    required:
-    - date
-    - exercises
-    type: object
-  internal_api_handlers.ExerciseStat:
-    properties:
-      maxWeight:
-        type: number
       name:
+        description: denormalized for convenience
         type: string
-      totalReps:
-        type: integer
-      totalSets:
-        type: integer
-    type: object
-  internal_api_handlers.GetClientDetailsResponse:
-    properties:
-      athlete:
-        $ref: '#/definitions/gymtrack-backend_internal_domain_models.User'
-      relationship:
-        $ref: '#/definitions/gymtrack-backend_internal_domain_models.Relationship'
-      stats:
-        $ref: '#/definitions/internal_api_handlers.ClientStats'
-    type: object
-  internal_api_handlers.GetClientStatsResponse:
-    properties:
-      mealStats:
-        $ref: '#/definitions/internal_api_handlers.MealStats'
-      workoutStats:
-        $ref: '#/definitions/internal_api_handlers.WorkoutStats'
-    type: object
-  internal_api_handlers.LoginRequest:
-    properties:
-      email:
-        example: test@example.com
+      notes:
         type: string
-      password:
-        example: password123
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  internal_api_handlers.MealStats:
-    properties:
-      averageCalories:
-        type: number
-      averageCarbs:
-        type: number
-      averageFats:
-        type: number
-      averageProtein:
-        type: number
-      mealTypeBreakdown:
+      sets:
         items:
-          $ref: '#/definitions/internal_api_handlers.MealTypeStat'
-        type: array
-      weeklyAverages:
-        items:
-          $ref: '#/definitions/internal_api_handlers.WeeklyMealAvg'
-        type: array
-    type: object
-  internal_api_handlers.MealTypeStat:
-    properties:
-      count:
-        type: integer
-      mealType:
-        type: string
-    type: object
-  internal_api_handlers.RegisterRequest:
-    properties:
-      email:
-        example: test@example.com
-        type: string
-      password:
-        example: password123
-        minLength: 8
-        type: string
-      profile:
-        $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
-      role:
-        allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
-        enum:
-        - trainer
-        - athlete
-        example: athlete
-    required:
-    - email
-    - password
-    - role
-    type: object
-  internal_api_handlers.UpdateCommentRequest:
-    description: Request body for updating an existing comment's content.
-    properties:
-      content:
-        maxLength: 2000
-        minLength: 1
-        type: string
-    required:
-    - content
-    type: object
-  internal_api_handlers.UpdateMealRequest:
-    description: Request body for updating an existing meal entry
-    properties:
-      date:
-        type: string
-      items:
-        items:
-          $ref: '#/definitions/gymtrack-backend_internal_domain_models.FoodItem'
-        minItems: 1
-        type: array
-      mealType:
-        allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.MealType'
-        enum:
-        - breakfast
-        - lunch
-        - dinner
-        - snack
-    required:
-    - date
-    - items
-    - mealType
-    type: object
-  internal_api_handlers.UpdateProfileRequest:
-    description: UpdateProfileRequest is used to modify user profile information.
-    properties:
-      profile:
-        allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
-        description: |-
-          Profile contains the updated profile information.
-          @Description The user's profile data including personal details and role-specific fields.
-    required:
-    - profile
-    type: object
-  internal_api_handlers.UpdateReviewRequest:
-    description: Request body for updating an existing review.
-    properties:
-      comment:
-        type: string
-      rating:
-        maximum: 5
-        minimum: 1
-        type: integer
-    required:
-    - rating
-    type: object
-  internal_api_handlers.UpdateWorkoutRequest:
-    description: Request to update an existing workout
-    properties:
-      date:
-        type: string
-      exercises:
-        items:
-          $ref: '#/definitions/gymtrack-backend_internal_domain_models.Exercise'
+          $ref: '#/definitions/models.ExerciseSet'
         minItems: 1
         type: array
     required:
-    - date
-    - exercises
-    type: object
-  internal_api_handlers.UserResponse:
-    description: UserResponse contains all user information except the password hash.
-    properties:
-      createdAt:
-        description: |-
-          CreatedAt is the timestamp when the user account was created.
-          @Description The creation timestamp of the user account.
-          @Example 2024-01-01T00:00:00Z
-        type: string
-      email:
-        description: |-
-          Email is the user's email address.
-          @Description The user's registered email address.
-          @Example user@example.com
-        type: string
-      profile:
-        allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserProfile'
-        description: |-
-          Profile contains user-specific profile information.
-          @Description The user's profile data including personal details and role-specific fields.
-      role:
-        allOf:
-        - $ref: '#/definitions/gymtrack-backend_internal_domain_models.UserRole'
-        description: |-
-          Role is the user's role in the system (trainer or athlete).
-          @Description The user's role determining their permissions and capabilities.
-          @Example athlete
-          @Enum trainer,athlete
-      updatedAt:
-        description: |-
-          UpdatedAt is the timestamp when the user was last updated.
-          @Description The last update timestamp of the user account.
-          @Example 2024-01-01T00:00:00Z
-        type: string
-      userId:
-        description: |-
-          UserID is the unique identifier for the user.
-          @Description The unique UUID of the user.
-          @Example 123e4567-e89b-12d3-a456-426614174000
-        type: string
-    type: object
-  internal_api_handlers.WeeklyMealAvg:
-    properties:
-      calories:
-        type: number
-      carbs:
-        type: number
-      fats:
-        type: number
-      protein:
-        type: number
-      week:
-        type: string
-    type: object
-  internal_api_handlers.WeeklyVolumePoint:
-    properties:
-      volume:
-        type: number
-      week:
-        type: string
-      workouts:
-        type: integer
-    type: object
-  internal_api_handlers.WorkoutStats:
-    properties:
-      consistency:
-        description: percentage
-        type: number
-      exerciseBreakdown:
-        items:
-          $ref: '#/definitions/internal_api_handlers.ExerciseStat'
-        type: array
-      totalVolume:
-        type: number
-      weeklyVolume:
-        items:
-          $ref: '#/definitions/internal_api_handlers.WeeklyVolumePoint'
-        type: array
+    - sets
     type: object
 host: localhost:8080
 info:
@@ -822,7 +861,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.CreateCoachingRequestRequest'
+          $ref: '#/definitions/handlers.CreateCoachingRequestRequest'
       produces:
       - application/json
       responses:
@@ -1081,14 +1120,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.CreateCommentRequest'
+          $ref: '#/definitions/handlers.CreateCommentRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Comment created successfully
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Comment'
+            $ref: '#/definitions/models.Comment'
         "400":
           description: Invalid request body or validation failed
           schema:
@@ -1189,14 +1228,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.UpdateCommentRequest'
+          $ref: '#/definitions/handlers.UpdateCommentRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Comment updated successfully
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Comment'
+            $ref: '#/definitions/models.Comment'
         "400":
           description: Invalid request body or validation failed
           schema:
@@ -1232,6 +1271,248 @@ paths:
       summary: Update a comment
       tags:
       - Comments
+  /exercises:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all available exercises in the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Exercises retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Exercise'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all exercises
+      tags:
+      - Exercises
+    post:
+      consumes:
+      - application/json
+      description: Create a new custom exercise (requires authentication)
+      parameters:
+      - description: Exercise creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateExerciseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Exercise created successfully
+          schema:
+            $ref: '#/definitions/models.Exercise'
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create custom exercise
+      tags:
+      - Exercises
+  /exercises/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed information for a specific exercise
+      parameters:
+      - description: Exercise ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Exercise retrieved successfully
+          schema:
+            $ref: '#/definitions/models.Exercise'
+        "404":
+          description: Exercise not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get exercise by ID
+      tags:
+      - Exercises
+  /exercises/equipment:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all available equipment types for exercise filtering
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Equipment types retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.EquipmentDefinition'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all equipment types
+      tags:
+      - Exercises
+  /exercises/equipment/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all exercises that require specific equipment
+      parameters:
+      - description: Equipment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Exercises retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Exercise'
+            type: array
+        "400":
+          description: Invalid equipment ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get exercises by equipment
+      tags:
+      - Exercises
+  /exercises/muscle-groups:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all available muscle groups for exercise categorization
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Muscle groups retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.MuscleGroupDefinition'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all muscle groups
+      tags:
+      - Exercises
+  /exercises/muscle-groups/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all exercises that target a specific muscle group
+      parameters:
+      - description: Muscle Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Exercises retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Exercise'
+            type: array
+        "400":
+          description: Invalid muscle group ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get exercises by muscle group
+      tags:
+      - Exercises
+  /exercises/search:
+    get:
+      consumes:
+      - application/json
+      description: Search exercises with optional filters for name, muscle group,
+        and equipment
+      parameters:
+      - description: Search query for exercise name
+        in: query
+        name: query
+        type: string
+      - description: Filter by muscle group ID
+        in: query
+        name: muscleGroupId
+        type: integer
+      - description: Filter by equipment ID
+        in: query
+        name: equipmentId
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Exercises retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Exercise'
+            type: array
+        "400":
+          description: Invalid search parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Search exercises
+      tags:
+      - Exercises
   /meals:
     get:
       consumes:
@@ -1296,14 +1577,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.CreateMealRequest'
+          $ref: '#/definitions/handlers.CreateMealRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Meal created successfully
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Meal'
+            $ref: '#/definitions/models.Meal'
         "400":
           description: Invalid request body or validation failed
           schema:
@@ -1393,7 +1674,7 @@ paths:
         "200":
           description: Meal retrieved successfully
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Meal'
+            $ref: '#/definitions/models.Meal'
         "403":
           description: Access denied
           schema:
@@ -1427,14 +1708,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.UpdateMealRequest'
+          $ref: '#/definitions/handlers.UpdateMealRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Meal updated successfully
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.Meal'
+            $ref: '#/definitions/models.Meal'
         "400":
           description: Invalid request body or validation failed
           schema:
@@ -1528,7 +1809,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.AcceptInvitationRequest'
+          $ref: '#/definitions/handlers.AcceptInvitationRequest'
       produces:
       - application/json
       responses:
@@ -1579,7 +1860,7 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/internal_api_handlers.GetClientDetailsResponse'
+            $ref: '#/definitions/handlers.GetClientDetailsResponse'
         "401":
           description: Unauthorized" {"error":"User not authenticated"}
           schema:
@@ -1623,7 +1904,7 @@ paths:
         "200":
           description: 'Success" {"workoutStats": WorkoutStats, "mealStats": MealStats}'
           schema:
-            $ref: '#/definitions/internal_api_handlers.GetClientStatsResponse'
+            $ref: '#/definitions/handlers.GetClientStatsResponse'
         "401":
           description: Unauthorized" {"error":"User not authenticated"}
           schema:
@@ -1823,7 +2104,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.UpdateReviewRequest'
+          $ref: '#/definitions/handlers.UpdateReviewRequest'
       produces:
       - application/json
       responses:
@@ -1933,7 +2214,7 @@ paths:
         "200":
           description: Successfully retrieved trainer
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerWithProfile'
+            $ref: '#/definitions/models.TrainerWithProfile'
         "404":
           description: Trainer not found" "{\"error\":\"trainer not found\"}
           schema:
@@ -2025,14 +2306,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.CreateReviewRequest'
+          $ref: '#/definitions/handlers.CreateReviewRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Review created successfully
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerReview'
+            $ref: '#/definitions/models.TrainerReview'
         "400":
           description: Invalid request body or validation failed
           schema:
@@ -2150,7 +2431,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerAvailability'
+            $ref: '#/definitions/models.TrainerAvailability'
           type: array
       produces:
       - application/json
@@ -2193,7 +2474,7 @@ paths:
         "200":
           description: Successfully retrieved trainer profile
           schema:
-            $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerWithProfile'
+            $ref: '#/definitions/models.TrainerWithProfile'
         "401":
           description: Unauthorized" "{\"error\":\"unauthorized\"}
           schema:
@@ -2231,7 +2512,7 @@ paths:
         name: profile
         required: true
         schema:
-          $ref: '#/definitions/gymtrack-backend_internal_domain_models.TrainerProfile'
+          $ref: '#/definitions/models.TrainerProfile'
       produces:
       - application/json
       responses:
@@ -2265,86 +2546,77 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns the profile information of the user associated with the
-        provided JWT token.
+      description: Retrieve profile information for the authenticated user
       produces:
       - application/json
       responses:
         "200":
-          description: Successfully retrieved user profile
+          description: User profile retrieved successfully
           schema:
-            $ref: '#/definitions/internal_api_handlers.UserResponse'
+            $ref: '#/definitions/handlers.UserResponse'
         "401":
-          description: Unauthorized - Invalid or missing JWT token
+          description: Unauthorized - user not authenticated
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "404":
           description: User not found
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
       security:
       - BearerAuth: []
       summary: Get current user profile
       tags:
-      - User
+      - Users
     put:
       consumes:
       - application/json
-      description: Updates the profile information for the authenticated user. Returns
-        the updated user data.
+      description: Update profile information for the authenticated user
       parameters:
-      - description: Update profile request containing the updated profile data
+      - description: Profile update data
         in: body
-        name: request
+        name: profile
         required: true
         schema:
-          $ref: '#/definitions/internal_api_handlers.UpdateProfileRequest'
+          $ref: '#/definitions/handlers.UpdateProfileRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Successfully updated user profile
+          description: User profile updated successfully
           schema:
-            $ref: '#/definitions/internal_api_handlers.UserResponse'
+            $ref: '#/definitions/handlers.UserResponse'
         "400":
-          description: Bad request - Invalid input data
+          description: Invalid request body
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "401":
-          description: Unauthorized - Invalid or missing JWT token
+          description: Unauthorized - user not authenticated
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "404":
           description: User not found
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
       security:
       - BearerAuth: []
       summary: Update current user profile
       tags:
-      - User
+      - Users
 schemes:
 - http
 - https

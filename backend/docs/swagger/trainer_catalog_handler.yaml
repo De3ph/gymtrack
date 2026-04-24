@@ -1,0 +1,466 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Trainer Catalog
+  description: Trainer catalog endpoints for browsing and discovering trainers
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /trainers:
+    get:
+      tags:
+        - Trainers
+      summary: Get all trainers with optional filtering
+      description: Retrieves a list of trainers with optional filtering by specialization, location, minimum rating, and availability status. Supports pagination.
+      operationId: getTrainers
+      parameters:
+        - name: specialization
+          in: query
+          description: Filter by specialization (e.g., 'yoga', 'strength')
+          schema:
+            type: string
+          example: "strength training"
+        - name: location
+          in: query
+          description: Filter by location
+          schema:
+            type: string
+          example: "New York"
+        - name: minRating
+          in: query
+          description: Minimum rating filter (0-5)
+          schema:
+            type: number
+            minimum: 0
+            maximum: 5
+          example: 4.0
+        - name: availableForNewClients
+          in: query
+          description: Filter by availability for new clients (true/false)
+          schema:
+            type: boolean
+          example: true
+        - name: limit
+          in: query
+          description: Number of results per page (default: 20)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          example: 20
+        - name: offset
+          in: query
+          description: Number of results to skip (default: 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          example: 0
+      responses:
+        '200':
+          description: Successfully retrieved trainers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTrainersResponse'
+              example:
+                trainers:
+                  - userId: "trainer-123"
+                    email: "jane.smith@example.com"
+                    role: "trainer"
+                    profile:
+                      name: "Jane Smith"
+                      certifications: "NASM-CPT, ACE-CPT"
+                      specializations: "Strength training, weight loss, nutrition"
+                      yearsOfExperience: 5
+                      location: "New York, NY"
+                      hourlyRate: 75
+                      languages: ["English", "Spanish"]
+                      isAvailableForNewClients: true
+                      bio: "Experienced trainer focused on helping clients achieve their fitness goals through personalized programs."
+                      profilePhotoUrl: "https://example.com/photos/jane.jpg"
+                    averageRating: 4.8
+                    reviewCount: 15
+                    createdAt: "2024-01-01T00:00:00Z"
+                    updatedAt: "2024-01-01T00:00:00Z"
+                  - userId: "trainer-456"
+                    email: "mike.johnson@example.com"
+                    role: "trainer"
+                    profile:
+                      name: "Mike Johnson"
+                      certifications: "NSCA-CSCS"
+                      specializations: "Powerlifting, athletic performance"
+                      yearsOfExperience: 8
+                      location: "Los Angeles, CA"
+                      hourlyRate: 90
+                      languages: ["English"]
+                      isAvailableForNewClients: false
+                      bio: "Specialized in strength and conditioning for athletes of all levels."
+                      profilePhotoUrl: "https://example.com/photos/mike.jpg"
+                    averageRating: 4.6
+                    reviewCount: 22
+                    createdAt: "2024-01-01T00:00:00Z"
+                    updatedAt: "2024-01-01T00:00:00Z"
+                total: 2
+                limit: 20
+                offset: 0
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve trainers"
+
+  /trainers/{id}:
+    get:
+      tags:
+        - Trainers
+      summary: Get trainer by ID
+      description: Retrieves detailed profile information for a specific trainer by their ID
+      operationId: getTrainerById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Trainer ID
+          schema:
+            type: string
+          example: "trainer-123"
+      responses:
+        '200':
+          description: Successfully retrieved trainer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainerWithProfile'
+              example:
+                userId: "trainer-123"
+                email: "jane.smith@example.com"
+                role: "trainer"
+                profile:
+                  name: "Jane Smith"
+                  certifications: "NASM-CPT, ACE-CPT"
+                  specializations: "Strength training, weight loss, nutrition"
+                  yearsOfExperience: 5
+                  location: "New York, NY"
+                  hourlyRate: 75
+                  languages: ["English", "Spanish"]
+                  isAvailableForNewClients: true
+                  bio: "Experienced trainer focused on helping clients achieve their fitness goals through personalized programs."
+                  profilePhotoUrl: "https://example.com/photos/jane.jpg"
+                averageRating: 4.8
+                reviewCount: 15
+                createdAt: "2024-01-01T00:00:00Z"
+                updatedAt: "2024-01-01T00:00:00Z"
+        '404':
+          description: Trainer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "trainer not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve trainer"
+
+  /trainers/me/profile:
+    get:
+      tags:
+        - Trainers
+      summary: Get current trainer's profile
+      description: Retrieves the profile information for the currently authenticated trainer
+      operationId: getMyProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved trainer profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainerWithProfile'
+              example:
+                userId: "trainer-123"
+                email: "jane.smith@example.com"
+                role: "trainer"
+                profile:
+                  name: "Jane Smith"
+                  certifications: "NASM-CPT, ACE-CPT"
+                  specializations: "Strength training, weight loss, nutrition"
+                  yearsOfExperience: 5
+                  location: "New York, NY"
+                  hourlyRate: 75
+                  languages: ["English", "Spanish"]
+                  isAvailableForNewClients: true
+                  bio: "Experienced trainer focused on helping clients achieve their fitness goals."
+                  profilePhotoUrl: "https://example.com/photos/jane.jpg"
+                averageRating: 4.8
+                reviewCount: 15
+                createdAt: "2024-01-01T00:00:00Z"
+                updatedAt: "2024-01-01T00:00:00Z"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Forbidden - only trainers can access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Only trainers can access profile"
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "trainer profile not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve trainer profile"
+
+    put:
+      tags:
+        - Trainers
+      summary: Update current trainer's profile
+      description: Updates the profile information for the currently authenticated trainer
+      operationId: updateMyProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainerProfile'
+            example:
+              name: "Jane Smith"
+              certifications: "NASM-CPT, ACE-CPT, Precision Nutrition"
+              specializations: "Strength training, weight loss, nutrition, pre/post-natal"
+              yearsOfExperience: 6
+              location: "New York, NY"
+              hourlyRate: 85
+              languages: ["English", "Spanish", "French"]
+              isAvailableForNewClients: true
+              bio: "Experienced trainer with 6+ years helping clients achieve sustainable fitness results. Specialized in strength training, weight management, and nutrition coaching."
+              profilePhotoUrl: "https://example.com/photos/jane-updated.jpg"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateProfileResponse'
+              example:
+                message: "profile updated successfully"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid request data"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to update trainer profile"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    TrainerWithProfile:
+      type: object
+      required:
+        - userId
+        - email
+        - role
+        - profile
+        - averageRating
+        - reviewCount
+        - createdAt
+        - updatedAt
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique trainer identifier
+          example: "trainer-123"
+        email:
+          type: string
+          format: email
+          description: Trainer's email address
+          example: "jane.smith@example.com"
+        role:
+          type: string
+          description: User role (always "trainer" for this schema)
+          example: "trainer"
+        profile:
+          $ref: '#/components/schemas/TrainerProfile'
+        averageRating:
+          type: number
+          minimum: 0
+          maximum: 5
+          description: Average rating from reviews
+          example: 4.8
+        reviewCount:
+          type: integer
+          minimum: 0
+          description: Total number of reviews
+          example: 15
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2024-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-01T00:00:00Z"
+
+    TrainerProfile:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Trainer's full name
+          example: "Jane Smith"
+        certifications:
+          type: string
+          description: Trainer's certifications
+          example: "NASM-CPT, ACE-CPT"
+        specializations:
+          type: string
+          description: Trainer's areas of expertise
+          example: "Strength training, weight loss, nutrition"
+        yearsOfExperience:
+          type: integer
+          minimum: 0
+          description: Years of experience as a trainer
+          example: 5
+        location:
+          type: string
+          description: Trainer's location
+          example: "New York, NY"
+        hourlyRate:
+          type: number
+          minimum: 0
+          description: Trainer's hourly rate
+          example: 75
+        languages:
+          type: array
+          items:
+            type: string
+          description: Languages spoken by trainer
+          example: ["English", "Spanish"]
+        isAvailableForNewClients:
+          type: boolean
+          description: Whether the trainer is accepting new clients
+          example: true
+        bio:
+          type: string
+          description: Trainer's bio/description
+          example: "Experienced trainer focused on helping clients achieve their fitness goals through personalized programs."
+        profilePhotoUrl:
+          type: string
+          format: uri
+          description: URL to trainer's profile photo
+          example: "https://example.com/photos/jane.jpg"
+
+    GetTrainersResponse:
+      type: object
+      required:
+        - trainers
+        - total
+        - limit
+        - offset
+      properties:
+        trainers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainerWithProfile'
+          description: Array of trainers matching the search criteria
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of trainers matching the search
+          example: 2
+        limit:
+          type: integer
+          minimum: 1
+          description: Number of results per page
+          example: 20
+        offset:
+          type: integer
+          minimum: 0
+          description: Number of results skipped
+          example: 0
+
+    UpdateProfileResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "profile updated successfully"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Trainers
+    description: Trainer catalog and profile management operations

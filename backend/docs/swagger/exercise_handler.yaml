@@ -1,0 +1,659 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Exercise Catalog
+  description: Exercise catalog endpoints for browsing exercises, muscle groups, and equipment
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /exercises/muscle-groups:
+    get:
+      tags:
+        - Exercise Catalog
+      summary: Get all muscle groups
+      description: Retrieve all available muscle groups for exercise filtering
+      operationId: getAllMuscleGroups
+      responses:
+        '200':
+          description: Muscle groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MuscleGroup'
+              example:
+                - id: 1
+                  name: "Chest"
+                  description: "Pectoral muscles and upper chest"
+                - id: 2
+                  name: "Back"
+                  description: "Latissimus dorsi, rhomboids, and traps"
+                - id: 3
+                  name: "Legs"
+                  description: "Quadriceps, hamstrings, glutes, and calves"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve muscle groups"
+
+  /exercises/equipment:
+    get:
+      tags:
+        - Exercise Catalog
+      summary: Get all equipment types
+      description: Retrieve all available equipment types for exercise filtering
+      operationId: getAllEquipment
+      responses:
+        '200':
+          description: Equipment types retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+              example:
+                - id: 1
+                  name: "Barbell"
+                  description: "Standard Olympic barbell"
+                - id: 2
+                  name: "Dumbbell"
+                  description: "Adjustable dumbbells"
+                - id: 3
+                  name: "Machine"
+                  description: "Weight machines and cable stations"
+                - id: 4
+                  name: "Bodyweight"
+                  description: "Exercises using body weight only"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve equipment types"
+
+  /exercises:
+    get:
+      tags:
+        - Exercise Catalog
+      summary: Get all exercises
+      description: Retrieve all available exercises in the catalog
+      operationId: getAllExercises
+      responses:
+        '200':
+          description: Exercises retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+              example:
+                - id: "ex-001"
+                  name: "Bench Press"
+                  category: "Compound"
+                  muscleGroupId: 1
+                  equipmentId: 1
+                  muscleGroup:
+                    id: 1
+                    name: "Chest"
+                    description: "Pectoral muscles and upper chest"
+                  equipment:
+                    id: 1
+                    name: "Barbell"
+                    description: "Standard Olympic barbell"
+                  instructions: "Lie on bench, lower bar to chest, press up"
+                  difficulty: "Intermediate"
+                  muscleTargets: ["primary", "secondary"]
+                - id: "ex-002"
+                  name: "Squat"
+                  category: "Compound"
+                  muscleGroupId: 3
+                  equipmentId: 1
+                  muscleGroup:
+                    id: 3
+                    name: "Legs"
+                    description: "Quadriceps, hamstrings, glutes, and calves"
+                  equipment:
+                    id: 1
+                    name: "Barbell"
+                    description: "Standard Olympic barbell"
+                  instructions: "Stand with bar on shoulders, squat down, stand up"
+                  difficulty: "Intermediate"
+                  muscleTargets: ["primary", "secondary"]
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve exercises"
+
+  /exercises/{id}:
+    get:
+      tags:
+        - Exercise Catalog
+      summary: Get exercise by ID
+      description: Retrieve detailed information about a specific exercise
+      operationId: getExerciseById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Exercise ID
+          schema:
+            type: string
+          example: "ex-001"
+      responses:
+        '200':
+          description: Exercise retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+              example:
+                id: "ex-001"
+                name: "Bench Press"
+                category: "Compound"
+                muscleGroupId: 1
+                equipmentId: 1
+                muscleGroup:
+                  id: 1
+                  name: "Chest"
+                  description: "Pectoral muscles and upper chest"
+                equipment:
+                  id: 1
+                  name: "Barbell"
+                  description: "Standard Olympic barbell"
+                instructions: "Lie on bench, lower bar to chest, press up"
+                difficulty: "Intermediate"
+                muscleTargets: ["primary", "secondary"]
+        '404':
+          description: Exercise not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Exercise not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve exercise"
+
+  /exercises/muscle-group/{id}:
+    get:
+      tags:
+        - Exercise Catalog
+      summary: Get exercises by muscle group
+      description: Retrieve exercises that target a specific muscle group
+      operationId: getExercisesByMuscleGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Muscle group ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Exercises retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+              example:
+                - id: "ex-001"
+                  name: "Bench Press"
+                  category: "Compound"
+                  muscleGroupId: 1
+                  equipmentId: 1
+                  muscleGroup:
+                    id: 1
+                    name: "Chest"
+                    description: "Pectoral muscles and upper chest"
+                  equipment:
+                    id: 1
+                    name: "Barbell"
+                    description: "Standard Olympic barbell"
+                  instructions: "Lie on bench, lower bar to chest, press up"
+                  difficulty: "Intermediate"
+                  muscleTargets: ["primary"]
+                - id: "ex-003"
+                  name: "Incline Dumbbell Press"
+                  category: "Compound"
+                  muscleGroupId: 1
+                  equipmentId: 2
+                  muscleGroup:
+                    id: 1
+                    name: "Chest"
+                    description: "Pectoral muscles and upper chest"
+                  equipment:
+                    id: 2
+                    name: "Dumbbell"
+                    description: "Adjustable dumbbells"
+                  instructions: "Lie on incline bench, press dumbbells up"
+                  difficulty: "Intermediate"
+                  muscleTargets: ["primary"]
+        '400':
+          description: Invalid muscle group ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid muscle group ID"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve exercises"
+
+  /exercises/equipment/{id}:
+    get:
+      tags:
+        - Exercise Catalog
+      summary: Get exercises by equipment
+      description: Retrieve exercises that use specific equipment
+      operationId: getExercisesByEquipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Equipment ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Exercises retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+              example:
+                - id: "ex-001"
+                  name: "Bench Press"
+                  category: "Compound"
+                  muscleGroupId: 1
+                  equipmentId: 1
+                  muscleGroup:
+                    id: 1
+                    name: "Chest"
+                    description: "Pectoral muscles and upper chest"
+                  equipment:
+                    id: 1
+                    name: "Barbell"
+                    description: "Standard Olympic barbell"
+                  instructions: "Lie on bench, lower bar to chest, press up"
+                  difficulty: "Intermediate"
+                  muscleTargets: ["primary", "secondary"]
+                - id: "ex-002"
+                  name: "Squat"
+                  category: "Compound"
+                  muscleGroupId: 3
+                  equipmentId: 1
+                  muscleGroup:
+                    id: 3
+                    name: "Legs"
+                    description: "Quadriceps, hamstrings, glutes, and calves"
+                  equipment:
+                    id: 1
+                    name: "Barbell"
+                    description: "Standard Olympic barbell"
+                  instructions: "Stand with bar on shoulders, squat down, stand up"
+                  difficulty: "Intermediate"
+                  muscleTargets: ["primary", "secondary"]
+        '400':
+          description: Invalid equipment ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid equipment ID"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve exercises"
+
+  /exercises/search:
+    get:
+      tags:
+        - Exercise Catalog
+      summary: Search exercises
+      description: Search exercises with optional filters for name, muscle group, and equipment
+      operationId: searchExercises
+      parameters:
+        - name: query
+          in: query
+          description: Search term to filter exercises by name
+          schema:
+            type: string
+          example: "bench"
+        - name: muscleGroupId
+          in: query
+          description: Filter by muscle group ID
+          schema:
+            type: integer
+          example: 1
+        - name: equipmentId
+          in: query
+          description: Filter by equipment ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+              example:
+                - id: "ex-001"
+                  name: "Bench Press"
+                  category: "Compound"
+                  muscleGroupId: 1
+                  equipmentId: 1
+                  muscleGroup:
+                    id: 1
+                    name: "Chest"
+                    description: "Pectoral muscles and upper chest"
+                  equipment:
+                    id: 1
+                    name: "Barbell"
+                    description: "Standard Olympic barbell"
+                  instructions: "Lie on bench, lower bar to chest, press up"
+                  difficulty: "Intermediate"
+                  muscleTargets: ["primary", "secondary"]
+                - id: "ex-004"
+                  name: "Decline Bench Press"
+                  category: "Compound"
+                  muscleGroupId: 1
+                  equipmentId: 1
+                  muscleGroup:
+                    id: 1
+                    name: "Chest"
+                    description: "Pectoral muscles and upper chest"
+                  equipment:
+                    id: 1
+                    name: "Barbell"
+                    description: "Standard Olympic barbell"
+                  instructions: "Lie on decline bench, press bar up"
+                  difficulty: "Advanced"
+                  muscleTargets: ["primary"]
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to search exercises"
+
+  /exercises/custom:
+    post:
+      tags:
+        - Exercise Catalog
+      summary: Create custom exercise
+      description: Create a new custom exercise (requires authentication)
+      operationId: createExercise
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExerciseRequest'
+            example:
+              name: "Custom Bulgarian Split Squat"
+              category: "Compound"
+              muscleGroupId: 3
+              equipmentId: 2
+              instructions: "Stand with rear foot elevated, squat down and up"
+              difficulty: "Advanced"
+      responses:
+        '201':
+          description: Custom exercise created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+              example:
+                id: "custom-001"
+                name: "Custom Bulgarian Split Squat"
+                category: "Compound"
+                muscleGroupId: 3
+                equipmentId: 2
+                muscleGroup:
+                  id: 3
+                  name: "Legs"
+                  description: "Quadriceps, hamstrings, glutes, and calves"
+                equipment:
+                  id: 2
+                  name: "Dumbbell"
+                  description: "Adjustable dumbbells"
+                instructions: "Stand with rear foot elevated, squat down and up"
+                difficulty: "Advanced"
+                muscleTargets: ["primary", "secondary"]
+                isCustom: true
+                createdBy: "user-123"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid request body"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not authenticated"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to create exercise"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    MuscleGroup:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: Unique muscle group identifier
+          example: 1
+        name:
+          type: string
+          description: Name of the muscle group
+          example: "Chest"
+        description:
+          type: string
+          description: Description of the muscle group
+          example: "Pectoral muscles and upper chest"
+
+    Equipment:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: Unique equipment identifier
+          example: 1
+        name:
+          type: string
+          description: Name of the equipment
+          example: "Barbell"
+        description:
+          type: string
+          description: Description of the equipment
+          example: "Standard Olympic barbell"
+
+    Exercise:
+      type: object
+      required:
+        - id
+        - name
+        - category
+        - muscleGroupId
+        - equipmentId
+        - muscleGroup
+        - equipment
+        - instructions
+        - difficulty
+        - muscleTargets
+      properties:
+        id:
+          type: string
+          description: Unique exercise identifier
+          example: "ex-001"
+        name:
+          type: string
+          description: Name of the exercise
+          example: "Bench Press"
+        category:
+          type: string
+          enum: [Compound, Isolation, Cardio, Stretching]
+          description: Exercise category
+          example: "Compound"
+        muscleGroupId:
+          type: integer
+          description: ID of the primary muscle group targeted
+          example: 1
+        equipmentId:
+          type: integer
+          description: ID of the equipment used
+          example: 1
+        muscleGroup:
+          $ref: '#/components/schemas/MuscleGroup'
+        equipment:
+          $ref: '#/components/schemas/Equipment'
+        instructions:
+          type: string
+          description: Step-by-step instructions for performing the exercise
+          example: "Lie on bench, lower bar to chest, press up"
+        difficulty:
+          type: string
+          enum: [Beginner, Intermediate, Advanced]
+          description: Difficulty level of the exercise
+          example: "Intermediate"
+        muscleTargets:
+          type: array
+          items:
+            type: string
+            enum: [primary, secondary, stabilizer]
+          description: How the muscles are targeted
+          example: ["primary", "secondary"]
+        isCustom:
+          type: boolean
+          description: Whether this is a custom exercise created by a user
+          example: false
+        createdBy:
+          type: string
+          description: ID of the user who created this custom exercise (if applicable)
+          example: "user-123"
+
+    CreateExerciseRequest:
+      type: object
+      required:
+        - name
+        - category
+        - muscleGroupId
+        - equipmentId
+      properties:
+        name:
+          type: string
+          description: Name of the custom exercise
+          example: "Custom Bulgarian Split Squat"
+        category:
+          type: string
+          enum: [Compound, Isolation, Cardio, Stretching]
+          description: Exercise category
+          example: "Compound"
+        muscleGroupId:
+          type: integer
+          description: ID of the primary muscle group targeted
+          example: 3
+        equipmentId:
+          type: integer
+          description: ID of the equipment used
+          example: 2
+        instructions:
+          type: string
+          description: Step-by-step instructions for performing the exercise
+          example: "Stand with rear foot elevated, squat down and up"
+        difficulty:
+          type: string
+          enum: [Beginner, Intermediate, Advanced]
+          description: Difficulty level of the exercise
+          example: "Advanced"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Exercise Catalog
+    description: Exercise catalog and search operations

@@ -1,0 +1,713 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Workout Tracking
+  description: Workout tracking endpoints for athletes and trainers to log and monitor training sessions
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /workouts:
+    get:
+      tags:
+        - Workouts
+      summary: Get athlete's workouts
+      description: Retrieve paginated list of workouts for the authenticated athlete with optional date range filtering
+      operationId: getWorkouts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Number of workouts to return (default: 50)
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+          example: 50
+        - name: offset
+          in: query
+          description: Number of workouts to skip (default: 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          example: 0
+        - name: startDate
+          in: query
+          description: Start date for filtering (RFC3339 format)
+          schema:
+            type: string
+            format: date-time
+          example: "2024-01-01T00:00:00Z"
+        - name: endDate
+          in: query
+          description: End date for filtering (RFC3339 format)
+          schema:
+            type: string
+            format: date-time
+          example: "2024-01-31T23:59:59Z"
+      responses:
+        '200':
+          description: Workouts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetWorkoutsResponse'
+              example:
+                workouts:
+                  - workoutId: "workout-001"
+                    athleteId: "athlete-123"
+                    date: "2024-01-15T10:00:00Z"
+                    exercises:
+                      - exerciseId: "ex-001"
+                        name: "Bench Press"
+                        weight: 80
+                        weightUnit: "kg"
+                        sets: 4
+                        reps: [8, 8, 8, 8]
+                        restTime: 90
+                    type: "workout"
+                    createdAt: "2024-01-15T10:05:00Z"
+                    updatedAt: "2024-01-15T10:05:00Z"
+                count: 1
+        '400':
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid date format. Use RFC3339 format."
+        '403':
+          description: Only athletes can list their workouts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Only athletes can list their workouts"
+        '500':
+          description: Failed to retrieve workouts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve workouts"
+
+    post:
+      tags:
+        - Workouts
+      summary: Create a new workout
+      description: Create a new workout entry for the authenticated athlete
+      operationId: createWorkout
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkoutRequest'
+            example:
+              date: "2024-01-15T10:00:00Z"
+              exercises:
+                - exerciseId: "ex-001"
+                  name: "Bench Press"
+                  weight: 80
+                  weightUnit: "kg"
+                  sets: 4
+                  reps: [8, 8, 8, 8]
+                  restTime: 90
+                - exerciseId: "ex-002"
+                  name: "Squat"
+                  weight: 100
+                  weightUnit: "kg"
+                  sets: 3
+                  reps: [10, 10, 10]
+                  restTime: 120
+      responses:
+        '201':
+          description: Workout created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+              example:
+                workoutId: "workout-001"
+                athleteId: "athlete-123"
+                date: "2024-01-15T10:00:00Z"
+                exercises:
+                  - exerciseId: "ex-001"
+                    name: "Bench Press"
+                    weight: 80
+                    weightUnit: "kg"
+                    sets: 4
+                    reps: [8, 8, 8, 8]
+                    restTime: 90
+                  - exerciseId: "ex-002"
+                    name: "Squat"
+                    weight: 100
+                    weightUnit: "kg"
+                    sets: 3
+                    reps: [10, 10, 10]
+                    restTime: 120
+                type: "workout"
+                createdAt: "2024-01-15T10:05:00Z"
+                updatedAt: "2024-01-15T10:05:00Z"
+        '400':
+          description: Invalid request body or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid request body"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not authenticated"
+        '403':
+          description: User is not an athlete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User is not an athlete"
+        '500':
+          description: Failed to create workout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to create workout"
+
+  /workouts/{id}:
+    get:
+      tags:
+        - Workouts
+      summary: Get a specific workout
+      description: Retrieve workout details by ID (athletes can only access their own workouts)
+      operationId: getWorkout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Workout ID
+          schema:
+            type: string
+          example: "workout-001"
+      responses:
+        '200':
+          description: Workout retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+              example:
+                workoutId: "workout-001"
+                athleteId: "athlete-123"
+                date: "2024-01-15T10:00:00Z"
+                exercises:
+                  - exerciseId: "ex-001"
+                    name: "Bench Press"
+                    weight: 80
+                    weightUnit: "kg"
+                    sets: 4
+                    reps: [8, 8, 8, 8]
+                    restTime: 90
+                type: "workout"
+                createdAt: "2024-01-15T10:05:00Z"
+                updatedAt: "2024-01-15T10:05:00Z"
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Access denied"
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Workout not found"
+        '500':
+          description: Failed to retrieve workout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve workout"
+
+    put:
+      tags:
+        - Workouts
+      summary: Update a workout
+      description: Update an existing workout (only within 24 hours of creation, athletes can only edit their own workouts)
+      operationId: updateWorkout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Workout ID
+          schema:
+            type: string
+          example: "workout-001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkoutRequest'
+            example:
+              date: "2024-01-15T10:00:00Z"
+              exercises:
+                - exerciseId: "ex-001"
+                  name: "Bench Press"
+                  weight: 82.5
+                  weightUnit: "kg"
+                  sets: 4
+                  reps: [8, 8, 8, 8]
+                  restTime: 90
+                - exerciseId: "ex-002"
+                  name: "Squat"
+                  weight: 102.5
+                  weightUnit: "kg"
+                  sets: 3
+                  reps: [10, 10, 10]
+                  restTime: 120
+      responses:
+        '200':
+          description: Workout updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+              example:
+                workoutId: "workout-001"
+                athleteId: "athlete-123"
+                date: "2024-01-15T10:00:00Z"
+                exercises:
+                  - exerciseId: "ex-001"
+                    name: "Bench Press"
+                    weight: 82.5
+                    weightUnit: "kg"
+                    sets: 4
+                    reps: [8, 8, 8, 8]
+                    restTime: 90
+                  - exerciseId: "ex-002"
+                    name: "Squat"
+                    weight: 102.5
+                    weightUnit: "kg"
+                    sets: 3
+                    reps: [10, 10, 10]
+                    restTime: 120
+                type: "workout"
+                createdAt: "2024-01-15T10:05:00Z"
+                updatedAt: "2024-01-15T11:00:00Z"
+        '400':
+          description: Invalid request body or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid request body"
+        '403':
+          description: Access denied or edit window expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                access_denied:
+                  summary: Access denied
+                  value:
+                    error: "Access denied"
+                edit_window_expired:
+                  summary: Edit window expired
+                  value:
+                    error: "Cannot edit workout after 24 hours"
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Workout not found"
+        '500':
+          description: Failed to update workout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to update workout"
+
+    delete:
+      tags:
+        - Workouts
+      summary: Delete a workout
+      description: Delete an existing workout (only within 24 hours of creation, athletes can only delete their own workouts)
+      operationId: deleteWorkout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Workout ID
+          schema:
+            type: string
+          example: "workout-001"
+      responses:
+        '200':
+          description: Workout deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+              example:
+                message: "Workout deleted successfully"
+        '403':
+          description: Access denied or delete window expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                access_denied:
+                  summary: Access denied
+                  value:
+                    error: "Access denied"
+                delete_window_expired:
+                  summary: Delete window expired
+                  value:
+                    error: "Cannot delete workout after 24 hours"
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Workout not found"
+        '500':
+          description: Failed to delete workout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to delete workout"
+
+  /clients/{id}/workouts:
+    get:
+      tags:
+        - Workouts
+      summary: Get client's workouts (trainer only)
+      description: Retrieve paginated list of workouts for a specific client (trainers only, must have active relationship)
+      operationId: getClientWorkouts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Client (Athlete) ID
+          schema:
+            type: string
+          example: "athlete-123"
+        - name: limit
+          in: query
+          description: Number of workouts to return (default: 50)
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+          example: 50
+        - name: offset
+          in: query
+          description: Number of workouts to skip (default: 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          example: 0
+        - name: startDate
+          in: query
+          description: Start date for filtering (RFC3339 format)
+          schema:
+            type: string
+            format: date-time
+          example: "2024-01-01T00:00:00Z"
+        - name: endDate
+          in: query
+          description: End date for filtering (RFC3339 format)
+          schema:
+            type: string
+            format: date-time
+          example: "2024-01-31T23:59:59Z"
+        - name: exerciseType
+          in: query
+          description: Filter by exercise type (case-insensitive partial match)
+          schema:
+            type: string
+          example: "bench"
+      responses:
+        '200':
+          description: Client workouts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetWorkoutsResponse'
+              example:
+                workouts:
+                  - workoutId: "workout-001"
+                    athleteId: "athlete-123"
+                    date: "2024-01-15T10:00:00Z"
+                    exercises:
+                      - exerciseId: "ex-001"
+                        name: "Bench Press"
+                        weight: 80
+                        weightUnit: "kg"
+                        sets: 4
+                        reps: [8, 8, 8, 8]
+                        restTime: 90
+                    type: "workout"
+                    createdAt: "2024-01-15T10:05:00Z"
+                    updatedAt: "2024-01-15T10:05:00Z"
+                count: 1
+        '400':
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid date format. Use RFC3339 format."
+        '403':
+          description: User is not a trainer or no active relationship with client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                trainer_only:
+                  summary: Only trainers can view client workouts
+                  value:
+                    error: "User is not a trainer"
+                no_relationship:
+                  summary: No active relationship
+                  value:
+                    error: "No active relationship with this client"
+        '500':
+          description: Failed to retrieve workouts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve workouts"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    Workout:
+      type: object
+      required:
+        - workoutId
+        - athleteId
+        - date
+        - exercises
+        - type
+      properties:
+        workoutId:
+          type: string
+          description: Unique workout identifier
+          example: "workout-001"
+        athleteId:
+          type: string
+          description: ID of the athlete who performed the workout
+          example: "athlete-123"
+        date:
+          type: string
+          format: date-time
+          description: Date and time of the workout
+          example: "2024-01-15T10:00:00Z"
+        exercises:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/WorkoutExercise'
+          description: List of exercises performed in the workout
+        type:
+          type: string
+          description: Always "workout"
+          example: "workout"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the workout was created
+          example: "2024-01-15T10:05:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the workout was last updated
+          example: "2024-01-15T10:05:00Z"
+
+    WorkoutExercise:
+      type: object
+      required:
+        - exerciseId
+        - name
+        - reps
+        - sets
+        - weight
+        - weightUnit
+      properties:
+        exerciseId:
+          type: string
+          description: Exercise identifier
+          example: "ex-001"
+        name:
+          type: string
+          description: Name of the exercise
+          example: "Bench Press"
+        weight:
+          type: number
+          minimum: 0
+          description: Weight used for the exercise
+          example: 80
+        weightUnit:
+          $ref: '#/components/schemas/WeightUnit'
+        sets:
+          type: integer
+          minimum: 1
+          description: Number of sets performed
+          example: 4
+        reps:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            minimum: 1
+          description: Number of reps performed in each set
+          example: [8, 8, 8, 8]
+        restTime:
+          type: integer
+          minimum: 0
+          description: Rest time between sets in seconds
+          example: 90
+
+    WeightUnit:
+      type: string
+      enum: [kg, lbs]
+      description: Weight unit
+      example: "kg"
+
+    CreateWorkoutRequest:
+      type: object
+      required:
+        - date
+        - exercises
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Date and time of the workout
+          example: "2024-01-15T10:00:00Z"
+        exercises:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/WorkoutExercise'
+          description: List of exercises performed in the workout
+
+    UpdateWorkoutRequest:
+      type: object
+      required:
+        - date
+        - exercises
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Updated date and time of the workout
+          example: "2024-01-15T10:00:00Z"
+        exercises:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/WorkoutExercise'
+          description: Updated list of exercises performed in the workout
+
+    GetWorkoutsResponse:
+      type: object
+      required:
+        - workouts
+        - count
+      properties:
+        workouts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Workout'
+          description: Array of workouts
+        count:
+          type: integer
+          minimum: 0
+          description: Total number of workouts matching the query
+          example: 1
+
+    DeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "Workout deleted successfully"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Workouts
+    description: Workout tracking and training session management operations

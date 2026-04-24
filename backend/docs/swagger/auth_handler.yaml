@@ -1,0 +1,558 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Authentication
+  description: Authentication endpoints for user registration, login, and token management
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: User registration
+      description: Register a new user with email, password, and role.
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              athlete_registration:
+                summary: Athlete registration example
+                value:
+                  email: "athlete@example.com"
+                  password: "password123"
+                  role: "athlete"
+                  profile:
+                    name: "John Doe"
+                    age: 25
+                    weight: 75
+                    height: 180
+                    fitnessGoals: "Build muscle and improve endurance"
+              trainer_registration:
+                summary: Trainer registration example
+                value:
+                  email: "trainer@example.com"
+                  password: "password123"
+                  role: "trainer"
+                  profile:
+                    name: "Jane Smith"
+                    certifications: "NASM-CPT"
+                    specializations: "Strength training, weight loss"
+                    yearsOfExperience: 5
+                    location: "New York"
+                    hourlyRate: 75
+                    languages: ["English", "Spanish"]
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              example:
+                message: "User registered successfully"
+                userId: "550e8400-e29b-41d4-a716-446655440000"
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_email:
+                  summary: Invalid email format
+                  value:
+                    error: "invalid email format"
+                invalid_role:
+                  summary: Invalid role
+                  value:
+                    error: "role must be either 'trainer' or 'athlete'"
+        '409':
+          description: Conflict - User with email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user with email already exists"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "failed to register user"
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: User login
+      description: Authenticate user and return JWT token with refresh token.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "user@example.com"
+              password: "password123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                message: "Login successful"
+                accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                user:
+                  userId: "550e8400-e29b-41d4-a716-446655440000"
+                  email: "user@example.com"
+                  role: "athlete"
+                  profile:
+                    name: "John Doe"
+                    age: 25
+                    weight: 75
+                    height: 180
+                    fitnessGoals: "Build muscle and improve endurance"
+                  createdAt: "2024-01-01T00:00:00Z"
+                  updatedAt: "2024-01-01T00:00:00Z"
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid request format"
+        '401':
+          description: Unauthorized - Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid credentials"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "failed to login"
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh access token
+      description: Generate new access token using refresh token.
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+            example:
+              refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+              example:
+                message: "Token refreshed successfully"
+                accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "refresh token is required"
+        '401':
+          description: Unauthorized - Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_token:
+                  summary: Invalid refresh token
+                  value:
+                    error: "invalid refresh token"
+                expired_token:
+                  summary: Expired refresh token
+                  value:
+                    error: "refresh token expired"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "failed to refresh token"
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: User logout
+      description: Logout user and clear tokens.
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+              example:
+                message: "Logout successful"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "failed to logout"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 8
+          description: User's password (minimum 8 characters)
+          example: "password123"
+        role:
+          type: string
+          enum: [trainer, athlete]
+          description: User role in the system
+          example: "athlete"
+        profile:
+          type: object
+          description: User profile information (varies by role)
+          properties:
+            # Athlete specific fields
+            name:
+              type: string
+              description: User's full name
+              example: "John Doe"
+            age:
+              type: integer
+              minimum: 13
+              maximum: 120
+              description: User's age
+              example: 25
+            weight:
+              type: integer
+              minimum: 1
+              description: User's weight in kg
+              example: 75
+            height:
+              type: integer
+              minimum: 1
+              description: User's height in cm
+              example: 180
+            fitnessGoals:
+              type: string
+              description: User's fitness goals
+              example: "Build muscle and improve endurance"
+            trainerAssignment:
+              type: string
+              description: Athlete's trainer ID (if assigned)
+              example: "trainer-123"
+            # Trainer specific fields
+            certifications:
+              type: string
+              description: Trainer's certifications
+              example: "NASM-CPT, ACE-CPT"
+            specializations:
+              type: string
+              description: Trainer's areas of expertise
+              example: "Strength training, weight loss, nutrition"
+            yearsOfExperience:
+              type: integer
+              minimum: 0
+              description: Years of experience as a trainer
+              example: 5
+            location:
+              type: string
+              description: Trainer's location
+              example: "New York, NY"
+            hourlyRate:
+              type: number
+              minimum: 0
+              description: Trainer's hourly rate
+              example: 75
+            languages:
+              type: array
+              items:
+                type: string
+              description: Languages spoken by trainer
+              example: ["English", "Spanish"]
+            clientList:
+              type: array
+              items:
+                type: string
+              description: List of client IDs
+              example: ["client-1", "client-2"]
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        password:
+          type: string
+          description: User's password
+          example: "password123"
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token obtained from login
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "User registered successfully"
+        userId:
+          type: string
+          format: uuid
+          description: ID of the newly created user
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    LoginResponse:
+      type: object
+      required:
+        - message
+        - accessToken
+        - refreshToken
+        - user
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "Login successful"
+        accessToken:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          description: JWT refresh token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: '#/components/schemas/User'
+
+    RefreshTokenResponse:
+      type: object
+      required:
+        - message
+        - accessToken
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "Token refreshed successfully"
+        accessToken:
+          type: string
+          description: New JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "Logout successful"
+
+    User:
+      type: object
+      required:
+        - userId
+        - email
+        - role
+        - createdAt
+        - updatedAt
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique user identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        role:
+          type: string
+          enum: [trainer, athlete]
+          description: User's role
+          example: "athlete"
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2024-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-01T00:00:00Z"
+
+    UserProfile:
+      type: object
+      description: User profile information (varies by role)
+      properties:
+        # Common fields
+        name:
+          type: string
+          description: User's full name
+          example: "John Doe"
+        # Athlete specific fields
+        age:
+          type: integer
+          minimum: 13
+          maximum: 120
+          description: User's age
+          example: 25
+        weight:
+          type: integer
+          minimum: 1
+          description: User's weight in kg
+          example: 75
+        height:
+          type: integer
+          minimum: 1
+          description: User's height in cm
+          example: 180
+        fitnessGoals:
+          type: string
+          description: User's fitness goals
+          example: "Build muscle and improve endurance"
+        trainerAssignment:
+          type: string
+          description: Athlete's trainer ID (if assigned)
+          example: "trainer-123"
+        # Trainer specific fields
+        certifications:
+          type: string
+          description: Trainer's certifications
+          example: "NASM-CPT"
+        specializations:
+          type: string
+          description: Trainer's areas of expertise
+          example: "Strength training, weight loss"
+        yearsOfExperience:
+          type: integer
+          minimum: 0
+          description: Years of experience as a trainer
+          example: 5
+        location:
+          type: string
+          description: Trainer's location
+          example: "New York, NY"
+        hourlyRate:
+          type: number
+          minimum: 0
+          description: Trainer's hourly rate
+          example: 75
+        languages:
+          type: array
+          items:
+            type: string
+          description: Languages spoken by trainer
+          example: ["English", "Spanish"]
+        clientList:
+          type: array
+          items:
+            type: string
+          description: List of client IDs
+          example: ["client-1", "client-2"]
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Auth
+    description: Authentication and authorization operations

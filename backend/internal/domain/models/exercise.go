@@ -7,14 +7,14 @@ import (
 )
 
 type Exercise struct {
-	ExerciseID   string    `json:"exerciseId"`
-	Name         string    `json:"name" validate:"required"`
-	Category     string    `json:"category"` // strength, cardio, flexibility
-	MuscleGroupID int      `json:"muscleGroupId"`
-	EquipmentID  int       `json:"equipmentId"`
-	Instructions string    `json:"instructions"`
-	CreatedBy    string    `json:"createdBy,omitempty"` // athlete ID for custom exercises
-	CreatedAt    time.Time `json:"createdAt"`
+	ExerciseID    string    `json:"exerciseId"`
+	Name          string    `json:"name" validate:"required"`
+	Category      string    `json:"category"` // strength, cardio, flexibility
+	MuscleGroupID int       `json:"muscleGroupId"`
+	EquipmentID   int       `json:"equipmentId"`
+	Instructions  string    `json:"instructions"`
+	CreatedBy     string    `json:"createdBy,omitempty"` // athlete ID for custom exercises
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 type ExerciseSet struct {
@@ -23,7 +23,7 @@ type ExerciseSet struct {
 	WeightUnit WeightUnit `json:"weightUnit" validate:"required,oneof=kg lbs"`
 	Reps       int        `json:"reps" validate:"gt=0"`
 	RestTime   int        `json:"restTime" validate:"gte=0"` // in seconds
-	Completed bool       `json:"completed"` // for workout tracking
+	Completed  bool       `json:"completed"`                 // for workout tracking
 }
 
 type WorkoutExercise struct {
@@ -39,13 +39,13 @@ func NewExercise(name, category string, muscleGroupID, equipmentID int, createdB
 	exerciseID := uuid.New().String()
 
 	return &Exercise{
-		ExerciseID:   exerciseID,
-		Name:         name,
-		Category:     category,
+		ExerciseID:    exerciseID,
+		Name:          name,
+		Category:      category,
 		MuscleGroupID: muscleGroupID,
-		EquipmentID:  equipmentID,
-		CreatedBy:    createdBy,
-		CreatedAt:    now,
+		EquipmentID:   equipmentID,
+		CreatedBy:     createdBy,
+		CreatedAt:     now,
 	}
 }
 
@@ -59,7 +59,7 @@ func NewExerciseSet(weight float64, weightUnit WeightUnit, reps, restTime int) *
 		WeightUnit: weightUnit,
 		Reps:       reps,
 		RestTime:   restTime,
-		Completed: false,
+		Completed:  false,
 	}
 }
 

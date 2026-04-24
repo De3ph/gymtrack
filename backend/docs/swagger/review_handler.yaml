@@ -1,0 +1,429 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Trainer Reviews
+  description: Review endpoints for athletes to rate and review trainers
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /trainers/{id}/reviews:
+    post:
+      tags:
+        - Reviews
+      summary: Create a review for a trainer
+      description: Allows an athlete to create a review for a specific trainer. Requires athlete role.
+      operationId: createReview
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Trainer ID
+          schema:
+            type: string
+          example: "trainer-123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+            examples:
+              positive_review:
+                summary: Positive review with comment
+                value:
+                  rating: 5
+                  comment: "Excellent trainer! Very knowledgeable and supportive. Helped me achieve my fitness goals ahead of schedule."
+              minimal_review:
+                summary: Review with just rating
+                value:
+                  rating: 4
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainerReview'
+              example:
+                reviewId: "review-001"
+                athleteId: "athlete-456"
+                trainerId: "trainer-123"
+                rating: 5
+                comment: "Excellent trainer! Very knowledgeable and supportive. Helped me achieve my fitness goals ahead of schedule."
+                type: "review"
+                createdAt: "2024-01-15T10:00:00Z"
+                updatedAt: "2024-01-15T10:00:00Z"
+        '400':
+          description: Invalid request body or validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    error: "Invalid request body"
+                validation_failed:
+                  summary: Validation failed
+                  value:
+                    error: "Rating must be between 1 and 5"
+                already_reviewed:
+                  summary: Athlete already reviewed this trainer
+                  value:
+                    error: "You have already reviewed this trainer"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Only athletes can create reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "only athletes can create reviews"
+        '500':
+          description: Failed to create review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to create review"
+
+    get:
+      tags:
+        - Reviews
+      summary: Get reviews for a trainer
+      description: Retrieve all reviews for a specific trainer. This endpoint is publicly accessible.
+      operationId: getTrainerReviews
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Trainer ID
+          schema:
+            type: string
+          example: "trainer-123"
+      responses:
+        '200':
+          description: Reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTrainerReviewsResponse'
+              example:
+                reviews:
+                  - reviewId: "review-001"
+                    athleteId: "athlete-456"
+                    trainerId: "trainer-123"
+                    rating: 5
+                    comment: "Excellent trainer! Very knowledgeable and supportive."
+                    type: "review"
+                    createdAt: "2024-01-15T10:00:00Z"
+                    updatedAt: "2024-01-15T10:00:00Z"
+                  - reviewId: "review-002"
+                    athleteId: "athlete-789"
+                    trainerId: "trainer-123"
+                    rating: 4
+                    comment: "Great experience, helped me with form correction."
+                    type: "review"
+                    createdAt: "2024-01-10T14:30:00Z"
+                    updatedAt: "2024-01-10T14:30:00Z"
+        '500':
+          description: Failed to retrieve reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve reviews"
+
+  /reviews/{id}:
+    put:
+      tags:
+        - Reviews
+      summary: Update a review
+      description: Updates an existing review. Only the author can update their review.
+      operationId: updateReview
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Review ID
+          schema:
+            type: string
+          example: "review-001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReviewRequest'
+            examples:
+              updated_review:
+                summary: Updated review with new rating and comment
+                value:
+                  rating: 5
+                  comment: "Amazing trainer! After working together for 3 months, I've exceeded all my fitness goals. Highly recommend!"
+      responses:
+        '200':
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateReviewResponse'
+              example:
+                message: "review updated successfully"
+        '400':
+          description: Invalid request body or validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    error: "Invalid request body"
+                validation_failed:
+                  summary: Validation failed
+                  value:
+                    error: "Rating must be between 1 and 5"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Only the author can update the review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "You can only update your own reviews"
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Review not found"
+        '500':
+          description: Failed to update review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to update review"
+
+    delete:
+      tags:
+        - Reviews
+      summary: Delete a review
+      description: Deletes an existing review. Only the author can delete their review.
+      operationId: deleteReview
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Review ID
+          schema:
+            type: string
+          example: "review-001"
+      responses:
+        '200':
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteReviewResponse'
+              example:
+                message: "review deleted successfully"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Only the author can delete the review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "You can only delete your own reviews"
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Review not found"
+        '500':
+          description: Failed to delete review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to delete review"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    TrainerReview:
+      type: object
+      required:
+        - reviewId
+        - athleteId
+        - trainerId
+        - rating
+        - type
+        - createdAt
+        - updatedAt
+      properties:
+        reviewId:
+          type: string
+          description: Unique review identifier
+          example: "review-001"
+        athleteId:
+          type: string
+          description: Athlete user ID who wrote the review
+          example: "athlete-456"
+        trainerId:
+          type: string
+          description: Trainer user ID being reviewed
+          example: "trainer-123"
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating given to the trainer (1-5)
+          example: 5
+        comment:
+          type: string
+          description: Optional comment about the trainer
+          example: "Excellent trainer! Very knowledgeable and supportive."
+        type:
+          type: string
+          description: Always "review"
+          example: "review"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the review was created
+          example: "2024-01-15T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the review was last updated
+          example: "2024-01-15T10:00:00Z"
+
+    CreateReviewRequest:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating (1-5)
+          example: 5
+        comment:
+          type: string
+          description: Optional comment about the trainer
+          example: "Excellent trainer! Very knowledgeable and supportive."
+
+    UpdateReviewRequest:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating (1-5)
+          example: 5
+        comment:
+          type: string
+          description: Optional updated comment
+          example: "Amazing trainer! After working together for 3 months, I've exceeded all my fitness goals."
+
+    GetTrainerReviewsResponse:
+      type: object
+      required:
+        - reviews
+      properties:
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainerReview'
+          description: Array of reviews for the trainer
+
+    UpdateReviewResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "review updated successfully"
+
+    DeleteReviewResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "review deleted successfully"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Reviews
+    description: Trainer review and rating operations

@@ -18,19 +18,19 @@ export interface Workout {
   workoutId: string;
   athleteId: string;
   date: string;
-  exercises: Exercise[];
+  exercises: WorkoutExercise[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateWorkoutRequest {
   date: string;
-  exercises: Exercise[];
+  exercises: WorkoutExercise[];
 }
 
 export interface UpdateWorkoutRequest {
   date: string;
-  exercises: Exercise[];
+  exercises: WorkoutExercise[];
 }
 
 export interface Macros {
@@ -240,4 +240,100 @@ export interface CoachingRequestWithDetails {
   updatedAt: string;
   athlete?: User;
   trainer?: User;
+}
+
+// ===== PHASE 4: EXERCISE MANAGEMENT TYPES =====
+
+// Lookup table types
+export interface MuscleGroup {
+  id: number;
+  code: string;
+  description: string;
+}
+
+export interface Equipment {
+  id: number;
+  code: string;
+  description: string;
+}
+
+// Enhanced exercise types for per-set tracking
+export interface ExerciseSet {
+  setId?: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  reps: number;
+  restTime?: number; // seconds
+  completed?: boolean;
+}
+
+export interface WorkoutExercise {
+  exerciseId: string;
+  name: string;
+  sets: ExerciseSet[];
+  notes?: string;
+}
+
+// Exercise library types
+export interface ExerciseLibrary {
+  exerciseId: string;
+  name: string;
+  category: string;
+  muscleGroupId: number;
+  equipmentId: number;
+  instructions?: string;
+  createdBy?: string;
+  createdAt: string;
+  muscleGroup?: MuscleGroup; // populated by API
+  equipment?: Equipment; // populated by API
+}
+
+// API response types for exercise endpoints
+export interface ExerciseListResponse {
+  exercises: ExerciseLibrary[];
+  count: number;
+}
+
+export interface MuscleGroupListResponse {
+  muscleGroups: MuscleGroup[];
+}
+
+export interface EquipmentTypeListResponse {
+  equipment: Equipment[];
+}
+
+export interface ExerciseSearchParams {
+  query?: string;
+  muscleGroupId?: number;
+  equipmentId?: number;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CreateExerciseRequest {
+  name: string;
+  category: string;
+  muscleGroupId: number;
+  equipmentId: number;
+  instructions?: string;
+}
+
+// Updated workout types for new structure (for future migration)
+export interface WorkoutWithPerSet {
+  workoutId: string;
+  athleteId: string;
+  date: string;
+  exercises: WorkoutExercise[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateWorkoutWithPerSetRequest {
+  date: string;
+  exercises: WorkoutExercise[];
+}
+
+export interface UpdateWorkoutWithPerSetRequest {
+  date: string;
+  exercises: WorkoutExercise[];
 }

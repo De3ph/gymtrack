@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { reviewApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Star } from "lucide-react"
@@ -70,6 +70,9 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Write a Review for {trainerName}</DialogTitle>
+          <DialogDescription>
+            Share your experience working with this trainer to help others make informed decisions
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

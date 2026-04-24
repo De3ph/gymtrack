@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import { coachingRequestApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 
@@ -49,6 +49,9 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Request Coaching from {trainerName}</DialogTitle>
+          <DialogDescription>
+            Send a personalized message to introduce yourself and request coaching services
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

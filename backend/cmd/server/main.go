@@ -47,10 +47,10 @@ func main() {
 	}
 
 	// Seed initial data
-	err = config.SeedAllData(config.GlobalBucket)
+	/* err = config.SeedAllData(config.GlobalBucket)
 	if err != nil {
 		log.Fatalf("Failed to seed initial data: %v", err)
-	}
+	} */
 
 	// Get specific collections
 	userCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
