@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { ExerciseSet } from "@/types";
 import { ExerciseSetFormData } from "@/lib/validations/workout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+
+// Extended ExerciseSet type with unique ID for stable keys
+interface ExerciseSetWithId extends ExerciseSet {
+  id: string;
+}
 
 interface ExerciseSetInputProps {
   value: ExerciseSet[];
@@ -22,102 +27,109 @@ export function ExerciseSetInput({
   disabled = false,
   className
 }: ExerciseSetInputProps) {
+  // Maintain internal state with stable IDs
+  const [setsWithIds, setSetsWithIds] = useState<ExerciseSetWithId[]>(() => {
+    return (value || []).map((set, index) => ({
+      ...set,
+      id: `set-${index}`
+    }));
+  });
+
+  // Sync with external value changes
+  useMemo(() => {
+    const currentIds = new Set(setsWithIds.map(s => s.id));
+    const newSets = (value || []).map((set, index) => {
+      // Try to find an existing set with matching properties
+      const existingSet = setsWithIds.find(s =>
+        s.weight === set.weight &&
+        s.reps === set.reps &&
+        s.restTime === set.restTime &&
+        !currentIds.has(s.id)
+      );
+
+      if (existingSet) {
+        currentIds.add(existingSet.id);
+        return existingSet;
+      }
+
+      // Create new set with stable ID
+      return {
+        ...set,
+        id: `set-${Date.now()}-${index}`
+      };
+    });
+
+    setSetsWithIds(newSets);
+  }, [value]);
+
   const addSet = () => {
-    const newSet: ExerciseSet = {
+    const newSet: ExerciseSetWithId = {
       weight: 0,
       weightUnit: "kg",
       reps: 1,
       restTime: 60, // Default 1 minute rest
       completed: false,
+      id: `set-${Date.now()}`
     };
-    onChange([...(value || []), newSet]);
+    const newSetsWithIds = [...setsWithIds, newSet];
+    setSetsWithIds(newSetsWithIds);
+    // Convert back to ExerciseSet[] for the parent component
+    onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
-  const removeSet = (index: number) => {
-    const newSets = (value || []).filter((_, i) => i !== index);
-    onChange(newSets);
+  const removeSet = (setId: string) => {
+    const newSetsWithIds = setsWithIds.filter(set => set.id !== setId);
+    setSetsWithIds(newSetsWithIds);
+    // Convert back to ExerciseSet[] for the parent component
+    onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
-  const updateSet = (index: number, field: keyof ExerciseSet, newValue: number) => {
-    const currentSets = value || [];
-    const newSets = [...currentSets];
-    newSets[index] = { ...newSets[index], [field]: newValue };
-    onChange(newSets);
+  const updateSet = (setId: string, field: keyof ExerciseSet, newValue: number) => {
+    const newSetsWithIds = setsWithIds.map(set =>
+      set.id === setId ? { ...set, [field]: newValue } : set
+    );
+    setSetsWithIds(newSetsWithIds);
+    // Convert back to ExerciseSet[] for the parent component
+    onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
-  const moveSet = (index: number, direction: "up" | "down") => {
-    const currentSets = value || [];
-    if (
-      (direction === "up" && index === 0) ||
-      (direction === "down" && index === currentSets.length - 1)
-    ) {
-      return;
-    }
-
-    const newSets = [...currentSets];
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-
-    // Swap sets
-    [newSets[index], newSets[targetIndex]] = [newSets[targetIndex], newSets[index]];
-    onChange(newSets);
-  };
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="flex items-center justify-between">
-        <FieldLabel>Sets</FieldLabel>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addSet}
-          disabled={disabled}
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add Set
-        </Button>
-      </div>
+      <FieldLabel>Sets</FieldLabel>
 
       {!value || value.length === 0 ? (
-        <div className="text-center py-4 text-sm text-muted-foreground border rounded-md">
-          No sets added. Click "Add Set" to get started.
+        <div className="space-y-3" >
+          <div className="text-center py-4 text-sm text-muted-foreground border rounded-md" >
+            No sets added. Click "Add Set" to get started.
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addSet}
+            disabled={disabled}
+            className="w-full"
+
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Set
+          </Button>
         </div>
       ) : (
-        <div className="space-y-2">
-          {(value || []).map((set, index) => (
+        <div className="space-y-2" >
+          {setsWithIds.map((set, index) => (
             <div
-              key={index}
-              className="flex items-center gap-2 p-3 border rounded-md bg-background"
+              key={set.id}
+              className="flex flex-wrap items-center gap-2 p-3 border rounded-md bg-background"
             >
               {/* Set Number */}
               <div className="flex items-center gap-1 min-w-[60px]">
                 <span className="text-sm font-medium">Set {index + 1}</span>
-                <div className="flex flex-col">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0"
-                    onClick={() => moveSet(index, "up")}
-                    disabled={disabled || index === 0}
-                  >
-                    <ChevronUp className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0"
-                    onClick={() => moveSet(index, "down")}
-                    disabled={disabled || index === value.length - 1}
-                  >
-                    <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </div>
               </div>
 
               {/* Weight Input */}
-              <div className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-1 min-w-[80px]">
                 <Field>
                   <FieldLabel className="text-xs">Weight</FieldLabel>
                   <Input
@@ -125,9 +137,9 @@ export function ExerciseSetInput({
                     step="0.5"
                     min="0"
                     value={set.weight}
-                    onChange={(e) => updateSet(index, "weight", parseFloat(e.target.value) || 0)}
+                    onChange={(e) => updateSet(set.id, "weight", parseFloat(e.target.value) || 0)}
                     disabled={disabled}
-                    className="w-20"
+                    className="w-16"
                     placeholder="0"
                   />
                 </Field>
@@ -135,23 +147,23 @@ export function ExerciseSetInput({
               </div>
 
               {/* Reps Input */}
-              <div className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-1 min-w-[70px]">
                 <Field>
                   <FieldLabel className="text-xs">Reps</FieldLabel>
                   <Input
                     type="number"
                     min="1"
                     value={set.reps}
-                    onChange={(e) => updateSet(index, "reps", parseInt(e.target.value) || 1)}
+                    onChange={(e) => updateSet(set.id, "reps", parseInt(e.target.value) || 1)}
                     disabled={disabled}
-                    className="w-20"
+                    className="w-16"
                     placeholder="1"
                   />
                 </Field>
               </div>
 
               {/* Rest Time Input */}
-              <div className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-1 min-w-[90px]">
                 <Field>
                   <FieldLabel className="text-xs">Rest</FieldLabel>
                   <Input
@@ -159,9 +171,9 @@ export function ExerciseSetInput({
                     min="0"
                     step="15"
                     value={set.restTime || 0}
-                    onChange={(e) => updateSet(index, "restTime", parseInt(e.target.value) || 0)}
+                    onChange={(e) => updateSet(set.id, "restTime", parseInt(e.target.value) || 0)}
                     disabled={disabled}
-                    className="w-20"
+                    className="w-16"
                     placeholder="60"
                   />
                 </Field>
@@ -173,14 +185,27 @@ export function ExerciseSetInput({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => removeSet(index)}
+                onClick={() => removeSet(set.id)}
                 disabled={disabled}
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 ml-auto"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           ))}
+
+          {/* Add Set Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addSet}
+            disabled={disabled}
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Set
+          </Button>
         </div>
       )}
     </div>

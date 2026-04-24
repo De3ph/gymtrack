@@ -77,7 +77,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-gray-500">
+          <div className="text-center text-muted-foreground">
             Loading coaching requests...
           </div>
         </CardContent>
@@ -99,7 +99,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-gray-500">
+          <div className="text-center text-muted-foreground">
             {userType === "trainer"
               ? "No pending coaching requests"
               : "No coaching requests sent"}
@@ -122,8 +122,8 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                     : `Request to ${request.trainer?.profile?.name || request.trainer?.email}`}
                 </CardTitle>
                 <div className="flex items-center gap-2 mt-2">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-500">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
                     {formatDate(request.createdAt)}
                   </span>
                   {getStatusBadge(request.status)}
@@ -135,10 +135,10 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
             {request.message && (
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <MessageCircle className="w-4 h-4 text-gray-500" />
+                  <MessageCircle className="w-4 h-4 text-muted-foreground" />
                   <span className="font-medium text-sm">Message:</span>
                 </div>
-                <p className="text-gray-600 bg-gray-50 p-3 rounded">
+                <p className="text-foreground bg-muted p-3 rounded">
                   {request.message}
                 </p>
               </div>

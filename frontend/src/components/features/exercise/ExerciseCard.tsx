@@ -15,11 +15,11 @@ interface ExerciseCardProps {
   className?: string;
 }
 
-export function ExerciseCard({ 
-  exercise, 
-  onSelect, 
+export function ExerciseCard({
+  exercise,
+  onSelect,
   showInstructions = false,
-  className 
+  className
 }: ExerciseCardProps) {
   const [showFullInstructions, setShowFullInstructions] = useState(false);
 
@@ -39,8 +39,8 @@ export function ExerciseCard({
             {exercise.name}
           </CardTitle>
           {onSelect && (
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               onClick={handleSelect}
               className="ml-2"
             >
@@ -48,7 +48,7 @@ export function ExerciseCard({
             </Button>
           )}
         </div>
-        
+
         <div className="flex flex-wrap gap-2 mt-2">
           {exercise.muscleGroup && (
             <MuscleGroupBadge muscleGroup={exercise.muscleGroup} variant="small" />
@@ -58,25 +58,25 @@ export function ExerciseCard({
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         <div className="space-y-2">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             Category: <span className="font-medium capitalize">{exercise.category}</span>
           </div>
-          
+
           {exercise.instructions && showInstructions && (
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-foreground">
               <div className="flex items-center gap-2 mb-1">
                 <Info className="w-4 h-4" />
                 <span className="font-medium">Instructions:</span>
               </div>
-              <div className="bg-gray-50 p-2 rounded text-sm">
+              <div className="bg-muted p-2 rounded text-sm">
                 {showFullInstructions ? exercise.instructions : `${exercise.instructions.slice(0, 100)}...`}
                 {exercise.instructions.length > 100 && (
                   <button
                     onClick={toggleInstructions}
-                    className="text-blue-600 hover:text-blue-800 ml-1 underline"
+                    className="text-primary hover:text-primary/80 ml-1 underline"
                   >
                     {showFullInstructions ? "Show less" : "Show more"}
                   </button>

@@ -78,9 +78,9 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="rounded-lg bg-white p-8 shadow dark:bg-gray-800">
+      <div className="rounded-lg bg-card p-8 shadow">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold text-card-foreground">
             My Profile
           </h2>
           <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export default function ProfilePage() {
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               >
                 Edit Profile
               </button>
@@ -105,7 +105,7 @@ export default function ProfilePage() {
         </div>
 
         {updateMutation.isError && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
+          <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
             Failed to update profile. Please try again.
           </div>
         )}
@@ -113,24 +113,24 @@ export default function ProfilePage() {
         {!isEditing ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+              <label className="block text-sm font-medium text-muted-foreground">
                 Email
               </label>
-              <p className="mt-1 text-gray-900 dark:text-white">{currentUser.email}</p>
+              <p className="mt-1 text-foreground">{currentUser.email}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+              <label className="block text-sm font-medium text-muted-foreground">
                 Role
               </label>
-              <p className="mt-1 capitalize text-gray-900 dark:text-white">
+              <p className="mt-1 capitalize text-foreground">
                 {currentUser.role}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+              <label className="block text-sm font-medium text-muted-foreground">
                 Name
               </label>
-              <p className="mt-1 text-gray-900 dark:text-white">
+              <p className="mt-1 text-foreground">
                 {currentUser.profile.name}
               </p>
             </div>
@@ -139,40 +139,40 @@ export default function ProfilePage() {
               <>
                 {currentUser.profile.age ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <label className="block text-sm font-medium text-muted-foreground">
                       Age
                     </label>
-                    <p className="mt-1 text-gray-900 dark:text-white">
+                    <p className="mt-1 text-foreground">
                       {currentUser.profile.age}
                     </p>
                   </div>
                 ) : null}
                 {currentUser.profile.weight ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <label className="block text-sm font-medium text-muted-foreground">
                       Weight
                     </label>
-                    <p className="mt-1 text-gray-900 dark:text-white">
+                    <p className="mt-1 text-foreground">
                       {currentUser.profile.weight} kg
                     </p>
                   </div>
                 ) : null}
                 {currentUser.profile.height ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <label className="block text-sm font-medium text-muted-foreground">
                       Height
                     </label>
-                    <p className="mt-1 text-gray-900 dark:text-white">
+                    <p className="mt-1 text-foreground">
                       {currentUser.profile.height} cm
                     </p>
                   </div>
                 ) : null}
                 {currentUser.profile.fitnessGoals ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <label className="block text-sm font-medium text-muted-foreground">
                       Fitness Goals
                     </label>
-                    <p className="mt-1 text-gray-900 dark:text-white">
+                    <p className="mt-1 text-foreground">
                       {currentUser.profile.fitnessGoals}
                     </p>
                   </div>
@@ -184,20 +184,20 @@ export default function ProfilePage() {
               <>
                 {currentUser.profile.certifications ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <label className="block text-sm font-medium text-muted-foreground">
                       Certifications
                     </label>
-                    <p className="mt-1 text-gray-900 dark:text-white">
+                    <p className="mt-1 text-foreground">
                       {currentUser.profile.certifications}
                     </p>
                   </div>
                 ) : null}
                 {currentUser.profile.specializations ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <label className="block text-sm font-medium text-muted-foreground">
                       Specializations
                     </label>
-                    <p className="mt-1 text-gray-900 dark:text-white">
+                    <p className="mt-1 text-foreground">
                       {currentUser.profile.specializations}
                     </p>
                   </div>
@@ -233,7 +233,7 @@ export default function ProfilePage() {
                     onBlur={field.handleBlur}
                     type="text"
                     id="name"
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
                   />
                   <FieldInfo field={field} />
                 </Field>
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                           onBlur={field.handleBlur}
                           type="number"
                           id="age"
-                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                          className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
                         />
                       </Field>
                     )}
@@ -268,7 +268,7 @@ export default function ProfilePage() {
                           onBlur={field.handleBlur}
                           type="number"
                           id="weight"
-                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                          className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
                         />
                       </Field>
                     )}
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                         onBlur={field.handleBlur}
                         type="number"
                         id="height"
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
                       />
                     </Field>
                   )}
@@ -301,7 +301,7 @@ export default function ProfilePage() {
                         onBlur={field.handleBlur}
                         id="fitnessGoals"
                         rows={3}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
                       />
                     </Field>
                   )}
@@ -321,7 +321,7 @@ export default function ProfilePage() {
                         onBlur={field.handleBlur}
                         type="text"
                         id="certifications"
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
                       />
                     </Field>
                   )}
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                         onBlur={field.handleBlur}
                         type="text"
                         id="specializations"
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
                       />
                     </Field>
                   )}
@@ -349,14 +349,14 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
-                className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-md bg-primary px-4 py-2 text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-gray-700 font-semibold hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="flex-1 rounded-md border border-input px-4 py-2 text-foreground font-semibold hover:bg-muted"
               >
                 Cancel
               </button>

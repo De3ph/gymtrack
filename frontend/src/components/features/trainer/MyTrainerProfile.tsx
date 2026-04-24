@@ -17,32 +17,32 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+          <label className="block text-sm font-medium text-muted-foreground">
             Name
           </label>
-          <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="mt-1 text-lg font-semibold text-foreground">
             {trainer.profile.name}
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+          <label className="block text-sm font-medium text-muted-foreground">
             Email
           </label>
           <div className="mt-1 flex items-center gap-2">
-            <Mail className="h-4 w-4 text-gray-400" />
-            <p className="text-gray-900 dark:text-white">{trainer.email}</p>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <p className="text-foreground">{trainer.email}</p>
           </div>
         </div>
 
         {trainer.profile.certifications ? (
           <div>
-            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+            <label className="block text-sm font-medium text-muted-foreground">
               Certifications
             </label>
             <div className="mt-1 flex items-start gap-2">
-              <Award className="h-4 w-4 text-gray-400 mt-0.5" />
-              <p className="text-gray-900 dark:text-white">
+              <Award className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <p className="text-foreground">
                 {trainer.profile.certifications}
               </p>
             </div>
@@ -51,10 +51,10 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
 
         {trainer.profile.specializations ? (
           <div>
-            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+            <label className="block text-sm font-medium text-muted-foreground">
               Specializations
             </label>
-            <p className="mt-1 text-gray-900 dark:text-white">
+            <p className="mt-1 text-foreground">
               {trainer.profile.specializations}
             </p>
           </div>

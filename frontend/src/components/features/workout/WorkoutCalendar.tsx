@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import dayjs from "dayjs";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,7 +57,7 @@ export function WorkoutCalendar() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {selectedDate ? format(selectedDate, "PPPP") : "Select a date"}
+            {selectedDate ? dayjs(selectedDate).format("dddd, MMMM D, YYYY") : "Select a date"}
           </CardTitle>
         </CardHeader>
         <CardContent>

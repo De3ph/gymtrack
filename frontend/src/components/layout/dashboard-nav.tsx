@@ -12,7 +12,7 @@ interface DashboardNavProps {
 
 export function DashboardNav({ userRole, userName, onLogout }: DashboardNavProps) {
   return (
-    <nav className='bg-white shadow-sm dark:bg-gray-800'>
+    <nav className='bg-card shadow-sm'>
       <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
         <div className='flex h-16 justify-between items-center'>
           <div className='flex items-center'>
@@ -28,12 +28,12 @@ export function DashboardNav({ userRole, userName, onLogout }: DashboardNavProps
             </div>
           </div>
           <div className='flex items-center gap-4'>
-            <span className='text-sm text-gray-700 dark:text-gray-300'>
+            <span className='text-sm text-foreground'>
               {userName} ({userRole})
             </span>
             <button
               onClick={onLogout}
-              className='rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+              className='rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80'
             >
               Logout
             </button>

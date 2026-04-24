@@ -17,7 +17,7 @@ const TrainerCatalogCard = ({ trainer }: PropTypes) => {
             <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardHeader>
                     <CardTitle>{trainer.profile.name}</CardTitle>
-                    <p className="text-sm text-gray-500">{trainer.email}</p>
+                    <p className="text-sm text-muted-foreground">{trainer.email}</p>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-2">
@@ -38,7 +38,7 @@ const TrainerCatalogCard = ({ trainer }: PropTypes) => {
                             <span className="text-yellow-500">
                                 {renderStars(trainer.averageRating || 0)}
                             </span>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-muted-foreground">
                                 ({trainer.reviewCount || 0} reviews)
                             </span>
                         </div>
@@ -49,7 +49,7 @@ const TrainerCatalogCard = ({ trainer }: PropTypes) => {
                             </div>
                         )}
                         {trainer.trainerProfile?.isAvailableForNewClients && (
-                            <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+                            <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded dark:bg-green-900/20 dark:text-green-400">
                                 Available for New Clients
                             </span>
                         )}

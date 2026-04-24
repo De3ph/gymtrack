@@ -3,8 +3,6 @@
 import * as React from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mealApi } from "@/lib/api";
 import { DailyNutritionSummary } from "./DailyNutritionSummary";
@@ -88,7 +86,7 @@ export function MealCalendar() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {selectedDate ? format(selectedDate, "PPP") : "Select a date"}
+              {selectedDate ? dayjs(selectedDate).format("MMM D, YYYY") : "Select a date"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -100,7 +98,7 @@ export function MealCalendar() {
                     className="border-b last:border-0 pb-2"
                   >
                     <div className="font-semibold capitalize">
-                      {meal.mealType} - {format(dayjs(meal.date).toDate(), "p")}
+                      {meal.mealType} - {dayjs(meal.date).format("LT")}
                     </div>
                     <ul className="list-disc pl-5 mt-2 text-sm">
                       {meal.items.map((item, idx) => (

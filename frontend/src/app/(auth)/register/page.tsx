@@ -71,13 +71,13 @@ export default function RegisterPage() {
   const selectedRole = form.getFieldValue("role") as UserRole
 
   return (
-    <div className='rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800'>
-      <h2 className='mb-6 text-2xl font-semibold text-gray-900 dark:text-white'>
+    <div className='rounded-lg bg-card p-8 shadow-xl'>
+      <h2 className='mb-6 text-2xl font-semibold text-card-foreground'>
         Create Your Account
       </h2>
 
       {error && (
-        <div className='mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400'>
+        <div className='mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive'>
           {error}
         </div>
       )}
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                 onBlur={field.handleBlur}
                 type='email'
                 id='email'
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -142,7 +142,7 @@ export default function RegisterPage() {
                 onBlur={field.handleBlur}
                 type='password'
                 id='password'
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -173,7 +173,7 @@ export default function RegisterPage() {
                 onBlur={field.handleBlur}
                 type='password'
                 id='confirmPassword'
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -192,7 +192,7 @@ export default function RegisterPage() {
                     onChange={() => field.handleChange('athlete')}
                     className='mr-2'
                   />
-                  <span className='text-gray-700 dark:text-gray-300'>Athlete</span>
+                  <span className='text-foreground'>Athlete</span>
                 </label>
                 <label className='flex items-center'>
                   <input
@@ -201,7 +201,7 @@ export default function RegisterPage() {
                     onChange={() => field.handleChange('trainer')}
                     className='mr-2'
                   />
-                  <span className='text-gray-700 dark:text-gray-300'>Trainer</span>
+                  <span className='text-foreground'>Trainer</span>
                 </label>
               </div>
             </Field>
@@ -228,7 +228,7 @@ export default function RegisterPage() {
                 onBlur={field.handleBlur}
                 type='text'
                 id='name'
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -248,7 +248,7 @@ export default function RegisterPage() {
                       onBlur={field.handleBlur}
                       type='number'
                       id='age'
-                      className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                      className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                     />
                   </Field>
                 )}
@@ -263,7 +263,7 @@ export default function RegisterPage() {
                       onBlur={field.handleBlur}
                       type='number'
                       id='weight'
-                      className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                      className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                     />
                   </Field>
                 )}
@@ -280,7 +280,7 @@ export default function RegisterPage() {
                     onBlur={field.handleBlur}
                     type='number'
                     id='height'
-                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                   />
                 </Field>
               )}
@@ -296,7 +296,7 @@ export default function RegisterPage() {
                     onBlur={field.handleBlur}
                     id='fitnessGoals'
                     rows={3}
-                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                   />
                 </Field>
               )}
@@ -317,7 +317,7 @@ export default function RegisterPage() {
                     type='text'
                     id='certifications'
                     placeholder='e.g., NASM CPT, ACE'
-                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                   />
                 </Field>
               )}
@@ -334,7 +334,7 @@ export default function RegisterPage() {
                     type='text'
                     id='specializations'
                     placeholder='e.g., Strength Training, Nutrition'
-                    className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                   />
                 </Field>
               )}
@@ -345,17 +345,17 @@ export default function RegisterPage() {
         <button
           type='submit'
           disabled={isLoading}
-          className='w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-semibold shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+          className='w-full rounded-md bg-primary px-4 py-2 text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {isLoading ? "Creating account..." : "Sign Up"}
         </button>
       </form>
 
-      <p className='mt-4 text-center text-sm text-gray-600 dark:text-gray-400'>
+      <p className='mt-4 text-center text-sm text-muted-foreground'>
         Already have an account?{" "}
         <a
           href={ROUTES.LOGIN}
-          className='font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400'
+          className='font-medium text-primary hover:text-primary/80'
         >
           Login
         </a>
