@@ -25,11 +25,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FieldInfo } from "@/components/ui/form-field";
-import { mealSchema, type MealFormData } from "@/lib/validations/meal";
 import { mealApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
+import { DATE_FORMATS } from "@/lib/constants";
 import { Meal } from "@/types";
-import { cn } from "@/lib/utils";
 
 interface EditMealDialogProps {
   meal: Meal | null;
@@ -46,7 +45,7 @@ export function EditMealDialog({
 
   const form = useForm({
     defaultValues: {
-      date: dayjs().format("YYYY-MM-DD"),
+      date: dayjs().format(DATE_FORMATS.DATE_ONLY),
       mealTime: dayjs().format("HH:mm"),
       mealType: "breakfast" as const,
       items: [
@@ -67,7 +66,7 @@ export function EditMealDialog({
   React.useEffect(() => {
     if (meal) {
       const mealDate = dayjs(meal.date);
-      form.setFieldValue("date", mealDate.format("YYYY-MM-DD"));
+      form.setFieldValue("date", mealDate.format(DATE_FORMATS.DATE_ONLY));
       form.setFieldValue("mealTime", mealDate.format("HH:mm"));
       form.setFieldValue("mealType", meal.mealType as any);
       form.setFieldValue("items", meal.items.map((item) => ({
@@ -205,11 +204,6 @@ export function EditMealDialog({
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base font-medium">
-                        Food Item {index + 1}
-                      </CardTitle>
-                    </CardHeader>
                     <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                       <div className="space-y-2 col-span-2">
                         <FieldLabel>Food Name</FieldLabel>

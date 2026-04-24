@@ -1,11 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import * as React from "react"
+import { useForm } from "@tanstack/react-form"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { reviewApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Field } from "@/components/ui/field"
+import { FieldInfo } from "@/components/ui/form-field"
 import { Star } from "lucide-react"
 
 interface CreateReviewDialogProps {
@@ -16,38 +20,43 @@ interface CreateReviewDialogProps {
 }
 
 export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, children }: CreateReviewDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [rating, setRating] = useState(5)
-  const [comment, setComment] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState("")
+  const [open, setOpen] = React.useState(false)
+  const queryClient = useQueryClient()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError("")
+  const form = useForm({
+    defaultValues: {
+      rating: 5,
+      comment: "",
+    },
+    onSubmit: async ({ value }) => {
+      createReview(value)
+    },
+  })
 
-    try {
-      await reviewApi.createReview(trainerId, { rating, comment })
+  const { mutate: createReview, isPending } = useMutation({
+    mutationFn: async (data: { rating: number; comment: string }) => {
+      return reviewApi.createReview(trainerId, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews"] })
       setOpen(false)
-      setRating(5)
-      setComment("")
+      form.reset()
       onReviewCreated?.()
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to create review")
-    } finally {
-      setSubmitting(false)
-    }
-  }
+    },
+    onError: (error) => {
+      // TODO: Show toast notification with error message
+      console.error("Failed to create review:", error)
+    },
+  })
 
-  const renderStars = (currentRating: number) => {
+  const renderStars = (currentRating: number, fieldValue: any) => {
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             type="button"
-            onClick={() => setRating(star)}
+            onClick={() => fieldValue.handleChange(star)}
             className="focus:outline-none"
           >
             <Star
@@ -74,31 +83,41 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
             Share your experience working with this trainer to help others make informed decisions
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="rating">Rating</Label>
-            <div className="mt-2">
-              {renderStars(rating)}
-            </div>
-          </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            form.handleSubmit()
+          }}
+          className="space-y-4"
+        >
+          <form.Field name="rating">
+            {(field) => (
+              <div>
+                <Label htmlFor="rating">Rating</Label>
+                <div className="mt-2">
+                  {renderStars(field.state.value, field)}
+                </div>
+              </div>
+            )}
+          </form.Field>
 
-          <div>
-            <Label htmlFor="comment">Comment (optional)</Label>
-            <Textarea
-              id="comment"
-              placeholder="Share your experience with this trainer..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="mt-1"
-              rows={4}
-            />
-          </div>
-
-          {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-              {error}
-            </div>
-          )}
+          <form.Field name="comment">
+            {(field) => (
+              <div>
+                <Label htmlFor="comment">Comment (optional)</Label>
+                <Textarea
+                  id="comment"
+                  placeholder="Share your experience with this trainer..."
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  className="mt-1"
+                  rows={4}
+                />
+                <FieldInfo field={field} />
+              </div>
+            )}
+          </form.Field>
 
           <div className="flex gap-2 pt-4">
             <Button
@@ -111,10 +130,10 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
             </Button>
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={isPending}
               className="flex-1"
             >
-              {submitting ? "Submitting..." : "Submit Review"}
+              {isPending ? "Submitting..." : "Submit Review"}
             </Button>
           </div>
         </form>

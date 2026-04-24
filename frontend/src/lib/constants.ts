@@ -41,3 +41,9 @@ export const REQUEST_STATUS = {
   ACCEPTED: "accepted",
   REJECTED: "rejected",
 } as const;
+
+export const DATE_FORMATS = {
+  DATE_ONLY: "YYYY-MM-DD",
+  TIME_ONLY: "HH:mm",
+  DATE_TIME: "YYYY-MM-DD HH:mm",
+} as const;

@@ -7,18 +7,9 @@ import { trainerClientApi, relationshipApi } from "@/lib/api"
 import { User, ClientStats } from "@/types"
 import { useAuthStore } from "@/stores/authStore"
 import { Button } from "@/components/ui/button"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { ClientTabs } from "@/components/features/trainer/client-tabs/ClientTabs"
 import { ClientOverview } from "@/components/features/trainer/ClientOverview"
+import { TerminateRelationshipDialog } from "@/components/features/trainer/TerminateRelationshipDialog"
 import { Loader2, ArrowLeft, UserX } from "lucide-react"
 import { ROUTES } from "@/lib/routes";
 
@@ -34,8 +25,6 @@ export default function ClientDetailPage() {
   const clientId = params.id as string
 
   const [activeTab, setActiveTab] = useState("overview")
-  const [terminateError, setTerminateError] = useState<string | null>(null)
-  const [showTerminateDialog, setShowTerminateDialog] = useState(false)
 
   // Filter states
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" })
@@ -98,34 +87,10 @@ export default function ClientDetailPage() {
     }
   }, [user, router])
 
-  const handleTerminateRelationship = async () => {
-    try {
-      await relationshipApi.terminateRelationship(clientId)
-      setShowTerminateDialog(false)
-      router.push(ROUTES.TRAINER_CLIENTS)
-    } catch (err) {
-      setTerminateError(err instanceof Error ? err.message : "Failed to terminate relationship")
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
-  }
-
-  if (terminateError && !clientDetails.athlete) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
-          {terminateError}
-        </div>
-        <Button variant="outline" className="mt-4" onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Clients
-        </Button>
       </div>
     )
   }
@@ -147,10 +112,16 @@ export default function ClientDetailPage() {
             </p>
           </div>
         </div>
-        <Button variant="destructive" onClick={() => setShowTerminateDialog(true)}>
-          <UserX className="mr-2 h-4 w-4" />
-          End Relationship
-        </Button>
+        <TerminateRelationshipDialog
+          clientId={clientId}
+          athleteName={clientDetails.athlete?.profile?.name}
+          trigger={
+            <Button variant="destructive">
+              <UserX className="mr-2 h-4 w-4" />
+              End Relationship
+            </Button>
+          }
+        />
       </div>
 
       <ClientOverview athlete={clientDetails.athlete} stats={clientDetails.stats} />
@@ -170,23 +141,6 @@ export default function ClientDetailPage() {
         onMealTypeChange={setMealType}
         onClearFilters={clearFilters}
       />
-
-      <AlertDialog open={showTerminateDialog} onOpenChange={setShowTerminateDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>End Relationship</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to end your relationship with {clientDetails.athlete?.profile?.name || "this athlete"}? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleTerminateRelationship} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              End Relationship
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

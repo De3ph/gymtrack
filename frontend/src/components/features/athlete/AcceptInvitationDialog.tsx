@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { relationshipApi } from "@/lib/api"
 import { CheckCircle, Loader2, UserPlus } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "@tanstack/react-form"
 
 interface AcceptInvitationDialogProps {
   onSuccess?: () => void
@@ -21,59 +22,60 @@ interface AcceptInvitationDialogProps {
 
 export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProps) {
   const [open, setOpen] = useState(false)
-  const [code, setCode] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  const sanitizeInvitationCode = (input: string): string => {
-    // Remove any non-alphanumeric characters (preserve case)
-    return input.replace(/[^a-zA-Z0-9]/g, '');
-  };
-
-  const validateInvitationCode = (code: string): boolean => {
-    // Code must be exactly 8 alphanumeric characters (accept both upper and lower case)
-    return /^[a-zA-Z0-9]{8}$/.test(code);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const sanitizedCode = sanitizeInvitationCode(code);
-
-    if (!validateInvitationCode(sanitizedCode)) {
-      setError("Invitation code must be exactly 8 alphanumeric characters (A-Z, a-z, 0-9)")
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-      await relationshipApi.acceptInvitation(sanitizedCode)
-      setSuccess(true)
-      setTimeout(() => {
-        setOpen(false)
+  const form = useForm({
+    defaultValues: {
+      code: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        setLoading(true)
+        setError(null)
+        await relationshipApi.acceptInvitation(value.code)
+        setSuccess(true)
+        setTimeout(() => {
+          setOpen(false)
+          setSuccess(false)
+          form.reset()
+          onSuccess?.()
+        }, 2000)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to accept invitation")
         setSuccess(false)
-        setCode("")
-        onSuccess?.()
-      }, 2000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to accept invitation")
-      setSuccess(false)
-    } finally {
-      setLoading(false)
-    }
-  }
+      } finally {
+        setLoading(false)
+      }
+    },
+  })
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!loading) {
       setOpen(newOpen)
       if (!newOpen) {
-        setCode("")
+        form.reset()
         setError(null)
         setSuccess(false)
       }
     }
+  }
+
+  // Sanitize input to only allow alphanumeric characters
+  const sanitizeInvitationCode = (input: string): string => {
+    return input.replace(/[^a-zA-Z0-9]/g, '')
+  }
+
+  const validateInvitationCode = ({ value }: { value: string }): string | undefined => {
+    // Code must be exactly 8 alphanumeric characters
+    if (!/^[a-zA-Z0-9]{8}$/.test(value) && value.length === 8) {
+      return "Invitation code must contain only letters and numbers"
+    }
+    if (value.length > 0 && value.length < 8) {
+      return `Invitation code must be exactly 8 characters (${value.length}/8)`
+    }
+    return undefined
   }
 
   return (
@@ -98,21 +100,44 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
             <p className="text-center font-medium">Successfully connected with your trainer!</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="invitation-code">Invitation Code</Label>
-              <Input
-                id="invitation-code"
-                value={code}
-                onChange={(e) => setCode(sanitizeInvitationCode(e.target.value))}
-                placeholder="Enter 8-character code (case-sensitive)"
-                maxLength={8}
-                className="font-mono text-lg tracking-wider"
-              />
-              <p className="text-xs text-muted-foreground">
-                The code should be 8 characters long (e.g., a1b2c3d4 or A1B2C3D4)
-              </p>
-            </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              form.handleSubmit()
+            }}
+            className="space-y-4"
+          >
+            <form.Field
+              name="code"
+              validators={{
+                onChange: validateInvitationCode,
+              }}
+            >
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="invitation-code">Invitation Code</Label>
+                  <Input
+                    id="invitation-code"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      const sanitized = sanitizeInvitationCode(e.target.value)
+                      field.handleChange(sanitized)
+                    }}
+                    placeholder="Enter 8-character code (case-sensitive)"
+                    maxLength={8}
+                    className="font-mono text-lg tracking-wider"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The code should be 8 characters long (e.g., a1b2c3d4 or A1B2C3D4)
+                  </p>
+                  {field.state.meta.errors.length > 0 && (
+                    <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+                      {field.state.meta.errors[0]}
+                    </div>
+                  )}
+                </div>
+              )}
+            </form.Field>
 
             {error && (
               <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
@@ -120,16 +145,26 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
               </div>
             )}
 
-            <Button type="submit" disabled={loading || !validateInvitationCode(code)} className="w-full">
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                "Connect with Trainer"
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+            >
+              {([canSubmit, isSubmitting]) => (
+                <Button
+                  type="submit"
+                  disabled={!canSubmit || loading || isSubmitting}
+                  className="w-full"
+                >
+                  {loading || isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    "Connect with Trainer"
+                  )}
+                </Button>
               )}
-            </Button>
+            </form.Subscribe>
           </form>
         )}
       </DialogContent>

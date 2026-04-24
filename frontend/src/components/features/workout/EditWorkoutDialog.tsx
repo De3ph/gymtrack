@@ -15,6 +15,7 @@ import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import { workoutWithPerSetSchema, WorkoutWithPerSetFormData } from "@/lib/validations/workout";
+import { DATE_FORMATS } from "@/lib/constants";
 import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
 import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
 
@@ -196,7 +197,7 @@ export function EditWorkoutDialog({
               <form.Field name="date">
                 {(field) => (
                   <Input
-                    value={dayjs(field.state.value).format("YYYY-MM-DD")}
+                    value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
                     onChange={(e) => field.handleChange(dayjs(e.target.value).toDate())}
                     onBlur={field.handleBlur}
                     type="date"

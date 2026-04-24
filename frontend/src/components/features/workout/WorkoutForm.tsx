@@ -13,7 +13,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { TIME_LIMITS } from "@/lib/constants";
+import { TIME_LIMITS, DATE_FORMATS } from "@/lib/constants";
 import { formField } from "@/lib/animations";
 import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
 import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
@@ -110,7 +110,7 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
           <form.Field name="date">
             {(field) => (
               <Input
-                value={dayjs(field.state.value).format("YYYY-MM-DD")}
+                value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
                 onChange={(e) => field.handleChange(dayjs(e.target.value).toDate())}
                 onBlur={field.handleBlur}
                 type="date"

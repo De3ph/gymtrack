@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MuscleGroupBadge } from "./MuscleGroupBadge";
 import { EquipmentBadge } from "./EquipmentBadge";
+import { ExerciseFilters } from "./exercise-selector/ExerciseFilters";
 import { ExerciseLibrary, ExerciseSearchParams, MuscleGroup, Equipment } from "@/types";
 
 interface ExerciseSelectorProps {
@@ -149,48 +150,16 @@ export function ExerciseSelector({
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap gap-2">
-                  {/* Muscle Group Filter */}
-                  <select
-                    value={selectedMuscleGroup || ""}
-                    onChange={(e) => setSelectedMuscleGroup(e.target.value ? Number(e.target.value) : undefined)}
-                    className="px-3 py-1 text-sm border rounded-md bg-background"
-                  >
-                    <option value="">All Muscle Groups</option>
-                    {muscleGroups.map((mg: MuscleGroup) => (
-                      <option key={mg.id} value={mg.id}>
-                        {mg.description}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Equipment Filter */}
-                  <select
-                    value={selectedEquipment || ""}
-                    onChange={(e) => setSelectedEquipment(e.target.value ? Number(e.target.value) : undefined)}
-                    className="px-3 py-1 text-sm border rounded-md bg-background"
-                  >
-                    <option value="">All Equipment</option>
-                    {equipment.map((eq: Equipment) => (
-                      <option key={eq.id} value={eq.id}>
-                        {eq.description}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Clear Filters */}
-                  {(selectedMuscleGroup || selectedEquipment || searchQuery) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="text-xs"
-                    >
-                      <X className="w-3 h-3 mr-1" />
-                      Clear
-                    </Button>
-                  )}
-                </div>
+                <ExerciseFilters
+                  selectedMuscleGroup={selectedMuscleGroup}
+                  selectedEquipment={selectedEquipment}
+                  searchQuery={searchQuery}
+                  muscleGroups={muscleGroups}
+                  equipment={equipment}
+                  onMuscleGroupChange={setSelectedMuscleGroup}
+                  onEquipmentChange={setSelectedEquipment}
+                  onClearFilters={clearFilters}
+                />
 
                 {/* Exercise List */}
                 <div className="max-h-96 overflow-y-auto space-y-2">

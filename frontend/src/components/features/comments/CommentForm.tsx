@@ -10,7 +10,6 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { commentApi } from "@/lib/api";
 import {
-  createCommentSchema,
   type CreateCommentFormData,
 } from "@/lib/validations/comment";
 
@@ -35,6 +34,16 @@ export function CommentForm({
 }: CommentFormProps) {
   const queryClient = useQueryClient();
 
+  const validateContent = ({ value }: { value: string }): string | undefined => {
+    if (!value || value.trim().length === 0) {
+      return "Content is required"
+    }
+    if (value.length > 1000) {
+      return "Content must be less than 1000 characters"
+    }
+    return undefined
+  };
+
   const form = useForm({
     defaultValues: {
       content: "",
@@ -49,7 +58,7 @@ export function CommentForm({
     },
   });
 
-  const { mutate, isPending } = useMutation({
+  const { mutate, isPending, error } = useMutation({
     mutationFn: (data: CreateCommentFormData) => commentApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -70,15 +79,7 @@ export function CommentForm({
       <form.Field
         name="content"
         validators={{
-          onChange: ({ value }) => {
-            if (!value || value.trim().length === 0) {
-              return "Content is required"
-            }
-            if (value.length > 1000) {
-              return "Content must be less than 1000 characters"
-            }
-            return undefined
-          },
+          onChange: validateContent,
         }}
       >
         {(field) => (
@@ -95,16 +96,29 @@ export function CommentForm({
           </Field>
         )}
       </form.Field>
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={isPending}>
-          {isPending ? "Posting..." : parentCommentId ? "Reply" : "Comment"}
-        </Button>
-        {onCancel && (
-          <Button type="button" size="sm" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
+
+      {error && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+          {error instanceof Error ? error.message : "Failed to post comment"}
+        </div>
+      )}
+
+      <form.Subscribe
+        selector={(state) => [state.canSubmit, state.isSubmitting]}
+      >
+        {([canSubmit, isSubmitting]) => (
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" disabled={!canSubmit || isPending || isSubmitting}>
+              {isPending || isSubmitting ? "Posting..." : parentCommentId ? "Reply" : "Comment"}
+            </Button>
+            {onCancel && (
+              <Button type="button" size="sm" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+          </div>
         )}
-      </div>
+      </form.Subscribe>
     </form>
   );
 }

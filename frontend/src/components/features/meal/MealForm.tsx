@@ -21,6 +21,7 @@ import { FieldInfo } from "@/components/ui/form-field";
 import { mealSchema, type MealFormData } from "@/lib/validations/meal";
 import { mealApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
+import { DATE_FORMATS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface MealFormProps {
@@ -32,7 +33,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
 
   const form = useForm({
     defaultValues: {
-      date: dayjs().format("YYYY-MM-DD"),
+      date: dayjs().format(DATE_FORMATS.DATE_ONLY),
       mealTime: dayjs().format("HH:mm"),
       mealType: "breakfast" as const,
       items: [
