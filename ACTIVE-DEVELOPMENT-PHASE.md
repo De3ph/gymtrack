@@ -1,18 +1,18 @@
 **Development Phase**
 
-## Phase 1: Create an arhitectural overview in Obsidian
+## Phase 1: Create an arhitectural overview in Obsidian - DONE
 
-- [ ] Create a new vault in Obsidian
-- [ ] Create a new note called "Architecture Overview"
-- [ ] Create a new note called "Database Schema"
-- [ ] Create a new note called "API Endpoints"
-- [ ] Create a new note called "UI Components"
-- [ ] Create a new note called "Business Logic"
-- [ ] Create a new note called "Testing Strategy"
-- [ ] Create a new note called "Deployment Strategy"
-- [ ] Create a new note called "Security Considerations"
-- [ ] Create a new note called "Performance Considerations"
-- [ ] Create a new note called "Future Enhancements"
+- [x] Create a new vault in Obsidian
+- [x] Create a new note called "Architecture Overview"
+- [x] Create a new note called "Database Schema"
+- [x] Create a new note called "API Endpoints"
+- [x] Create a new note called "UI Components"
+- [x] Create a new note called "Business Logic"
+- [x] Create a new note called "Testing Strategy"
+- [x] Create a new note called "Deployment Strategy"
+- [x] Create a new note called "Security Considerations"
+- [x] Create a new note called "Performance Considerations"
+- [x] Create a new note called "Future Enhancements"
 
 ## Phase 2: Enhance AI support
 
@@ -34,17 +34,17 @@
 - [ ] Git hooks to format code before commit
 - [ ] CI / CD pipeline to run tests via GitHub Actions
 
-## Phase 4: Enhance Workout and Meal Logging
+## Phase 4: Enhance Workout and Meal Logging - DONE
 
 Currently, the workout and meal logging is quite basic.
 
-- [ ] User should pick predefined exercises from a list
-- [ ] Sets and weight options should be more convenient to use
-    - [ ] Weight should be able to enter for each set, instead of just for the entire exercise
-- [ ] Each set should have its own entires
-    - [ ] reps
-    - [ ] weight
-    - [ ] rest time
+- [x] User should pick predefined exercises from a list
+- [x] Sets and weight options should be more convenient to use
+    - [x] Weight should be able to enter for each set, instead of just for the entire exercise
+- [x] Each set should have its own entires
+    - [x] reps
+    - [x] weight
+    - [x] rest time
 
 
 ## Phase 5: UI Polishments
