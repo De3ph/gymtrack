@@ -28,6 +28,17 @@ type UserResponse struct {
 	UpdatedAt string             `json:"updatedAt"`
 }
 
+// @Summary Get current user profile
+// @Description Retrieve profile information for the authenticated user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} handlers.UserResponse "User profile retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /users/me [get]
 func (h *UserHandler) GetCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -61,6 +72,19 @@ type UpdateProfileRequest struct {
 	Profile models.UserProfile `json:"profile" binding:"required"`
 }
 
+// @Summary Update current user profile
+// @Description Update profile information for the authenticated user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param profile body handlers.UpdateProfileRequest true "Profile update data"
+// @Success 200 {object} handlers.UserResponse "User profile updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /users/me [put]
 func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {

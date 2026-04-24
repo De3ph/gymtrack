@@ -1,0 +1,351 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Trainer Availability
+  description: Trainer availability management endpoints for scheduling and booking
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /trainers/me/availability:
+    get:
+      tags:
+        - Availability
+      summary: Get trainer's own availability slots
+      description: Retrieve all availability slots for the currently authenticated trainer
+      operationId: getMyAvailability
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Slots retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAvailabilityResponse'
+              example:
+                slots:
+                  - availabilityId: "slot-001"
+                    trainerId: "trainer-123"
+                    dayOfWeek: 1
+                    startTime: "09:00"
+                    endTime: "17:00"
+                    isBooked: false
+                    type: "availability"
+                    createdAt: "2024-01-15T10:00:00Z"
+                    updatedAt: "2024-01-15T10:00:00Z"
+                  - availabilityId: "slot-002"
+                    trainerId: "trainer-123"
+                    dayOfWeek: 3
+                    startTime: "10:00"
+                    endTime: "18:00"
+                    isBooked: true
+                    type: "availability"
+                    createdAt: "2024-01-15T10:00:00Z"
+                    updatedAt: "2024-01-15T10:00:00Z"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve availability"
+
+    put:
+      tags:
+        - Availability
+      summary: Set trainer's own availability slots
+      description: Update or create availability slots for the currently authenticated trainer (replaces all existing slots)
+      operationId: setMyAvailability
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/TrainerAvailability'
+              example:
+                - dayOfWeek: 1
+                  startTime: "09:00"
+                  endTime: "17:00"
+                - dayOfWeek: 3
+                  startTime: "10:00"
+                  endTime: "18:00"
+                - dayOfWeek: 5
+                  startTime: "08:00"
+                  endTime: "16:00"
+      responses:
+        '200':
+          description: Availability updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateAvailabilityResponse'
+              example:
+                message: "availability updated successfully"
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid input data"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to update availability"
+
+  /trainers/{id}/availability:
+    get:
+      tags:
+        - Availability
+      summary: Get any trainer's availability slots
+      description: Retrieve availability slots for a specific trainer by ID (public access)
+      operationId: getTrainerAvailability
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Trainer ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          example: "trainer-123"
+      responses:
+        '200':
+          description: Slots retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAvailabilityResponse'
+              example:
+                slots:
+                  - availabilityId: "slot-001"
+                    trainerId: "trainer-123"
+                    dayOfWeek: 1
+                    startTime: "09:00"
+                    endTime: "17:00"
+                    isBooked: false
+                    type: "availability"
+                    createdAt: "2024-01-15T10:00:00Z"
+                    updatedAt: "2024-01-15T10:00:00Z"
+                  - availabilityId: "slot-002"
+                    trainerId: "trainer-123"
+                    dayOfWeek: 3
+                    startTime: "10:00"
+                    endTime: "18:00"
+                    isBooked: true
+                    type: "availability"
+                    createdAt: "2024-01-15T10:00:00Z"
+                    updatedAt: "2024-01-15T10:00:00Z"
+        '404':
+          description: Trainer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Trainer not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve availability"
+
+  /trainers/availability/{slotId}:
+    delete:
+      tags:
+        - Availability
+      summary: Delete a specific availability slot
+      description: Delete a specific availability slot by slot ID. Only the trainer who owns the slot can delete it.
+      operationId: deleteSlot
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: slotId
+          in: path
+          required: true
+          description: Availability Slot ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          example: "slot-001"
+      responses:
+        '200':
+          description: Slot deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteSlotResponse'
+              example:
+                message: "slot deleted successfully"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Forbidden - not your slot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "You do not own this availability slot"
+        '404':
+          description: Slot not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Availability slot not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to delete slot"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    TrainerAvailability:
+      type: object
+      description: TrainerAvailability model representing a single availability slot
+      required:
+        - dayOfWeek
+        - startTime
+        - endTime
+      properties:
+        availabilityId:
+          type: string
+          description: '@Description Unique identifier for the availability slot'
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        trainerId:
+          type: string
+          description: '@Description Trainer user ID'
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        dayOfWeek:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: '@Description Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)'
+          example: 1
+        startTime:
+          type: string
+          pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+          description: '@Description Start time in HH:MM format (24-hour)'
+          example: "09:00"
+        endTime:
+          type: string
+          pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+          description: '@Description End time in HH:MM format (24-hour)'
+          example: "17:00"
+        isBooked:
+          type: boolean
+          description: '@Description Whether this slot has been booked by a client'
+          example: false
+        type:
+          type: string
+          description: Always "availability"
+          example: "availability"
+        createdAt:
+          type: string
+          format: date-time
+          description: '@Description Timestamp when the slot was created'
+          example: "2024-01-15T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: '@Description Timestamp when the slot was last updated'
+          example: "2024-01-15T10:00:00Z"
+
+    GetAvailabilityResponse:
+      type: object
+      required:
+        - slots
+      properties:
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainerAvailability'
+          description: Array of availability slots
+
+    UpdateAvailabilityResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "availability updated successfully"
+
+    DeleteSlotResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "slot deleted successfully"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Availability
+    description: Trainer availability management operations

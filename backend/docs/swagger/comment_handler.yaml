@@ -1,0 +1,511 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Comments System
+  description: Comments endpoints for trainers and athletes to provide feedback on workouts and meals
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /comments:
+    get:
+      tags:
+        - Comments
+      summary: Get comments for a target
+      description: Retrieve all comments for a specific workout or meal. The user must have access to the target.
+      operationId: getComments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: targetType
+          in: query
+          required: true
+          description: Type of target (workout or meal)
+          schema:
+            type: string
+            enum: [workout, meal]
+          example: "workout"
+        - name: targetId
+          in: query
+          required: true
+          description: ID of the target (workout or meal)
+          schema:
+            type: string
+          example: "workout-001"
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCommentsResponse'
+              example:
+                comments:
+                  - commentId: "comment-001"
+                    authorId: "trainer-123"
+                    authorRole: "trainer"
+                    targetId: "workout-001"
+                    targetType: "workout"
+                    content: "Great workout! Focus on form during bench press."
+                    parentCommentId: null
+                    type: "comment"
+                    createdAt: "2024-01-15T11:00:00Z"
+                    editedAt: null
+                  - commentId: "comment-002"
+                    authorId: "athlete-456"
+                    authorRole: "athlete"
+                    targetId: "workout-001"
+                    targetType: "workout"
+                    content: "Thanks for the feedback! I'll work on my form."
+                    parentCommentId: "comment-001"
+                    type: "comment"
+                    createdAt: "2024-01-15T11:15:00Z"
+                    editedAt: null
+        '400':
+          description: Missing or invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing_params:
+                  summary: Missing required parameters
+                  value:
+                    error: "targetType and targetId are required"
+                invalid_target_type:
+                  summary: Invalid target type
+                  value:
+                    error: "targetType must be workout or meal"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not authenticated"
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Access denied"
+        '404':
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Workout or meal not found"
+        '500':
+          description: Failed to retrieve comments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve comments"
+
+    post:
+      tags:
+        - Comments
+      summary: Create a comment
+      description: Create a new comment on a workout or meal. The user must have permission to comment on the target.
+      operationId: createComment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+            examples:
+              trainer_comment:
+                summary: Trainer commenting on workout
+                value:
+                  targetType: "workout"
+                  targetId: "workout-001"
+                  content: "Great workout! Focus on keeping your back straight during squats."
+              athlete_reply:
+                summary: Athlete replying to comment
+                value:
+                  targetType: "workout"
+                  targetId: "workout-001"
+                  content: "Thanks for the tip! I'll focus on that next time."
+                  parentCommentId: "comment-001"
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+              example:
+                commentId: "comment-003"
+                authorId: "trainer-123"
+                authorRole: "trainer"
+                targetId: "workout-001"
+                targetType: "workout"
+                content: "Great workout! Focus on keeping your back straight during squats."
+                parentCommentId: null
+                type: "comment"
+                createdAt: "2024-01-15T11:30:00Z"
+                editedAt: null
+        '400':
+          description: Invalid request body or validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    error: "Invalid request body"
+                validation_failed:
+                  summary: Validation failed
+                  value:
+                    error: "Validation failed"
+                parent_not_found:
+                  summary: Parent comment not found
+                  value:
+                    error: "Parent comment not found"
+                parent_mismatch:
+                  summary: Parent comment belongs to different target
+                  value:
+                    error: "Parent comment does not belong to this target"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not authenticated"
+        '403':
+          description: Access denied or cannot comment on this target
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                access_denied:
+                  summary: Access denied
+                  value:
+                    error: "You do not have permission to comment on this"
+                target_not_found:
+                  summary: Target not found
+                  value:
+                    error: "Workout or meal not found"
+        '500':
+          description: Failed to create comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to create comment"
+
+  /comments/{id}:
+    put:
+      tags:
+        - Comments
+      summary: Update a comment
+      description: Update the content of an existing comment. Only the author can edit their comment.
+      operationId: updateComment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: string
+          example: "comment-001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentRequest'
+            example:
+              content: "Great workout! Focus on keeping your back straight during squats and maintain proper breathing."
+      responses:
+        '200':
+          description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+              example:
+                commentId: "comment-001"
+                authorId: "trainer-123"
+                authorRole: "trainer"
+                targetId: "workout-001"
+                targetType: "workout"
+                content: "Great workout! Focus on keeping your back straight during squats and maintain proper breathing."
+                parentCommentId: null
+                type: "comment"
+                createdAt: "2024-01-15T11:00:00Z"
+                editedAt: "2024-01-15T11:45:00Z"
+        '400':
+          description: Invalid request body or validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    error: "Invalid request body"
+                validation_failed:
+                  summary: Validation failed
+                  value:
+                    error: "Validation failed"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not authenticated"
+        '403':
+          description: Only the comment author can edit it
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Only the comment author can edit it"
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Comment not found"
+        '500':
+          description: Failed to update comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to update comment"
+
+    delete:
+      tags:
+        - Comments
+      summary: Delete a comment
+      description: Delete an existing comment. Only the author can delete their comment.
+      operationId: deleteComment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: string
+          example: "comment-001"
+      responses:
+        '200':
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+              example:
+                message: "Comment deleted"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not authenticated"
+        '403':
+          description: Only the comment author can delete it
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Only the comment author can delete it"
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Comment not found"
+        '500':
+          description: Failed to delete comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to delete comment"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    Comment:
+      type: object
+      required:
+        - commentId
+        - authorId
+        - authorRole
+        - content
+        - targetId
+        - targetType
+        - type
+      properties:
+        commentId:
+          type: string
+          description: Unique comment identifier
+          example: "comment-001"
+        authorId:
+          type: string
+          description: ID of the user who wrote the comment
+          example: "trainer-123"
+        authorRole:
+          $ref: '#/components/schemas/AuthorRole'
+        targetId:
+          type: string
+          description: ID of the target (workout or meal)
+          example: "workout-001"
+        targetType:
+          $ref: '#/components/schemas/TargetType'
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Content of the comment
+          example: "Great workout! Focus on keeping your back straight during squats."
+        parentCommentId:
+          type: string
+          nullable: true
+          description: ID of parent comment for threaded replies (null for top-level comments)
+          example: "comment-001"
+        type:
+          type: string
+          description: Always "comment"
+          example: "comment"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the comment was created
+          example: "2024-01-15T11:00:00Z"
+        editedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the comment was last edited (null if never edited)
+          example: "2024-01-15T11:45:00Z"
+
+    AuthorRole:
+      type: string
+      enum: [trainer, athlete]
+      description: Role of the comment author
+      example: "trainer"
+
+    TargetType:
+      type: string
+      enum: [workout, meal]
+      description: Type of target the comment is on
+      example: "workout"
+
+    CreateCommentRequest:
+      type: object
+      required:
+        - content
+        - targetId
+        - targetType
+      properties:
+        targetType:
+          $ref: '#/components/schemas/TargetType'
+        targetId:
+          type: string
+          description: ID of the target (workout or meal) to comment on
+          example: "workout-001"
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Content of the comment (1-2000 characters)
+          example: "Great workout! Focus on keeping your back straight during squats."
+        parentCommentId:
+          type: string
+          nullable: true
+          description: ID of parent comment for threaded replies (optional)
+          example: "comment-001"
+
+    UpdateCommentRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Updated content of the comment (1-2000 characters)
+          example: "Great workout! Focus on keeping your back straight during squats and maintain proper breathing."
+
+    GetCommentsResponse:
+      type: object
+      required:
+        - comments
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+          description: Array of comments for the target
+
+    DeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "Comment deleted"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Comments
+    description: Comment system for workout and meal feedback

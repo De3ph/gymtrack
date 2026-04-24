@@ -13,10 +13,12 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { cn } from "@/lib/utils";
-import { workoutSchema, type WorkoutFormData } from "@/lib/validations/workout";
 import { TIME_LIMITS } from "@/lib/constants";
 import { formField } from "@/lib/animations";
+import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
+import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
+import { WorkoutExercise, ExerciseSet } from "@/types";
+import { WorkoutWithPerSetFormData } from "@/lib/validations/workout";
 
 interface WorkoutFormProps {
   onSuccess?: () => void;
@@ -27,16 +29,21 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
 
   const form = useForm({
     defaultValues: {
-      date: dayjs().format("YYYY-MM-DD"),
+      date: new Date(),
       workoutTime: dayjs().format("HH:mm"),
       exercises: [
         {
+          exerciseId: "",
           name: "",
-          weight: 0,
-          weightUnit: "kg" as "kg" | "lbs",
-          sets: 3,
-          reps: [TIME_LIMITS.DEFAULT_REPS] as number[],
-          restTime: TIME_LIMITS.DEFAULT_REST_SECONDS as number,
+          sets: [
+            {
+              weight: 0,
+              weightUnit: "kg" as const,
+              reps: 10,
+              restTime: 60,
+              completed: false,
+            } as ExerciseSet,
+          ],
         },
       ],
     },
@@ -47,7 +54,7 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
 
   // Mutation for creating workout
   const { mutate: createWorkout, isPending } = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: WorkoutWithPerSetFormData) => {
       // Combine date and time
       const [hours, minutes] = data.workoutTime.split(":").map(Number);
       const combinedDate = dayjs(data.date)
@@ -56,9 +63,25 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
         .second(0)
         .millisecond(0);
 
+      // Convert workout exercises to the format expected by the backend API
+      const exercises = data.exercises.map((exercise: WorkoutExercise) => {
+        return {
+          exerciseId: exercise.exerciseId,
+          name: exercise.name,
+          sets: exercise.sets.map(set => ({
+            setId: "", // Backend will generate this
+            weight: set.weight,
+            weightUnit: "kg" as const,
+            reps: set.reps,
+            restTime: set.restTime || 60,
+            completed: false,
+          })),
+        };
+      });
+
       return workoutApi.create({
         date: combinedDate.toISOString(),
-        exercises: data.exercises,
+        exercises: exercises,
       });
     },
     onSuccess: () => {
@@ -87,8 +110,8 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
           <form.Field name="date">
             {(field) => (
               <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
+                value={dayjs(field.state.value).format("YYYY-MM-DD")}
+                onChange={(e) => field.handleChange(dayjs(e.target.value).toDate())}
                 onBlur={field.handleBlur}
                 type="date"
                 id="date"
@@ -115,7 +138,7 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
         {(field) => (
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
-              {field.state.value.map((_, index) => (
+              {field.state.value.map((exercise, index) => (
                 <motion.div
                   key={index}
                   variants={formField}
@@ -124,131 +147,61 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
                   exit="exit"
                   layout
                 >
-                  <Card className="relative">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => field.removeValue(index)}
-                      disabled={field.state.value.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base font-medium">
-                        Exercise {index + 1}
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-bold">
+                          {field.state.value[index]?.name || `Exercise ${index + 1}`}
+                        </CardTitle>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => field.removeValue(index)}
+                          disabled={field.state.value.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="mt-2">
+                        <form.Field name={`exercises[${index}].exerciseId`}>
+                          {(subField) => (
+                            <ExerciseSelector
+                              onSelect={(selectedExercise) => {
+                                // Update both exerciseId and name when exercise is selected
+                                const newExercises = [...field.state.value];
+                                newExercises[index] = {
+                                  ...newExercises[index],
+                                  exerciseId: selectedExercise.exerciseId,
+                                  name: selectedExercise.name,
+                                };
+                                field.setValue(newExercises);
+                              }}
+                              selectedExerciseId={subField.state.value}
+                            />
+                          )}
+                        </form.Field>
+                      </div>
                     </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                      <div className="space-y-2 col-span-2">
-                        <FieldLabel>Exercise Name</FieldLabel>
-                        <form.Field name={`exercises[${index}].name`}>
-                          {(subField) => (
-                            <Field>
-                              <Input
-                                value={subField.state.value}
-                                onChange={(e) => subField.handleChange(e.target.value)}
-                                onBlur={subField.handleBlur}
-                                placeholder="e.g. Bench Press"
-                              />
-                              <FieldInfo field={subField} />
-                            </Field>
-                          )}
-                        </form.Field>
-                      </div>
+                    <CardContent className="space-y-4">
 
-                      <div className="space-y-2">
-                        <FieldLabel>Weight & Unit</FieldLabel>
-                        <div className="flex space-x-2">
-                          <form.Field name={`exercises[${index}].weight`}>
-                            {(subField) => (
-                              <Input
-                                value={subField.state.value}
-                                onChange={(e) => subField.handleChange(Number(e.target.value))}
-                                onBlur={subField.handleBlur}
-                                type="number"
-                                step="0.5"
-                                className="flex-1"
-                                placeholder="Weight"
-                              />
-                            )}
-                          </form.Field>
-                          <form.Field name={`exercises[${index}].weightUnit`}>
-                            {(subField) => (
-                              <select
-                                value={subField.state.value}
-                                onChange={(e) => subField.handleChange(e.target.value as "kg" | "lbs")}
-                                onBlur={subField.handleBlur}
-                                className="h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                              >
-                                <option value="kg">kg</option>
-                                <option value="lbs">lbs</option>
-                              </select>
-                            )}
-                          </form.Field>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <FieldLabel>Sets & Rest</FieldLabel>
-                        <div className="flex space-x-2">
-                          <form.Field name={`exercises[${index}].sets`}>
-                            {(subField) => (
-                              <Input
-                                value={subField.state.value}
-                                onChange={(e) => subField.handleChange(Number(e.target.value))}
-                                onBlur={subField.handleBlur}
-                                type="number"
-                                placeholder="Sets"
-                              />
-                            )}
-                          </form.Field>
-                          <form.Field name={`exercises[${index}].restTime`}>
-                            {(subField) => (
-                              <Input
-                                value={subField.state.value}
-                                onChange={(e) => subField.handleChange(Number(e.target.value))}
-                                onBlur={subField.handleBlur}
-                                type="number"
-                                placeholder="Rest(s)"
-                              />
-                            )}
-                          </form.Field>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 col-span-full">
-                        <FieldLabel>Reps (comma separated for multiple sets)</FieldLabel>
-                        <form.Field name={`exercises[${index}].reps`}>
-                          {(subField) => (
-                            <>
-                              <Input
-                                value={Array.isArray(subField.state.value) ? subField.state.value.join(", ") : ""}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (value.trim()) {
-                                    subField.handleChange(
-                                      value
-                                        .split(",")
-                                        .map((n) => parseInt(n.trim()))
-                                        .filter((n) => !isNaN(n))
-                                    );
-                                  } else {
-                                    subField.handleChange([10]);
-                                  }
-                                }}
-                                onBlur={subField.handleBlur}
-                                placeholder="e.g. 10, 10, 8"
-                              />
-                              <FieldInfo field={subField} />
-                            </>
-                          )}
-                        </form.Field>
-                        <p className="text-xs text-muted-foreground">
-                          Enter reps for each set, separated by commas
-                        </p>
-                      </div>
+                      {/* Per-Set Input */}
+                      <form.Field name={`exercises[${index}].sets`}>
+                        {(subField) => (
+                          <ExerciseSetInput
+                            value={subField.state.value}
+                            onChange={(sets) => {
+                              const newExercises = [...field.state.value];
+                              newExercises[index] = {
+                                ...newExercises[index],
+                                sets: sets,
+                              };
+                              field.setValue(newExercises);
+                            }}
+                          />
+                        )}
+                      </form.Field>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -266,12 +219,17 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
               variant="outline"
               onClick={() =>
                 field.pushValue({
+                  exerciseId: "",
                   name: "",
-                  weight: 0,
-                  weightUnit: "kg",
-                  sets: 3,
-                  reps: [10],
-                  restTime: 60,
+                  sets: [
+                    {
+                      weight: 0,
+                      weightUnit: "kg" as const,
+                      reps: 10,
+                      restTime: 60,
+                      completed: false,
+                    } as ExerciseSet,
+                  ],
                 })
               }
               className="w-full md:w-auto"

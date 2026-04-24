@@ -1,0 +1,499 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - Coaching Requests
+  description: Coaching request endpoints for athletes to request training from trainers
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /coaching-requests:
+    post:
+      tags:
+        - Coaching Requests
+      summary: Create a new coaching request
+      description: Athlete creates a new coaching request to request coaching from a trainer
+      operationId: createCoachingRequest
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCoachingRequestRequest'
+            example:
+              trainerId: "trainer-123"
+              message: "I'm looking for help with strength training and nutrition planning. I have some experience with weightlifting but want to take it to the next level."
+      responses:
+        '201':
+          description: Coaching request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachingRequest'
+              example:
+                requestId: "req-001"
+                athleteId: "athlete-456"
+                trainerId: "trainer-123"
+                message: "I'm looking for help with strength training and nutrition planning. I have some experience with weightlifting but want to take it to the next level."
+                status: "pending"
+                createdAt: "2024-01-15T10:00:00Z"
+                updatedAt: "2024-01-15T10:00:00Z"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid request data"
+        '401':
+          description: Unauthorized - user not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Forbidden - only athletes can create coaching requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "only athletes can create coaching requests"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to create coaching request"
+
+  /coaching-requests/my:
+    get:
+      tags:
+        - Coaching Requests
+      summary: Get my coaching requests
+      description: Retrieve coaching requests for the current user (sent by athlete or received by trainer)
+      operationId: getMyRequests
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved coaching requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMyRequestsResponse'
+              examples:
+                athlete_requests:
+                  summary: Athlete's sent requests
+                  value:
+                    requests:
+                      - requestId: "req-001"
+                        athleteId: "athlete-456"
+                        trainerId: "trainer-123"
+                        message: "I'm looking for help with strength training and nutrition planning."
+                        status: "pending"
+                        createdAt: "2024-01-15T10:00:00Z"
+                        updatedAt: "2024-01-15T10:00:00Z"
+                      - requestId: "req-002"
+                        athleteId: "athlete-456"
+                        trainerId: "trainer-789"
+                        message: "Interested in yoga and flexibility training."
+                        status: "accepted"
+                        createdAt: "2024-01-10T14:30:00Z"
+                        updatedAt: "2024-01-12T09:15:00Z"
+                trainer_requests:
+                  summary: Trainer's received requests
+                  value:
+                    requests:
+                      - requestId: "req-003"
+                        athleteId: "athlete-111"
+                        trainerId: "trainer-123"
+                        message: "Need help with marathon training preparation."
+                        status: "pending"
+                        createdAt: "2024-01-14T16:45:00Z"
+                        updatedAt: "2024-01-14T16:45:00Z"
+        '401':
+          description: Unauthorized - user not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve coaching requests"
+
+  /coaching-requests/pending:
+    get:
+      tags:
+        - Coaching Requests
+      summary: Get pending coaching requests
+      description: Trainer retrieves all pending coaching requests they have received
+      operationId: getPendingRequests
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved pending coaching requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPendingRequestsResponse'
+              example:
+                requests:
+                  - requestId: "req-003"
+                    athleteId: "athlete-111"
+                    trainerId: "trainer-123"
+                    message: "Need help with marathon training preparation."
+                    status: "pending"
+                    createdAt: "2024-01-14T16:45:00Z"
+                    updatedAt: "2024-01-14T16:45:00Z"
+                  - requestId: "req-004"
+                    athleteId: "athlete-222"
+                    trainerId: "trainer-123"
+                    message: "Looking for a personal trainer for weight loss journey."
+                    status: "pending"
+                    createdAt: "2024-01-13T11:20:00Z"
+                    updatedAt: "2024-01-13T11:20:00Z"
+        '401':
+          description: Unauthorized - user not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Forbidden - only trainers can view pending requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "only trainers can view pending requests"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to retrieve pending requests"
+
+  /coaching-requests/{id}/accept:
+    post:
+      tags:
+        - Coaching Requests
+      summary: Accept a coaching request
+      description: Trainer accepts a coaching request from an athlete
+      operationId: acceptCoachingRequest
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Coaching request ID
+          schema:
+            type: string
+          example: "req-001"
+      responses:
+        '200':
+          description: Coaching request accepted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptCoachingRequestResponse'
+              example:
+                message: "coaching request accepted"
+                relationship:
+                  relationshipId: "rel-001"
+                  trainerId: "trainer-123"
+                  athleteId: "athlete-456"
+                  status: "active"
+                  createdAt: "2024-01-15T10:00:00Z"
+                  updatedAt: "2024-01-15T10:30:00Z"
+        '400':
+          description: Invalid request or coaching request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                not_found:
+                  summary: Request not found
+                  value:
+                    error: "Coaching request not found"
+                already_processed:
+                  summary: Request already processed
+                  value:
+                    error: "Coaching request has already been processed"
+        '401':
+          description: Unauthorized - user not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Forbidden - only trainers can accept coaching requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "only trainers can accept coaching requests"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to accept coaching request"
+
+  /coaching-requests/{id}/reject:
+    post:
+      tags:
+        - Coaching Requests
+      summary: Reject a coaching request
+      description: Trainer rejects a coaching request from an athlete
+      operationId: rejectCoachingRequest
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Coaching request ID
+          schema:
+            type: string
+          example: "req-002"
+      responses:
+        '200':
+          description: Coaching request rejected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RejectCoachingRequestResponse'
+              example:
+                message: "coaching request rejected"
+        '400':
+          description: Invalid request or coaching request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                not_found:
+                  summary: Request not found
+                  value:
+                    error: "Coaching request not found"
+                already_processed:
+                  summary: Request already processed
+                  value:
+                    error: "Coaching request has already been processed"
+        '401':
+          description: Unauthorized - user not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "unauthorized"
+        '403':
+          description: Forbidden - only trainers can reject coaching requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "only trainers can reject coaching requests"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to reject coaching request"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    CoachingRequest:
+      type: object
+      required:
+        - requestId
+        - athleteId
+        - trainerId
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        requestId:
+          type: string
+          description: Unique coaching request identifier
+          example: "req-001"
+        athleteId:
+          type: string
+          description: Athlete user ID who sent the request
+          example: "athlete-456"
+        trainerId:
+          type: string
+          description: Trainer user ID who received the request
+          example: "trainer-123"
+        message:
+          type: string
+          description: Message from athlete to trainer
+          example: "I'm looking for help with strength training and nutrition planning."
+        status:
+          $ref: '#/components/schemas/CoachingRequestStatus'
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the request was created
+          example: "2024-01-15T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the request was last updated
+          example: "2024-01-15T10:00:00Z"
+
+    CoachingRequestStatus:
+      type: string
+      enum: [pending, accepted, rejected]
+      description: Status of the coaching request
+      example: "pending"
+
+    CreateCoachingRequestRequest:
+      type: object
+      required:
+        - trainerId
+      properties:
+        trainerId:
+          type: string
+          description: ID of the trainer to request coaching from
+          example: "trainer-123"
+        message:
+          type: string
+          description: Optional message to the trainer explaining goals or requirements
+          example: "I'm looking for help with strength training and nutrition planning. I have some experience with weightlifting but want to take it to the next level."
+
+    GetMyRequestsResponse:
+      type: object
+      required:
+        - requests
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachingRequest'
+          description: Array of coaching requests for the current user
+
+    GetPendingRequestsResponse:
+      type: object
+      required:
+        - requests
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachingRequest'
+          description: Array of pending coaching requests for the trainer
+
+    AcceptCoachingRequestResponse:
+      type: object
+      required:
+        - message
+        - relationship
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "coaching request accepted"
+        relationship:
+          type: object
+          description: Created trainer-athlete relationship
+          required:
+            - relationshipId
+            - trainerId
+            - athleteId
+            - status
+            - createdAt
+            - updatedAt
+          properties:
+            relationshipId:
+              type: string
+              description: Unique relationship identifier
+              example: "rel-001"
+            trainerId:
+              type: string
+              description: Trainer user ID
+              example: "trainer-123"
+            athleteId:
+              type: string
+              description: Athlete user ID
+              example: "athlete-456"
+            status:
+              type: string
+              description: Relationship status
+              example: "active"
+            createdAt:
+              type: string
+              format: date-time
+              description: Relationship creation timestamp
+              example: "2024-01-15T10:00:00Z"
+            updatedAt:
+              type: string
+              format: date-time
+              description: Relationship update timestamp
+              example: "2024-01-15T10:30:00Z"
+
+    RejectCoachingRequestResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "coaching request rejected"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: Coaching Requests
+    description: Coaching request management operations

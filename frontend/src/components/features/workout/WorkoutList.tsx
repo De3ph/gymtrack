@@ -21,8 +21,19 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { workoutApi } from "@/lib/api";
-import { Workout } from "@/types";
+import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import { EditWorkoutDialog } from "./EditWorkoutDialog";
 import { CommentThread } from "@/components/features/comments/CommentThread";
 import { TIME_LIMITS, TARGET_TYPES } from "@/lib/constants";
@@ -45,6 +56,7 @@ export function WorkoutList({
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<
     string | null
   >(null);
+  const [deleteConfirm, setDeleteConfirm] = React.useState<Workout | null>(null);
 
   // Only fetch data if not provided as props
   const { data, isLoading } = useQuery({
@@ -56,7 +68,14 @@ export function WorkoutList({
   const { mutate: deleteWorkout } = useMutation({
     mutationFn: (id: string) => workoutApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["workouts"],
+        refetchType: "active" // Only refetch active queries
+      });
+    },
+    onError: (error) => {
+      // TODO: Show toast notification with error message
+      console.error("Failed to delete workout:", error);
     },
   });
 
@@ -120,13 +139,34 @@ export function WorkoutList({
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
+                        <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Workout</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this workout? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                variant="destructive"
+                                onClick={() => {
+                                  if (deleteConfirm) {
+                                    deleteWorkout(deleteConfirm.workoutId);
+                                    setDeleteConfirm(null);
+                                  }
+                                }}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            if (confirm("Are you sure?"))
-                              deleteWorkout(workout.workoutId);
-                          }}
+                          onClick={() => setDeleteConfirm(workout)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -137,13 +177,18 @@ export function WorkoutList({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  {workout.exercises.map((ex, i) => (
+                  {workout.exercises.map((ex: WorkoutExercise, i: number) => (
                     <div key={i} className="flex items-center text-sm">
                       <Dumbbell className="mr-2 h-4 w-4 text-muted-foreground" />
                       <span className="font-medium mr-2">{ex.name}:</span>
                       <span className="text-muted-foreground">
-                        {ex.sets} x {ex.reps.join(", ")} @ {ex.weight}
-                        {ex.weightUnit}
+                        {ex.sets && ex.sets.length > 0 ? (
+                          <>
+                            {ex.sets.length} sets x {ex.sets.map((set: ExerciseSet) => `${set.reps} reps @ ${set.weight}${set.weightUnit || 'kg'}`).join(', ')}
+                          </>
+                        ) : (
+                          'No sets defined'
+                        )}
                       </span>
                     </div>
                   ))}

@@ -135,7 +135,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.CreateCoachingRequestRequest"
+                            "$ref": "#/definitions/handlers.CreateCoachingRequestRequest"
                         }
                     }
                 ],
@@ -516,7 +516,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.CreateCommentRequest"
+                            "$ref": "#/definitions/handlers.CreateCommentRequest"
                         }
                     }
                 ],
@@ -524,7 +524,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Comment created successfully",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Comment"
+                            "$ref": "#/definitions/models.Comment"
                         }
                     },
                     "400": {
@@ -607,7 +607,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.UpdateCommentRequest"
+                            "$ref": "#/definitions/handlers.UpdateCommentRequest"
                         }
                     }
                 ],
@@ -615,7 +615,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Comment updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Comment"
+                            "$ref": "#/definitions/models.Comment"
                         }
                     },
                     "400": {
@@ -740,6 +740,367 @@ const docTemplate = `{
                 }
             }
         },
+        "/exercises": {
+            "get": {
+                "description": "Retrieve all available exercises in the database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Get all exercises",
+                "responses": {
+                    "200": {
+                        "description": "Exercises retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Exercise"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new custom exercise (requires authentication)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Create custom exercise",
+                "parameters": [
+                    {
+                        "description": "Exercise creation data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateExerciseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Exercise created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Exercise"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/exercises/equipment": {
+            "get": {
+                "description": "Retrieve all available equipment types for exercise filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Get all equipment types",
+                "responses": {
+                    "200": {
+                        "description": "Equipment types retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.EquipmentDefinition"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/exercises/equipment/{id}": {
+            "get": {
+                "description": "Retrieve all exercises that require specific equipment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Get exercises by equipment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Equipment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exercises retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Exercise"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid equipment ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/exercises/muscle-groups": {
+            "get": {
+                "description": "Retrieve all available muscle groups for exercise categorization",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Get all muscle groups",
+                "responses": {
+                    "200": {
+                        "description": "Muscle groups retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.MuscleGroupDefinition"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/exercises/muscle-groups/{id}": {
+            "get": {
+                "description": "Retrieve all exercises that target a specific muscle group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Get exercises by muscle group",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Muscle Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exercises retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Exercise"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid muscle group ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/exercises/search": {
+            "get": {
+                "description": "Search exercises with optional filters for name, muscle group, and equipment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Search exercises",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query for exercise name",
+                        "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by muscle group ID",
+                        "name": "muscleGroupId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by equipment ID",
+                        "name": "equipmentId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exercises retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Exercise"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid search parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/exercises/{id}": {
+            "get": {
+                "description": "Retrieve detailed information for a specific exercise",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exercises"
+                ],
+                "summary": "Get exercise by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exercise ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exercise retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Exercise"
+                        }
+                    },
+                    "404": {
+                        "description": "Exercise not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/meals": {
             "get": {
                 "security": [
@@ -845,7 +1206,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.CreateMealRequest"
+                            "$ref": "#/definitions/handlers.CreateMealRequest"
                         }
                     }
                 ],
@@ -853,7 +1214,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Meal created successfully",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Meal"
+                            "$ref": "#/definitions/models.Meal"
                         }
                     },
                     "400": {
@@ -926,7 +1287,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Meal retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Meal"
+                            "$ref": "#/definitions/models.Meal"
                         }
                     },
                     "403": {
@@ -980,7 +1341,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.UpdateMealRequest"
+                            "$ref": "#/definitions/handlers.UpdateMealRequest"
                         }
                     }
                 ],
@@ -988,7 +1349,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Meal updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Meal"
+                            "$ref": "#/definitions/models.Meal"
                         }
                     },
                     "400": {
@@ -1120,7 +1481,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.AcceptInvitationRequest"
+                            "$ref": "#/definitions/handlers.AcceptInvitationRequest"
                         }
                     }
                 ],
@@ -1191,7 +1552,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.GetClientDetailsResponse"
+                            "$ref": "#/definitions/handlers.GetClientDetailsResponse"
                         }
                     },
                     "401": {
@@ -1253,7 +1614,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success\" {\"workoutStats\": WorkoutStats, \"mealStats\": MealStats}",
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.GetClientStatsResponse"
+                            "$ref": "#/definitions/handlers.GetClientStatsResponse"
                         }
                     },
                     "401": {
@@ -1552,7 +1913,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.UpdateReviewRequest"
+                            "$ref": "#/definitions/handlers.UpdateReviewRequest"
                         }
                     }
                 ],
@@ -1893,7 +2254,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TrainerAvailability"
+                                "$ref": "#/definitions/models.TrainerAvailability"
                             }
                         }
                     }
@@ -1952,7 +2313,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successfully retrieved trainer profile",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TrainerWithProfile"
+                            "$ref": "#/definitions/models.TrainerWithProfile"
                         }
                     },
                     "401": {
@@ -2009,7 +2370,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TrainerProfile"
+                            "$ref": "#/definitions/models.TrainerProfile"
                         }
                     }
                 ],
@@ -2071,7 +2432,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successfully retrieved trainer",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TrainerWithProfile"
+                            "$ref": "#/definitions/models.TrainerWithProfile"
                         }
                     },
                     "404": {
@@ -2209,7 +2570,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.CreateReviewRequest"
+                            "$ref": "#/definitions/handlers.CreateReviewRequest"
                         }
                     }
                 ],
@@ -2217,7 +2578,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Review created successfully",
                         "schema": {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TrainerReview"
+                            "$ref": "#/definitions/models.TrainerReview"
                         }
                     },
                     "400": {
@@ -2266,7 +2627,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the profile information of the user associated with the provided JWT token.",
+                "description": "Retrieve profile information for the authenticated user",
                 "consumes": [
                     "application/json"
                 ],
@@ -2274,41 +2635,35 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Get current user profile",
                 "responses": {
                     "200": {
-                        "description": "Successfully retrieved user profile",
+                        "description": "User profile retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.UserResponse"
+                            "$ref": "#/definitions/handlers.UserResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - Invalid or missing JWT token",
+                        "description": "Unauthorized - user not authenticated",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -2319,7 +2674,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates the profile information for the authenticated user. Returns the updated user data.",
+                "description": "Update profile information for the authenticated user",
                 "consumes": [
                     "application/json"
                 ],
@@ -2327,61 +2682,53 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Update current user profile",
                 "parameters": [
                     {
-                        "description": "Update profile request containing the updated profile data",
-                        "name": "request",
+                        "description": "Profile update data",
+                        "name": "profile",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.UpdateProfileRequest"
+                            "$ref": "#/definitions/handlers.UpdateProfileRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully updated user profile",
+                        "description": "User profile updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/internal_api_handlers.UserResponse"
+                            "$ref": "#/definitions/handlers.UserResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request - Invalid input data",
+                        "description": "Invalid request body",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - Invalid or missing JWT token",
+                        "description": "Unauthorized - user not authenticated",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -2389,7 +2736,483 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "gymtrack-backend_internal_domain_models.AuthorRole": {
+        "handlers.AcceptInvitationRequest": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ClientStats": {
+            "type": "object",
+            "properties": {
+                "mealsThisWeek": {
+                    "type": "integer"
+                },
+                "totalMeals": {
+                    "type": "integer"
+                },
+                "totalWorkouts": {
+                    "type": "integer"
+                },
+                "workoutsThisWeek": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreateCoachingRequestRequest": {
+            "type": "object",
+            "required": [
+                "trainerId"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "trainerId": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CreateCommentRequest": {
+            "description": "Request body for creating a new comment on a workout or meal.",
+            "type": "object",
+            "required": [
+                "content",
+                "targetId",
+                "targetType"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "minLength": 1
+                },
+                "parentCommentId": {
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
+                },
+                "targetType": {
+                    "$ref": "#/definitions/models.TargetType"
+                }
+            }
+        },
+        "handlers.CreateExerciseRequest": {
+            "type": "object",
+            "required": [
+                "category",
+                "equipmentId",
+                "muscleGroupId",
+                "name"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "equipmentId": {
+                    "type": "integer"
+                },
+                "muscleGroupId": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CreateMealRequest": {
+            "description": "Request body for creating a new meal entry",
+            "type": "object",
+            "required": [
+                "date",
+                "items",
+                "mealType"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/models.FoodItem"
+                    }
+                },
+                "mealType": {
+                    "enum": [
+                        "breakfast",
+                        "lunch",
+                        "dinner",
+                        "snack"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.MealType"
+                        }
+                    ]
+                }
+            }
+        },
+        "handlers.CreateReviewRequest": {
+            "description": "Request body for creating a review for a trainer.",
+            "type": "object",
+            "required": [
+                "rating"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
+                }
+            }
+        },
+        "handlers.CreateWorkoutRequest": {
+            "description": "Request to create a new workout",
+            "type": "object",
+            "required": [
+                "date",
+                "exercises"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "exercises": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/models.WorkoutExercise"
+                    }
+                }
+            }
+        },
+        "handlers.ExerciseStat": {
+            "type": "object",
+            "properties": {
+                "maxWeight": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "totalReps": {
+                    "type": "integer"
+                },
+                "totalSets": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.GetClientDetailsResponse": {
+            "type": "object",
+            "properties": {
+                "athlete": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "relationship": {
+                    "$ref": "#/definitions/models.Relationship"
+                },
+                "stats": {
+                    "$ref": "#/definitions/handlers.ClientStats"
+                }
+            }
+        },
+        "handlers.GetClientStatsResponse": {
+            "type": "object",
+            "properties": {
+                "mealStats": {
+                    "$ref": "#/definitions/handlers.MealStats"
+                },
+                "workoutStats": {
+                    "$ref": "#/definitions/handlers.WorkoutStats"
+                }
+            }
+        },
+        "handlers.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "test@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password123"
+                }
+            }
+        },
+        "handlers.MealStats": {
+            "type": "object",
+            "properties": {
+                "averageCalories": {
+                    "type": "number"
+                },
+                "averageCarbs": {
+                    "type": "number"
+                },
+                "averageFats": {
+                    "type": "number"
+                },
+                "averageProtein": {
+                    "type": "number"
+                },
+                "mealTypeBreakdown": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.MealTypeStat"
+                    }
+                },
+                "weeklyAverages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.WeeklyMealAvg"
+                    }
+                }
+            }
+        },
+        "handlers.MealTypeStat": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "mealType": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.RefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "refreshToken"
+            ],
+            "properties": {
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "role"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "test@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password123"
+                },
+                "profile": {},
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "trainer",
+                        "athlete"
+                    ],
+                    "example": "athlete"
+                }
+            }
+        },
+        "handlers.UpdateCommentRequest": {
+            "description": "Request body for updating an existing comment's content.",
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "minLength": 1
+                }
+            }
+        },
+        "handlers.UpdateMealRequest": {
+            "description": "Request body for updating an existing meal entry",
+            "type": "object",
+            "required": [
+                "date",
+                "items",
+                "mealType"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/models.FoodItem"
+                    }
+                },
+                "mealType": {
+                    "enum": [
+                        "breakfast",
+                        "lunch",
+                        "dinner",
+                        "snack"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.MealType"
+                        }
+                    ]
+                }
+            }
+        },
+        "handlers.UpdateProfileRequest": {
+            "type": "object",
+            "required": [
+                "profile"
+            ],
+            "properties": {
+                "profile": {
+                    "$ref": "#/definitions/models.UserProfile"
+                }
+            }
+        },
+        "handlers.UpdateReviewRequest": {
+            "description": "Request body for updating an existing review.",
+            "type": "object",
+            "required": [
+                "rating"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
+                }
+            }
+        },
+        "handlers.UpdateWorkoutRequest": {
+            "description": "Request to update an existing workout",
+            "type": "object",
+            "required": [
+                "date",
+                "exercises"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "exercises": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/models.WorkoutExercise"
+                    }
+                }
+            }
+        },
+        "handlers.UserResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "profile": {
+                    "$ref": "#/definitions/models.UserProfile"
+                },
+                "role": {
+                    "$ref": "#/definitions/models.UserRole"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.WeeklyMealAvg": {
+            "type": "object",
+            "properties": {
+                "calories": {
+                    "type": "number"
+                },
+                "carbs": {
+                    "type": "number"
+                },
+                "fats": {
+                    "type": "number"
+                },
+                "protein": {
+                    "type": "number"
+                },
+                "week": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.WeeklyVolumePoint": {
+            "type": "object",
+            "properties": {
+                "volume": {
+                    "type": "number"
+                },
+                "week": {
+                    "type": "string"
+                },
+                "workouts": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.WorkoutStats": {
+            "type": "object",
+            "properties": {
+                "consistency": {
+                    "description": "percentage",
+                    "type": "number"
+                },
+                "exerciseBreakdown": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ExerciseStat"
+                    }
+                },
+                "totalVolume": {
+                    "type": "number"
+                },
+                "weeklyVolume": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.WeeklyVolumePoint"
+                    }
+                }
+            }
+        },
+        "models.AuthorRole": {
             "type": "string",
             "enum": [
                 "trainer",
@@ -2400,7 +3223,7 @@ const docTemplate = `{
                 "AuthorRoleAthlete"
             ]
         },
-        "gymtrack-backend_internal_domain_models.Comment": {
+        "models.Comment": {
             "type": "object",
             "required": [
                 "authorId",
@@ -2420,7 +3243,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.AuthorRole"
+                            "$ref": "#/definitions/models.AuthorRole"
                         }
                     ]
                 },
@@ -2451,7 +3274,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TargetType"
+                            "$ref": "#/definitions/models.TargetType"
                         }
                     ]
                 },
@@ -2461,36 +3284,74 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.Exercise": {
+        "models.EquipmentDefinition": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Exercise": {
             "type": "object",
             "required": [
-                "name",
-                "reps",
-                "sets",
-                "weight",
-                "weightUnit"
+                "name"
             ],
             "properties": {
+                "category": {
+                    "description": "strength, cardio, flexibility",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "description": "athlete ID for custom exercises",
+                    "type": "string"
+                },
+                "equipmentId": {
+                    "type": "integer"
+                },
                 "exerciseId": {
                     "type": "string"
                 },
-                "name": {
+                "instructions": {
                     "type": "string"
                 },
+                "muscleGroupId": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ExerciseSet": {
+            "type": "object",
+            "required": [
+                "weightUnit"
+            ],
+            "properties": {
+                "completed": {
+                    "description": "for workout tracking",
+                    "type": "boolean"
+                },
                 "reps": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
+                    "type": "integer"
                 },
                 "restTime": {
                     "description": "in seconds",
                     "type": "integer",
                     "minimum": 0
                 },
-                "sets": {
-                    "type": "integer"
+                "setId": {
+                    "type": "string"
                 },
                 "weight": {
                     "type": "number",
@@ -2503,13 +3364,13 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.WeightUnit"
+                            "$ref": "#/definitions/models.WeightUnit"
                         }
                     ]
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.FoodItem": {
+        "models.FoodItem": {
             "type": "object",
             "required": [
                 "food",
@@ -2524,14 +3385,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "macros": {
-                    "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Macros"
+                    "$ref": "#/definitions/models.Macros"
                 },
                 "quantity": {
                     "type": "string"
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.Macros": {
+        "models.Macros": {
             "type": "object",
             "properties": {
                 "carbs": {
@@ -2548,7 +3409,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.Meal": {
+        "models.Meal": {
             "type": "object",
             "required": [
                 "athleteId",
@@ -2570,7 +3431,7 @@ const docTemplate = `{
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/gymtrack-backend_internal_domain_models.FoodItem"
+                        "$ref": "#/definitions/models.FoodItem"
                     }
                 },
                 "mealId": {
@@ -2585,7 +3446,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.MealType"
+                            "$ref": "#/definitions/models.MealType"
                         }
                     ]
                 },
@@ -2598,7 +3459,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.MealType": {
+        "models.MealType": {
             "type": "string",
             "enum": [
                 "breakfast",
@@ -2613,7 +3474,21 @@ const docTemplate = `{
                 "MealTypeSnack"
             ]
         },
-        "gymtrack-backend_internal_domain_models.Relationship": {
+        "models.MuscleGroupDefinition": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Relationship": {
             "type": "object",
             "required": [
                 "athleteId",
@@ -2638,7 +3513,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.RelationshipStatus"
+                            "$ref": "#/definitions/models.RelationshipStatus"
                         }
                     ]
                 },
@@ -2654,7 +3529,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.RelationshipStatus": {
+        "models.RelationshipStatus": {
             "type": "string",
             "enum": [
                 "pending",
@@ -2667,7 +3542,7 @@ const docTemplate = `{
                 "RelationshipStatusTerminated"
             ]
         },
-        "gymtrack-backend_internal_domain_models.TargetType": {
+        "models.TargetType": {
             "type": "string",
             "enum": [
                 "workout",
@@ -2678,7 +3553,7 @@ const docTemplate = `{
                 "TargetTypeMeal"
             ]
         },
-        "gymtrack-backend_internal_domain_models.TrainerAvailability": {
+        "models.TrainerAvailability": {
             "description": "TrainerAvailability model representing a single availability slot",
             "type": "object",
             "properties": {
@@ -2728,7 +3603,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.TrainerProfile": {
+        "models.TrainerProfile": {
             "type": "object",
             "properties": {
                 "bio": {
@@ -2757,7 +3632,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.TrainerReview": {
+        "models.TrainerReview": {
             "type": "object",
             "required": [
                 "rating"
@@ -2792,7 +3667,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.TrainerWithProfile": {
+        "models.TrainerWithProfile": {
             "type": "object",
             "required": [
                 "email",
@@ -2812,7 +3687,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "profile": {
-                    "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TrainerProfile"
+                    "$ref": "#/definitions/models.TrainerProfile"
                 },
                 "reviewCount": {
                     "type": "integer"
@@ -2824,7 +3699,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserRole"
+                            "$ref": "#/definitions/models.UserRole"
                         }
                     ]
                 },
@@ -2840,7 +3715,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.User": {
+        "models.User": {
             "type": "object",
             "required": [
                 "email",
@@ -2857,7 +3732,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "profile": {
-                    "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserProfile"
+                    "$ref": "#/definitions/models.UserProfile"
                 },
                 "role": {
                     "enum": [
@@ -2866,7 +3741,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserRole"
+                            "$ref": "#/definitions/models.UserRole"
                         }
                     ]
                 },
@@ -2882,7 +3757,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.UserProfile": {
+        "models.UserProfile": {
             "type": "object",
             "properties": {
                 "age": {
@@ -2920,7 +3795,7 @@ const docTemplate = `{
                 }
             }
         },
-        "gymtrack-backend_internal_domain_models.UserRole": {
+        "models.UserRole": {
             "type": "string",
             "enum": [
                 "trainer",
@@ -2931,7 +3806,7 @@ const docTemplate = `{
                 "RoleAthlete"
             ]
         },
-        "gymtrack-backend_internal_domain_models.WeightUnit": {
+        "models.WeightUnit": {
             "type": "string",
             "enum": [
                 "kg",
@@ -2942,7 +3817,7 @@ const docTemplate = `{
                 "WeightUnitLbs"
             ]
         },
-        "gymtrack-backend_internal_domain_models.Workout": {
+        "models.Workout": {
             "type": "object",
             "required": [
                 "athleteId",
@@ -2963,7 +3838,7 @@ const docTemplate = `{
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Exercise"
+                        "$ref": "#/definitions/models.WorkoutExercise"
                     }
                 },
                 "type": {
@@ -2978,471 +3853,27 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_api_handlers.AcceptInvitationRequest": {
+        "models.WorkoutExercise": {
             "type": "object",
             "required": [
-                "code"
+                "sets"
             ],
             "properties": {
-                "code": {
+                "exerciseId": {
                     "type": "string"
-                }
-            }
-        },
-        "internal_api_handlers.ClientStats": {
-            "type": "object",
-            "properties": {
-                "mealsThisWeek": {
-                    "type": "integer"
-                },
-                "totalMeals": {
-                    "type": "integer"
-                },
-                "totalWorkouts": {
-                    "type": "integer"
-                },
-                "workoutsThisWeek": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_api_handlers.CreateCoachingRequestRequest": {
-            "type": "object",
-            "required": [
-                "trainerId"
-            ],
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "trainerId": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_api_handlers.CreateCommentRequest": {
-            "description": "Request body for creating a new comment on a workout or meal.",
-            "type": "object",
-            "required": [
-                "content",
-                "targetId",
-                "targetType"
-            ],
-            "properties": {
-                "content": {
-                    "type": "string",
-                    "maxLength": 2000,
-                    "minLength": 1
-                },
-                "parentCommentId": {
-                    "type": "string"
-                },
-                "targetId": {
-                    "type": "string"
-                },
-                "targetType": {
-                    "$ref": "#/definitions/gymtrack-backend_internal_domain_models.TargetType"
-                }
-            }
-        },
-        "internal_api_handlers.CreateMealRequest": {
-            "description": "Request body for creating a new meal entry",
-            "type": "object",
-            "required": [
-                "date",
-                "items",
-                "mealType"
-            ],
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "items": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/gymtrack-backend_internal_domain_models.FoodItem"
-                    }
-                },
-                "mealType": {
-                    "enum": [
-                        "breakfast",
-                        "lunch",
-                        "dinner",
-                        "snack"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.MealType"
-                        }
-                    ]
-                }
-            }
-        },
-        "internal_api_handlers.CreateReviewRequest": {
-            "description": "Request body for creating a review for a trainer.",
-            "type": "object",
-            "required": [
-                "rating"
-            ],
-            "properties": {
-                "comment": {
-                    "type": "string"
-                },
-                "rating": {
-                    "type": "integer",
-                    "maximum": 5,
-                    "minimum": 1
-                }
-            }
-        },
-        "internal_api_handlers.CreateWorkoutRequest": {
-            "description": "Request to create a new workout",
-            "type": "object",
-            "required": [
-                "date",
-                "exercises"
-            ],
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "exercises": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Exercise"
-                    }
-                }
-            }
-        },
-        "internal_api_handlers.ExerciseStat": {
-            "type": "object",
-            "properties": {
-                "maxWeight": {
-                    "type": "number"
                 },
                 "name": {
+                    "description": "denormalized for convenience",
                     "type": "string"
                 },
-                "totalReps": {
-                    "type": "integer"
-                },
-                "totalSets": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_api_handlers.GetClientDetailsResponse": {
-            "type": "object",
-            "properties": {
-                "athlete": {
-                    "$ref": "#/definitions/gymtrack-backend_internal_domain_models.User"
-                },
-                "relationship": {
-                    "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Relationship"
-                },
-                "stats": {
-                    "$ref": "#/definitions/internal_api_handlers.ClientStats"
-                }
-            }
-        },
-        "internal_api_handlers.GetClientStatsResponse": {
-            "type": "object",
-            "properties": {
-                "mealStats": {
-                    "$ref": "#/definitions/internal_api_handlers.MealStats"
-                },
-                "workoutStats": {
-                    "$ref": "#/definitions/internal_api_handlers.WorkoutStats"
-                }
-            }
-        },
-        "internal_api_handlers.LoginRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "test@example.com"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "password123"
-                }
-            }
-        },
-        "internal_api_handlers.MealStats": {
-            "type": "object",
-            "properties": {
-                "averageCalories": {
-                    "type": "number"
-                },
-                "averageCarbs": {
-                    "type": "number"
-                },
-                "averageFats": {
-                    "type": "number"
-                },
-                "averageProtein": {
-                    "type": "number"
-                },
-                "mealTypeBreakdown": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/internal_api_handlers.MealTypeStat"
-                    }
-                },
-                "weeklyAverages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/internal_api_handlers.WeeklyMealAvg"
-                    }
-                }
-            }
-        },
-        "internal_api_handlers.MealTypeStat": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "mealType": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_api_handlers.RegisterRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password",
-                "role"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "test@example.com"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password123"
-                },
-                "profile": {
-                    "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserProfile"
-                },
-                "role": {
-                    "enum": [
-                        "trainer",
-                        "athlete"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserRole"
-                        }
-                    ],
-                    "example": "athlete"
-                }
-            }
-        },
-        "internal_api_handlers.UpdateCommentRequest": {
-            "description": "Request body for updating an existing comment's content.",
-            "type": "object",
-            "required": [
-                "content"
-            ],
-            "properties": {
-                "content": {
-                    "type": "string",
-                    "maxLength": 2000,
-                    "minLength": 1
-                }
-            }
-        },
-        "internal_api_handlers.UpdateMealRequest": {
-            "description": "Request body for updating an existing meal entry",
-            "type": "object",
-            "required": [
-                "date",
-                "items",
-                "mealType"
-            ],
-            "properties": {
-                "date": {
+                "notes": {
                     "type": "string"
                 },
-                "items": {
+                "sets": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/gymtrack-backend_internal_domain_models.FoodItem"
-                    }
-                },
-                "mealType": {
-                    "enum": [
-                        "breakfast",
-                        "lunch",
-                        "dinner",
-                        "snack"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.MealType"
-                        }
-                    ]
-                }
-            }
-        },
-        "internal_api_handlers.UpdateProfileRequest": {
-            "description": "UpdateProfileRequest is used to modify user profile information.",
-            "type": "object",
-            "required": [
-                "profile"
-            ],
-            "properties": {
-                "profile": {
-                    "description": "Profile contains the updated profile information.\n@Description The user's profile data including personal details and role-specific fields.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserProfile"
-                        }
-                    ]
-                }
-            }
-        },
-        "internal_api_handlers.UpdateReviewRequest": {
-            "description": "Request body for updating an existing review.",
-            "type": "object",
-            "required": [
-                "rating"
-            ],
-            "properties": {
-                "comment": {
-                    "type": "string"
-                },
-                "rating": {
-                    "type": "integer",
-                    "maximum": 5,
-                    "minimum": 1
-                }
-            }
-        },
-        "internal_api_handlers.UpdateWorkoutRequest": {
-            "description": "Request to update an existing workout",
-            "type": "object",
-            "required": [
-                "date",
-                "exercises"
-            ],
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "exercises": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/gymtrack-backend_internal_domain_models.Exercise"
-                    }
-                }
-            }
-        },
-        "internal_api_handlers.UserResponse": {
-            "description": "UserResponse contains all user information except the password hash.",
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "description": "CreatedAt is the timestamp when the user account was created.\n@Description The creation timestamp of the user account.\n@Example 2024-01-01T00:00:00Z",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "Email is the user's email address.\n@Description The user's registered email address.\n@Example user@example.com",
-                    "type": "string"
-                },
-                "profile": {
-                    "description": "Profile contains user-specific profile information.\n@Description The user's profile data including personal details and role-specific fields.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserProfile"
-                        }
-                    ]
-                },
-                "role": {
-                    "description": "Role is the user's role in the system (trainer or athlete).\n@Description The user's role determining their permissions and capabilities.\n@Example athlete\n@Enum trainer,athlete",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gymtrack-backend_internal_domain_models.UserRole"
-                        }
-                    ]
-                },
-                "updatedAt": {
-                    "description": "UpdatedAt is the timestamp when the user was last updated.\n@Description The last update timestamp of the user account.\n@Example 2024-01-01T00:00:00Z",
-                    "type": "string"
-                },
-                "userId": {
-                    "description": "UserID is the unique identifier for the user.\n@Description The unique UUID of the user.\n@Example 123e4567-e89b-12d3-a456-426614174000",
-                    "type": "string"
-                }
-            }
-        },
-        "internal_api_handlers.WeeklyMealAvg": {
-            "type": "object",
-            "properties": {
-                "calories": {
-                    "type": "number"
-                },
-                "carbs": {
-                    "type": "number"
-                },
-                "fats": {
-                    "type": "number"
-                },
-                "protein": {
-                    "type": "number"
-                },
-                "week": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_api_handlers.WeeklyVolumePoint": {
-            "type": "object",
-            "properties": {
-                "volume": {
-                    "type": "number"
-                },
-                "week": {
-                    "type": "string"
-                },
-                "workouts": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_api_handlers.WorkoutStats": {
-            "type": "object",
-            "properties": {
-                "consistency": {
-                    "description": "percentage",
-                    "type": "number"
-                },
-                "exerciseBreakdown": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/internal_api_handlers.ExerciseStat"
-                    }
-                },
-                "totalVolume": {
-                    "type": "number"
-                },
-                "weeklyVolume": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/internal_api_handlers.WeeklyVolumePoint"
+                        "$ref": "#/definitions/models.ExerciseSet"
                     }
                 }
             }

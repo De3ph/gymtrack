@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { workoutApi } from "@/lib/api";
+import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 
 export function WorkoutCalendar() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
@@ -72,9 +73,12 @@ export function WorkoutCalendar() {
                     {dayjs(workout.date).format("h:mm A")}
                   </div>
                   <ul className="list-disc pl-5 mt-2">
-                    {workout.exercises.map((ex) => (
+                    {workout.exercises.map((ex: WorkoutExercise) => (
                       <li key={ex.exerciseId || ex.name}>
-                        {ex.name}: {ex.sets} sets x {ex.reps.join(",")}
+                        {ex.name}: {ex.sets && ex.sets.length > 0 ?
+                          `${ex.sets.length} sets x ${ex.sets.map((set: ExerciseSet) => `${set.reps} reps @ ${set.weight}${set.weightUnit || 'kg'}`).join(', ')}` :
+                          'No sets defined'
+                        }
                       </li>
                     ))}
                   </ul>

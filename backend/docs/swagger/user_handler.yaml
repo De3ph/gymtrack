@@ -1,0 +1,338 @@
+openapi: 3.0.0
+info:
+  title: GymTrack API - User Management
+  description: User profile management endpoints for viewing and updating user information
+  version: 1.0.0
+  contact:
+    name: GymTrack API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+
+paths:
+  /users/me:
+    get:
+      tags:
+        - User Management
+      summary: Get current user profile
+      description: Retrieve the profile information for the currently authenticated user
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              examples:
+                athlete_profile:
+                  summary: Athlete profile example
+                  value:
+                    userId: "550e8400-e29b-41d4-a716-446655440000"
+                    email: "athlete@example.com"
+                    role: "athlete"
+                    profile:
+                      name: "John Doe"
+                      age: 25
+                      weight: 75
+                      height: 180
+                      fitnessGoals: "Build muscle and improve endurance"
+                      trainerAssignment: "trainer-123"
+                    createdAt: "2024-01-01T00:00:00Z"
+                    updatedAt: "2024-01-01T00:00:00Z"
+                trainer_profile:
+                  summary: Trainer profile example
+                  value:
+                    userId: "550e8400-e29b-41d4-a716-446655440001"
+                    email: "trainer@example.com"
+                    role: "trainer"
+                    profile:
+                      name: "Jane Smith"
+                      certifications: "NASM-CPT"
+                      specializations: "Strength training, weight loss"
+                      yearsOfExperience: 5
+                      location: "New York, NY"
+                      hourlyRate: 75
+                      languages: ["English", "Spanish"]
+                      clientList: ["client-1", "client-2"]
+                    createdAt: "2024-01-01T00:00:00Z"
+                    updatedAt: "2024-01-01T00:00:00Z"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user ID not found in context"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user not found"
+        '500':
+          description: Failed to retrieve user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "failed to retrieve user"
+
+    put:
+      tags:
+        - User Management
+      summary: Update current user profile
+      description: Update the profile information for the currently authenticated user
+      operationId: updateCurrentUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+            examples:
+              athlete_update:
+                summary: Athlete profile update example
+                value:
+                  profile:
+                    name: "John Doe"
+                    age: 26
+                    weight: 78
+                    height: 182
+                    fitnessGoals: "Build muscle mass and improve strength"
+              trainer_update:
+                summary: Trainer profile update example
+                value:
+                  profile:
+                    name: "Jane Smith"
+                    certifications: "NASM-CPT, ACE-CPT"
+                    specializations: "Strength training, weight loss, nutrition coaching"
+                    yearsOfExperience: 6
+                    location: "New York, NY"
+                    hourlyRate: 85
+                    languages: ["English", "Spanish", "French"]
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              examples:
+                athlete_updated:
+                  summary: Updated athlete profile
+                  value:
+                    userId: "550e8400-e29b-41d4-a716-446655440000"
+                    email: "athlete@example.com"
+                    role: "athlete"
+                    profile:
+                      name: "John Doe"
+                      age: 26
+                      weight: 78
+                      height: 182
+                      fitnessGoals: "Build muscle mass and improve strength"
+                      trainerAssignment: "trainer-123"
+                    createdAt: "2024-01-01T00:00:00Z"
+                    updatedAt: "2024-01-15T10:30:00Z"
+                trainer_updated:
+                  summary: Updated trainer profile
+                  value:
+                    userId: "550e8400-e29b-41d4-a716-446655440001"
+                    email: "trainer@example.com"
+                    role: "trainer"
+                    profile:
+                      name: "Jane Smith"
+                      certifications: "NASM-CPT, ACE-CPT"
+                      specializations: "Strength training, weight loss, nutrition coaching"
+                      yearsOfExperience: 6
+                      location: "New York, NY"
+                      hourlyRate: 85
+                      languages: ["English", "Spanish", "French"]
+                      clientList: ["client-1", "client-2"]
+                    createdAt: "2024-01-01T00:00:00Z"
+                    updatedAt: "2024-01-15T10:30:00Z"
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid request body"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user ID not found in context"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user not found"
+        '500':
+          description: Failed to update user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "failed to update user"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    UserResponse:
+      type: object
+      required:
+        - userId
+        - email
+        - role
+        - createdAt
+        - updatedAt
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique user identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        role:
+          $ref: '#/components/schemas/UserRole'
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2024-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-01T00:00:00Z"
+
+    UserRole:
+      type: string
+      enum: [trainer, athlete]
+      description: User role in the system
+      example: "athlete"
+
+    UserProfile:
+      type: object
+      description: User profile information (varies by role)
+      properties:
+        # Common fields
+        name:
+          type: string
+          description: User's full name
+          example: "John Doe"
+        # Athlete specific fields
+        age:
+          type: integer
+          minimum: 13
+          maximum: 120
+          description: User's age
+          example: 25
+        weight:
+          type: integer
+          minimum: 1
+          description: User's weight in kg
+          example: 75
+        height:
+          type: integer
+          minimum: 1
+          description: User's height in cm
+          example: 180
+        fitnessGoals:
+          type: string
+          description: User's fitness goals
+          example: "Build muscle and improve endurance"
+        trainerAssignment:
+          type: string
+          description: Athlete's trainer ID (if assigned)
+          example: "trainer-123"
+        # Trainer specific fields
+        certifications:
+          type: string
+          description: Trainer's certifications
+          example: "NASM-CPT"
+        specializations:
+          type: string
+          description: Trainer's areas of expertise
+          example: "Strength training, weight loss"
+        yearsOfExperience:
+          type: integer
+          minimum: 0
+          description: Years of experience as a trainer
+          example: 5
+        location:
+          type: string
+          description: Trainer's location
+          example: "New York, NY"
+        hourlyRate:
+          type: number
+          minimum: 0
+          description: Trainer's hourly rate
+          example: 75
+        languages:
+          type: array
+          items:
+            type: string
+          description: Languages spoken by trainer
+          example: ["English", "Spanish"]
+        clientList:
+          type: array
+          items:
+            type: string
+          description: List of client IDs
+          example: ["client-1", "client-2"]
+
+    UpdateProfileRequest:
+      type: object
+      required:
+        - profile
+      properties:
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+          description: Profile contains the updated profile information
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"
+
+tags:
+  - name: User Management
+    description: User profile management operations

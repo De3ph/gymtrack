@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { reviewApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Star, Edit, Trash2 } from "lucide-react"
@@ -96,6 +96,9 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Edit Your Review</DialogTitle>
+              <DialogDescription>
+                Update your rating and comment for this trainer
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleEdit} className="space-y-4">
               <div>
@@ -154,6 +157,9 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Delete Review</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this review? This action cannot be undone.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <p>Are you sure you want to delete this review? This action cannot be undone.</p>
