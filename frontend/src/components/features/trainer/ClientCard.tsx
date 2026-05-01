@@ -52,7 +52,7 @@ export function ClientCard({ client, onViewClient }: ClientCardProps) {
               variant="outline"
               className="flex-1"
               onClick={() =>
-                onViewClient(client.athlete?.userId || "")
+                onViewClient(client.athlete?.username || "")
               }
             >
               <Eye className="mr-2 h-4 w-4" />

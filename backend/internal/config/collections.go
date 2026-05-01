@@ -118,6 +118,7 @@ func createIndexes(ctx context.Context, cluster *gocb.Cluster, bucketName string
 		CollectionUsers: {
 			fmt.Sprintf("CREATE PRIMARY INDEX IF NOT EXISTS ON `%s`.`%s`.`%s`", bucketName, scopeName, CollectionUsers),
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_users_email ON `%s`.`%s`.`%s`(email)", bucketName, scopeName, CollectionUsers),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_users_username ON `%s`.`%s`.`%s`(username)", bucketName, scopeName, CollectionUsers),
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_users_role ON `%s`.`%s`.`%s`(role)", bucketName, scopeName, CollectionUsers),
 		},
 		CollectionRelationships: {

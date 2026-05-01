@@ -22,6 +22,6 @@ func MealRoutes(router *gin.RouterGroup, mealHandler *handlers.MealHandler) {
 	clients := router.Group("/clients")
 	clients.Use(middleware.JWTAuthMiddleware())
 	{
-		clients.GET("/:id/meals", mealHandler.GetClientMeals)
+		clients.GET("/:username/meals", mealHandler.GetClientMeals)
 	}
 }

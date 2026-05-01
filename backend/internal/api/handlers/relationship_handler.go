@@ -347,14 +347,15 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 // @Tags Relationships
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "Client (athlete) user ID" example("user-123")
+// @Param username path string true "Client (athlete) username" example("johndoe")
 // @Success 200 {object} GetClientDetailsResponse "Success"
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can view client details"} or {"error":"You don't have an active relationship with this client"}
+// @Failure 404 {object} map[string]string "Not found" {"error":"Client not found"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to verify relationship/get athlete details"}
-// @Router /relationships/client/{id} [get]
+// @Router /relationships/client/{username} [get]
 func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
-	clientID := c.Param("id")
+	username := c.Param("username")
 	trainerID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -367,6 +368,17 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 		return
 	}
 
+	// Get athlete details by username
+	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		return
+	}
+	if athlete == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		return
+	}
+
 	// Verify relationship
 	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
 	if err != nil {
@@ -376,7 +388,7 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 
 	var clientRelationship *models.Relationship
 	for _, rel := range relationships {
-		if rel.AthleteID == clientID && rel.IsActive() {
+		if rel.AthleteID == athlete.UserID && rel.IsActive() {
 			clientRelationship = rel
 			break
 		}
@@ -387,16 +399,9 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 		return
 	}
 
-	// Get athlete details
-	athlete, err := h.userRepo.GetUserByID(c.Request.Context(), clientID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
-		return
-	}
-
 	// Get stats
-	allWorkouts, _ := h.workoutRepo.GetByAthleteID(clientID, 1000, 0)
-	allMeals, _ := h.mealRepo.GetByAthleteID(clientID, 1000, 0)
+	allWorkouts, _ := h.workoutRepo.GetByAthleteID(athlete.UserID, 1000, 0)
+	allMeals, _ := h.mealRepo.GetByAthleteID(athlete.UserID, 1000, 0)
 
 	// Calculate this week's stats
 	now := time.Now()
@@ -499,14 +504,15 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 // @Tags Relationships
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "Client (athlete) user ID" example("user-123")
+// @Param username path string true "Client (athlete) username" example("johndoe")
 // @Success 200 {object} GetClientStatsResponse "Success" {"workoutStats": WorkoutStats, "mealStats": MealStats}
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can view client stats"} or {"error":"You don't have an active relationship with this client"}
+// @Failure 404 {object} map[string]string "Not found" {"error":"Client not found"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to verify relationship"}
-// @Router /relationships/client/{id}/stats [get]
+// @Router /relationships/client/{username}/stats [get]
 func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
-	clientID := c.Param("id")
+	username := c.Param("username")
 	trainerID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -519,6 +525,17 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 		return
 	}
 
+	// Get athlete details by username
+	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		return
+	}
+	if athlete == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		return
+	}
+
 	// Verify relationship
 	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
 	if err != nil {
@@ -528,7 +545,7 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 
 	hasActiveRelationship := false
 	for _, rel := range relationships {
-		if rel.AthleteID == clientID && rel.IsActive() {
+		if rel.AthleteID == athlete.UserID && rel.IsActive() {
 			hasActiveRelationship = true
 			break
 		}
@@ -540,8 +557,8 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 	}
 
 	// Get all workouts and meals
-	allWorkouts, _ := h.workoutRepo.GetByAthleteID(clientID, 1000, 0)
-	allMeals, _ := h.mealRepo.GetByAthleteID(clientID, 1000, 0)
+	allWorkouts, _ := h.workoutRepo.GetByAthleteID(athlete.UserID, 1000, 0)
+	allMeals, _ := h.mealRepo.GetByAthleteID(athlete.UserID, 1000, 0)
 
 	// Calculate workout stats
 	workoutStats := calculateWorkoutStats(allWorkouts)

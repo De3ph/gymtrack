@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from '@tanstack/react-form';
-import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
+import { type LoginFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { ROUTES } from '@/lib/routes';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ export default function LoginPage() {
 
   const form = useForm({
     defaultValues: {
-      email: '',
+      identifier: '',
       password: '',
     } satisfies LoginFormData,
     onSubmit: async ({ value }) => {
@@ -27,7 +27,7 @@ export default function LoginPage() {
       setError("")
 
       try {
-        const user = await login(value.email, value.password)
+        const user = await login(value.identifier, value.password)
 
         // Add a small delay to ensure tokens are persisted in localStorage
         await new Promise((resolve) => setTimeout(resolve, 100))
@@ -70,28 +70,34 @@ export default function LoginPage() {
         className="space-y-4"
       >
         <form.Field
-          name="email"
+          name="identifier"
           validators={{
             onChange: ({ value }) => {
               if (!value || value.trim().length === 0) {
-                return "Email is required"
+                return "Email or username is required"
               }
-              if (!/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
-                return "Invalid email address"
+              // Check if it's a valid email
+              if (/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
+                return undefined
               }
-              return undefined
+              // Check if it's a valid username format (3-30 alphanumeric)
+              if (/^[a-zA-Z0-9]{3,30}$/.test(value)) {
+                return undefined
+              }
+              return "Please enter a valid email or username (3-30 alphanumeric characters)"
             },
           }}
         >
           {(field) => (
             <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldLabel htmlFor="identifier">Email or Username</FieldLabel>
               <Input
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                type="email"
-                id="email"
+                type="text"
+                id="identifier"
+                placeholder="Enter your email or username"
                 className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
               />
               <FieldInfo field={field} />

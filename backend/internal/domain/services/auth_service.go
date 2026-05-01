@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -32,13 +33,22 @@ func NewAuthService(userRepo repositories.UserRepository, jwtSecret string, cloc
 
 // Register creates a new user account
 func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*models.User, error) {
-	// Check if user already exists
+	// Check if email already exists
 	existingUser, err := s.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing user: %w", err)
 	}
 	if existingUser != nil {
 		return nil, ErrUserAlreadyExists
+	}
+
+	// Check if username already exists (case-insensitive)
+	existingUsername, err := s.userRepo.GetUserByUsername(ctx, req.Username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check existing username: %w", err)
+	}
+	if existingUsername != nil {
+		return nil, ErrUsernameAlreadyExists
 	}
 
 	// Hash password
@@ -50,6 +60,7 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model
 	// Create new user
 	newUser := &models.User{
 		UserID:       uuid.New().String(),
+		Username:     req.Username,
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
 		Role:         req.Role,
@@ -65,11 +76,25 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model
 
 // Login authenticates a user and returns tokens
 func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
-	// Get user by email
-	user, err := s.userRepo.GetUserByEmail(ctx, req.Email)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	var user *models.User
+	var err error
+
+	// Try to determine if identifier is email or username
+	// Check if it matches email format
+	if strings.Contains(req.Identifier, "@") {
+		// Try email lookup
+		user, err = s.userRepo.GetUserByEmail(ctx, req.Identifier)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve user by email: %w", err)
+		}
+	} else {
+		// Try username lookup
+		user, err = s.userRepo.GetUserByUsername(ctx, req.Identifier)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve user by username: %w", err)
+		}
 	}
+
 	if user == nil {
 		return nil, ErrInvalidCredentials
 	}

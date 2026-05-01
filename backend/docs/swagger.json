@@ -2940,13 +2940,13 @@
         "handlers.LoginRequest": {
             "type": "object",
             "required": [
-                "email",
+                "identifier",
                 "password"
             ],
             "properties": {
-                "email": {
+                "identifier": {
                     "type": "string",
-                    "example": "test@example.com"
+                    "example": "test@example.com or johndoe"
                 },
                 "password": {
                     "type": "string",
@@ -3010,7 +3010,8 @@
             "required": [
                 "email",
                 "password",
-                "role"
+                "role",
+                "username"
             ],
             "properties": {
                 "email": {
@@ -3030,6 +3031,12 @@
                         "athlete"
                     ],
                     "example": "athlete"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3,
+                    "example": "johndoe"
                 }
             }
         },
@@ -3148,6 +3155,9 @@
                     "type": "string"
                 },
                 "userId": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -3669,7 +3679,8 @@
             "type": "object",
             "required": [
                 "email",
-                "role"
+                "role",
+                "username"
             ],
             "properties": {
                 "averageRating": {
@@ -3710,6 +3721,11 @@
                 },
                 "userId": {
                     "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3
                 }
             }
         },
@@ -3717,7 +3733,8 @@
             "type": "object",
             "required": [
                 "email",
-                "role"
+                "role",
+                "username"
             ],
             "properties": {
                 "createdAt": {
@@ -3752,6 +3769,11 @@
                 },
                 "userId": {
                     "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3
                 }
             }
         },

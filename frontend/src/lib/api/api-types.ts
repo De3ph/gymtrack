@@ -72,6 +72,7 @@ export interface LoginResponse {
  */
 export interface UserResponse {
   userId: string;
+  username: string;
   email: string;
   role: import('@/types').UserRole;
   profile: import('@/types').UserProfile;

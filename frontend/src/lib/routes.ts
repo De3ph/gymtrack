@@ -29,7 +29,7 @@ export const DYNAMIC_ROUTES = {
   ATHLETE_TRAINERS_DETAIL: (id: string) => `/athlete/trainers/${id}`,
 
   // Trainer viewing specific client
-  TRAINER_CLIENT_DETAIL: (id: string) => `/trainer/client/${id}`,
+  TRAINER_CLIENT_DETAIL: (username: string) => `/trainer/client/${username}`,
 } as const;
 
 // Type definitions for route safety

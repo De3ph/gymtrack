@@ -118,11 +118,11 @@ func main() {
 	routes.UserRoutes(apiGroup, userHandler)
 
 	workoutService := services.NewWorkoutService(workoutRepo, relationshipRepo)
-	workoutHandler := handlers.NewWorkoutHandler(workoutService)
+	workoutHandler := handlers.NewWorkoutHandler(workoutService, userRepo)
 	routes.WorkoutRoutes(apiGroup, workoutHandler)
 
 	mealService := services.NewMealService(mealRepo, relationshipRepo)
-	mealHandler := handlers.NewMealHandler(mealService)
+	mealHandler := handlers.NewMealHandler(mealService, userRepo)
 	routes.MealRoutes(apiGroup, mealHandler)
 
 	relationshipHandler := handlers.NewRelationshipHandler(invitationService, relationshipRepo, userRepo, workoutRepo, mealRepo)

@@ -82,6 +82,7 @@ export interface UserProfile {
 
 export interface User {
   userId: string;
+  username: string;
   email: string;
   role: UserRole;
   profile: UserProfile;
@@ -97,11 +98,12 @@ export interface AuthState {
 }
 
 export interface LoginRequest {
-  email: string;
+  identifier: string;
   password: string;
 }
 
 export interface RegisterRequest {
+  username: string;
   email: string;
   password: string;
   role: UserRole;

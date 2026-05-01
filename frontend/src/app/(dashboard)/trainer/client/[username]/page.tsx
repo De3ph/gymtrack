@@ -22,7 +22,7 @@ export default function ClientDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuthStore()
-  const clientId = params.id as string
+  const username = params.username as string
 
   const [activeTab, setActiveTab] = useState("overview")
 
@@ -32,21 +32,21 @@ export default function ClientDetailPage() {
   const [mealType, setMealType] = useState("")
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["clientData", clientId, dateRange, exerciseType, mealType],
+    queryKey: ["clientData", username, dateRange, exerciseType, mealType],
     queryFn: async () => {
-      const details = await relationshipApi.getClientDetails(clientId);
+      const details = await relationshipApi.getClientDetails(username);
       const [workoutsResp, mealsResp, statsResp] = await Promise.all([
-        trainerClientApi.getClientWorkouts(clientId, {
+        trainerClientApi.getClientWorkouts(username, {
           ...(dateRange.start && { startDate: dateRange.start }),
           ...(dateRange.end && { endDate: dateRange.end }),
           ...(exerciseType && { exerciseType }),
         }),
-        trainerClientApi.getClientMeals(clientId, {
+        trainerClientApi.getClientMeals(username, {
           ...(dateRange.start && { startDate: dateRange.start }),
           ...(dateRange.end && { endDate: dateRange.end }),
           ...(mealType && { mealType }),
         }),
-        trainerClientApi.getClientStats(clientId),
+        trainerClientApi.getClientStats(username),
       ]);
       return {
         athlete: details.athlete,
@@ -113,7 +113,7 @@ export default function ClientDetailPage() {
           </div>
         </div>
         <TerminateRelationshipDialog
-          clientId={clientId}
+          clientId={clientDetails.athlete?.userId || ""}
           athleteName={clientDetails.athlete?.profile?.name}
           trigger={
             <Button variant="destructive">

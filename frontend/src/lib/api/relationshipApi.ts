@@ -20,9 +20,9 @@ export const relationshipApi = {
     }>("/relationships/my-clients")
   },
 
-  getClientDetails: async (clientId: string) => {
+  getClientDetails: async (username: string) => {
     return api.get<GetClientDetailsResponse>(
-      `/relationships/client/${clientId}`
+      `/relationships/client/${username}`
     )
   },
 

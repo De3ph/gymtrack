@@ -1,7 +1,6 @@
 "use client"
 
 import { authApi } from "@/lib/api"
-import { registerSchema, type RegisterFormData } from "@/lib/validations/auth"
 import { useAuthStore } from "@/stores/authStore"
 import type { UserRole } from "@/types"
 import { useRouter } from "next/navigation"
@@ -20,6 +19,7 @@ export default function RegisterPage() {
 
   const form = useForm({
     defaultValues: {
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -50,6 +50,7 @@ export default function RegisterPage() {
 
         // Register user
         await authApi.register({
+          username: value.username,
           email: value.email,
           password: value.password,
           role: value.role,
@@ -89,6 +90,43 @@ export default function RegisterPage() {
         }}
         className='space-y-4'
       >
+        <form.Field
+          name="username"
+          validators={{
+            onChange: ({ value }) => {
+              if (!value || value.trim().length === 0) {
+                return "Username is required"
+              }
+              if (value.length < 3) {
+                return "Username must be at least 3 characters"
+              }
+              if (value.length > 30) {
+                return "Username must be less than 30 characters"
+              }
+              if (!/^[a-zA-Z0-9]+$/.test(value)) {
+                return "Username must contain only letters and numbers"
+              }
+              return undefined
+            },
+          }}
+        >
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor='username'>Username</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type='text'
+                id='username'
+                placeholder='Choose a username'
+                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
+              />
+              <FieldInfo field={field} />
+            </Field>
+          )}
+        </form.Field>
+
         <form.Field
           name="email"
           validators={{
