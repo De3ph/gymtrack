@@ -1,0 +1,656 @@
+{
+  "home": {
+    "title": "GymTrack",
+    "description": "Antrenörleri ve sporcuları birbirine bağlayan nihai fitness takip platformu. Antrenmanları takip edin, beslenmeyi izleyin ve fitness hedeflerinize birlikte ulaşın.",
+    "sign_up": "Kaydol",
+    "login": "Giriş Yap"
+  },
+  "common": {
+    "actions": {
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "delete": "Sil",
+      "edit": "Düzenle",
+      "create": "Oluştur",
+      "update": "Güncelle",
+      "confirm": "Onayla",
+      "submit": "Gönder",
+      "back": "Geri",
+      "next": "İleri",
+      "previous": "Önceki",
+      "close": "Kapat",
+      "open": "Aç",
+      "view": "Görüntüle",
+      "add": "Ekle",
+      "remove": "Kaldır",
+      "view_client": "Danışanı Gör",
+      "apply_filters": "Filtreleri Uygula",
+      "clear": "Temizle"
+    },
+    "navigation": {
+      "dashboard": "Panel",
+      "profile": "Profil",
+      "settings": "Ayarlar",
+      "logout": "Çıkış Yap",
+      "workouts": "Antrenmanlar",
+      "meals": "Öğünler",
+      "clients": "Danışanlar",
+      "trainer": "Antrenör",
+      "athlete": "Sporcu"
+    },
+    "status": {
+      "available": "Yeni Danışanlar için Müsait",
+      "unavailable": "Müsait Değil",
+      "active": "Aktif"
+    },
+    "errors": {
+      "generic": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
+      "network": "Ağ hatası. Bağlantınızı kontrol edin.",
+      "required": "Bu alan zorunludur.",
+      "invalid": "Geçersiz giriş.",
+      "unauthorized": "Bu işlemi yapmaya yetkiniz yok.",
+      "not_found": "İstenen kaynak bulunamadı.",
+      "server_error": "Sunucu hatası. Lütfen daha sonra tekrar deneyin."
+    },
+    "loading": "Yükleniyor...",
+    "search": {
+      "placeholder": "Ara...",
+      "no_results": "Sonuç bulunamadı.",
+      "searching": "Aranıyor..."
+    },
+    "pagination": {
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "page": "Sayfa",
+      "of": "/",
+      "results": "sonuç"
+    },
+    "date": {
+      "today": "Bugün",
+      "yesterday": "Dün",
+      "tomorrow": "Yarın"
+    },
+    "time": {
+      "seconds": "saniye",
+      "minutes": "dakika",
+      "hours": "saat"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Hesabınıza Giriş Yapın",
+      "email": {
+        "label": "E-posta veya Kullanıcı Adı",
+        "placeholder": "E-posta veya kullanıcı adınızı girin",
+        "error": {
+          "required": "E-posta veya kullanıcı adı zorunludur",
+          "invalid": "Lütfen geçerli bir e-posta veya kullanıcı adı girin (3-30 alfanümerik karakter)"
+        }
+      },
+      "password": {
+        "label": "Şifre",
+        "placeholder": "Şifrenizi girin",
+        "error": {
+          "required": "Şifre zorunludur",
+          "min_length": "Şifre en az 6 karakter olmalıdır"
+        }
+      },
+      "submit": "Giriş Yap",
+      "submitting": "Giriş yapılıyor...",
+      "forgot_password": "Şifrenizi mi unuttunuz?",
+      "no_account": "Hesabınız yok mu?",
+      "sign_up": "Kaydol"
+    },
+    "register": {
+      "title": "Hesabınızı Oluşturun",
+      "name": {
+        "label": "Ad Soyad",
+        "placeholder": "Adınızı ve soyadınızı girin",
+        "error": {
+          "required": "Ad soyad zorunludur"
+        }
+      },
+      "email": {
+        "label": "E-posta",
+        "placeholder": "E-posta adresinizi girin",
+        "error": {
+          "required": "E-posta zorunludur",
+          "invalid": "Lütfen geçerli bir e-posta adresi girin"
+        }
+      },
+      "password": {
+        "label": "Şifre",
+        "placeholder": "Bir şifre oluşturun",
+        "error": {
+          "required": "Şifre zorunludur",
+          "min_length": "Şifre en az 6 karakter olmalıdır"
+        }
+      },
+      "confirm_password": {
+        "label": "Şifreyi Onayla",
+        "placeholder": "Şifrenizi onaylayın",
+        "error": {
+          "required": "Lütfen şifrenizi onaylayın",
+          "mismatch": "Şifreler eşleşmiyor"
+        }
+      },
+      "role": {
+        "label": "Ben bir",
+        "athlete": "Sporcu",
+        "trainer": "Antrenör"
+      },
+      "username": {
+        "label": "Kullanıcı Adı",
+        "placeholder": "Bir kullanıcı adı seçin",
+        "error": {
+          "required": "Kullanıcı adı zorunludur",
+          "min_length": "Kullanıcı adı en az 3 karakter olmalıdır",
+          "max_length": "Kullanıcı adı 30 karakterden az olmalıdır",
+          "invalid": "Kullanıcı adı sadece harf ve rakamlardan oluşmalıdır"
+        }
+      },
+      "age": {
+        "label": "Yaş",
+        "placeholder": "Yaşınızı girin"
+      },
+      "weight": {
+        "label": "Kilo",
+        "placeholder": "Kilonuzu girin"
+      },
+      "height": {
+        "label": "Boy",
+        "placeholder": "Boyunuzu girin"
+      },
+      "fitness_goals": {
+        "label": "Fitness Hedefleri",
+        "placeholder": "Fitness hedeflerinizi açıklayın"
+      },
+      "certifications": {
+        "label": "Sertifikalar",
+        "placeholder": "örn, NASM CPT, ACE"
+      },
+      "specializations": {
+        "label": "Uzmanlıklar",
+        "placeholder": "örn, Kuvvet Antrenmanı, Beslenme"
+      },
+      "submit": "Hesap Oluştur",
+      "submitting": "Hesap oluşturuluyor...",
+      "has_account": "Zaten hesabınız var mı?",
+      "sign_in": "Giriş Yapın"
+    },
+    "logout": {
+      "confirm": "Çıkış yapmak istediğinizden emin misiniz?",
+      "button": "Çıkış Yap"
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "Tekrar hoş geldin, {name}",
+    "no_data": {
+      "title": "Henüz veri yok",
+      "description": "Fitness yolculuğunuzu takip etmeye başlayın"
+    },
+    "stats": {
+      "workouts": "Antrenmanlar",
+      "meals": "Öğünler",
+      "calories": "Kaloriler",
+      "clients": "Danışanlar"
+    },
+    "recent": {
+      "workouts": "Son Antrenmanlar",
+      "meals": "Son Öğünler",
+      "activities": "Son Aktiviteler"
+    }
+  },
+  "workout": {
+    "title": "Antrenmanlar",
+    "form": {
+      "title": "Antrenman Kaydet",
+      "date": {
+        "label": "Antrenman Tarihi & Saati",
+        "placeholder": "Tarih seç"
+      },
+      "time": {
+        "label": "Saat",
+        "placeholder": "Saat seç"
+      },
+      "exercise": {
+        "name": {
+          "label": "Egzersiz Adı",
+          "placeholder": "Egzersiz ara veya gir"
+        },
+        "sets": {
+          "label": "Setler",
+          "add": "Set Ekle",
+          "remove": "Set Kaldır",
+          "set_number": "Set {number}",
+          "weight": "Ağırlık",
+          "reps": "Tekrarlar",
+          "rest": "Dinlenme",
+          "seconds": "sn",
+          "no_sets": "Set tanımlanmamış",
+          "weight_unit": "kg"
+        },
+        "weight": {
+          "label": "Ağırlık",
+          "placeholder": "Ağırlık gir"
+        },
+        "reps": {
+          "label": "Tekrarlar",
+          "placeholder": "Tekrar sayısı gir"
+        },
+        "rest": {
+          "label": "Dinlenme Süresi",
+          "placeholder": "Dinlenme süresi (saniye)"
+        },
+        "fallback_name": "Egzersiz {number}"
+      },
+      "add_exercise": "Egzersiz Ekle",
+      "submit": "Antrenmanı Kaydet",
+      "submitting": "Kaydediliyor..."
+    },
+    "list": {
+      "title": "Antrenman Geçmişi",
+      "loading": "Antrenmanlar yükleniyor...",
+      "no_workouts": "Henüz antrenman kaydedilmedi",
+      "view_details": "Detayları Gör",
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "exercises": "Egzersiz",
+      "sets_x": "set x",
+      "set_detail": "{reps} tekrar, {weight}{unit}",
+      "no_sets": "Set tanımlanmamış",
+      "comments": "Yorum"
+    },
+    "calendar": {
+      "title": "Takvim",
+      "select_date": "Tarih seç",
+      "no_workouts_this_month": "Bu ay antrenman yok",
+      "no_workouts": "Bu gün için kayıtlı antrenman yok."
+    },
+    "edit_dialog": {
+      "title": "Antrenmanı Düzenle",
+      "date_label": "Antrenman Tarihi & Saati",
+      "save_changes": "Değişiklikleri Kaydet",
+      "fallback_exercise": "Egzersiz {number}"
+    },
+    "delete_dialog": {
+      "title": "Antrenmanı Sil",
+      "description": "Bu antrenmanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "confirm": "Sil",
+      "cancel": "İptal",
+      "deleting": "Siliniyor..."
+    },
+    "charts": {
+      "weekly_volume": {
+        "title": "Haftalık Antrenman Hacmi",
+        "description": "Haftalık toplam hacim (set × tekrar × ağırlık)",
+        "no_data": "Antrenman verisi mevcut değil"
+      }
+    }
+  },
+  "meal": {
+    "title": "Öğünler",
+    "form": {
+      "title": "Öğün Kaydet",
+      "date_time_label": "Öğün Tarihi ve Saati",
+      "meal_type_placeholder": "Öğün türü seçin",
+      "food_item_title": "Yiyecek Öğesi {index}",
+      "food_name_label": "Yiyecek Adı",
+      "date": {
+        "label": "Tarih",
+        "placeholder": "Tarih seç"
+      },
+      "time": {
+        "label": "Saat",
+        "placeholder": "Saat seç"
+      },
+      "meal_type": {
+        "label": "Öğün Türü",
+        "breakfast": "Kahvaltı",
+        "lunch": "Öğle Yemeği",
+        "dinner": "Akşam Yemeği",
+        "snack": "Atıştırmalık"
+      },
+      "food": {
+        "label": "Yiyecek",
+        "placeholder": "örn. Yulaf"
+      },
+      "quantity": {
+        "label": "Miktar",
+        "placeholder": "örn. 1 kase"
+      },
+      "calories": {
+        "label": "Kaloriler",
+        "placeholder": "örn. 150"
+      },
+      "macros": {
+        "protein": "Protein",
+        "carbs": "Karbonhidrat",
+        "fats": "Yağlar",
+        "label": "Makrolar (g)"
+      },
+      "add_item": "Öğe Ekle",
+      "add_food_item": "Yiyecek Öğesi Ekle",
+      "submit": "Öğünü Kaydet",
+      "log_meal": "Öğünü Kaydet",
+      "submitting": "Kaydediliyor..."
+    },
+    "list": {
+      "title": "Öğün Geçmişi",
+      "loading": "Öğünler yükleniyor...",
+      "no_meals": "Henüz öğün kaydedilmedi. Beslenme takibinizi başlatın!",
+      "view_details": "Detayları Gör",
+      "edit": "Düzenle",
+      "delete": "Sil"
+    },
+    "summary": {
+      "title": "Günlük Özet",
+      "loading_title": "Beslenme Özeti Yükleniyor...",
+      "title_with_date": "{date} için Beslenme Özeti",
+      "total_calories": "Toplam Kalori",
+      "total_protein": "Toplam Protein",
+      "total_carbs": "Toplam Karbonhidrat",
+      "total_fats": "Toplam Yağ"
+    },
+    "card": {
+      "items": "Öğe",
+      "kcal": "kcal",
+      "confirm_delete": "Emin misiniz?",
+      "comments": "Yorumlar"
+    },
+    "item": {
+      "protein_short": "P:",
+      "carbs_short": "K:",
+      "fats_short": "Y:"
+    },    "calendar": {
+      "loading_meals": "Öğünler yükleniyor...",
+      "loading_details": "Öğün detayları yükleniyor...",
+      "title": "Takvim",
+      "select_date": "Bir tarih seçin",
+      "no_meals": "Bu gün için kayıtlı öğün yok."
+    },    "edit_dialog": {
+      "title": "Öğünü Düzenle",
+      "description": "Öğün detaylarınızı güncelleyin. Değişiklikler sadece kayıt sonrası 24 saat içinde yapılabilir.",
+      "cancel": "İptal",
+      "save_changes": "Değişiklikleri Kaydet"
+    }
+  },
+  "trainer": {
+    "title": "Antrenör",
+    "dashboard": {
+      "title": "Antrenör Paneli",
+      "clients": "Danışanlarım",
+      "recent_activity": "Son Aktiviteler",
+      "pending_requests": "Bekleyen İstekler"
+    },
+    "clients": {
+      "title": "Danışanlar",
+      "search_placeholder": "İsim veya e-posta ile ara...",
+      "no_clients_title": "Henüz Danışan Yok",
+      "no_clients_description": "Henüz aktif danışanınız yok. Sporcularla çalışmaya başlamak için bir davet kodu oluşturun.",
+      "invite_first_athlete": "İlk Sporcu Davet Et",
+      "no_clients": "Henüz danışan yok",
+      "add_client": "Danışan Ekle",
+      "view_client": "Danışanı Gör",
+      "client_details": "Danışan Detayları",
+      "goals": "Amaçlar",
+      "client_since": "Danışan olma tarihi"
+    },
+    "requests": {
+      "title": "Koçluk İstekleri",
+      "description": "Sizinle çalışmak isteyen sporculardan gelen koçluk isteklerini yönetin",
+      "pending_title": "Bekleyen İstekler",
+      "no_requests": "Bekleyen istek yok",
+      "accept": "Kabul Et",
+      "decline": "Reddet"
+    },
+    "client_detail": {
+      "back": "Geri",
+      "end_relationship": "İlişkiyi Sonlandır",
+      "client_details": "Danışan Detayları",
+      "overview": {
+        "title": "Danışan Genel Bakış",
+        "total_workouts": "Toplam Antrenmanlar",
+        "total_meals": "Toplam Öğünler",
+        "workouts_this_week": "Bu Haftaki Antrenmanlar",
+        "meals_this_week": "Bu Haftaki Öğünler",
+        "athlete_profile": "Sporcu Profili",
+        "filter_data": "Verileri Filtrele",
+        "filter_description": "Antrenman ve öğünleri tarih aralığı ve türe göre filtreleyin",
+        "start_date": "Başlangıç Tarihi",
+        "end_date": "Bitiş Tarihi",
+        "exercise_type": "Egzersiz Türü",
+        "exercise_placeholder": "örn., Bench Press",
+        "meal_type": "Öğün Türü",
+        "meal_placeholder": "Tüm öğün türleri",
+        "meal_types": {
+          "all": "Tümü",
+          "breakfast": "Kahvaltı",
+          "lunch": "Öğle Yemeği",
+          "dinner": "Akşam Yemeği",
+          "snack": "Ara Öğün"
+        }
+      },
+      "tabs": {
+        "overview": "Genel Bakış",
+        "workouts": "Antrenmanlar",
+        "meals": "Öğünler",
+        "progress_charts": "İlerleme Grafikleri",
+        "workout_history": "Antrenman Geçmişi",
+        "workout_description": "Bu sporcunun kaydettiği tüm antrenmanları görüntüleyin",
+        "no_workouts": "Antrenman bulunamadı",
+        "meal_history": "Öğün Geçmişi",
+        "meal_description": "Bu sporcunun kaydettiği tüm öğünleri görüntüleyin",
+        "no_meals": "Öğün bulunamadı"
+      },
+      "terminate_dialog": {
+        "title": "İlişkiyi Sonlandır",
+        "description": "{name} ile ilişkinizi sonlandırmak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "confirm": "İlişkiyi Sonlandır",
+        "cancel": "İptal",
+        "error": "İlişki sonlandırılamadı"
+      },
+      "relationship_details": "İlişki Detayları",
+      "status": "Durum",
+      "connected_since": "Bağlantı Tarihi",
+      "relationship_id": "İlişki ID"
+    },
+    "profile": {
+      "title": "Antrenör Profili",
+      "edit_profile": "Profili Düzenle",
+      "specializations": "Uzmanlıklar",
+      "certifications": "Sertifikalar",
+      "public_profile": {
+        "title": "Herkese Açık Profil",
+        "bio": "Biyografi",
+        "bio_placeholder": "Sporculara kendinizden bahsedin...",
+        "hourly_rate": "Saatlik Ücret ($)",
+        "years_of_experience": "Deneyim Yılları",
+        "location": "Konum",
+        "location_placeholder": "örn, New York, NY",
+        "languages": "Diller (virgülle ayrılmış)",
+        "languages_placeholder": "örn, İngilizce, İspanyolca",
+        "available": "Yeni danışanlar için müsait",
+        "loading": "Profil yükleniyor...",
+        "save": "Profili Kaydet"
+      }
+    },
+    "catalog": {
+      "specializations": "Uzmanlıklar",
+      "certifications": "Sertifikalar",
+      "rating": "Puan",
+      "hourly_rate": "Saatlik Ücret",
+      "reviews": "yorum"
+    },
+    "charts": {
+      "nutrition_trends": {
+        "title": "Haftalık Beslenme Trendleri",
+        "description": "Haftalık ortalama günlük makrolar",
+        "no_data": "Öğün verisi mevcut değil"
+      }
+    }
+  },
+  "profile": {
+    "title": "Profilim",
+    "edit_profile": "Profili Düzenle",
+    "loading": "Profil yükleniyor...",
+    "not_found": "Kullanıcı bulunamadı",
+    "update_error": "Profil güncellenemedi. Lütfen tekrar deneyin.",
+    "fields": {
+      "email": "E-posta",
+      "role": "Rol",
+      "name": "Ad",
+      "age": "Yaş",
+      "weight": "Kilo",
+      "height": "Boy",
+      "fitness_goals": "Fitness Hedefleri",
+      "certifications": "Sertifikalar",
+      "specializations": "Uzmanlıklar"
+    },
+    "units": {
+      "kg": "kg",
+      "cm": "cm"
+    },
+    "actions": {
+      "save": "Değişiklikleri Kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal"
+    }
+  },
+  "athlete": {
+    "title": "Sporcu",
+    "dashboard": {
+      "title": "Sporcu Paneli",
+      "workouts": "Antrenmanlarım",
+      "meals": "Öğünlerim",
+      "progress": "İlerleme",
+      "trainer": "Antrenörüm"
+    },
+    "workouts": {
+      "title": "Antrenmanlar",
+      "description": "Antrenmanlarınızı kaydedin ve ilerlemenizi takip edin.",
+      "log_workout": "Antrenman Kaydet",
+      "view_history": "Geçmişi Gör",
+      "no_workouts": "Henüz antrenman kaydedilmedi"
+    },
+    "meals": {
+      "title": "Öğünler & Beslenme",
+      "description": "Hedeflerinize ulaşmak için beslenmenizi takip edin.",
+      "log_meal": "Öğün Kaydet",
+      "view_history": "Geçmişi Gör",
+      "no_meals": "Henüz öğün kaydedilmedi"
+    },
+    "trainer": {
+      "title": "Antrenörüm",
+      "no_trainer": "Atanmış antrenör yok",
+      "find_trainer": "Antrenör Bul",
+      "trainer_info": "Antrenör Bilgileri"
+    },
+    "requests": {
+      "title": "Koçluk İsteklerim",
+      "description": "Koçluk isteklerinizin durumunu takip edin ve antrenörlerden gelen yanıtları görün",
+      "looking_for_trainers": "Antrenör mü arıyorsunuz?",
+      "browse_description": "Nitelikli antrenörlerimizin kataloğuna göz atın ve onlara koçluk istekleri gönderin.",
+      "browse_trainers": "Antrenörleri Göz At",
+      "your_requests": "İstekleriniz"
+    },
+    "trainers": {
+      "title": "En İyi Antrenörler",
+      "description": "Platformumuzdaki en yüksek puanlı antrenörleri keşfedin",
+      "filters": "Filtreler",
+      "specialization": "Uzmanlık",
+      "location": "Konum",
+      "min_rating": "Minimum Puan",
+      "search": "Ara",
+      "no_trainers": "Antrenör bulunamadı",
+      "view_profile": "Profili Görüntüle"
+    },
+    "profile": {
+      "title": "Sporcu Profili",
+      "edit_profile": "Profili Düzenle",
+      "goals": "Fitness Hedefleri",
+      "stats": "İstatistikler"
+    }
+  },
+  "comment": {
+    "form": {
+      "title": "Yorum",
+      "comment": "Yorumunuz",
+      "reply": "Yanıtla",
+      "submit": "Gönder",
+      "submitting": "Gönderiliyor...",
+      "cancel": "İptal"
+    },
+    "list": {
+      "title": "Yorumlar",
+      "no_comments": "Henüz yorum yok",
+      "comments_count": "Yorumlar ({count})"
+    },
+    "item": {
+      "by": "tarafından",
+      "at": "saat",
+      "reply": "Yanıtla",
+      "delete": "Sil",
+      "delete_confirm": "Bu yorumu silmek istiyor musunuz?"
+    }
+  },
+  "coaching": {
+    "title": "Koçluk Talepleri",
+    "request": "Koçluk Talebi",
+    "requests": "Talepleriniz",
+    "accept": "Kabul Et",
+    "decline": "Reddet",
+    "status": {
+      "pending": "Beklemede",
+      "accepted": "Kabul Edildi",
+      "declined": "Red Edildi"
+    },
+    "pending": "Bekleyen Talepler",
+    "no_requests": "Koçluk talebi yok"
+  },
+  "exercise": {
+    "equipment": {
+      "label": "Ekipman",
+      "categories": "Kategoriler"
+    },
+    "muscle_group": {
+      "label": " kas Grubu"
+    },
+    "filters": {
+      "label": "Filtreler",
+      "search": "Egzersiz ara",
+      "no_results": "Egzersiz bulunamadı",
+      "all_muscle_groups": "Tüm Kas Grupları",
+      "all_equipment": "Tüm Ekipman",
+      "clear": "Temizle"
+    },
+    "card": {
+      "select": "Seç",
+      "category": "Kategori",
+      "instructions": "Talimatlar",
+      "show_more": "Daha fazla göster",
+      "show_less": "Daha az göster"
+    },
+    "selector": {
+      "pick_exercise": "Egzersiz Seç",
+      "select_exercise": "Egzersiz Seç",
+      "description": "Antrenmanınıza eklemek için egzersizleri ara ve filtrele",
+      "loading": "Egzersiz verileri yükleniyor...",
+      "error": "Egzersiz verileri yüklenirken hata oluştu. Lütfen tekrar deneyin.",
+      "search_placeholder": "Egzersiz ara..."
+    }
+  },
+  "review": {
+    "create": {
+      "title": "İnceleme Oluştur",
+      "rating": "Puan",
+      "comment": "İncelemeniz",
+      "submit": "İnceleme Gönder"
+    },
+    "actions": {
+      "helpful": "Yararlı",
+      "report": "Bildir"
+    }
+  }
+}
