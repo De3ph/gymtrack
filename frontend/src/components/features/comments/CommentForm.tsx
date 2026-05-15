@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 
@@ -29,10 +30,12 @@ export function CommentForm({
   parentCommentId = null,
   onSuccess,
   queryKey,
-  placeholder = "Add a comment...",
+  placeholder: placeholderProp,
   onCancel,
 }: CommentFormProps) {
   const queryClient = useQueryClient();
+  const t = useTranslations("comment");
+  const placeholder = placeholderProp ?? t("form.comment");
 
   const validateContent = ({ value }: { value: string }): string | undefined => {
     if (!value || value.trim().length === 0) {
@@ -109,7 +112,7 @@ export function CommentForm({
         {([canSubmit, isSubmitting]) => (
           <div className="flex gap-2">
             <Button type="submit" size="sm" disabled={!canSubmit || isPending || isSubmitting}>
-              {isPending || isSubmitting ? "Posting..." : parentCommentId ? "Reply" : "Comment"}
+              {isPending || isSubmitting ? t("form.submitting") : parentCommentId ? t("form.reply") : t("form.comment")}
             </Button>
             {onCancel && (
               <Button type="button" size="sm" variant="outline" onClick={onCancel}>

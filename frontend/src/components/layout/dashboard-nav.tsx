@@ -3,6 +3,7 @@ import { linkStyles } from "./dashboard-styles";
 import { AthleteNav } from "./athlete-nav";
 import { TrainerNav } from "./trainer-nav";
 import { ROUTES } from "@/lib/routes";
+import { useTranslations } from 'next-intl';
 
 interface DashboardNavProps {
   userRole?: string;
@@ -11,6 +12,8 @@ interface DashboardNavProps {
 }
 
 export function DashboardNav({ userRole, userName, onLogout }: DashboardNavProps) {
+  const tCommon = useTranslations('common.navigation');
+
   return (
     <nav className='bg-card shadow-sm'>
       <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
@@ -35,7 +38,7 @@ export function DashboardNav({ userRole, userName, onLogout }: DashboardNavProps
               onClick={onLogout}
               className='rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80'
             >
-              Logout
+              {tCommon('logout')}
             </button>
           </div>
         </div>

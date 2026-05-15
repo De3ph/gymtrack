@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl"
 import { ExerciseLibrary } from "@/types";
 import { MuscleGroupBadge } from "./MuscleGroupBadge";
 import { EquipmentBadge } from "./EquipmentBadge";
@@ -21,6 +22,7 @@ export function ExerciseCard({
   showInstructions = false,
   className
 }: ExerciseCardProps) {
+  const t = useTranslations("exercise")
   const [showFullInstructions, setShowFullInstructions] = useState(false);
 
   const handleSelect = () => {
@@ -33,52 +35,56 @@ export function ExerciseCard({
 
   return (
     <Card className={className}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <CardTitle className="text-lg leading-tight">
+      <CardHeader className='pb-3'>
+        <div className='flex items-start justify-between'>
+          <CardTitle className='text-lg leading-tight'>
             {exercise.name}
           </CardTitle>
           {onSelect && (
-            <Button
-              size="sm"
-              onClick={handleSelect}
-              className="ml-2"
-            >
-              Select
+            <Button size='sm' onClick={handleSelect} className='ml-2'>
+              {t("card.select")}
             </Button>
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className='flex flex-wrap gap-2 mt-2'>
           {exercise.muscleGroup && (
-            <MuscleGroupBadge muscleGroup={exercise.muscleGroup} variant="small" />
+            <MuscleGroupBadge
+              muscleGroup={exercise.muscleGroup}
+              variant='small'
+            />
           )}
           {exercise.equipment && (
-            <EquipmentBadge equipment={exercise.equipment} variant="small" />
+            <EquipmentBadge equipment={exercise.equipment} variant='small' />
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
-        <div className="space-y-2">
-          <div className="text-sm text-muted-foreground">
-            Category: <span className="font-medium capitalize">{exercise.category}</span>
+      <CardContent className='pt-0'>
+        <div className='space-y-2'>
+          <div className='text-sm text-muted-foreground'>
+            {t("card.category")}:{" "}
+            <span className='font-medium capitalize'>{exercise.category}</span>
           </div>
 
           {exercise.instructions && showInstructions && (
-            <div className="text-sm text-foreground">
-              <div className="flex items-center gap-2 mb-1">
-                <Info className="w-4 h-4" />
-                <span className="font-medium">Instructions:</span>
+            <div className='text-sm text-foreground'>
+              <div className='flex items-center gap-2 mb-1'>
+                <Info className='w-4 h-4' />
+                <span className='font-medium'>{t("card.instructions")}:</span>
               </div>
-              <div className="bg-muted p-2 rounded text-sm">
-                {showFullInstructions ? exercise.instructions : `${exercise.instructions.slice(0, 100)}...`}
+              <div className='bg-muted p-2 rounded text-sm'>
+                {showFullInstructions
+                  ? exercise.instructions
+                  : `${exercise.instructions.slice(0, 100)}...`}
                 {exercise.instructions.length > 100 && (
                   <button
                     onClick={toggleInstructions}
-                    className="text-primary hover:text-primary/80 ml-1 underline"
+                    className='text-primary hover:text-primary/80 ml-1 underline'
                   >
-                    {showFullInstructions ? "Show less" : "Show more"}
+                    {showFullInstructions
+                      ? t("card.show_less")
+                      : t("card.show_more")}
                   </button>
                 )}
               </div>
@@ -87,5 +93,5 @@ export function ExerciseCard({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

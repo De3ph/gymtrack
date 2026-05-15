@@ -5,21 +5,24 @@ import { OverviewTab } from "./OverviewTab";
 import { WorkoutsTab } from "./WorkoutsTab";
 import { MealsTab } from "./MealsTab";
 import { ProgressTab } from "./ProgressTab";
+import { useTranslations } from "next-intl"
+import { Workout, Meal } from "@/types"
+import { WorkoutStats, MealStats } from "@/lib/api/api-types"
 
 interface ClientTabsProps {
-  activeTab: string;
-  onTabChange: (value: string) => void;
-  workouts: any[];
-  meals: any[];
-  workoutStats: any;
-  mealStats: any;
-  dateRange: { start: string; end: string };
-  exerciseType: string;
-  mealType: string;
-  onDateRangeChange: (range: { start: string; end: string }) => void;
-  onExerciseTypeChange: (type: string) => void;
-  onMealTypeChange: (type: string) => void;
-  onClearFilters: () => void;
+  activeTab: string
+  onTabChange: (value: string) => void
+  workouts: Workout[]
+  meals: Meal[]
+  workoutStats: WorkoutStats | null
+  mealStats: MealStats | null
+  dateRange: { start: string; end: string }
+  exerciseType: string
+  mealType: string
+  onDateRangeChange: (range: { start: string; end: string }) => void
+  onExerciseTypeChange: (type: string) => void
+  onMealTypeChange: (type: string) => void
+  onClearFilters: () => void
 }
 
 export function ClientTabs({
@@ -35,18 +38,24 @@ export function ClientTabs({
   onDateRangeChange,
   onExerciseTypeChange,
   onMealTypeChange,
-  onClearFilters,
+  onClearFilters
 }: ClientTabsProps) {
+  const t = useTranslations("trainer.client_detail.tabs")
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
-      <TabsList className="mb-4">
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="workouts">Workouts ({workouts.length})</TabsTrigger>
-        <TabsTrigger value="meals">Meals ({meals.length})</TabsTrigger>
-        <TabsTrigger value="progress">Progress Charts</TabsTrigger>
+      <TabsList className='mb-4'>
+        <TabsTrigger value='overview'>{t("overview")}</TabsTrigger>
+        <TabsTrigger value='workouts'>
+          {t("workouts")} ({workouts.length})
+        </TabsTrigger>
+        <TabsTrigger value='meals'>
+          {t("meals")} ({meals.length})
+        </TabsTrigger>
+        <TabsTrigger value='progress'>{t("progress_charts")}</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="overview">
+      <TabsContent value='overview'>
         <OverviewTab
           dateRange={dateRange}
           exerciseType={exerciseType}
@@ -58,17 +67,17 @@ export function ClientTabs({
         />
       </TabsContent>
 
-      <TabsContent value="workouts">
+      <TabsContent value='workouts'>
         <WorkoutsTab workouts={workouts} />
       </TabsContent>
 
-      <TabsContent value="meals">
+      <TabsContent value='meals'>
         <MealsTab meals={meals} />
       </TabsContent>
 
-      <TabsContent value="progress">
+      <TabsContent value='progress'>
         <ProgressTab workoutStats={workoutStats} mealStats={mealStats} />
       </TabsContent>
     </Tabs>
-  );
+  )
 }

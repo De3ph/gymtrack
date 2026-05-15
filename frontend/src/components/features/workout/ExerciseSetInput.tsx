@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+import { useTranslations } from 'next-intl';
 
 // Extended ExerciseSet type with unique ID for stable keys
 interface ExerciseSetWithId extends ExerciseSet {
@@ -27,6 +28,8 @@ export function ExerciseSetInput({
   disabled = false,
   className
 }: ExerciseSetInputProps) {
+  const t = useTranslations('workout.form.exercise.sets');
+
   // Maintain internal state with stable IDs
   const [setsWithIds, setSetsWithIds] = useState<ExerciseSetWithId[]>(() => {
     return (value || []).map((set, index) => ({
@@ -96,12 +99,12 @@ export function ExerciseSetInput({
 
   return (
     <div className={cn("space-y-3", className)}>
-      <FieldLabel>Sets</FieldLabel>
+      <FieldLabel>{t('label')}</FieldLabel>
 
       {!value || value.length === 0 ? (
         <div className="space-y-3" >
           <div className="text-center py-4 text-sm text-muted-foreground border rounded-md" >
-            No sets added. Click "Add Set" to get started.
+            {t('no_sets')}
           </div>
           <Button
             type="button"
@@ -113,7 +116,7 @@ export function ExerciseSetInput({
 
           >
             <Plus className="w-4 h-4 mr-1" />
-            Add Set
+            {t('add')}
           </Button>
         </div>
       ) : (
@@ -125,13 +128,13 @@ export function ExerciseSetInput({
             >
               {/* Set Number */}
               <div className="flex items-center gap-1 min-w-[60px]">
-                <span className="text-sm font-medium">Set {index + 1}</span>
+                <span className="text-sm font-medium">{t('set_number', { number: index + 1 })}</span>
               </div>
 
               {/* Weight Input */}
               <div className="flex items-center gap-1 min-w-[80px]">
                 <Field>
-                  <FieldLabel className="text-xs">Weight</FieldLabel>
+                  <FieldLabel className="text-xs">{t('weight')}</FieldLabel>
                   <Input
                     type="number"
                     step="0.5"
@@ -143,13 +146,13 @@ export function ExerciseSetInput({
                     placeholder="0"
                   />
                 </Field>
-                <span className="text-sm text-muted-foreground self-end pb-1">kg</span>
+                <span className="text-sm text-muted-foreground self-end pb-1">{t('weight_unit')}</span>
               </div>
 
               {/* Reps Input */}
               <div className="flex items-center gap-1 min-w-[70px]">
                 <Field>
-                  <FieldLabel className="text-xs">Reps</FieldLabel>
+                  <FieldLabel className="text-xs">{t('reps')}</FieldLabel>
                   <Input
                     type="number"
                     min="1"
@@ -165,7 +168,7 @@ export function ExerciseSetInput({
               {/* Rest Time Input */}
               <div className="flex items-center gap-1 min-w-[90px]">
                 <Field>
-                  <FieldLabel className="text-xs">Rest</FieldLabel>
+                  <FieldLabel className="text-xs">{t('rest')}</FieldLabel>
                   <Input
                     type="number"
                     min="0"
@@ -177,7 +180,7 @@ export function ExerciseSetInput({
                     placeholder="60"
                   />
                 </Field>
-                <span className="text-sm text-muted-foreground self-end pb-1">sec</span>
+                <span className="text-sm text-muted-foreground self-end pb-1">{t('seconds')}</span>
               </div>
 
               {/* Remove Button */}
@@ -204,7 +207,7 @@ export function ExerciseSetInput({
             className="w-full"
           >
             <Plus className="w-4 h-4 mr-1" />
-            Add Set
+            {t('add')}
           </Button>
         </div>
       )}

@@ -3,10 +3,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { ClientProgressCharts } from "../ClientProgressCharts";
+import { WorkoutStats, MealStats } from "@/lib/api/api-types"
 
 interface ProgressTabProps {
-  workoutStats: any;
-  mealStats: any;
+  workoutStats: WorkoutStats | null
+  mealStats: MealStats | null
 }
 
 export function ProgressTab({ workoutStats, mealStats }: ProgressTabProps) {

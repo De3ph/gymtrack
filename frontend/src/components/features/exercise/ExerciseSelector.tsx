@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query";
-import { Search, X, ChevronDown } from "lucide-react";
+import { Search } from "lucide-react"
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { exerciseApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MuscleGroupBadge } from "./MuscleGroupBadge";
 import { EquipmentBadge } from "./EquipmentBadge";
 import { ExerciseFilters } from "./exercise-selector/ExerciseFilters";
-import { ExerciseLibrary, ExerciseSearchParams, MuscleGroup, Equipment } from "@/types";
+import { ExerciseLibrary, ExerciseSearchParams } from "@/types"
 
 interface ExerciseSelectorProps {
   onSelect: (exercise: ExerciseLibrary) => void;
@@ -26,6 +26,7 @@ export function ExerciseSelector({
   selectedExerciseId,
   disabled = false,
 }: ExerciseSelectorProps) {
+  const t = useTranslations("exercise")
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<number | undefined>();
@@ -96,41 +97,39 @@ export function ExerciseSelector({
   }));
 
   return (
-    <div className="flex items-center gap-2">
+    <div className='flex items-center gap-2'>
       {/* Pick Exercise Button */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger
           render={
             <Button
-              type="button"
-              variant="outline"
-              size="sm"
+              type='button'
+              variant='outline'
+              size='sm'
               disabled={disabled}
             >
-              Pick Exercise
+              {t("selector.pick_exercise")}
             </Button>
           }
         />
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className='max-w-2xl max-h-[80vh] overflow-y-auto'>
           <DialogHeader>
-            <DialogTitle>Select Exercise</DialogTitle>
-            <DialogDescription>
-              Search and filter exercises to add to your workout
-            </DialogDescription>
+            <DialogTitle>{t("selector.select_exercise")}</DialogTitle>
+            <DialogDescription>{t("selector.description")}</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {/* Loading State */}
             {isLoading && (
-              <div className="text-center py-8 text-sm text-muted-foreground">
-                Loading exercise data...
+              <div className='text-center py-8 text-sm text-muted-foreground'>
+                {t("selector.loading")}
               </div>
             )}
 
             {/* Error State */}
             {hasError && (
-              <div className="text-center py-8 text-sm text-red-600">
-                Error loading exercise data. Please try again.
+              <div className='text-center py-8 text-sm text-red-600'>
+                {t("selector.error")}
               </div>
             )}
 
@@ -138,13 +137,13 @@ export function ExerciseSelector({
             {!isLoading && !hasError && (
               <>
                 {/* Search Input */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className='relative'>
+                  <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
                   <Input
-                    placeholder="Search exercises..."
+                    placeholder={t("selector.search_placeholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className='pl-10'
                     autoFocus
                   />
                 </div>
@@ -162,37 +161,45 @@ export function ExerciseSelector({
                 />
 
                 {/* Exercise List */}
-                <div className="max-h-96 overflow-y-auto space-y-2">
+                <div className='max-h-96 overflow-y-auto space-y-2'>
                   {isLoadingExercises ? (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
+                    <div className='text-center py-8 text-sm text-muted-foreground'>
                       Loading exercises...
                     </div>
                   ) : exercises.length === 0 ? (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
+                    <div className='text-center py-8 text-sm text-muted-foreground'>
                       No exercises found
                     </div>
                   ) : (
                     exercises.map((exercise: ExerciseLibrary) => (
                       <Card
                         key={exercise.exerciseId}
-                        className="cursor-pointer hover:bg-accent transition-colors"
+                        className='cursor-pointer hover:bg-accent transition-colors'
                         onClick={() => handleSelect(exercise)}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="font-medium">{exercise.name}</div>
-                              <div className="text-sm text-muted-foreground capitalize">{exercise.category}</div>
-                              <div className="flex flex-wrap gap-1 mt-2">
+                        <CardContent className='p-4'>
+                          <div className='flex items-start justify-between'>
+                            <div className='flex-1'>
+                              <div className='font-medium'>{exercise.name}</div>
+                              <div className='text-sm text-muted-foreground capitalize'>
+                                {exercise.category}
+                              </div>
+                              <div className='flex flex-wrap gap-1 mt-2'>
                                 {exercise.muscleGroup && (
-                                  <MuscleGroupBadge muscleGroup={exercise.muscleGroup} variant="small" />
+                                  <MuscleGroupBadge
+                                    muscleGroup={exercise.muscleGroup}
+                                    variant='small'
+                                  />
                                 )}
                                 {exercise.equipment && (
-                                  <EquipmentBadge equipment={exercise.equipment} variant="small" />
+                                  <EquipmentBadge
+                                    equipment={exercise.equipment}
+                                    variant='small'
+                                  />
                                 )}
                               </div>
                               {exercise.instructions && (
-                                <div className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                                <div className='text-xs text-muted-foreground mt-2 line-clamp-2'>
                                   {exercise.instructions}
                                 </div>
                               )}
@@ -209,5 +216,5 @@ export function ExerciseSelector({
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

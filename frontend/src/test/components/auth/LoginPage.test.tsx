@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRouter } from 'next/navigation'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import LoginPage from '@/app/(auth)/login/page'
+import LoginPage from '@/app/[locale]/(auth)/login/page'
 import { useAuthStore } from '@/stores/authStore'
 import { server } from '@/test/mocks/server'
 

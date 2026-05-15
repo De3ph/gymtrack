@@ -8,17 +8,19 @@ import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { FieldInfo } from "@/components/ui/form-field";
 import { workoutApi } from "@/lib/api";
-import { ApiErrorHandler } from "@/lib/error-handler";
+import { ExerciseSetInput } from "./ExerciseSetInput";
 import { DATE_FORMATS } from "@/lib/constants";
-import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
-import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
-import { WorkoutExercise, ExerciseSet } from "@/types";
+import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import { WorkoutWithPerSetFormData } from "@/lib/validations/workout";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { useTranslations } from 'next-intl';
 
 interface WorkoutFormProps {
   onSuccess?: () => void;
+  workout?: Workout;
 }
 
 // Helper functions
@@ -69,14 +71,16 @@ const formatExercisesForApi = (exercises: WorkoutExercise[]) => {
   }));
 };
 
-export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
+export function WorkoutForm({ onSuccess, workout: initialWorkout }: WorkoutFormProps) {
   const queryClient = useQueryClient();
+  const t = useTranslations('workout.form');
+  const tCommon = useTranslations('common.actions');
 
   const form = useForm({
     defaultValues: {
-      date: new Date(),
-      workoutTime: dayjs().format("HH:mm"),
-      exercises: [createDefaultExercise()],
+      date: initialWorkout?.date ? new Date(initialWorkout.date) : new Date(),
+      workoutTime: initialWorkout?.date ? dayjs(initialWorkout.date).format("HH:mm") : dayjs().format("HH:mm"),
+      exercises: initialWorkout?.exercises ? initialWorkout.exercises : [createDefaultExercise()],
     },
     onSubmit: async ({ value }) => {
       createWorkout(value);
@@ -141,7 +145,7 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
       className="space-y-6"
     >
       <div className="flex flex-col space-y-2">
-        <FieldLabel htmlFor="date">Workout Date & Time</FieldLabel>
+        <FieldLabel htmlFor="date">{t('date.label')}</FieldLabel>
         <div className="flex flex-wrap gap-4">
           <form.Field name="date">
             {(field) => (
@@ -178,7 +182,7 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-bold">
-                      {exercise.name || `Exercise ${index + 1}`}
+                      {exercise.name || t('exercise.fallback_name', { number: index + 1 })}
                     </CardTitle>
                     <Button
                       type="button"
@@ -192,11 +196,20 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
                     </Button>
                   </div>
                   <div className="mt-2">
-                    <form.Field name={`exercises[${index}].exerciseId`}>
+                    <form.Field name={`exercises[${index}].name`}>
                       {(subField) => (
-                        <ExerciseSelector
-                          onSelect={(selectedExercise) => handleExerciseSelect(selectedExercise, index, field)}
-                          selectedExerciseId={subField.state.value}
+                        <Input
+                          value={exercise.name}
+                          onChange={(e) => {
+                            const newExercises = [...field.state.value];
+                            newExercises[index] = {
+                              ...newExercises[index],
+                              name: e.target.value
+                            };
+                            field.setValue(newExercises);
+                          }}
+                          placeholder={t('exercise.name.placeholder')}
+                          className="w-full"
                         />
                       )}
                     </form.Field>
@@ -229,7 +242,7 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
               onClick={() => handleAddExercise(field)}
               className="w-full md:w-auto"
             >
-              <Plus className="mr-2 h-4 w-4" /> Add Exercise
+              <Plus className="mr-2 h-4 w-4" /> {t('add_exercise')}
             </Button>
           )}
         </form.Field>
@@ -239,7 +252,7 @@ export function WorkoutForm({ onSuccess }: WorkoutFormProps) {
           className="w-full md:w-auto md:ml-auto"
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Log Workout
+          {t('submit')}
         </Button>
       </div>
     </form>

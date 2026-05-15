@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "./StatCard";
 import { Dumbbell, Utensils, Calendar } from "lucide-react";
 import { User, ClientStats } from "@/types";
+import { useTranslations } from 'next-intl';
 
 interface ClientOverviewProps {
   athlete: User | null;
@@ -11,28 +12,32 @@ interface ClientOverviewProps {
 }
 
 export function ClientOverview({ athlete, stats }: ClientOverviewProps) {
+  const t = useTranslations('trainer.client_detail.overview');
+  const tProfile = useTranslations('profile.fields');
+  const tUnits = useTranslations('profile.units');
+
   return (
     <>
       {/* Stats Cards */}
       {stats && (
         <div className="mb-6 grid gap-4 md:grid-cols-4">
           <StatCard
-            title="Total Workouts"
+            title={t('total_workouts')}
             value={stats.totalWorkouts}
             icon={Dumbbell}
           />
           <StatCard
-            title="Total Meals"
+            title={t('total_meals')}
             value={stats.totalMeals}
             icon={Utensils}
           />
           <StatCard
-            title="Workouts This Week"
+            title={t('workouts_this_week')}
             value={stats.workoutsThisWeek}
             icon={Calendar}
           />
           <StatCard
-            title="Meals This Week"
+            title={t('meals_this_week')}
             value={stats.mealsThisWeek}
             icon={Calendar}
           />
@@ -43,28 +48,28 @@ export function ClientOverview({ athlete, stats }: ClientOverviewProps) {
       {athlete?.profile ? (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Athlete Profile</CardTitle>
+            <CardTitle>{t('athlete_profile')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               {athlete.profile.age ? (
                 <div>
-                  <span className="text-sm font-medium">Age:</span> {athlete.profile.age}
+                  <span className="text-sm font-medium">{tProfile('age')}:</span> {athlete.profile.age}
                 </div>
               ) : null}
               {athlete.profile.weight ? (
                 <div>
-                  <span className="text-sm font-medium">Weight:</span> {athlete.profile.weight} kg
+                  <span className="text-sm font-medium">{tProfile('weight')}:</span> {athlete.profile.weight} {tUnits('kg')}
                 </div>
               ) : null}
               {athlete.profile.height ? (
                 <div>
-                  <span className="text-sm font-medium">Height:</span> {athlete.profile.height} cm
+                  <span className="text-sm font-medium">{tProfile('height')}:</span> {athlete.profile.height} {tUnits('cm')}
                 </div>
               ) : null}
               {athlete.profile.fitnessGoals ? (
                 <div className="md:col-span-2">
-                  <span className="text-sm font-medium">Fitness Goals:</span> {athlete.profile.fitnessGoals}
+                  <span className="text-sm font-medium">{tProfile('fitness_goals')}:</span> {athlete.profile.fitnessGoals}
                 </div>
               ) : null}
             </div>

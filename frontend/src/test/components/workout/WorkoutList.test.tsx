@@ -20,12 +20,13 @@ const mockWorkouts: Workout[] = [
     date: new Date().toISOString(),
     exercises: [
       {
+        exerciseId: 'bench-press',
         name: 'Bench Press',
-        weight: 80,
-        weightUnit: 'kg',
-        sets: 3,
-        reps: [12, 10, 8],
-        restTime: 60,
+        sets: [
+          { weight: 80, weightUnit: 'kg' as const, reps: 12, restTime: 60, completed: false },
+          { weight: 80, weightUnit: 'kg' as const, reps: 10, restTime: 60, completed: false },
+          { weight: 80, weightUnit: 'kg' as const, reps: 8, restTime: 60, completed: false },
+        ],
       },
     ],
     createdAt: new Date().toISOString(),
@@ -54,15 +55,14 @@ describe('WorkoutList', () => {
     renderWithProvider(<WorkoutList workouts={mockWorkouts} />)
 
     expect(screen.getByText(/bench press/i)).toBeInTheDocument()
-    expect(screen.getByText(/1 exercises/i)).toBeInTheDocument()
-    expect(screen.getByText(/3 x 12, 10, 8 @ 80kg/i)).toBeInTheDocument()
+    expect(screen.getByText(/sets_x/i)).toBeInTheDocument()
+    expect(screen.getByText(/set_detail/i)).toBeInTheDocument()
   })
 
   it('shows empty state when no workouts', () => {
     renderWithProvider(<WorkoutList workouts={[]} />)
 
-    expect(screen.getByText(/no workouts logged yet/i)).toBeInTheDocument()
-    expect(screen.getByText(/start training/i)).toBeInTheDocument()
+    expect(screen.getByText(/no_workouts/i)).toBeInTheDocument()
   })
 
   it('shows loading state when fetching and no props', () => {
@@ -71,7 +71,7 @@ describe('WorkoutList', () => {
     )
     renderWithProvider(<WorkoutList />)
 
-    expect(screen.getByText(/loading workouts/i)).toBeInTheDocument()
+    expect(screen.getByText(/loading/i)).toBeInTheDocument()
   })
 
   it('shows edit and delete buttons only for workouts within 24h when not readOnly', () => {
@@ -82,16 +82,16 @@ describe('WorkoutList', () => {
     expect(buttons.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('hides edit and delete buttons when readOnly', () => {
+  it('hides edit and delete buttons but shows comments toggle when readOnly', () => {
     renderWithProvider(<WorkoutList workouts={mockWorkouts} readOnly />)
 
     expect(screen.getByText(/bench press/i)).toBeInTheDocument()
     const buttons = screen.queryAllByRole('button')
-    expect(buttons.length).toBe(0)
+    expect(buttons.length).toBe(1)
   })
 
   it('fetches workouts when no props provided', async () => {
-    vi.mocked(workoutApi.getAll).mockResolvedValue({ workouts: mockWorkouts })
+    vi.mocked(workoutApi.getAll).mockResolvedValue({ workouts: mockWorkouts, count: mockWorkouts.length })
     renderWithProvider(<WorkoutList />)
 
     await waitFor(() => {

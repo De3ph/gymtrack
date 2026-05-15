@@ -18,6 +18,7 @@ import { workoutWithPerSetSchema, WorkoutWithPerSetFormData } from "@/lib/valida
 import { DATE_FORMATS } from "@/lib/constants";
 import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
 import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
+import { useTranslations } from 'next-intl';
 
 interface EditWorkoutDialogProps {
   workout: Workout | null;
@@ -32,6 +33,8 @@ export function EditWorkoutDialog({
 }: EditWorkoutDialogProps) {
   const queryClient = useQueryClient();
   const [error, setError] = React.useState<string | null>(null);
+  const t = useTranslations('workout.edit_dialog');
+  const tCommon = useTranslations('common.actions');
 
   // Initialize form with workout data when dialog opens
   const form = useForm({
@@ -181,7 +184,7 @@ export function EditWorkoutDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Workout</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
 
         {error && (
@@ -192,7 +195,7 @@ export function EditWorkoutDialog({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col space-y-2">
-            <FieldLabel htmlFor="date">Workout Date & Time</FieldLabel>
+            <FieldLabel htmlFor="date">{t('date_label')}</FieldLabel>
             <div className="flex flex-wrap gap-4">
               <form.Field name="date">
                 {(field) => (
@@ -229,7 +232,7 @@ export function EditWorkoutDialog({
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-bold">
-                          {field.state.value[index]?.name || `Exercise ${index + 1}`}
+                          {field.state.value[index]?.name || t('fallback_exercise', { number: index + 1 })}
                         </CardTitle>
                         <Button
                           type="button"
@@ -297,7 +300,7 @@ export function EditWorkoutDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
@@ -305,7 +308,7 @@ export function EditWorkoutDialog({
             >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <Save className="mr-2 h-4 w-4" />
-              Save Changes
+              {t('save_changes')}
             </Button>
           </div>
         </form>

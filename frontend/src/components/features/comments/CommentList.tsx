@@ -1,48 +1,49 @@
 "use client";
 
 import { useMemo } from "react";
-import { Comment } from "@/types";
-import dayjs from "dayjs";
-import { CommentItem } from "./CommentItem";
-import { CommentForm } from "./CommentForm";
+import { useTranslations } from "next-intl"
+import { Comment } from "@/types"
+import dayjs from "dayjs"
+import { CommentItem } from "./CommentItem"
+import { CommentForm } from "./CommentForm"
 
 interface CommentListProps {
-  comments: Comment[];
-  targetType: "workout" | "meal";
-  targetId: string;
-  queryKey: (string | number)[];
-  readOnly?: boolean;
-  replyingToId: string | null;
-  onStartReply: (parentCommentId: string) => void;
-  onCancelReply: () => void;
+  comments: Comment[]
+  targetType: "workout" | "meal"
+  targetId: string
+  queryKey: (string | number)[]
+  readOnly?: boolean
+  replyingToId: string | null
+  onStartReply: (parentCommentId: string) => void
+  onCancelReply: () => void
 }
 
 interface CommentNode {
-  comment: Comment;
-  children: CommentNode[];
+  comment: Comment
+  children: CommentNode[]
 }
 
 function buildTree(comments: Comment[]): CommentNode[] {
-  const byParent = new Map<string, Comment[]>();
+  const byParent = new Map<string, Comment[]>()
   for (const c of comments) {
-    const pid = c.parentCommentId ?? "";
-    if (pid === "") continue;
-    if (!byParent.has(pid)) byParent.set(pid, []);
-    byParent.get(pid)!.push(c);
+    const pid = c.parentCommentId ?? ""
+    if (pid === "") continue
+    if (!byParent.has(pid)) byParent.set(pid, [])
+    byParent.get(pid)!.push(c)
   }
   for (const arr of byParent.values()) {
     arr.sort((a, b) =>
-      dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? -1 : 1,
-    );
+      dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? -1 : 1
+    )
   }
   function node(comment: Comment): CommentNode {
-    const children = (byParent.get(comment.commentId) ?? []).map(node);
-    return { comment, children };
+    const children = (byParent.get(comment.commentId) ?? []).map(node)
+    return { comment, children }
   }
   const roots = comments
     .filter((c) => !c.parentCommentId || c.parentCommentId === "")
-    .sort((a, b) => (dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? -1 : 1));
-  return roots.map(node);
+    .sort((a, b) => (dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? -1 : 1))
+  return roots.map(node)
 }
 
 function CommentNodeRow({
@@ -54,19 +55,19 @@ function CommentNodeRow({
   replyingToId,
   onStartReply,
   onCancelReply,
-  depth,
+  depth
 }: {
-  node: CommentNode;
-  targetType: "workout" | "meal";
-  targetId: string;
-  queryKey: (string | number)[];
-  readOnly: boolean;
-  replyingToId: string | null;
-  onStartReply: (parentCommentId: string) => void;
-  onCancelReply: () => void;
-  depth: number;
+  node: CommentNode
+  targetType: "workout" | "meal"
+  targetId: string
+  queryKey: (string | number)[]
+  readOnly: boolean
+  replyingToId: string | null
+  onStartReply: (parentCommentId: string) => void
+  onCancelReply: () => void
+  depth: number
 }) {
-  const isReply = depth > 0;
+  const isReply = depth > 0
   return (
     <div className={isReply ? "ml-6 mt-2" : ""}>
       <CommentItem
@@ -78,13 +79,13 @@ function CommentNodeRow({
         onReply={readOnly ? undefined : onStartReply}
       />
       {replyingToId === node.comment.commentId && !readOnly && (
-        <div className="ml-6 mt-2">
+        <div className='ml-6 mt-2'>
           <CommentForm
             targetType={targetType}
             targetId={targetId}
             parentCommentId={node.comment.commentId}
             queryKey={queryKey}
-            placeholder="Write a reply..."
+            placeholder='Write a reply...'
             onCancel={onCancelReply}
           />
         </div>
@@ -104,7 +105,7 @@ function CommentNodeRow({
         />
       ))}
     </div>
-  );
+  )
 }
 
 export function CommentList({
@@ -115,20 +116,21 @@ export function CommentList({
   readOnly = false,
   replyingToId,
   onStartReply,
-  onCancelReply,
+  onCancelReply
 }: CommentListProps) {
-  const tree = useMemo(() => buildTree(comments), [comments]);
+  const t = useTranslations("comment")
+  const tree = useMemo(() => buildTree(comments), [comments])
 
   if (tree.length === 0) {
     return (
-      <p className="text-center text-sm text-muted-foreground py-4">
-        No comments yet.
+      <p className='text-center text-sm text-muted-foreground py-4'>
+        {t("list.no_comments")}
       </p>
-    );
+    )
   }
 
   return (
-    <div className="space-y-3">
+    <div className='space-y-3'>
       {tree.map((node) => (
         <CommentNodeRow
           key={node.comment.commentId}
@@ -144,5 +146,5 @@ export function CommentList({
         />
       ))}
     </div>
-  );
+  )
 }

@@ -5,45 +5,48 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import dayjs from "dayjs";
+import { useTranslations } from "next-intl"
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Combobox,
   ComboboxInput,
   ComboboxContent,
   ComboboxList,
-  ComboboxItem,
-} from "@/components/ui/combobox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+  ComboboxItem
+} from "@/components/ui/combobox"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { FieldInfo } from "@/components/ui/form-field";
-import { mealApi } from "@/lib/api";
-import { ApiErrorHandler } from "@/lib/error-handler";
-import { DATE_FORMATS } from "@/lib/constants";
-import { Meal } from "@/types";
+  DialogTitle
+} from "@/components/ui/dialog"
+import { FieldInfo } from "@/components/ui/form-field"
+import { mealApi } from "@/lib/api"
+import { ApiErrorHandler } from "@/lib/error-handler"
+import { DATE_FORMATS } from "@/lib/constants"
+import { Meal } from "@/types"
+import type { MealFormData, FoodItemFormData } from "@/lib/validations/meal"
 
 interface EditMealDialogProps {
-  meal: Meal | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  meal: Meal | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export function EditMealDialog({
   meal,
   open,
-  onOpenChange,
+  onOpenChange
 }: EditMealDialogProps) {
-  const queryClient = useQueryClient();
+  const t = useTranslations("meal")
+  const queryClient = useQueryClient()
 
-  const form = useForm({
+  const form = useForm<MealFormData>({
     defaultValues: {
       date: dayjs().format(DATE_FORMATS.DATE_ONLY),
       mealTime: dayjs().format("HH:mm"),
@@ -53,134 +56,150 @@ export function EditMealDialog({
           food: "",
           quantity: "",
           calories: 0,
-          macros: { protein: 0, carbs: 0, fats: 0 },
-        },
-      ],
+          macros: { protein: 0, carbs: 0, fats: 0 }
+        }
+      ]
     },
     onSubmit: async ({ value }) => {
-      updateMeal(value);
-    },
-  });
+      updateMeal(value)
+    }
+  })
 
   // Reset form when meal changes
   React.useEffect(() => {
     if (meal) {
-      const mealDate = dayjs(meal.date);
-      form.setFieldValue("date", mealDate.format(DATE_FORMATS.DATE_ONLY));
-      form.setFieldValue("mealTime", mealDate.format("HH:mm"));
-      form.setFieldValue("mealType", meal.mealType as any);
-      form.setFieldValue("items", meal.items.map((item) => ({
-        food: item.food,
-        quantity: item.quantity,
-        calories: item.calories || 0,
-        macros: {
-          protein: item.macros?.protein || 0,
-          carbs: item.macros?.carbs || 0,
-          fats: item.macros?.fats || 0,
-        },
-      })) as any);
+      const mealDate = dayjs(meal.date)
+      form.setFieldValue("date", mealDate.format(DATE_FORMATS.DATE_ONLY))
+      form.setFieldValue("mealTime", mealDate.format("HH:mm"))
+      form.setFieldValue("mealType", meal.mealType)
+      form.setFieldValue(
+        "items",
+        meal.items.map((item) => ({
+          food: item.food,
+          quantity: item.quantity,
+          calories: item.calories || 0,
+          macros: {
+            protein: item.macros?.protein || 0,
+            carbs: item.macros?.carbs || 0,
+            fats: item.macros?.fats || 0
+          }
+        })) as FoodItemFormData[]
+      )
     }
-  }, [meal, form]);
+  }, [meal, form])
 
   // Mutation for updating meal
   const { mutate: updateMeal, isPending } = useMutation({
-    mutationFn: async (data: any) => {
-      if (!meal) return;
+    mutationFn: async (data: MealFormData) => {
+      if (!meal) return
       // Combine date and time
-      const [hours, minutes] = data.mealTime.split(":").map(Number);
+      const [hours, minutes] = data.mealTime.split(":").map(Number)
       const combinedDate = dayjs(data.date)
         .hour(hours)
         .minute(minutes)
         .second(0)
-        .millisecond(0);
+        .millisecond(0)
 
       return mealApi.update(meal.mealId, {
         date: combinedDate.toISOString(),
         mealType: data.mealType,
-        items: data.items.map((item: any) => ({
+        items: data.items.map((item) => ({
           ...item,
           calories: item.calories || 0,
           macros: {
             protein: item.macros?.protein || 0,
             carbs: item.macros?.carbs || 0,
-            fats: item.macros?.fats || 0,
-          },
-        })),
-      });
+            fats: item.macros?.fats || 0
+          }
+        }))
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meals"] });
-      onOpenChange(false);
+      queryClient.invalidateQueries({ queryKey: ["meals"] })
+      onOpenChange(false)
     },
     onError: (error) => {
-      const errorMessage = ApiErrorHandler.handle(error);
+      const errorMessage = ApiErrorHandler.handle(error)
       // TODO: Show toast notification with errorMessage
-      console.error("Failed to update meal:", errorMessage);
-    },
-  });
+      console.error("Failed to update meal:", errorMessage)
+    }
+  })
 
-  if (!meal) return null;
+  if (!meal) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className='max-w-3xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>Edit Meal</DialogTitle>
-          <DialogDescription>
-            Update your meal details. Changes can only be made within 24 hours
-            of logging.
-          </DialogDescription>
+          <DialogTitle>{t("edit_dialog.title")}</DialogTitle>
+          <DialogDescription>{t("edit_dialog.description")}</DialogDescription>
         </DialogHeader>
 
         <form
           onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit();
+            e.preventDefault()
+            form.handleSubmit()
           }}
-          className="space-y-6 mt-4"
+          className='space-y-6 mt-4'
         >
-          <div className="flex flex-col space-y-2">
-            <FieldLabel htmlFor="date">Meal Date & Time</FieldLabel>
-            <div className="flex flex-wrap gap-4">
-              <form.Field name="date">
+          <div className='flex flex-col space-y-2'>
+            <FieldLabel htmlFor='date'>{t("form.date_time_label")}</FieldLabel>
+            <div className='flex flex-wrap gap-4'>
+              <form.Field name='date'>
                 {(field) => (
                   <Input
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    type="date"
-                    id="date"
-                    className="w-full md:w-[180px]"
+                    type='date'
+                    id='date'
+                    className='w-full md:w-[180px]'
                   />
                 )}
               </form.Field>
-              <form.Field name="mealTime">
+              <form.Field name='mealTime'>
                 {(field) => (
                   <Input
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    type="time"
-                    id="mealTime"
-                    className="w-full md:w-[120px]"
+                    type='time'
+                    id='mealTime'
+                    className='w-full md:w-[120px]'
                   />
                 )}
               </form.Field>
-              <form.Field name="mealType">
+              <form.Field name='mealType'>
                 {(field) => (
                   <Combobox>
                     <ComboboxInput
-                      placeholder="Select meal type"
+                      placeholder={t("form.meal_type_placeholder")}
                       value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value as any)}
+                      onChange={(e) =>
+                        field.handleChange(
+                          e.target.value as
+                            | "breakfast"
+                            | "lunch"
+                            | "dinner"
+                            | "snack"
+                        )
+                      }
                       onBlur={field.handleBlur}
                     />
                     <ComboboxContent>
                       <ComboboxList>
-                        <ComboboxItem value="breakfast">Breakfast</ComboboxItem>
-                        <ComboboxItem value="lunch">Lunch</ComboboxItem>
-                        <ComboboxItem value="dinner">Dinner</ComboboxItem>
-                        <ComboboxItem value="snack">Snack</ComboboxItem>
+                        <ComboboxItem value='breakfast'>
+                          {t("form.meal_type.breakfast")}
+                        </ComboboxItem>
+                        <ComboboxItem value='lunch'>
+                          {t("form.meal_type.lunch")}
+                        </ComboboxItem>
+                        <ComboboxItem value='dinner'>
+                          {t("form.meal_type.dinner")}
+                        </ComboboxItem>
+                        <ComboboxItem value='snack'>
+                          {t("form.meal_type.snack")}
+                        </ComboboxItem>
                       </ComboboxList>
                     </ComboboxContent>
                   </Combobox>
@@ -189,32 +208,34 @@ export function EditMealDialog({
             </div>
           </div>
 
-          <form.Field name="items" mode="array">
+          <form.Field name='items' mode='array'>
             {(field) => (
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 {field.state.value.map((_, index) => (
-                  <Card key={index} className="relative">
+                  <Card key={index} className='relative'>
                     <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      className='absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive'
                       onClick={() => field.removeValue(index)}
                       disabled={field.state.value.length === 1}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className='h-4 w-4' />
                     </Button>
-                    <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                      <div className="space-y-2 col-span-2">
-                        <FieldLabel>Food Name</FieldLabel>
+                    <CardContent className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+                      <div className='space-y-2 col-span-2'>
+                        <FieldLabel>{t("form.food_name_label")}</FieldLabel>
                         <form.Field name={`items[${index}].food`}>
                           {(subField) => (
                             <Field>
                               <Input
                                 value={subField.state.value}
-                                onChange={(e) => subField.handleChange(e.target.value)}
+                                onChange={(e) =>
+                                  subField.handleChange(e.target.value)
+                                }
                                 onBlur={subField.handleBlur}
-                                placeholder="e.g. Oatmeal"
+                                placeholder={t("form.food.placeholder")}
                               />
                               <FieldInfo field={subField} />
                             </Field>
@@ -222,79 +243,95 @@ export function EditMealDialog({
                         </form.Field>
                       </div>
 
-                      <div className="space-y-2">
-                        <FieldLabel>Quantity</FieldLabel>
+                      <div className='space-y-2'>
+                        <FieldLabel>{t("form.quantity.label")}</FieldLabel>
                         <form.Field name={`items[${index}].quantity`}>
                           {(subField) => (
                             <Input
                               value={subField.state.value}
-                              onChange={(e) => subField.handleChange(e.target.value)}
+                              onChange={(e) =>
+                                subField.handleChange(e.target.value)
+                              }
                               onBlur={subField.handleBlur}
-                              placeholder="e.g. 1 cup"
+                              placeholder={t("form.quantity.placeholder")}
                             />
                           )}
                         </form.Field>
                       </div>
 
-                      <div className="space-y-2">
-                        <FieldLabel>Calories</FieldLabel>
+                      <div className='space-y-2'>
+                        <FieldLabel>{t("form.calories.label")}</FieldLabel>
                         <form.Field name={`items[${index}].calories`}>
                           {(subField) => (
                             <Input
                               value={subField.state.value}
-                              onChange={(e) => subField.handleChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                subField.handleChange(Number(e.target.value))
+                              }
                               onBlur={subField.handleBlur}
-                              type="number"
-                              placeholder="e.g. 150"
+                              type='number'
+                              placeholder={t("form.calories.placeholder")}
                             />
                           )}
                         </form.Field>
                       </div>
 
-                      <div className="space-y-2 col-span-full">
-                        <FieldLabel>Macros (g)</FieldLabel>
-                        <div className="grid grid-cols-3 gap-2">
+                      <div className='space-y-2 col-span-full'>
+                        <FieldLabel>{t("form.macros.label")}</FieldLabel>
+                        <div className='grid grid-cols-3 gap-2'>
                           <div>
-                            <FieldLabel className="text-xs text-muted-foreground">
-                              Protein
+                            <FieldLabel className='text-xs text-muted-foreground'>
+                              {t("form.macros.protein")}
                             </FieldLabel>
                             <form.Field name={`items[${index}].macros.protein`}>
-                              {(subField: any) => (
+                              {(subField) => (
                                 <Input
                                   value={subField.state.value}
-                                  onChange={(e) => subField.handleChange(Number(e.target.value))}
+                                  onChange={(e) =>
+                                    subField.handleChange(
+                                      Number(e.target.value)
+                                    )
+                                  }
                                   onBlur={subField.handleBlur}
-                                  type="number"
+                                  type='number'
                                 />
                               )}
                             </form.Field>
                           </div>
                           <div>
-                            <FieldLabel className="text-xs text-muted-foreground">
-                              Carbs
+                            <FieldLabel className='text-xs text-muted-foreground'>
+                              {t("form.macros.carbs")}
                             </FieldLabel>
                             <form.Field name={`items[${index}].macros.carbs`}>
                               {(subField) => (
                                 <Input
                                   value={subField.state.value}
-                                  onChange={(e) => subField.handleChange(Number(e.target.value))}
+                                  onChange={(e) =>
+                                    subField.handleChange(
+                                      Number(e.target.value)
+                                    )
+                                  }
                                   onBlur={subField.handleBlur}
-                                  type="number"
+                                  type='number'
                                 />
                               )}
                             </form.Field>
                           </div>
                           <div>
-                            <FieldLabel className="text-xs text-muted-foreground">
-                              Fats
+                            <FieldLabel className='text-xs text-muted-foreground'>
+                              {t("form.macros.fats")}
                             </FieldLabel>
                             <form.Field name={`items[${index}].macros.fats`}>
                               {(subField) => (
                                 <Input
                                   value={subField.state.value}
-                                  onChange={(e) => subField.handleChange(Number(e.target.value))}
+                                  onChange={(e) =>
+                                    subField.handleChange(
+                                      Number(e.target.value)
+                                    )
+                                  }
                                   onBlur={subField.handleBlur}
-                                  type="number"
+                                  type='number'
                                 />
                               )}
                             </form.Field>
@@ -308,42 +345,42 @@ export function EditMealDialog({
             )}
           </form.Field>
 
-          <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
-            <form.Field name="items" mode="array">
+          <div className='flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0'>
+            <form.Field name='items' mode='array'>
               {(field) => (
                 <Button
-                  type="button"
-                  variant="outline"
+                  type='button'
+                  variant='outline'
                   onClick={() =>
                     field.pushValue({
                       food: "",
                       quantity: "",
                       calories: 0,
-                      macros: { protein: 0, carbs: 0, fats: 0 },
+                      macros: { protein: 0, carbs: 0, fats: 0 }
                     })
                   }
-                  className="w-full md:w-auto"
+                  className='w-full md:w-auto'
                 >
-                  <Plus className="mr-2 h-4 w-4" /> Add Food Item
+                  <Plus className='mr-2 h-4 w-4' /> {t("form.add_food_item")}
                 </Button>
               )}
             </form.Field>
-            <div className="flex space-x-2 md:ml-auto">
+            <div className='flex space-x-2 md:ml-auto'>
               <Button
-                type="button"
-                variant="outline"
+                type='button'
+                variant='outline'
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t("edit_dialog.cancel")}
               </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
+              <Button type='submit' disabled={isPending}>
+                {isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                {t("edit_dialog.save_changes")}
               </Button>
             </div>
           </div>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
