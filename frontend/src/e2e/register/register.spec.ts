@@ -1,22 +1,9 @@
-import { test, expect, type Page } from "@playwright/test";
-
-async function waitForForm(page: Page) {
-  await page.waitForFunction('window.__registerForm');
-}
-
-async function submitForm(page: Page) {
-  await page.evaluate(() => window.__registerForm.handleSubmit());
-  await page.waitForTimeout(500);
-}
-
-async function setRole(page: Page, role: "athlete" | "trainer") {
-  await page.evaluate((r) => window.__registerForm.setFieldValue('role', r), role);
-  await page.waitForTimeout(200);
-}
+import { test, expect } from "@playwright/test";
+import { ROUTES } from "@/lib/routes";
 
 test.describe("Registration", () => {
   test.beforeEach(async ({ page }) => {
-    // Mock API responses to ensure tests pass without a running backend
+    // Mock API responses
     await page.route(/\/auth\/register/, async (route) => {
       await route.fulfill({
         status: 201,
@@ -51,8 +38,7 @@ test.describe("Registration", () => {
     });
 
     // Navigate to the registration page
-    await page.goto("/register");
-    await waitForForm(page);
+    await page.goto(ROUTES.REGISTER);
   });
 
   // 1.2.1 Registration: Register new athlete with all required fields
@@ -61,25 +47,17 @@ test.describe("Registration", () => {
     const username = `athlete${uniqueId}`;
     const email = `athlete${uniqueId}@example.com`;
 
-    // Fill common fields
-    await page.locator("#username").fill(username);
-    await page.locator("#email").fill(email);
-    await page.locator("#password").fill("Password123");
-    await page.locator("#confirmPassword").fill("Password123");
-    await page.locator("#name").fill("Test Athlete");
+    await page.locator("#username").pressSequentially(username);
+    await page.locator("#email").pressSequentially(email);
+    await page.locator("#password").pressSequentially("Password123");
+    await page.locator("#confirmPassword").pressSequentially("Password123");
+    await page.locator("#name").pressSequentially("Test Athlete");
+    await page.locator("#age").pressSequentially("25");
+    await page.locator("#weight").pressSequentially("75");
+    await page.locator("#height").pressSequentially("180");
+    await page.locator("#fitnessGoals").pressSequentially("Build muscle and improve endurance");
 
-    // Fill athlete-specific fields
-    await page.locator("#age").fill("25");
-    await page.locator("#weight").fill("75");
-    await page.locator("#height").fill("180");
-    await page
-      .locator("#fitnessGoals")
-      .fill("Build muscle and improve endurance");
-
-    // Submit form
-    await submitForm(page);
-
-    // Wait for navigation after successful registration
+    await page.getByRole("button", { name: /create account|submit/i }).click();
     await page.waitForURL(/\/$/);
     await expect(page).toHaveURL(/\/$/);
   });
@@ -90,54 +68,50 @@ test.describe("Registration", () => {
     const username = `trainer${uniqueId}`;
     const email = `trainer${uniqueId}@example.com`;
 
-    // Fill common fields
-    await page.locator("#username").fill(username);
-    await page.locator("#email").fill(email);
-    await page.locator("#password").fill("Password123");
-    await page.locator("#confirmPassword").fill("Password123");
-    await page.locator("#name").fill("Test Trainer");
+    await page.locator("#username").pressSequentially(username);
+    await page.locator("#email").pressSequentially(email);
+    await page.locator("#password").pressSequentially("Password123");
+    await page.locator("#confirmPassword").pressSequentially("Password123");
+    await page.locator("#name").pressSequentially("Test Trainer");
 
-    // Select Trainer role
-    await setRole(page, "trainer");
+    // Select Trainer role - click the trainer span
+    await page.locator("span:text('Trainer')").click();
 
-    // Fill trainer-specific fields
-    await page.locator("#certifications").fill("NASM CPT, Precision Nutrition");
-    await page.locator("#specializations").fill("Weightlifting, HIIT");
+    await page.locator("#certifications").pressSequentially("NASM CPT, Precision Nutrition");
+    await page.locator("#specializations").pressSequentially("Weightlifting, HIIT");
 
-    // Submit form
-    await submitForm(page);
-
-    // Wait for navigation after successful registration
+    await page.getByRole("button", { name: /create account|submit/i }).click();
     await page.waitForURL(/\/$/);
     await expect(page).toHaveURL(/\/$/);
   });
 
   // 1.2.3 Registration: Registration with mismatched passwords
   test("register: mismatched passwords shows error", async ({ page }) => {
-    await expect(page.locator("#password")).toBeVisible();
+    await page.locator("#password").pressSequentially("Password123");
+    await page.locator("#confirmPassword").pressSequentially("Password456");
 
-    await page.locator("#password").fill("Password123");
-    await page.locator("#confirmPassword").fill("Password456");
-
-    await submitForm(page);
+    // Trigger validation by blurring confirm password
+    await page.locator("#confirmPassword").blur();
 
     await expect(page.getByText("Passwords do not match")).toBeVisible();
   });
 
   // 1.2.4 Registration: Registration with invalid email format
   test("register: invalid email format shows error", async ({ page }) => {
-    await page.locator("#email").fill("not-an-email");
+    await page.locator("#email").pressSequentially("not-an-email");
 
-    await submitForm(page);
+    // Trigger validation by blurring email
+    await page.locator("#email").blur();
 
     await expect(page.getByText("Please enter a valid email")).toBeVisible();
   });
 
   // 1.2.5 Registration: Registration with short password (<6 chars)
   test("register: short password shows error", async ({ page }) => {
-    await page.locator("#password").fill("12345");
+    await page.locator("#password").pressSequentially("12345");
 
-    await submitForm(page);
+    // Trigger validation by blurring password
+    await page.locator("#password").blur();
 
     await expect(
       page.getByText("Password must be at least 6 characters"),
@@ -146,8 +120,8 @@ test.describe("Registration", () => {
 
   // 1.2.6 Registration: Role selection (Athlete) shows athlete-specific fields
   test("register: role selection athlete visibility", async ({ page }) => {
-    // Select Athlete role
-    await setRole(page, "athlete");
+    // Athlete role is default, no need to click
+    // Wait for component to render
 
     // Athlete fields should be visible
     await expect(page.locator("#age")).toBeVisible();
@@ -162,8 +136,8 @@ test.describe("Registration", () => {
 
   // 1.2.7 Registration: Role selection (Trainer) shows trainer-specific fields
   test("register: role selection trainer visibility", async ({ page }) => {
-    // Select Trainer role
-    await setRole(page, "trainer");
+    // Select Trainer role - click the trainer span
+    await page.locator("span:text('Trainer')").click();
 
     // Trainer fields should be visible
     await expect(page.locator("#certifications")).toBeVisible();
