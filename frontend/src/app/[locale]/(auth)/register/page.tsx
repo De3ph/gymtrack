@@ -4,7 +4,7 @@ import { authApi } from "@/lib/api"
 import { useAuthStore } from "@/stores/authStore"
 import type { UserRole } from "@/types"
 import { useRouter, usePathname } from '@/i18n/navigation'
-import { useState } from "react"
+import { useRef, useEffect, useState } from "react"
 import { useForm } from "@tanstack/react-form"
 import { ROUTES } from "@/lib/routes"
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const { login } = useAuthStore()
   const [error, setError] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
   const t = useTranslations('auth.register')
   const tCommon = useTranslations('common')
 
@@ -72,7 +73,21 @@ export default function RegisterPage() {
     },
   })
 
-  const selectedRole = form.getFieldValue("role") as UserRole
+  useEffect(() => {
+    const el = formRef.current
+    if (!el) return
+    const handler = (e: SubmitEvent) => {
+      e.preventDefault()
+      form.handleSubmit()
+    }
+    el.addEventListener('submit', handler)
+    return () => el.removeEventListener('submit', handler)
+  }, [form])
+
+  useEffect(() => {
+    ;(window as any).__registerForm = form
+    return () => { delete (window as any).__registerForm }
+  }, [form])
 
   return (
     <div className='rounded-lg bg-card p-8 shadow-xl'>
@@ -87,10 +102,7 @@ export default function RegisterPage() {
       )}
 
       <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
+        ref={formRef}
         className='space-y-4'
       >
         <form.Field
@@ -229,7 +241,7 @@ export default function RegisterPage() {
             <Field>
               <FieldLabel>{t('role.label')}</FieldLabel>
               <div className='flex gap-4'>
-                <label className='flex items-center'>
+                <label className='flex items-center' onClick={() => field.handleChange('athlete')}>
                   <input
                     type='radio'
                     checked={field.state.value === 'athlete'}
@@ -238,7 +250,7 @@ export default function RegisterPage() {
                   />
                   <span className='text-foreground'>{t('role.athlete')}</span>
                 </label>
-                <label className='flex items-center'>
+                <label className='flex items-center' onClick={() => field.handleChange('trainer')}>
                   <input
                     type='radio'
                     checked={field.state.value === 'trainer'}
@@ -280,119 +292,126 @@ export default function RegisterPage() {
           )}
         </form.Field>
 
-        {selectedRole === "athlete" && (
-          <>
-            <div className='grid grid-cols-2 gap-4'>
-              <form.Field name="age">
-                {(field) => (
-                  <Field>
-                    <FieldLabel htmlFor='age'>{t('age.label')}</FieldLabel>
-                    <Input
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      type='number'
-                      id='age'
-                      placeholder={t('age.placeholder')}
-                      className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
-                    />
-                  </Field>
-                )}
-              </form.Field>
-              <form.Field name="weight">
-                {(field) => (
-                  <Field>
-                    <FieldLabel htmlFor='weight'>{t('weight.label')}</FieldLabel>
-                    <Input
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      type='number'
-                      id='weight'
-                      placeholder={t('weight.placeholder')}
-                      className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
-                    />
-                  </Field>
-                )}
-              </form.Field>
-            </div>
+        <form.Subscribe selector={(s) => s.values.role as UserRole}>
+          {(selectedRole) => (
+            <>
+              {selectedRole === "athlete" && (
+                <>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <form.Field name="age">
+                      {(field) => (
+                        <Field>
+                          <FieldLabel htmlFor='age'>{t('age.label')}</FieldLabel>
+                          <Input
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            onBlur={field.handleBlur}
+                            type='number'
+                            id='age'
+                            placeholder={t('age.placeholder')}
+                            className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="weight">
+                      {(field) => (
+                        <Field>
+                          <FieldLabel htmlFor='weight'>{t('weight.label')}</FieldLabel>
+                          <Input
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            onBlur={field.handleBlur}
+                            type='number'
+                            id='weight'
+                            placeholder={t('weight.placeholder')}
+                            className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  </div>
 
-            <form.Field name="height">
-              {(field) => (
-                <Field>
-                  <FieldLabel htmlFor='height'>{t('height.label')}</FieldLabel>
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    type='number'
-                    id='height'
-                    placeholder={t('height.placeholder')}
-                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
-                  />
-                </Field>
-              )}
-            </form.Field>
+                  <form.Field name="height">
+                    {(field) => (
+                      <Field>
+                        <FieldLabel htmlFor='height'>{t('height.label')}</FieldLabel>
+                        <Input
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          type='number'
+                          id='height'
+                          placeholder={t('height.placeholder')}
+                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
 
-            <form.Field name="fitnessGoals">
-              {(field) => (
-                <Field>
-                  <FieldLabel htmlFor='fitnessGoals'>{t('fitness_goals.label')}</FieldLabel>
-                  <textarea
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    id='fitnessGoals'
-                    placeholder={t('fitness_goals.placeholder')}
-                    rows={3}
-                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
-                  />
-                </Field>
+                  <form.Field name="fitnessGoals">
+                    {(field) => (
+                      <Field>
+                        <FieldLabel htmlFor='fitnessGoals'>{t('fitness_goals.label')}</FieldLabel>
+                        <textarea
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          id='fitnessGoals'
+                          placeholder={t('fitness_goals.placeholder')}
+                          rows={3}
+                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </>
               )}
-            </form.Field>
-          </>
-        )}
 
-        {selectedRole === "trainer" && (
-          <>
-            <form.Field name="certifications">
-              {(field) => (
-                <Field>
-                  <FieldLabel htmlFor='certifications'>{t('certifications.label')}</FieldLabel>
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    type='text'
-                    id='certifications'
-                    placeholder={t('certifications.placeholder')}
-                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
-                  />
-                </Field>
-              )}
-            </form.Field>
+              {selectedRole === "trainer" && (
+                <>
+                  <form.Field name="certifications">
+                    {(field) => (
+                      <Field>
+                        <FieldLabel htmlFor='certifications'>{t('certifications.label')}</FieldLabel>
+                        <Input
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          type='text'
+                          id='certifications'
+                          placeholder={t('certifications.placeholder')}
+                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
 
-            <form.Field name="specializations">
-              {(field) => (
-                <Field>
-                  <FieldLabel htmlFor='specializations'>{t('specializations.label')}</FieldLabel>
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    type='text'
-                    id='specializations'
-                    placeholder={t('specializations.placeholder')}
-                    className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
-                  />
-                </Field>
+                  <form.Field name="specializations">
+                    {(field) => (
+                      <Field>
+                        <FieldLabel htmlFor='specializations'>{t('specializations.label')}</FieldLabel>
+                        <Input
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          type='text'
+                          id='specializations'
+                          placeholder={t('specializations.placeholder')}
+                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </>
               )}
-            </form.Field>
-          </>
-        )}
+            </>
+          )}
+        </form.Subscribe>
         <button
           type='submit'
           disabled={isLoading}
+
           className='w-full rounded-md bg-primary px-4 py-2 text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {isLoading ? t('submitting') : t('submit')}
