@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { ROUTES } from "@/lib/routes";
 
-test.describe("Login", () => {
+test.describe.serial("Login", () => {
   test.beforeEach(async ({ page }) => {
     // Mock API responses to ensure tests pass without a running backend
-    await page.route("**/api/auth/login", async (route) => {
+    await page.route(/\/api\/auth\/login/, async (route) => {
       const body = route.request().postDataJSON();
       const identifier = body?.identifier || "";
       const password = body?.password || "";
@@ -53,6 +53,23 @@ test.describe("Login", () => {
       });
     });
 
+    // Mock user API for dashboard layout initialization
+    await page.route(/\/api\/users\/me/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          userId: "1",
+          username: "testuser",
+          email: "test@example.com",
+          role: "athlete",
+          profile: { name: "Test User" },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+    });
+
     // Open login page
     await page.goto(ROUTES.LOGIN);
   });
@@ -62,7 +79,7 @@ test.describe("Login", () => {
     await page.locator("#identifier").pressSequentially("athlete@example.com");
     await page.locator("#password").pressSequentially("Password123");
     await page.getByRole("button", { name: /login|submit/i }).click();
-    await page.waitForURL(ROUTES.ATHLETE_WORKOUTS);
+    await page.waitForURL(/\/athlete\/workouts/);
   });
 
   // Test ID: 1.1.2 – Successful login with valid credentials (trainer role)
@@ -70,7 +87,7 @@ test.describe("Login", () => {
     await page.locator("#identifier").pressSequentially("trainer@example.com");
     await page.locator("#password").pressSequentially("Password123");
     await page.getByRole("button", { name: /login|submit/i }).click();
-    await page.waitForURL(ROUTES.TRAINER_CLIENTS);
+    await page.waitForURL(/\/trainer\/clients/);
   });
 
   // Test ID: 1.1.3 – Login with invalid email format
@@ -85,7 +102,9 @@ test.describe("Login", () => {
   test("login: invalid password shows error", async ({ page }) => {
     await page.locator("#identifier").pressSequentially("athlete@example.com");
     await page.locator("#password").pressSequentially("wrongpassword");
+    const loginResponse = page.waitForResponse(/\/api\/auth\/login/);
     await page.getByRole("button", { name: /login|submit/i }).click();
+    await loginResponse;
     await expect(page.getByText("Login failed. Please try again.")).toBeVisible();
   });
 
