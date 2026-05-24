@@ -17,9 +17,11 @@ const (
 	CollectionMeals         = "meals"
 	CollectionComments      = "comments"
 	CollectionInvitations   = "invitations"
-	CollectionMuscleGroups  = "muscle_groups"
-	CollectionEquipment     = "equipment"
-	CollectionExercises     = "exercises"
+	CollectionMuscleGroups          = "muscle_groups"
+	CollectionEquipment             = "equipment"
+	CollectionExercises             = "exercises"
+	CollectionWorkoutPlans          = "workout_plans"
+	CollectionWorkoutPlanAssignments = "workout_plan_assignments"
 )
 
 // Scope names
@@ -42,6 +44,8 @@ func InitializeCollections(cluster *gocb.Cluster, bucket *gocb.Bucket) error {
 		CollectionMuscleGroups,
 		CollectionEquipment,
 		CollectionExercises,
+		CollectionWorkoutPlans,
+		CollectionWorkoutPlanAssignments,
 	}
 
 	// Get the default scope
@@ -166,6 +170,18 @@ func createIndexes(ctx context.Context, cluster *gocb.Cluster, bucketName string
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_exercises_equipment ON `%s`.`%s`.`%s`(equipmentId)", bucketName, scopeName, CollectionExercises),
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_exercises_category ON `%s`.`%s`.`%s`(category)", bucketName, scopeName, CollectionExercises),
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_exercises_name ON `%s`.`%s`.`%s`(name)", bucketName, scopeName, CollectionExercises),
+		},
+		CollectionWorkoutPlans: {
+			fmt.Sprintf("CREATE PRIMARY INDEX IF NOT EXISTS ON `%s`.`%s`.`%s`", bucketName, scopeName, CollectionWorkoutPlans),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wp_trainer ON `%s`.`%s`.`%s`(trainerId)", bucketName, scopeName, CollectionWorkoutPlans),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wp_type ON `%s`.`%s`.`%s`(type)", bucketName, scopeName, CollectionWorkoutPlans),
+		},
+		CollectionWorkoutPlanAssignments: {
+			fmt.Sprintf("CREATE PRIMARY INDEX IF NOT EXISTS ON `%s`.`%s`.`%s`", bucketName, scopeName, CollectionWorkoutPlanAssignments),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wpa_plan ON `%s`.`%s`.`%s`(planId)", bucketName, scopeName, CollectionWorkoutPlanAssignments),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wpa_athlete ON `%s`.`%s`.`%s`(athleteId)", bucketName, scopeName, CollectionWorkoutPlanAssignments),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wpa_trainer ON `%s`.`%s`.`%s`(trainerId)", bucketName, scopeName, CollectionWorkoutPlanAssignments),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wpa_type ON `%s`.`%s`.`%s`(type)", bucketName, scopeName, CollectionWorkoutPlanAssignments),
 		},
 	}
 

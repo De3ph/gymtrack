@@ -8,6 +8,7 @@
   "common": {
     "actions": {
       "save": "Save",
+      "saving": "Saving...",
       "cancel": "Cancel",
       "delete": "Delete",
       "edit": "Edit",
@@ -36,7 +37,8 @@
       "meals": "Meals",
       "clients": "Clients",
       "trainer": "Trainer",
-      "athlete": "Athlete"
+      "athlete": "Athlete",
+      "workout_plans": "Workout Plans"
     },
     "status": {
       "available": "Available for New Clients",
@@ -68,13 +70,21 @@
     "date": {
       "today": "Today",
       "yesterday": "Yesterday",
-      "tomorrow": "Tomorrow"
+      "tomorrow": "Tomorrow",
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
     },
     "time": {
       "seconds": "seconds",
       "minutes": "minutes",
       "hours": "hours"
-    }
+    },
+    "not_set": "Not set"
   },
   "auth": {
     "login": {
@@ -444,7 +454,8 @@
         "no_workouts": "No workouts found",
         "meal_history": "Meal History",
         "meal_description": "View all meals logged by this athlete",
-        "no_meals": "No meals found"
+        "no_meals": "No meals found",
+        "plans": "Plans"
       },
       "terminate_dialog": {
         "title": "End Relationship",
@@ -463,6 +474,9 @@
       "edit_profile": "Edit Profile",
       "specializations": "Specializations",
       "certifications": "Certifications",
+      "loading": "Loading profile...",
+      "profile_saved": "Profile saved successfully!",
+      "profile_save_failed": "Failed to save profile.",
       "public_profile": {
         "title": "Public Profile",
         "bio": "Bio",
@@ -473,10 +487,17 @@
         "location_placeholder": "e.g., New York, NY",
         "languages": "Languages (comma-separated)",
         "languages_placeholder": "e.g., English, Spanish",
+        "not_set": "Not set",
         "available": "Available for new clients",
         "loading": "Loading profile...",
-        "save": "Save Profile"
+        "save": "Save",
+        "saving": "Saving...",
+        "cancel": "Cancel",
+        "edit_profile": "Edit Profile"
       }
+    },
+    "availability": {
+      "title": "Availability"
     },
     "catalog": {
       "specializations": "Specializations",
@@ -491,6 +512,21 @@
         "description": "Average daily macros per week",
         "no_data": "No meal data available"
       }
+    },
+    "workout_plans": {
+      "title": "Workout Plans",
+      "description": "Create and manage workout templates for your clients",
+      "create": "Create Plan",
+      "edit": "Edit Plan",
+      "delete": "Delete Plan",
+      "delete_confirm": "Are you sure you want to delete this plan?",
+      "assign": "Assign to Clients",
+      "plan_name": "Plan Name",
+      "description": "Description",
+      "add_exercise": "Add Exercise",
+      "no_plans": "No workout plans yet. Create your first one!",
+      "exercises": "Exercises",
+      "clients_assigned": "Assigned Clients"
     }
   },
   "profile": {
@@ -567,6 +603,11 @@
       "search": "Search",
       "no_trainers": "No trainers found",
       "view_profile": "View Profile"
+    },
+    "workout_plans": {
+      "title": "My Workout Plans",
+      "description": "View and start workout plans created by your trainer",
+      "empty": "You don't have any workout plans yet. Ask your trainer to create one!"
     },
     "profile": {
       "title": "Athlete Profile",

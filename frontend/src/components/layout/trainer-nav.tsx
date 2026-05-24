@@ -21,6 +21,12 @@ export function TrainerNav() {
       >
         {tNav('profile')}
       </Link>
+      <Link
+        href={ROUTES.TRAINER_WORKOUT_PLANS}
+        className={linkStyles.nav}
+      >
+        {tNav('workout_plans')}
+      </Link>
     </>
   );
 }

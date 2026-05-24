@@ -20,9 +20,18 @@ type UserProfile struct {
 	TrainerAssignment string `json:"trainerAssignment,omitempty"` // Athlete's trainer ID
 
 	// Trainer specific fields
-	Certifications  string   `json:"certifications,omitempty"`
-	Specializations string   `json:"specializations,omitempty"`
-	ClientList      []string `json:"clientList,omitempty"` // List of athlete IDs
+	Certifications         string   `json:"certifications,omitempty"`
+	Specializations        string   `json:"specializations,omitempty"`
+	ClientList             []string `json:"clientList,omitempty"` // List of athlete IDs
+
+	// Trainer profile fields (stored in UserProfile for simplicity)
+	Bio                      string   `json:"bio,omitempty"`
+	ProfilePhotoURL          string   `json:"profilePhotoUrl,omitempty"`
+	HourlyRate               float64  `json:"hourlyRate,omitempty"`
+	YearsOfExperience        int      `json:"yearsOfExperience,omitempty"`
+	Location                 string   `json:"location,omitempty"`
+	IsAvailableForNewClients bool     `json:"isAvailableForNewClients,omitempty"`
+	Languages                []string `json:"languages,omitempty"`
 }
 
 type User struct {

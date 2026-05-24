@@ -43,7 +43,7 @@ func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutI
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	workout := models.NewWorkout(input.AthleteID, input.Date, input.Exercises)
+	workout := models.NewWorkout(input.AthleteID, input.Date, input.Exercises, "")
 
 	if err := s.validator.Struct(workout); err != nil {
 		return nil, fmt.Errorf("workout validation failed: %w", err)

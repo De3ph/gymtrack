@@ -1,16 +1,22 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { MealList } from "@/components/features/meal/MealList";
-import { useTranslations } from "next-intl"
-import { Meal } from "@/types"
+import { useTranslations } from "next-intl";
+import { Meal } from "@/types";
 
 interface MealsTabProps {
-  meals: Meal[]
+  meals: Meal[];
 }
 
 export function MealsTab({ meals }: MealsTabProps) {
-  const t = useTranslations("trainer.client_detail.tabs")
+  const t = useTranslations("trainer.client_detail.tabs");
 
   return (
     <Card>
@@ -20,7 +26,7 @@ export function MealsTab({ meals }: MealsTabProps) {
       </CardHeader>
       <CardContent>
         {meals.length === 0 ? (
-          <p className='text-center text-muted-foreground py-8'>
+          <p className="text-center text-muted-foreground py-8">
             {t("no_meals")}
           </p>
         ) : (
@@ -28,5 +34,5 @@ export function MealsTab({ meals }: MealsTabProps) {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

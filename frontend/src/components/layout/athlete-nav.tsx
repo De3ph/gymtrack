@@ -27,6 +27,12 @@ export function AthleteNav() {
       >
         {tAthlete('trainers.title')}
       </Link>
+      <Link
+        href={ROUTES.ATHLETE_WORKOUT_PLANS}
+        className={linkStyles.nav}
+      >
+        {tNav('workout_plans')}
+      </Link>
     </>
   );
 }

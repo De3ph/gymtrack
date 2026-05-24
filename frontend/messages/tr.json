@@ -8,6 +8,7 @@
   "common": {
     "actions": {
       "save": "Kaydet",
+      "saving": "Kaydediliyor...",
       "cancel": "İptal",
       "delete": "Sil",
       "edit": "Düzenle",
@@ -36,7 +37,8 @@
       "meals": "Öğünler",
       "clients": "Danışanlar",
       "trainer": "Antrenör",
-      "athlete": "Sporcu"
+      "athlete": "Sporcu",
+      "workout_plans": "Antrenman Planları"
     },
     "status": {
       "available": "Yeni Danışanlar için Müsait",
@@ -68,13 +70,21 @@
     "date": {
       "today": "Bugün",
       "yesterday": "Dün",
-      "tomorrow": "Yarın"
+      "tomorrow": "Yarın",
+      "sunday": "Pazar",
+      "monday": "Pazartesi",
+      "tuesday": "Salı",
+      "wednesday": "Çarşamba",
+      "thursday": "Perşembe",
+      "friday": "Cuma",
+      "saturday": "Cumartesi"
     },
     "time": {
       "seconds": "saniye",
       "minutes": "dakika",
       "hours": "saat"
-    }
+    },
+    "not_set": "Belirtilmemiş"
   },
   "auth": {
     "login": {
@@ -363,13 +373,15 @@
       "protein_short": "P:",
       "carbs_short": "K:",
       "fats_short": "Y:"
-    },    "calendar": {
+    },
+    "calendar": {
       "loading_meals": "Öğünler yükleniyor...",
       "loading_details": "Öğün detayları yükleniyor...",
       "title": "Takvim",
       "select_date": "Bir tarih seçin",
       "no_meals": "Bu gün için kayıtlı öğün yok."
-    },    "edit_dialog": {
+    },
+    "edit_dialog": {
       "title": "Öğünü Düzenle",
       "description": "Öğün detaylarınızı güncelleyin. Değişiklikler sadece kayıt sonrası 24 saat içinde yapılabilir.",
       "cancel": "İptal",
@@ -442,7 +454,8 @@
         "no_workouts": "Antrenman bulunamadı",
         "meal_history": "Öğün Geçmişi",
         "meal_description": "Bu sporcunun kaydettiği tüm öğünleri görüntüleyin",
-        "no_meals": "Öğün bulunamadı"
+        "no_meals": "Öğün bulunamadı",
+        "plans": "Planlar"
       },
       "terminate_dialog": {
         "title": "İlişkiyi Sonlandır",
@@ -461,6 +474,9 @@
       "edit_profile": "Profili Düzenle",
       "specializations": "Uzmanlıklar",
       "certifications": "Sertifikalar",
+      "loading": "Profil yükleniyor...",
+      "profile_saved": "Profil başarıyla kaydedildi!",
+      "profile_save_failed": "Profil kaydedilemedi.",
       "public_profile": {
         "title": "Herkese Açık Profil",
         "bio": "Biyografi",
@@ -471,10 +487,17 @@
         "location_placeholder": "örn, New York, NY",
         "languages": "Diller (virgülle ayrılmış)",
         "languages_placeholder": "örn, İngilizce, İspanyolca",
+        "not_set": "Belirtilmemiş",
         "available": "Yeni danışanlar için müsait",
         "loading": "Profil yükleniyor...",
-        "save": "Profili Kaydet"
+        "save": "Kaydet",
+        "saving": "Kaydediliyor...",
+        "cancel": "İptal",
+        "edit_profile": "Profili Düzenle"
       }
+    },
+    "availability": {
+      "title": "Müsaitlik Durumum"
     },
     "catalog": {
       "specializations": "Uzmanlıklar",
@@ -489,6 +512,21 @@
         "description": "Haftalık ortalama günlük makrolar",
         "no_data": "Öğün verisi mevcut değil"
       }
+    },
+    "workout_plans": {
+      "title": "Antrenman Planları",
+      "description": "Danışanlarınız için antrenman şablonları oluşturun ve yönetin",
+      "create": "Plan Oluştur",
+      "edit": "Planı Düzenle",
+      "delete": "Planı Sil",
+      "delete_confirm": "Bu planı silmek istediğinizden emin misiniz?",
+      "assign": "Danışanlara Ata",
+      "plan_name": "Plan Adı",
+      "description": "Açıklama",
+      "add_exercise": "Egzersiz Ekle",
+      "no_plans": "Henüz antrenman planı yok. İlk planınızı oluşturun!",
+      "exercises": "Egzersizler",
+      "clients_assigned": "Atanan Danışanlar"
     }
   },
   "profile": {
@@ -565,6 +603,11 @@
       "search": "Ara",
       "no_trainers": "Antrenör bulunamadı",
       "view_profile": "Profili Görüntüle"
+    },
+    "workout_plans": {
+      "title": "Antrenman Planlarım",
+      "description": "Antrenörünüz tarafından oluşturulan planları görüntüleyin ve başlatın",
+      "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!"
     },
     "profile": {
       "title": "Sporcu Profili",

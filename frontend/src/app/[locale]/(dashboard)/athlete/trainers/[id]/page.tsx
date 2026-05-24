@@ -15,8 +15,10 @@ import { CreateReviewDialog } from "@/components/features/reviews/CreateReviewDi
 import { ReviewActions } from "@/components/features/reviews/ReviewActions";
 import { CoachingRequestDialog } from "@/components/features/coaching/CoachingRequestDialog";
 import { DAYS_OF_WEEK } from "@/lib/constants";
+import { useTranslations } from "next-intl";
 
 export default function TrainerProfilePage() {
+  const t = useTranslations();
   const params = useParams();
   const trainerId = params.id as string;
 
@@ -226,7 +228,7 @@ export default function TrainerProfilePage() {
 
                     return (
                       <div key={day}>
-                        <h4 className="font-medium text-sm">{day}</h4>
+                        <h4 className="font-medium text-sm">{t(`date.${day.toLowerCase()}`)}</h4>
                         <div className="text-sm text-gray-600">
                           {daySlots.map((slot) => (
                             <div key={slot.availabilityId}>

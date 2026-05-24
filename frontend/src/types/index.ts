@@ -19,6 +19,7 @@ export interface Workout {
   athleteId: string;
   date: string;
   exercises: WorkoutExercise[];
+  planId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -318,6 +319,69 @@ export interface CreateExerciseRequest {
   muscleGroupId: number;
   equipmentId: number;
   instructions?: string;
+}
+
+// ===== WORKOUT PLAN TYPES =====
+
+export interface WorkoutPlanSet {
+  setId?: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  reps: number;
+  restTime: number;
+}
+
+export interface WorkoutPlanExercise {
+  exerciseId: string;
+  name: string;
+  sets: WorkoutPlanSet[];
+  notes?: string;
+  order: number;
+}
+
+export interface WorkoutPlan {
+  planId: string;
+  trainerId: string;
+  name: string;
+  description?: string;
+  exercises: WorkoutPlanExercise[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkoutPlanAssignment {
+  assignmentId: string;
+  planId: string;
+  athleteId: string;
+  trainerId: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface CreateWorkoutPlanRequest {
+  name: string;
+  description?: string;
+  exercises: WorkoutPlanExercise[];
+}
+
+export interface UpdateWorkoutPlanRequest {
+  name: string;
+  description?: string;
+  exercises: WorkoutPlanExercise[];
+}
+
+export interface AssignPlanRequest {
+  athleteIds: string[];
+}
+
+export interface WorkoutPlanListResponse {
+  plans: WorkoutPlan[];
+  count: number;
+}
+
+export interface AssignmentListResponse {
+  assignments: WorkoutPlanAssignment[];
+  count: number;
 }
 
 // Updated workout types for new structure (for future migration)

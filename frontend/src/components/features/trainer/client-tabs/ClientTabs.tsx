@@ -5,6 +5,7 @@ import { OverviewTab } from "./OverviewTab";
 import { WorkoutsTab } from "./WorkoutsTab";
 import { MealsTab } from "./MealsTab";
 import { ProgressTab } from "./ProgressTab";
+import { ClientPlansTab } from "@/components/features/workout-plan/ClientPlansTab";
 import { useTranslations } from "next-intl"
 import { Workout, Meal } from "@/types"
 import { WorkoutStats, MealStats } from "@/lib/api/api-types"
@@ -53,6 +54,7 @@ export function ClientTabs({
           {t("meals")} ({meals.length})
         </TabsTrigger>
         <TabsTrigger value='progress'>{t("progress_charts")}</TabsTrigger>
+        <TabsTrigger value='plans'>{t("plans")}</TabsTrigger>
       </TabsList>
 
       <TabsContent value='overview'>
@@ -77,6 +79,9 @@ export function ClientTabs({
 
       <TabsContent value='progress'>
         <ProgressTab workoutStats={workoutStats} mealStats={mealStats} />
+      </TabsContent>
+      <TabsContent value='plans'>
+        <ClientPlansTab />
       </TabsContent>
     </Tabs>
   )

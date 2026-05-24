@@ -20,6 +20,10 @@ export const ROUTES = {
   TRAINER_CLIENTS: '/trainer/clients',
   TRAINER_PROFILE: '/trainer/profile',
   TRAINER_REQUESTS: '/trainer/requests',
+  TRAINER_WORKOUT_PLANS: '/trainer/workout-plans',
+
+  // Athlete workout plans
+  ATHLETE_WORKOUT_PLANS: '/athlete/workout-plans',
 } as const;
 
 // Dynamic route builders - for routes with parameters
@@ -30,6 +34,9 @@ export const DYNAMIC_ROUTES = {
 
   // Trainer viewing specific client
   TRAINER_CLIENT_DETAIL: (username: string) => `/trainer/client/${username}`,
+
+  // Trainer viewing specific workout plan
+  TRAINER_WORKOUT_PLAN_DETAIL: (id: string) => `/trainer/workout-plans/${id}`,
 } as const;
 
 // Type definitions for route safety

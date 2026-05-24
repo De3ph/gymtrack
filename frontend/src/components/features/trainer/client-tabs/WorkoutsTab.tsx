@@ -1,16 +1,22 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { WorkoutList } from "@/components/features/workout/WorkoutList";
-import { useTranslations } from "next-intl"
-import { Workout } from "@/types"
+import { useTranslations } from "next-intl";
+import { Workout } from "@/types";
 
 interface WorkoutsTabProps {
-  workouts: Workout[]
+  workouts: Workout[];
 }
 
 export function WorkoutsTab({ workouts }: WorkoutsTabProps) {
-  const t = useTranslations("trainer.client_detail.tabs")
+  const t = useTranslations("trainer.client_detail.tabs");
 
   return (
     <Card>
@@ -20,7 +26,7 @@ export function WorkoutsTab({ workouts }: WorkoutsTabProps) {
       </CardHeader>
       <CardContent>
         {workouts.length === 0 ? (
-          <p className='text-center text-muted-foreground py-8'>
+          <p className="text-center text-muted-foreground py-8">
             {t("no_workouts")}
           </p>
         ) : (
@@ -28,5 +34,5 @@ export function WorkoutsTab({ workouts }: WorkoutsTabProps) {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
