@@ -2,6 +2,7 @@ import Link from "next/link";
 import { linkStyles } from "./dashboard-styles";
 import { AthleteNav } from "./athlete-nav";
 import { TrainerNav } from "./trainer-nav";
+import { MobileNav } from "./MobileNav";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from 'next-intl';
 
@@ -25,21 +26,28 @@ export function DashboardNav({ userRole, userName, onLogout }: DashboardNavProps
             >
               GymTrack
             </Link>
-            <div className='ml-10 flex items-baseline space-x-4'>
+            <div className='ml-10 hidden lg:flex lg:items-baseline lg:space-x-4'>
               {userRole === "athlete" && <AthleteNav />}
               {userRole === "trainer" && <TrainerNav />}
             </div>
           </div>
           <div className='flex items-center gap-4'>
-            <span className='text-sm text-foreground'>
-              {userName} ({userRole})
-            </span>
-            <button
-              onClick={onLogout}
-              className='rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80'
-            >
-              {tCommon('logout')}
-            </button>
+            <div className='hidden lg:flex lg:items-center lg:gap-4'>
+              <span className='text-sm text-foreground'>
+                {userName} ({userRole})
+              </span>
+              <button
+                onClick={onLogout}
+                className='rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80'
+              >
+                {tCommon('logout')}
+              </button>
+            </div>
+            <MobileNav
+              userRole={userRole}
+              userName={userName}
+              onLogout={onLogout}
+            />
           </div>
         </div>
       </div>
