@@ -39,10 +39,10 @@ export function CommentForm({
 
   const validateContent = ({ value }: { value: string }): string | undefined => {
     if (!value || value.trim().length === 0) {
-      return "Content is required"
+      return t('form.content_required')
     }
     if (value.length > 1000) {
-      return "Content must be less than 1000 characters"
+      return t('form.content_too_long')
     }
     return undefined
   };
@@ -102,7 +102,7 @@ export function CommentForm({
 
       {error && (
         <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
-          {error instanceof Error ? error.message : "Failed to post comment"}
+          {error instanceof Error ? error.message : t('form.post_failed')}
         </div>
       )}
 
@@ -116,7 +116,7 @@ export function CommentForm({
             </Button>
             {onCancel && (
               <Button type="button" size="sm" variant="outline" onClick={onCancel}>
-                Cancel
+                {t('form.cancel')}
               </Button>
             )}
           </div>

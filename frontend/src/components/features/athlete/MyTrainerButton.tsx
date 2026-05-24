@@ -6,8 +6,11 @@ import { User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { buildRoute } from "@/lib/routes"
+import { useTranslations } from "next-intl"
 
 export function MyTrainerButton() {
+  const t = useTranslations('athlete.trainer')
+  const tCommon = useTranslations('common')
   const router = useRouter()
 
   const { data: trainerData, isLoading } = useQuery({
@@ -20,7 +23,7 @@ export function MyTrainerButton() {
     return (
       <Button variant="outline" disabled>
         <User className="mr-2 h-4 w-4" />
-        Loading...
+        {tCommon('loading')}
       </Button>
     )
   }
@@ -38,7 +41,7 @@ export function MyTrainerButton() {
   return (
     <Button variant="outline" onClick={handleClick}>
       <User className="mr-2 h-4 w-4" />
-      My Trainer
+      {t('title')}
     </Button>
   )
 }

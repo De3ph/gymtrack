@@ -68,14 +68,14 @@ export default function TrainerCatalogPage() {
         <div className="md:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Filters</CardTitle>
+              <CardTitle>{t('filters')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="specialization">Specialization</Label>
+                <Label htmlFor="specialization">{t('specialization')}</Label>
                 <Input
                   id="specialization"
-                  placeholder="e.g., Weight Loss"
+                  placeholder={t('specialization_placeholder')}
                   value={filters.specialization}
                   onChange={(e) =>
                     startTransition(() => {
@@ -85,10 +85,10 @@ export default function TrainerCatalogPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">{t('location')}</Label>
                 <Input
                   id="location"
-                  placeholder="e.g., New York"
+                  placeholder={t('location_placeholder')}
                   value={filters.location}
                   onChange={(e) =>
                     startTransition(() => {
@@ -98,7 +98,7 @@ export default function TrainerCatalogPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="minRating">Min Rating</Label>
+                <Label htmlFor="minRating">{t('min_rating')}</Label>
                 <Input
                   id="minRating"
                   type="number"
@@ -114,7 +114,7 @@ export default function TrainerCatalogPage() {
                 />
               </div>
               <Button onClick={searchTrainers} className="w-full">
-                Search
+                {t('search')}
               </Button>
             </CardContent>
           </Card>
@@ -122,10 +122,10 @@ export default function TrainerCatalogPage() {
 
         <div className="md:col-span-3">
           {loading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">{t('loading')}</div>
           ) : trainers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              No trainers found. Try adjusting your filters.
+              {t('no_trainers')}. {t('filter_help')}
             </div>
           ) : (
             <motion.div

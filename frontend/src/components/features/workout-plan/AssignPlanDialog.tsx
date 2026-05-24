@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface AssignPlanDialogProps {
   planId: string;
@@ -27,6 +28,7 @@ export function AssignPlanDialog({
   trigger,
   onSuccess,
 }: AssignPlanDialogProps) {
+  const t = useTranslations('trainer.workout_plans')
   const queryClient = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -63,7 +65,7 @@ export function AssignPlanDialog({
       {trigger}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Assign Plan to Clients</DialogTitle>
+          <DialogTitle>{t('assign_plan_title')}</DialogTitle>
         </DialogHeader>
         {isLoading ? (
           <div className="flex justify-center py-4">
@@ -71,7 +73,7 @@ export function AssignPlanDialog({
           </div>
         ) : clients.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No active clients found.
+            {t('no_active_clients')}
           </p>
         ) : (
           <div className="space-y-3 py-2">
@@ -97,14 +99,14 @@ export function AssignPlanDialog({
         )}
         <DialogFooter>
           <Button variant="outline" onClick={() => onSuccess?.()}>
-            Cancel
+            {t('delete')}
           </Button>
           <Button
             onClick={() => mutate()}
             disabled={isPending || selectedIds.length === 0}
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Assign ({selectedIds.length})
+            {t('assign_button', { count: selectedIds.length })}
           </Button>
         </DialogFooter>
       </DialogContent>

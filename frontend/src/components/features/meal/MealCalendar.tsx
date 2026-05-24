@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl"
 
 export function MealCalendar() {
   const t = useTranslations("meal.calendar")
+  const tCard = useTranslations("meal.card")
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
     dayjs().toDate(),
   );
@@ -113,7 +114,7 @@ export function MealCalendar() {
                     <ul className='list-disc pl-5 mt-2 text-sm'>
                       {meal.items.map((item, idx) => (
                         <li key={idx}>
-                          {item.food} ({item.quantity}) - {item.calories} kcal
+                          {item.food} ({item.quantity}) - {item.calories} {tCard('kcal')}
                         </li>
                       ))}
                     </ul>

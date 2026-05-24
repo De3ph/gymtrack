@@ -221,7 +221,7 @@ export default function ProfilePage() {
               validators={{
                 onChange: ({ value }) => {
                   if (!value || value.trim().length === 0) {
-                    return t('fields.name') + ' is required';
+                    return t('validation.field_required', { field: t('fields.name') });
                   }
                   return undefined;
                 },

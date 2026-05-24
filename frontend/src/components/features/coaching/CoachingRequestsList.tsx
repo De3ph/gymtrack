@@ -9,12 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { User, Calendar, MessageCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CoachingRequestsListProps {
   userType: "trainer" | "athlete";
 }
 
 export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
+  const tList = useTranslations('coaching.list')
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["coachingRequests", userType],
     queryFn: () => coachingRequestApi.getMyRequests(),
@@ -78,7 +80,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
       <Card>
         <CardContent className="p-6">
           <div className="text-center text-muted-foreground">
-            Loading coaching requests...
+            {tList('loading')}
           </div>
         </CardContent>
       </Card>
@@ -89,7 +91,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-red-600">Error: {error instanceof Error ? error.message : String(error)}</div>
+          <div className="text-center text-red-600">{error instanceof Error ? error.message : String(error)}</div>
         </CardContent>
       </Card>
     );
@@ -101,8 +103,8 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
         <CardContent className="p-6">
           <div className="text-center text-muted-foreground">
             {userType === "trainer"
-              ? "No pending coaching requests"
-              : "No coaching requests sent"}
+              ? tList('no_pending_requests')
+              : tList('no_requests_sent')}
           </div>
         </CardContent>
       </Card>
@@ -118,8 +120,8 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
               <div>
                 <CardTitle className="text-lg">
                   {userType === "trainer"
-                    ? `Request from ${request.athlete?.profile?.name || request.athlete?.email}`
-                    : `Request to ${request.trainer?.profile?.name || request.trainer?.email}`}
+                    ? tList('request_from', { name: request.athlete?.profile?.name || request.athlete?.email })
+                    : tList('request_to', { name: request.trainer?.profile?.name || request.trainer?.email })}
                 </CardTitle>
                 <div className="flex items-center gap-2 mt-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -136,7 +138,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium text-sm">Message:</span>
+                  <span className="font-medium text-sm">{tList('message_label')}</span>
                 </div>
                 <p className="text-foreground bg-muted p-3 rounded">
                   {request.message}
@@ -151,7 +153,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                   disabled={acceptPending || rejectPending}
                   className="flex-1"
                 >
-                  {acceptPending ? "Accepting..." : "Accept"}
+                  {acceptPending ? tList('accepting') : tList('accept')}
                 </Button>
                 <Button
                   variant="outline"
@@ -159,22 +161,20 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                   disabled={acceptPending || rejectPending}
                   className="flex-1"
                 >
-                  {rejectPending ? "Rejecting..." : "Reject"}
+                  {rejectPending ? tList('rejecting') : tList('reject')}
                 </Button>
               </div>
             )}
 
             {userType === "athlete" && request.status === "accepted" && (
               <div className="text-green-600 bg-green-50 p-3 rounded">
-                <strong>🎉 Request Accepted!</strong> You can now start working
-                with your trainer.
+                <strong>{tList('request_accepted')}</strong> {tList('accepted_description')}
               </div>
             )}
 
             {userType === "athlete" && request.status === "rejected" && (
               <div className="text-red-600 bg-red-50 p-3 rounded">
-                This request was declined by the trainer. You can try sending a
-                new request or look for other trainers.
+                {tList('rejected_description')}
               </div>
             )}
           </CardContent>

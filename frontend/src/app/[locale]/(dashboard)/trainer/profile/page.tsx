@@ -56,7 +56,7 @@ export default function TrainerProfilePage() {
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
         <div className="bg-red-100 text-red-800 p-3 rounded">
-          Failed to load profile
+          {t('profile_load_failed')}
         </div>
       </div>
     );

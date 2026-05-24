@@ -71,11 +71,11 @@ export default function TrainerProfilePage() {
   };
 
   if (loading) {
-    return <div className="container mx-auto py-8">Loading...</div>;
+    return <div className="container mx-auto py-8">{t('athlete.trainers.detail.loading')}</div>;
   }
 
   if (!trainer) {
-    return <div className="container mx-auto py-8">Trainer not found</div>;
+    return <div className="container mx-auto py-8">{t('athlete.trainers.detail.not_found')}</div>;
   }
 
   return (
@@ -95,13 +95,13 @@ export default function TrainerProfilePage() {
                   </span>
                   <span className="text-gray-600">
                     {trainer.averageRating?.toFixed(1) || "0"} (
-                    {trainer.reviewCount || 0} reviews)
+                    {t('athlete.trainers.detail.reviews_count', { count: trainer.reviewCount || 0 })}
                   </span>
                 </div>
 
                 {trainer.trainerProfile?.hourlyRate ? (
                   <div>
-                    <span className="font-medium text-lg">Hourly Rate: </span>
+                    <span className="font-medium text-lg">{t('athlete.trainers.detail.hourly_rate')}</span>
                     <span className="text-xl">
                       ${trainer.trainerProfile.hourlyRate}
                     </span>
@@ -110,7 +110,7 @@ export default function TrainerProfilePage() {
 
                 {trainer.trainerProfile?.bio ? (
                   <div>
-                    <h3 className="font-medium mb-2">About</h3>
+                    <h3 className="font-medium mb-2">{t('athlete.trainers.detail.about')}</h3>
                     <p className="text-gray-600">
                       {trainer.trainerProfile.bio}
                     </p>
@@ -119,7 +119,7 @@ export default function TrainerProfilePage() {
 
                 {trainer.profile.specializations ? (
                   <div>
-                    <h3 className="font-medium mb-2">Specializations</h3>
+                    <h3 className="font-medium mb-2">{t('athlete.trainers.detail.specializations')}</h3>
                     <p className="text-gray-600">
                       {trainer.profile.specializations}
                     </p>
@@ -128,7 +128,7 @@ export default function TrainerProfilePage() {
 
                 {trainer.profile.certifications ? (
                   <div>
-                    <h3 className="font-medium mb-2">Certifications</h3>
+                    <h3 className="font-medium mb-2">{t('athlete.trainers.detail.certifications')}</h3>
                     <p className="text-gray-600">
                       {trainer.profile.certifications}
                     </p>
@@ -137,14 +137,14 @@ export default function TrainerProfilePage() {
 
                 {trainer.trainerProfile?.yearsOfExperience ? (
                   <div>
-                    <span className="font-medium">Years of Experience: </span>
+                    <span className="font-medium">{t('athlete.trainers.detail.years_of_experience')}</span>
                     {trainer.trainerProfile.yearsOfExperience}
                   </div>
                 ) : null}
 
                 {trainer.trainerProfile?.location && (
                   <div>
-                    <span className="font-medium">Location: </span>
+                    <span className="font-medium">{t('athlete.trainers.detail.location')}</span>
                     {trainer.trainerProfile.location}
                   </div>
                 )}
@@ -155,7 +155,7 @@ export default function TrainerProfilePage() {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Reviews</CardTitle>
+                <CardTitle>{t('athlete.trainers.detail.reviews_title')}</CardTitle>
                 {currentUserId && (
                   <CreateReviewDialog
                     trainerId={trainerId}
@@ -163,7 +163,7 @@ export default function TrainerProfilePage() {
                     onReviewCreated={refreshData}
                   >
                     <Button variant="outline" size="sm">
-                      Write Review
+                      {t('athlete.trainers.detail.write_review')}
                     </Button>
                   </CreateReviewDialog>
                 )}
@@ -171,7 +171,7 @@ export default function TrainerProfilePage() {
             </CardHeader>
             <CardContent>
               {reviews.length === 0 ? (
-                <p className="text-gray-500">No reviews yet</p>
+                <p className="text-gray-500">{t('athlete.trainers.detail.no_reviews')}</p>
               ) : (
                 <div className="space-y-4">
                   {reviews.map((review) => (
@@ -213,11 +213,11 @@ export default function TrainerProfilePage() {
         <div>
           <Card className="sticky top-4">
             <CardHeader>
-              <CardTitle>Availability</CardTitle>
+              <CardTitle>{t('athlete.trainers.detail.availability_title')}</CardTitle>
             </CardHeader>
             <CardContent>
               {availability.length === 0 ? (
-                <p className="text-gray-500">No availability set</p>
+                <p className="text-gray-500">{t('athlete.trainers.detail.no_availability')}</p>
               ) : (
                 <div className="space-y-3">
                   {DAYS_OF_WEEK.map((day, index) => {
@@ -228,7 +228,7 @@ export default function TrainerProfilePage() {
 
                     return (
                       <div key={day}>
-                        <h4 className="font-medium text-sm">{t(`date.${day.toLowerCase()}`)}</h4>
+                        <h4 className="font-medium text-sm">{t(`common.date.${day.toLowerCase()}`)}</h4>
                         <div className="text-sm text-gray-600">
                           {daySlots.map((slot) => (
                             <div key={slot.availabilityId}>
@@ -251,7 +251,7 @@ export default function TrainerProfilePage() {
               trainerName={trainer.profile.name}
               onRequestSent={refreshData}
             >
-              <Button className="w-full mt-4">Request Coaching</Button>
+              <Button className="w-full mt-4">{t('athlete.trainers.detail.request_coaching')}</Button>
             </CoachingRequestDialog>
           )}
         </div>

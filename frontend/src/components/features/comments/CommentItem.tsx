@@ -76,7 +76,7 @@ export function CommentItem({
         <span className='font-medium capitalize'>{comment.authorRole}</span>
         <span>
           {dayjs(comment.createdAt).format("MMM D, YYYY h:mm A")}
-          {comment.editedAt && <span className='ml-1 text-xs'>(edited)</span>}
+          {comment.editedAt && <span className='ml-1 text-xs'>{t('item.edited_label')}</span>}
         </span>
       </div>
       {isEditing ? (

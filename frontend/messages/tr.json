@@ -38,7 +38,8 @@
       "clients": "Danışanlar",
       "trainer": "Antrenör",
       "athlete": "Sporcu",
-      "workout_plans": "Antrenman Planları"
+      "workout_plans": "Antrenman Planları",
+      "toggle_menu": "Gezinme menüsünü aç/kapat"
     },
     "status": {
       "available": "Yeni Danışanlar için Müsait",
@@ -280,9 +281,13 @@
     },
     "edit_dialog": {
       "title": "Antrenmanı Düzenle",
-      "date_label": "Antrenman Tarihi & Saati",
+      "date_label": "Tarih",
       "save_changes": "Değişiklikleri Kaydet",
-      "fallback_exercise": "Egzersiz {number}"
+      "fallback_exercise": "Egzersiz",
+      "invalid_time_format": "Geçersiz saat formatı. HH:DD formatını kullanın.",
+      "invalid_time_values": "Geçersiz saat değerleri. Saat 0-23, dakika 0-59 arasında olmalıdır.",
+      "no_workout_to_update": "Güncellenecek antrenman yok",
+      "exercises_must_be_valid": "Tüm egzersizler seçilmeli ve geçerli adlara sahip olmalıdır"
     },
     "delete_dialog": {
       "title": "Antrenmanı Sil",
@@ -397,7 +402,8 @@
       "pending_requests": "Bekleyen İstekler"
     },
     "clients": {
-      "title": "Danışanlar",
+      "title": "Danışanlarım",
+      "description": "Sporcu ilişkilerinizi yönetin ve ilerlemelerini görüntüleyin",
       "search_placeholder": "İsim veya e-posta ile ara...",
       "no_clients_title": "Henüz Danışan Yok",
       "no_clients_description": "Henüz aktif danışanınız yok. Sporcularla çalışmaya başlamak için bir davet kodu oluşturun.",
@@ -407,7 +413,12 @@
       "view_client": "Danışanı Gör",
       "client_details": "Danışan Detayları",
       "goals": "Amaçlar",
-      "client_since": "Danışan olma tarihi"
+      "client_since": "Danışan olma tarihi",
+      "unknown_athlete": "Bilinmeyen Sporcu",
+      "this_athlete": "bu sporcu",
+      "invite_athlete": "Sporcu Davet Et",
+      "no_results_title": "Sonuç Bulunamadı",
+      "no_results_description": "Aramanızla eşleşen danışan bulunamadı."
     },
     "requests": {
       "title": "Koçluk İstekleri",
@@ -477,11 +488,20 @@
       "loading": "Profil yükleniyor...",
       "profile_saved": "Profil başarıyla kaydedildi!",
       "profile_save_failed": "Profil kaydedilemedi.",
+      "profile_load_failed": "Profil yüklenemedi",
+      "my_profile": {
+        "title": "Antrenör Profili",
+        "name_label": "Ad",
+        "email_label": "E-posta",
+        "certifications_label": "Sertifikalar",
+        "specializations_label": "Uzmanlıklar"
+      },
       "public_profile": {
         "title": "Herkese Açık Profil",
         "bio": "Biyografi",
         "bio_placeholder": "Sporculara kendinizden bahsedin...",
         "hourly_rate": "Saatlik Ücret ($)",
+        "hourly_rate_format": "{rate} €/h",
         "years_of_experience": "Deneyim Yılları",
         "location": "Konum",
         "location_placeholder": "örn, New York, NY",
@@ -497,20 +517,71 @@
       }
     },
     "availability": {
-      "title": "Müsaitlik Durumum"
+      "title": "Müsaitlik Durumum",
+      "loading": "Müsaitlik durumu yükleniyor...",
+      "saved_success": "Müsaitlik durumu başarıyla kaydedildi!",
+      "save_failed": "Müsaitlik durumu kaydedilemedi",
+      "to_label": "ile",
+      "remove_slot": "X"
     },
     "catalog": {
       "specializations": "Uzmanlıklar",
       "certifications": "Sertifikalar",
       "rating": "Puan",
       "hourly_rate": "Saatlik Ücret",
-      "reviews": "yorum"
+      "reviews": "yorum",
+      "currency_symbol": "$"
+    },
+    "generate_invitation": {
+      "title": "Sporcu Davet Et",
+      "description": "Sporcuların sizinle bağlantı kurmak için kullanabileceği bir davet kodu oluşturun. Kodlar 7 gün sonra sona erer.",
+      "instruction": "Bir sporcu için benzersiz bir davet kodu oluşturmak için aşağıdaki düğmeye tıklayın.",
+      "generate_code_button": "Kod Oluştur",
+      "code_label": "Davet Kodu",
+      "expires_on": "{date} tarihinde",
+      "expires_at": "{time} saatinde sona eriyor",
+      "instructions_text": "Talimatlar:",
+      "generate_new_code": "Yeni Kod Oluştur",
+      "error_fallback": "Davet kodu oluşturulamadı"
     },
     "charts": {
       "nutrition_trends": {
         "title": "Haftalık Beslenme Trendleri",
         "description": "Haftalık ortalama günlük makrolar",
         "no_data": "Öğün verisi mevcut değil"
+      },
+      "workout_volume": {
+        "title": "Haftalık Antrenman Hacmi",
+        "description": "Haftalık toplam hacim (set x tekrar x ağırlık)",
+        "volume": "Hacim (kg)",
+        "workouts": "Antrenmanlar",
+        "no_data": "Antrenman verisi mevcut değil"
+      },
+      "meal_type_distribution": {
+        "title": "Öğün Türü Dağılımı",
+        "description": "Öğünlerin türe göre dağılımı",
+        "no_data": "Öğün verisi mevcut değil"
+      },
+      "exercise_breakdown": {
+        "title": "En Çok Yapılan Egzersizler",
+        "description": "En sık yapılan egzersizler",
+        "total_sets": "Toplam Set",
+        "total_reps": "Toplam Tekrar",
+        "no_data": "Antrenman verisi mevcut değil"
+      },
+      "stats": {
+        "avg_calories_per_day": "Günlük Ortalama Kalori",
+        "avg_protein_per_day": "Günlük Ortalama Protein",
+        "total_volume": "Toplam Hacim",
+        "workout_consistency": "Antrenman Tutarlılığı",
+        "volume_label": "Hacim (kg)",
+        "workouts_label": "Antrenmanlar",
+        "calories_label": "Kalori",
+        "protein_label": "Protein (g)",
+        "carbs_label": "Karbonhidrat (g)",
+        "fats_label": "Yağ (g)",
+        "total_sets_label": "Toplam Set",
+        "total_reps_label": "Toplam Tekrar"
       }
     },
     "workout_plans": {
@@ -522,11 +593,25 @@
       "delete_confirm": "Bu planı silmek istediğinizden emin misiniz?",
       "assign": "Danışanlara Ata",
       "plan_name": "Plan Adı",
-      "description": "Açıklama",
+      "description_label": "Açıklama",
       "add_exercise": "Egzersiz Ekle",
       "no_plans": "Henüz antrenman planı yok. İlk planınızı oluşturun!",
       "exercises": "Egzersizler",
-      "clients_assigned": "Atanan Danışanlar"
+      "clients_assigned": "Atanan Danışanlar",
+      "exercise_name_placeholder": "örn. İtme Günü A",
+      "description_placeholder": "İsteğe bağlı açıklama...",
+      "notes_placeholder": "Bu egzersiz için notlar/talimatlar...",
+      "fallback_exercise_name": "Egzersiz {index}",
+      "assign_plan_title": "Planı Danışanlara Ata",
+      "no_active_clients": "Aktif danışan bulunamadı.",
+      "assign_button": "Ata ({count})",
+      "plan_update": "Planı Güncelle",
+      "plan_create": "Plan Oluştur",
+      "back": "Geri",
+      "plan_not_found": "Plan bulunamadı.",
+      "exercise_detail": "{count, plural, one {# set} other {# set}} — hedef ağırlıklar: {weights}",
+      "no_clients_yet": "Henüz danışan atanmamış.",
+      "athlete_label": "Sporcu: {id}"
     }
   },
   "profile": {
@@ -554,6 +639,9 @@
       "save": "Değişiklikleri Kaydet",
       "saving": "Kaydediliyor...",
       "cancel": "İptal"
+    },
+    "validation": {
+      "field_required": "{field} zorunludur"
     }
   },
   "athlete": {
@@ -570,20 +658,46 @@
       "description": "Antrenmanlarınızı kaydedin ve ilerlemenizi takip edin.",
       "log_workout": "Antrenman Kaydet",
       "view_history": "Geçmişi Gör",
-      "no_workouts": "Henüz antrenman kaydedilmedi"
+      "no_workouts": "Henüz antrenman kaydedilmedi",
+      "log_tab": "Antrenman Kaydet",
+      "list_tab": "Geçmiş (Liste)",
+      "calendar_tab": "Geçmiş (Takvim)",
+      "card_title": "Yeni Antrenman Kaydet",
+      "card_description": "Son antrenman detaylarınızı kaydedin."
     },
     "meals": {
       "title": "Öğünler & Beslenme",
       "description": "Hedeflerinize ulaşmak için beslenmenizi takip edin.",
       "log_meal": "Öğün Kaydet",
       "view_history": "Geçmişi Gör",
-      "no_meals": "Henüz öğün kaydedilmedi"
+      "no_meals": "Henüz öğün kaydedilmedi",
+      "log_tab": "Öğün Kaydet",
+      "list_tab": "Geçmiş (Liste)",
+      "calendar_tab": "Geçmiş (Takvim)",
+      "card_title": "Yeni Öğün Kaydet",
+      "card_description": "Ne yediğinizi kaydedin."
     },
     "trainer": {
       "title": "Antrenörüm",
       "no_trainer": "Atanmış antrenör yok",
       "find_trainer": "Antrenör Bul",
-      "trainer_info": "Antrenör Bilgileri"
+      "trainer_info": "Antrenör Bilgileri",
+      "loading": "Antrenör detayları yükleniyor...",
+      "not_found_or_access": "Antrenör bulunamadı veya bu profile erişim izniniz yok.",
+      "view_workouts": "Antrenmanlarımı Gör",
+      "view_meals": "Öğünlerimi Gör"
+    },
+    "invitation": {
+      "title": "Antrenör ile Bağlan",
+      "description": "Antrenörünüz tarafından sağlanan davet kodunu girerek bağlantı kurun.",
+      "code_label": "Davet Kodu",
+      "code_placeholder": "8 karakterli kodu girin (büyük-küçük harf duyarlı)",
+      "code_hint": "Kod 8 karakter uzunluğunda olmalıdır (ör. a1b2c3d4 veya A1B2C3D4)",
+      "connecting": "Bağlanıyor...",
+      "submit": "Antrenör ile Bağlan",
+      "success": "Antrenörünüzle başarıyla bağlantı kurdunuz!",
+      "error_invalid_chars": "Davet kodu yalnızca harf ve rakam içermelidir",
+      "error_length": "Davet kodu tam olarak 8 karakter olmalıdır ({count}/8)"
     },
     "requests": {
       "title": "Koçluk İsteklerim",
@@ -602,7 +716,28 @@
       "min_rating": "Minimum Puan",
       "search": "Ara",
       "no_trainers": "Antrenör bulunamadı",
-      "view_profile": "Profili Görüntüle"
+      "view_profile": "Profili Görüntüle",
+      "loading": "Yükleniyor...",
+      "specialization_placeholder": "örn., Kilo Verme",
+      "location_placeholder": "örn., İstanbul",
+      "filter_help": "Filtrelerinizi ayarlamayı deneyin.",
+      "detail": {
+        "loading": "Yükleniyor...",
+        "not_found": "Antrenör bulunamadı",
+        "reviews_count": "{count} yorum",
+        "hourly_rate": "Saatlik Ücret: ",
+        "about": "Hakkında",
+        "specializations": "Uzmanlıklar",
+        "certifications": "Sertifikalar",
+        "years_of_experience": "Deneyim Yılı: ",
+        "location": "Konum: ",
+        "reviews_title": "Yorumlar",
+        "write_review": "Yorum Yaz",
+        "no_reviews": "Henüz yorum yok",
+        "availability_title": "Müsaitlik",
+        "no_availability": "Müsaitlik ayarlanmamış",
+        "request_coaching": "Koçluk Talep Et"
+      }
     },
     "workout_plans": {
       "title": "Antrenman Planlarım",
@@ -610,7 +745,8 @@
       "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!",
       "view_plan": "Planı Görüntüle",
       "start_workout": "Antrenmana Başla",
-      "exercises": "egzersiz"
+      "exercises": "egzersiz",
+      "set_format": "{count} set, {reps} tekrar"
     },
     "profile": {
       "title": "Sporcu Profili",
@@ -626,19 +762,25 @@
       "reply": "Yanıtla",
       "submit": "Gönder",
       "submitting": "Gönderiliyor...",
-      "cancel": "İptal"
+      "cancel": "İptal",
+      "content_required": "İçerik gereklidir",
+      "content_too_long": "İçerik 1000 karakterden az olmalıdır",
+      "post_failed": "Yorum gönderilemedi",
+      "reply_placeholder": "Bir yanıt yazın..."
     },
     "list": {
       "title": "Yorumlar",
       "no_comments": "Henüz yorum yok",
-      "comments_count": "Yorumlar ({count})"
+      "comments_count": "Yorumlar ({count})",
+      "load_failed": "Yorumlar yüklenemedi"
     },
     "item": {
       "by": "tarafından",
       "at": "saat",
       "reply": "Yanıtla",
       "delete": "Sil",
-      "delete_confirm": "Bu yorumu silmek istiyor musunuz?"
+      "delete_confirm": "Bu yorumu silmek istiyor musunuz?",
+      "edited_label": "(düzenlendi)"
     }
   },
   "coaching": {
@@ -653,7 +795,37 @@
       "declined": "Red Edildi"
     },
     "pending": "Bekleyen Talepler",
-    "no_requests": "Koçluk talebi yok"
+    "no_requests": "Koçluk talebi yok",
+    "request_dialog": {
+      "title": "{trainerName}'dan Koçluk Talep Et",
+      "description": "Kendinizi tanıtmak ve koçluk hizmeti talep etmek için kişisel bir mesaj gönderin",
+      "message_label": "Antrenöre Mesaj (isteğe bağlı)",
+      "message_placeholder": "Kendinizi tanıtın ve bu antrenörle çalışmak isteme nedeninizi açıklayın...",
+      "what_happens_next": "Sırada ne var:",
+      "bullet_trainer_receives": "{trainerName} talebinizi alacak",
+      "bullet_accept_decline": "Talebinizi kabul veya reddedebilir",
+      "bullet_connected": "Kabul edilirse, antrenör-sporcu olarak bağlanacaksınız",
+      "bullet_track": "Ardından birlikte antrenman ve öğün takibine başlayabilirsiniz",
+      "cancel": "İptal",
+      "sending": "Gönderiliyor...",
+      "send_request": "Talep Gönder",
+      "error_fallback": "Koçluk talebi gönderilemedi"
+    },
+    "list": {
+      "loading": "Koçluk talepleri yükleniyor...",
+      "no_pending_requests": "Bekleyen koçluk talebi yok",
+      "no_requests_sent": "Gönderilen koçluk talebi yok",
+      "request_from": "{name} tarafından talep",
+      "request_to": "{name}'a talep",
+      "message_label": "Mesaj:",
+      "accept": "Kabul Et",
+      "accepting": "Kabul Ediliyor...",
+      "reject": "Reddet",
+      "rejecting": "Reddediliyor...",
+      "request_accepted": "Talep Kabul Edildi!",
+      "accepted_description": "Artık antrenörünüzle çalışmaya başlayabilirsiniz.",
+      "rejected_description": "Bu talep antrenör tarafından reddedildi. Yeni bir talep gönderebilir veya başka antrenörler arayabilirsiniz."
+    }
   },
   "exercise": {
     "equipment": {
@@ -689,10 +861,33 @@
   },
   "review": {
     "create": {
-      "title": "İnceleme Oluştur",
+      "title": "{trainerName} için İnceleme Yaz",
       "rating": "Puan",
       "comment": "İncelemeniz",
-      "submit": "İnceleme Gönder"
+      "comment_label": "Yorum (isteğe bağlı)",
+      "comment_placeholder": "Bu antrenörle deneyiminizi paylaşın...",
+      "submit": "İnceleme Gönder",
+      "submitting": "Gönderiliyor...",
+      "cancel": "İptal"
+    },
+    "edit": {
+      "title": "İncelemenizi Düzenleyin",
+      "description": "Bu antrenör için puanınızı ve yorumunuzu güncelleyin",
+      "rating": "Puan",
+      "comment": "Yorum",
+      "comment_placeholder": "Yorumunuzu güncelleyin...",
+      "cancel": "İptal",
+      "updating": "Güncelleniyor...",
+      "update": "İncelemeyi Güncelle",
+      "error_update": "İnceleme güncellenemedi",
+      "error_delete": "İnceleme silinemedi"
+    },
+    "delete": {
+      "title": "İncelemeyi Sil",
+      "description": "Bu incelemeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "confirm_text": "Bu incelemeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "cancel": "İptal",
+      "deleting": "Siliniyor..."
     },
     "actions": {
       "helpful": "Yararlı",

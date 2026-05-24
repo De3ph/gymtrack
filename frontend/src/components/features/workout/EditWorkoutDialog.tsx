@@ -118,7 +118,7 @@ export function EditWorkoutDialog({
   const validateTimeFormat = (timeStr: string): [number, number] => {
     const timeParts = timeStr.split(":");
     if (timeParts.length !== 2) {
-      throw new Error("Invalid time format. Use HH:MM format.");
+      throw new Error(t('invalid_time_format'));
     }
     const [hours, minutes] = timeParts.map(Number);
     if (
@@ -129,9 +129,7 @@ export function EditWorkoutDialog({
       minutes < 0 ||
       minutes > 59
     ) {
-      throw new Error(
-        "Invalid time values. Hours must be 0-23, minutes must be 0-59.",
-      );
+      throw new Error(t('invalid_time_values'));
     }
     return [hours, minutes];
   };
@@ -139,7 +137,7 @@ export function EditWorkoutDialog({
   // Mutation for updating workout
   const { mutate: updateWorkout, isPending } = useMutation({
     mutationFn: async (data: WorkoutWithPerSetFormData) => {
-      if (!workout) throw new Error("No workout to update");
+      if (!workout) throw new Error(t('no_workout_to_update'));
 
       // Combine date and time with validation
       const [hours, minutes] = validateTimeFormat(data.workoutTime);
@@ -155,7 +153,7 @@ export function EditWorkoutDialog({
       );
 
       if (validExercises.length !== data.exercises.length) {
-        throw new Error("All exercises must be selected and have valid names");
+        throw new Error(t('exercises_must_be_valid'));
       }
 
       // Convert workout exercises to the format expected by the backend API

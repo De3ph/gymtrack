@@ -17,6 +17,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { WorkoutStats } from "@/lib/api/api-types"
+import { useTranslations } from "next-intl"
 
 interface ExerciseBreakdownChartProps {
   workoutStats: WorkoutStats
@@ -24,11 +25,13 @@ interface ExerciseBreakdownChartProps {
 }
 
 export function ExerciseBreakdownChart({ workoutStats, chartConfig }: ExerciseBreakdownChartProps) {
+  const t = useTranslations('trainer.charts.exercise_breakdown')
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Exercises</CardTitle>
-        <CardDescription>Most performed exercises</CardDescription>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {workoutStats.exerciseBreakdown.length > 0 ? (
@@ -42,12 +45,12 @@ export function ExerciseBreakdownChart({ workoutStats, chartConfig }: ExerciseBr
               <YAxis dataKey="name" type="category" width={100} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="totalSets" fill="var(--color-totalSets)" name="Total Sets" />
-              <Bar dataKey="totalReps" fill="var(--color-totalReps)" name="Total Reps" />
+              <Bar dataKey="totalSets" fill="var(--color-totalSets)" name={t('total_sets')} />
+              <Bar dataKey="totalReps" fill="var(--color-totalReps)" name={t('total_reps')} />
             </BarChart>
           </ChartContainer>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No workout data available</p>
+          <p className="text-center text-muted-foreground py-8">{t('no_data')}</p>
         )}
       </CardContent>
     </Card>

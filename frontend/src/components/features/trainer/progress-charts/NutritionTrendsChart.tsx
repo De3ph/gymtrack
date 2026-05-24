@@ -17,6 +17,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { MealStats } from "@/lib/api/api-types"
+import { useTranslations } from "next-intl"
 
 interface NutritionTrendsChartProps {
   mealStats: MealStats
@@ -24,11 +25,14 @@ interface NutritionTrendsChartProps {
 }
 
 export function NutritionTrendsChart({ mealStats, chartConfig }: NutritionTrendsChartProps) {
+  const t = useTranslations('trainer.charts.nutrition_trends')
+  const tStats = useTranslations('trainer.charts.stats')
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Weekly Nutrition Trends</CardTitle>
-        <CardDescription>Average daily macros per week</CardDescription>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {mealStats.weeklyAverages.length > 0 ? (
@@ -39,14 +43,14 @@ export function NutritionTrendsChart({ mealStats, chartConfig }: NutritionTrends
               <YAxis />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-              <Line type="monotone" dataKey="calories" stroke="var(--color-calories)" name="Calories" />
-              <Line type="monotone" dataKey="protein" stroke="var(--color-protein)" name="Protein (g)" />
-              <Line type="monotone" dataKey="carbs" stroke="var(--color-carbs)" name="Carbs (g)" />
-              <Line type="monotone" dataKey="fats" stroke="var(--color-fats)" name="Fats (g)" />
+              <Line type="monotone" dataKey="calories" stroke="var(--color-calories)" name={tStats('calories_label')} />
+              <Line type="monotone" dataKey="protein" stroke="var(--color-protein)" name={tStats('protein_label')} />
+              <Line type="monotone" dataKey="carbs" stroke="var(--color-carbs)" name={tStats('carbs_label')} />
+              <Line type="monotone" dataKey="fats" stroke="var(--color-fats)" name={tStats('fats_label')} />
             </LineChart>
           </ChartContainer>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No meal data available</p>
+          <p className="text-center text-muted-foreground py-8">{t('no_data')}</p>
         )}
       </CardContent>
     </Card>

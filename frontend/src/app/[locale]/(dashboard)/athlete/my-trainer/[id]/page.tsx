@@ -10,11 +10,14 @@ import { RelationshipDetailsCard } from "@/components/features/trainer/Relations
 import { MyTrainerProfile } from "@/components/features/trainer/MyTrainerProfile";
 import type { User } from "@/types";
 import { ROUTES } from "@/lib/routes";
+import { useTranslations } from "next-intl";
 
 export default function TrainerDetailPage() {
   const params = useParams();
   const router = useRouter();
   const trainerId = params.id as string;
+  const t = useTranslations('athlete.trainer');
+  const tc = useTranslations('common.actions');
 
   const {
     data: trainerData,
@@ -29,7 +32,7 @@ export default function TrainerDetailPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading trainer details...</div>
+        <div className="text-center">{t('loading')}</div>
       </div>
     );
   }
@@ -42,7 +45,7 @@ export default function TrainerDetailPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center text-red-600">
-          Trainer not found or you don't have access to view this profile.
+          {t('not_found_or_access')}
         </div>
       </div>
     );
@@ -56,11 +59,11 @@ export default function TrainerDetailPage() {
       <div className="mb-6">
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          {tc('back')}
         </Button>
 
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          My Trainer
+          {t('title')}
         </h1>
       </div>
 
@@ -76,10 +79,10 @@ export default function TrainerDetailPage() {
           variant="outline"
           onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
         >
-          View My Workouts
+          {t('view_workouts')}
         </Button>
         <Button variant="outline" onClick={() => router.push(ROUTES.ATHLETE_MEALS)}>
-          View My Meals
+          {t('view_meals')}
         </Button>
       </div>
     </div>

@@ -19,10 +19,10 @@ interface PlanViewDialogProps {
   label?: string;
 }
 
-function formatSets(sets: WorkoutPlanSet[]): string {
+function formatSets(t: (key: string, params?: any) => string, sets: WorkoutPlanSet[]): string {
   const count = sets.length;
   const reps = sets.map((s) => s.reps).join(",");
-  return `${count} set${count > 1 ? "s" : ""}, ${reps} reps`;
+  return t('set_format', { count, reps });
 }
 
 export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
@@ -70,7 +70,7 @@ export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
                     {exercise.name}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {formatSets(exercise.sets)}
+                    {formatSets(t, exercise.sets)}
                   </p>
                 </div>
                 {exercise.notes && (

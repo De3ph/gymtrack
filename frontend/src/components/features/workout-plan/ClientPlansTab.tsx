@@ -5,8 +5,10 @@ import { useParams } from "next/navigation";
 import { workoutPlanApi } from "@/lib/api";
 import { WorkoutPlanCard } from "./WorkoutPlanCard";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function ClientPlansTab() {
+  const t = useTranslations('trainer.workout_plans')
   const params = useParams();
   const username = params.username as string;
 
@@ -29,7 +31,7 @@ export function ClientPlansTab() {
   if (plans.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No workout plans assigned yet.
+        {t('no_plans')}
       </div>
     );
   }

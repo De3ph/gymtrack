@@ -165,11 +165,11 @@ export function ExerciseSelector({
                 <div className='max-h-96 overflow-y-auto space-y-2'>
                   {isLoadingExercises ? (
                     <div className='text-center py-8 text-sm text-muted-foreground'>
-                      Loading exercises...
+                      {t('selector.loading')}
                     </div>
                   ) : exercises.length === 0 ? (
                     <div className='text-center py-8 text-sm text-muted-foreground'>
-                      No exercises found
+                      {t('filters.no_results')}
                     </div>
                   ) : (
                     exercises.map((exercise: ExerciseLibrary) => (

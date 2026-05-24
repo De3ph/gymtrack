@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Star, Edit, Trash2 } from "lucide-react"
 import { TrainerReview } from "@/types"
+import { useTranslations } from "next-intl"
 
 interface ReviewActionsProps {
   review: TrainerReview
@@ -17,6 +18,9 @@ interface ReviewActionsProps {
 }
 
 export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdated }: ReviewActionsProps) {
+  const tEdit = useTranslations('review.edit')
+  const tDelete = useTranslations('review.delete')
+  const tCommon = useTranslations('common')
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [rating, setRating] = useState(review.rating)
@@ -36,7 +40,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
       setEditOpen(false)
       onReviewUpdated?.()
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to update review")
+      setError(err.response?.data?.error || tEdit('error_update'))
     } finally {
       setSubmitting(false)
     }
@@ -51,7 +55,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
       setDeleteOpen(false)
       onReviewUpdated?.()
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to delete review")
+      setError(err.response?.data?.error || tEdit('error_delete'))
     } finally {
       setSubmitting(false)
     }
@@ -90,29 +94,29 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
           <DialogTrigger >
             <Button variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-1" />
-              Edit
+              {tCommon('actions.edit')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Edit Your Review</DialogTitle>
+              <DialogTitle>{tEdit('title')}</DialogTitle>
               <DialogDescription>
-                Update your rating and comment for this trainer
+                {tEdit('description')}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleEdit} className="space-y-4">
               <div>
-                <Label htmlFor="rating">Rating</Label>
+                <Label htmlFor="rating">{tEdit('rating')}</Label>
                 <div className="mt-2">
                   {renderStars(rating)}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="comment">Comment</Label>
+                <Label htmlFor="comment">{tEdit('comment')}</Label>
                 <Textarea
                   id="comment"
-                  placeholder="Update your comment..."
+                  placeholder={tEdit('comment_placeholder')}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   className="mt-1"
@@ -133,14 +137,14 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
                   onClick={() => setEditOpen(false)}
                   className="flex-1"
                 >
-                  Cancel
+                  {tEdit('cancel')}
                 </Button>
                 <Button
                   type="submit"
                   disabled={submitting}
                   className="flex-1"
                 >
-                  {submitting ? "Updating..." : "Update Review"}
+                  {submitting ? tEdit('updating') : tEdit('update')}
                 </Button>
               </div>
             </form>
@@ -151,18 +155,18 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
           <DialogTrigger >
             <Button variant="destructive" size="sm">
               <Trash2 className="w-4 h-4 mr-1" />
-              Delete
+              {tCommon('actions.delete')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Delete Review</DialogTitle>
+              <DialogTitle>{tDelete('title')}</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete this review? This action cannot be undone.
+                {tDelete('description')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <p>Are you sure you want to delete this review? This action cannot be undone.</p>
+              <p>{tDelete('confirm_text')}</p>
 
               {error && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
@@ -177,7 +181,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
                   onClick={() => setDeleteOpen(false)}
                   className="flex-1"
                 >
-                  Cancel
+                  {tDelete('cancel')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -185,7 +189,7 @@ export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdate
                   disabled={submitting}
                   className="flex-1"
                 >
-                  {submitting ? "Deleting..." : "Delete Review"}
+                  {submitting ? tDelete('deleting') : tDelete('title')}
                 </Button>
               </div>
             </div>

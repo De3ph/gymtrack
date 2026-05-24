@@ -31,7 +31,7 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon" className="lg:hidden">
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle navigation menu</span>
+          <span className="sr-only">{tCommon('toggle_menu')}</span>
         </Button>
       </DrawerTrigger>
       <DrawerContent className="h-full w-3/4 max-w-sm">

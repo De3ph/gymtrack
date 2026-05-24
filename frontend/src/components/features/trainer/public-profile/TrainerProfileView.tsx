@@ -92,7 +92,7 @@ export default function TrainerProfileView({
           <PublicProfileField>
             <Label>{t("hourly_rate")}</Label>
             <div className="text-gray-700">
-              {profile.hourlyRate ? `${profile.hourlyRate} €/h` : t("not_set")}
+              {profile.hourlyRate ? t("hourly_rate_format", { rate: profile.hourlyRate }) : t("not_set")}
             </div>
           </PublicProfileField>
         )}

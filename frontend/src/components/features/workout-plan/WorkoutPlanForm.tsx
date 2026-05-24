@@ -87,17 +87,17 @@ export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Push Day A"
+          placeholder={t('exercise_name_placeholder')}
           required
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">{t("description")}</label>
+        <label className="text-sm font-medium">{t("description_label")}</label>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional description..."
+          placeholder={t('description_placeholder')}
         />
       </div>
 
@@ -108,7 +108,7 @@ export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">
-                  {exercise.name || `Exercise ${index + 1}`}
+                  {exercise.name || t('fallback_exercise_name', { index: index + 1 })}
                 </CardTitle>
                 <Button
                   type="button" variant="ghost" size="icon"
@@ -145,7 +145,7 @@ export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
                     newExercises[index] = { ...newExercises[index], notes: e.target.value };
                     setExercises(newExercises);
                   }}
-                  placeholder="Notes / instructions for this exercise..."
+                  placeholder={t('notes_placeholder')}
                   className="text-sm"
                 />
               </div>
@@ -163,7 +163,7 @@ export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
         </Button>
         <Button type="submit" disabled={isPending} className="w-full md:w-auto md:ml-auto">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? "Update Plan" : "Create Plan"}
+          {isEditing ? t('plan_update') : t('plan_create')}
         </Button>
       </div>
     </form>

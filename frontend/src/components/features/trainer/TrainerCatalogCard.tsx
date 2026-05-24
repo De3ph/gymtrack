@@ -51,7 +51,7 @@ export function TrainerCatalogCard({ trainer }: PropTypes) {
                         </div>
                         {trainer.trainerProfile?.hourlyRate && (
                             <div>
-                                <span className="font-medium">{t('hourly_rate')}:</span> $
+                                <span className="font-medium">{t('hourly_rate')}:</span> {t('currency_symbol')}
                                 {trainer.trainerProfile.hourlyRate}
                             </div>
                         )}

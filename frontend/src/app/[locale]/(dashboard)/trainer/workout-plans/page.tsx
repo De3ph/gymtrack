@@ -24,6 +24,7 @@ export default function TrainerWorkoutPlansPage() {
   const { user } = useAuthStore();
   const router = useRouter();
   const t = useTranslations("trainer.workout_plans");
+  const tc = useTranslations("common.actions");
   const queryClient = useQueryClient();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -94,8 +95,8 @@ export default function TrainerWorkoutPlansPage() {
             {t("delete_confirm", { count: deletingPlan?.exercises.length || 0 })}
           </p>
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setDeletingPlan(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" onClick={() => setDeletingPlan(null)}>{tc('cancel')}</Button>
+            <Button variant="destructive" onClick={handleDelete}>{tc('delete')}</Button>
           </div>
         </DialogContent>
       </Dialog>

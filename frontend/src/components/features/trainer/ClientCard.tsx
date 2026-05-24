@@ -33,7 +33,7 @@ export function ClientCard({ client, onViewClient }: ClientCardProps) {
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Users className='h-5 w-5' />
-            {client.athlete?.profile?.name || "Unknown Athlete"}
+            {client.athlete?.profile?.name || t('unknown_athlete')}
           </CardTitle>
           <CardDescription>{client.athlete?.email}</CardDescription>
         </CardHeader>
@@ -48,7 +48,7 @@ export function ClientCard({ client, onViewClient }: ClientCardProps) {
               {t("client_since")}{" "}
               {client.relationship?.createdAt
                 ? dayjs(client.relationship.createdAt).format("DD/MM/YYYY")
-                : "N/A"}
+                : tCommon('not_set')}
             </p>
           </div>
           <div className='flex gap-2'>

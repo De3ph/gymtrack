@@ -44,7 +44,11 @@ export function WorkoutPlanCard({
             <>
               <PlanViewDialog plan={plan} label={tAthlete("view_plan")} />
               {onStart && (
-                <Button size="sm" className="ml-auto" onClick={() => onStart(plan)}>
+                <Button
+                  size="sm"
+                  className="ml-auto"
+                  onClick={() => onStart(plan)}
+                >
                   <Play className="w-4 h-4 mr-1" /> {tAthlete("start_workout")}
                 </Button>
               )}
@@ -53,18 +57,31 @@ export function WorkoutPlanCard({
           {role === "trainer" && (
             <>
               {onEdit && (
-                <Button size="sm" variant="outline" onClick={() => onEdit(plan)}>
-                  <Pencil className="w-4 h-4 mr-1" /> Edit
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onEdit(plan)}
+                >
+                  <Pencil className="w-4 h-4 mr-1" /> {t('edit')}
                 </Button>
               )}
               {onAssign && (
-                <Button size="sm" variant="outline" onClick={() => onAssign(plan)}>
-                  <UserPlus className="w-4 h-4 mr-1" /> Assign
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onAssign(plan)}
+                >
+                  <UserPlus className="w-4 h-4 mr-1" /> {t('assign')}
                 </Button>
               )}
               {onDelete && (
-                <Button size="sm" variant="outline" className="text-red-600" onClick={() => onDelete(plan)}>
-                  <Trash2 className="w-4 h-4 mr-1" /> Delete
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-red-600"
+                  onClick={() => onDelete(plan)}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" /> {t('delete')}
                 </Button>
               )}
             </>

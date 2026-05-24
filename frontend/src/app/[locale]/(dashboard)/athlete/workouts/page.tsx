@@ -83,18 +83,18 @@ export default function WorkoutsPage() {
         value={activeTab}
       >
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="log">Log Workout</TabsTrigger>
-          <TabsTrigger value="list">History (List)</TabsTrigger>
-          <TabsTrigger value="calendar">History (Calendar)</TabsTrigger>
+          <TabsTrigger value="log">{t("log_tab")}</TabsTrigger>
+          <TabsTrigger value="list">{t("list_tab")}</TabsTrigger>
+          <TabsTrigger value="calendar">{t("calendar_tab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="log">
           <div className="max-w-2xl">
             <Card>
               <CardHeader>
-                <CardTitle>Log New Workout</CardTitle>
+                <CardTitle>{t("card_title")}</CardTitle>
                 <CardDescription>
-                  Record your latest session details.
+                  {t("card_description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>

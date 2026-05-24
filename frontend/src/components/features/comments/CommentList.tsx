@@ -85,7 +85,7 @@ function CommentNodeRow({
             targetId={targetId}
             parentCommentId={node.comment.commentId}
             queryKey={queryKey}
-            placeholder='Write a reply...'
+            placeholder={t('form.reply_placeholder')}
             onCancel={onCancelReply}
           />
         </div>

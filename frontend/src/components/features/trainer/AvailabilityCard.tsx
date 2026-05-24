@@ -34,7 +34,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">Loading availability...</CardContent>
+        <CardContent className="p-6">{t('trainer.availability.loading')}</CardContent>
       </Card>
     );
   }
@@ -44,9 +44,9 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
     onMessage("");
     try {
       await availabilityApi.setMyAvailability(availability);
-      onMessage("Availability saved successfully!");
+      onMessage(t('trainer.availability.saved_success'));
     } catch (error) {
-      onMessage("Failed to save availability");
+      onMessage(t('trainer.availability.save_failed'));
       console.error(error);
     } finally {
       setSaving(false);
@@ -117,7 +117,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
                       }
                       className="w-32"
                     />
-                    <span>to</span>
+                    <span>{t('trainer.availability.to_label')}</span>
                     <Input
                       type="time"
                       value={slot.endTime}
@@ -131,7 +131,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
                       size="sm"
                       onClick={() => removeSlot(actualIndex)}
                     >
-                      X
+                      {t('trainer.availability.remove_slot')}
                     </Button>
                   </div>
                 );

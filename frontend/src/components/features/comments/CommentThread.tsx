@@ -51,7 +51,7 @@ export function CommentThread({
   if (error) {
     return (
       <p className='text-sm text-destructive py-2'>
-        {error instanceof Error ? error.message : "Failed to load comments"}
+        {error instanceof Error ? error.message : t('list.load_failed')}
       </p>
     )
   }

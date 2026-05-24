@@ -35,17 +35,17 @@ export default function MealsPage() {
         value={activeTab}
       >
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="log">Log Meal</TabsTrigger>
-          <TabsTrigger value="list">History (List)</TabsTrigger>
-          <TabsTrigger value="calendar">History (Calendar)</TabsTrigger>
+          <TabsTrigger value="log">{t('log_tab')}</TabsTrigger>
+          <TabsTrigger value="list">{t('list_tab')}</TabsTrigger>
+          <TabsTrigger value="calendar">{t('calendar_tab')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="log">
           <div className="max-w-2xl">
             <Card>
               <CardHeader>
-                <CardTitle>Log New Meal</CardTitle>
-                <CardDescription>Record what you ate.</CardDescription>
+                <CardTitle>{t('card_title')}</CardTitle>
+                <CardDescription>{t('card_description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <MealForm onSuccess={() => setActiveTab("list")} />

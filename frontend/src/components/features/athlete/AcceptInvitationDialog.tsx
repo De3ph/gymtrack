@@ -15,12 +15,14 @@ import { relationshipApi } from "@/lib/api"
 import { CheckCircle, Loader2, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "@tanstack/react-form"
+import { useTranslations } from "next-intl"
 
 interface AcceptInvitationDialogProps {
   onSuccess?: () => void
 }
 
 export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProps) {
+  const t = useTranslations('athlete.invitation')
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -70,10 +72,10 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
   const validateInvitationCode = ({ value }: { value: string }): string | undefined => {
     // Code must be exactly 8 alphanumeric characters
     if (!/^[a-zA-Z0-9]{8}$/.test(value) && value.length === 8) {
-      return "Invitation code must contain only letters and numbers"
+      return t('error_invalid_chars')
     }
     if (value.length > 0 && value.length < 8) {
-      return `Invitation code must be exactly 8 characters (${value.length}/8)`
+      return t('error_length', { count: value.length })
     }
     return undefined
   }
@@ -84,22 +86,22 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
         render={
           <Button variant="outline">
             <UserPlus className="mr-2 h-4 w-4" />
-            Connect with Trainer
+            {t('title')}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Connect with Trainer</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Enter the invitation code provided by your trainer to connect with them.
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
         {success ? (
           <div className="flex flex-col items-center space-y-4 py-6">
             <CheckCircle className="h-12 w-12 text-green-500" />
-            <p className="text-center font-medium">Successfully connected with your trainer!</p>
+            <p className="text-center font-medium">{t('success')}</p>
           </div>
         ) : (
           <form
@@ -117,7 +119,7 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
             >
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor="invitation-code">Invitation Code</Label>
+                  <Label htmlFor="invitation-code">{t('code_label')}</Label>
                   <Input
                     id="invitation-code"
                     value={field.state.value}
@@ -125,12 +127,12 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
                       const sanitized = sanitizeInvitationCode(e.target.value)
                       field.handleChange(sanitized)
                     }}
-                    placeholder="Enter 8-character code (case-sensitive)"
+                    placeholder={t('code_placeholder')}
                     maxLength={8}
                     className="font-mono text-lg tracking-wider"
                   />
                   <p className="text-xs text-muted-foreground">
-                    The code should be 8 characters long (e.g., a1b2c3d4 or A1B2C3D4)
+                    {t('code_hint')}
                   </p>
                   {field.state.meta.errors.length > 0 && (
                     <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
@@ -159,10 +161,10 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
                   {loading || isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connecting...
+                      {t('connecting')}
                     </>
                   ) : (
-                    "Connect with Trainer"
+                    t('submit')
                   )}
                 </Button>
               )}

@@ -79,14 +79,14 @@ export default function TrainerClientsPage() {
     <div className="container mx-auto py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">My Clients</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage your athlete relationships and view their progress
+            {t('description')}
           </p>
         </div>
         <Button onClick={() => setShowInviteDialog(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
-          Invite Athlete
+          {t('invite_athlete')}
         </Button>
       </div>
 
@@ -146,11 +146,11 @@ export default function TrainerClientsPage() {
       {filteredClients.length === 0 && clients.length > 0 && (
         <Empty>
           <EmptyHeader>
-            <EmptyTitle>No Results Found</EmptyTitle>
+                <EmptyTitle>{t('no_results_title')}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
             <EmptyDescription>
-              No clients match your search.
+              {t('no_results_description')}
             </EmptyDescription>
           </EmptyContent>
         </Empty>

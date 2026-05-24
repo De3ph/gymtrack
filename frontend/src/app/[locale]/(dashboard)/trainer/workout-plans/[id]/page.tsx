@@ -20,6 +20,7 @@ export default function TrainerWorkoutPlanDetailPage() {
   const queryClient = useQueryClient();
   const planId = params.id as string;
   const t = useTranslations("trainer.workout_plans");
+  const tc = useTranslations("common.actions");
 
   const [showEditForm, setShowEditForm] = useState(false);
 
@@ -52,7 +53,7 @@ export default function TrainerWorkoutPlanDetailPage() {
   if (!plan) {
     return (
       <div className="container mx-auto py-6">
-        <p className="text-muted-foreground">Plan not found.</p>
+        <p className="text-muted-foreground">{t('plan_not_found')}</p>
       </div>
     );
   }
@@ -63,7 +64,7 @@ export default function TrainerWorkoutPlanDetailPage() {
     <div className="container mx-auto py-6">
       <div className="mb-6 flex items-center gap-4">
         <Button variant="outline" onClick={() => router.push(ROUTES.TRAINER_WORKOUT_PLANS)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          <ArrowLeft className="mr-2 h-4 w-4" /> {tc('back')}
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{plan.name}</h1>
@@ -104,8 +105,7 @@ export default function TrainerWorkoutPlanDetailPage() {
                     <li key={ex.exerciseId} className="border-b pb-3 last:border-0">
                       <p className="font-medium">{i + 1}. {ex.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {ex.sets.length} set{ex.sets.length > 1 ? "s" : ""} — target weights:{" "}
-                        {ex.sets.map(s => `${s.weight}${s.weightUnit}`).join(", ")}
+                        {t('exercise_detail', { count: ex.sets.length, weights: ex.sets.map(s => `${s.weight}${s.weightUnit}`).join(", ") })}
                       </p>
                       {ex.notes && (
                         <p className="text-sm text-muted-foreground mt-1">{ex.notes}</p>
@@ -138,12 +138,12 @@ export default function TrainerWorkoutPlanDetailPage() {
             </CardHeader>
             <CardContent>
               {assignments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No clients assigned yet.</p>
+                <p className="text-sm text-muted-foreground">{t('no_clients_yet')}</p>
               ) : (
                 <ul className="space-y-2">
                   {assignments.map((a) => (
                     <li key={a.assignmentId} className="text-sm">
-                      Athlete: {a.athleteId}
+                      {t('athlete_label', { id: a.athleteId })}
                     </li>
                   ))}
                 </ul>

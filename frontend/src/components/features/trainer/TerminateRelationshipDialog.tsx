@@ -28,6 +28,7 @@ export function TerminateRelationshipDialog({
   const [open, setOpen] = useState(false);
   const [terminateError, setTerminateError] = useState<string | null>(null);
   const t = useTranslations('trainer.client_detail.terminate_dialog');
+  const tClients = useTranslations('trainer.clients');
 
   const handleTerminateRelationship = async () => {
     try {
@@ -57,7 +58,7 @@ export function TerminateRelationshipDialog({
             <AlertDialogHeader>
               <AlertDialogTitle>{t('title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                {t('description', { name: athleteName || "this athlete" })}
+{t('description', { name: athleteName || tClients('this_athlete') })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             {terminateError && (

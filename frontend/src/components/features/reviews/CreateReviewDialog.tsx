@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Field } from "@/components/ui/field"
 import { FieldInfo } from "@/components/ui/form-field"
 import { Star } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface CreateReviewDialogProps {
   trainerId: string
@@ -20,6 +21,7 @@ interface CreateReviewDialogProps {
 }
 
 export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, children }: CreateReviewDialogProps) {
+  const t = useTranslations('review.create')
   const [open, setOpen] = React.useState(false)
   const queryClient = useQueryClient()
 
@@ -78,9 +80,9 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Write a Review for {trainerName}</DialogTitle>
+          <DialogTitle>{t('title', { trainerName })}</DialogTitle>
           <DialogDescription>
-            Share your experience working with this trainer to help others make informed decisions
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -93,7 +95,7 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
           <form.Field name="rating">
             {(field) => (
               <div>
-                <Label htmlFor="rating">Rating</Label>
+                <Label htmlFor="rating">{t('rating')}</Label>
                 <div className="mt-2">
                   {renderStars(field.state.value, field)}
                 </div>
@@ -104,10 +106,10 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
           <form.Field name="comment">
             {(field) => (
               <div>
-                <Label htmlFor="comment">Comment (optional)</Label>
+                <Label htmlFor="comment">{t('comment_label')}</Label>
                 <Textarea
                   id="comment"
-                  placeholder="Share your experience with this trainer..."
+                  placeholder={t('comment_placeholder')}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
@@ -126,14 +128,14 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
               onClick={() => setOpen(false)}
               className="flex-1"
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={isPending}
               className="flex-1"
             >
-              {isPending ? "Submitting..." : "Submit Review"}
+              {isPending ? t('submitting') : t('submit')}
             </Button>
           </div>
         </form>

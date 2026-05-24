@@ -15,6 +15,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { MealStats } from "@/lib/api/api-types"
+import { useTranslations } from "next-intl"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 
@@ -24,11 +25,13 @@ interface MealTypeDistributionChartProps {
 }
 
 export function MealTypeDistributionChart({ mealStats, chartConfig }: MealTypeDistributionChartProps) {
+  const t = useTranslations('trainer.charts.meal_type_distribution')
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Meal Type Distribution</CardTitle>
-        <CardDescription>Breakdown of meals by type</CardDescription>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {mealStats.mealTypeBreakdown.length > 0 ? (
@@ -52,7 +55,7 @@ export function MealTypeDistributionChart({ mealStats, chartConfig }: MealTypeDi
             </PieChart>
           </ChartContainer>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No meal data available</p>
+          <p className="text-center text-muted-foreground py-8">{t('no_data')}</p>
         )}
       </CardContent>
     </Card>

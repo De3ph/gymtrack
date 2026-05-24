@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface PlanSetWithId extends WorkoutPlanSet {
   id: string;
@@ -25,6 +26,7 @@ export function PlanSetInput({
   disabled = false,
   className
 }: PlanSetInputProps) {
+  const t = useTranslations('workout.form.exercise.sets')
   const [setsWithIds, setSetsWithIds] = useState<PlanSetWithId[]>(() => {
     return (value || []).map((set, index) => ({
       ...set,
@@ -82,11 +84,11 @@ export function PlanSetInput({
       {setsWithIds.map((set, index) => (
         <div key={set.id} className="flex flex-wrap items-center gap-2 p-3 border rounded-md bg-background">
           <div className="flex items-center gap-1 min-w-[60px]">
-            <span className="text-sm font-medium">Set {index + 1}</span>
+            <span className="text-sm font-medium">{t('set_number', { number: index + 1 })}</span>
           </div>
           <div className="flex items-center gap-1 min-w-[80px]">
             <Field>
-              <FieldLabel className="text-xs">Weight</FieldLabel>
+              <FieldLabel className="text-xs">{t('weight')}</FieldLabel>
               <Input
                 type="number" step="0.5" min="0"
                 value={set.weight}
@@ -98,25 +100,25 @@ export function PlanSetInput({
           </div>
           <div className="flex items-center gap-1 min-w-[70px]">
             <Field>
-              <FieldLabel className="text-xs">Reps</FieldLabel>
+              <FieldLabel className="text-xs">{t('reps')}</FieldLabel>
               <Input
                 type="number" min="1"
                 value={set.reps}
                 onChange={(e) => updateSet(set.id, "reps", parseInt(e.target.value) || 1)}
                 disabled={disabled}
-                className="w-16" placeholder="10"
+                className="w-16" placeholder={t('reps')}
               />
             </Field>
           </div>
           <div className="flex items-center gap-1 min-w-[90px]">
             <Field>
-              <FieldLabel className="text-xs">Rest (s)</FieldLabel>
+              <FieldLabel className="text-xs">{t('rest')}</FieldLabel>
               <Input
                 type="number" min="0" step="15"
                 value={set.restTime}
                 onChange={(e) => updateSet(set.id, "restTime", parseInt(e.target.value) || 0)}
                 disabled={disabled}
-                className="w-16" placeholder="60"
+                className="w-16" placeholder={t('rest')}
               />
             </Field>
           </div>
@@ -136,7 +138,7 @@ export function PlanSetInput({
         disabled={disabled}
         className="w-full"
       >
-        <Plus className="w-4 h-4 mr-1" /> Add Set
+        <Plus className="w-4 h-4 mr-1" /> {t('add')}
       </Button>
     </div>
   );
