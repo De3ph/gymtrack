@@ -608,7 +608,9 @@
       "title": "My Workout Plans",
       "description": "View and start workout plans created by your trainer",
       "empty": "You don't have any workout plans yet. Ask your trainer to create one!",
-      "view_plan": "View Plan"
+      "view_plan": "View Plan",
+      "start_workout": "Start Workout",
+      "exercises": "exercises"
     },
     "profile": {
       "title": "Athlete Profile",

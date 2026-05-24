@@ -25,6 +25,7 @@ export function WorkoutPlanCard({
   onStart,
 }: WorkoutPlanCardProps) {
   const t = useTranslations("trainer.workout_plans");
+  const tAthlete = useTranslations("athlete.workout_plans");
 
   return (
     <Card>
@@ -36,15 +37,15 @@ export function WorkoutPlanCard({
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
-          {plan.exercises.length} exercises
+          {plan.exercises.length} {tAthlete("exercises")}
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex items-center gap-2">
           {role === "athlete" && (
             <>
-              <PlanViewDialog plan={plan} />
+              <PlanViewDialog plan={plan} label={tAthlete("view_plan")} />
               {onStart && (
-                <Button size="sm" onClick={() => onStart(plan)}>
-                  <Play className="w-4 h-4 mr-1" /> Start Workout
+                <Button size="sm" className="ml-auto" onClick={() => onStart(plan)}>
+                  <Play className="w-4 h-4 mr-1" /> {tAthlete("start_workout")}
                 </Button>
               )}
             </>

@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl";
 
 interface PlanViewDialogProps {
   plan: WorkoutPlan;
+  label?: string;
 }
 
 function formatSets(sets: WorkoutPlanSet[]): string {
@@ -24,23 +25,30 @@ function formatSets(sets: WorkoutPlanSet[]): string {
   return `${count} set${count > 1 ? "s" : ""}, ${reps} reps`;
 }
 
-export function PlanViewDialog({ plan }: PlanViewDialogProps) {
+export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
   const [open, setOpen] = useState(false);
   const t = useTranslations("athlete.workout_plans");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setOpen(true)}
-        >
-          <Eye className="h-4 w-4" />
-          <span className="sr-only">{t("view_plan")}</span>
-        </Button>
+        {label ? (
+          <Button type="button" variant="outline" onClick={() => setOpen(true)}>
+            <Eye className="w-4 h-4 mr-1" />
+            {label}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setOpen(true)}
+          >
+            <Eye className="h-4 w-4" />
+            <span className="sr-only">{t("view_plan")}</span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
