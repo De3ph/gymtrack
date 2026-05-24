@@ -3,7 +3,8 @@
 import { WorkoutPlan } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Pencil, Trash2, UserPlus } from "lucide-react";
+import { Eye, Play, Pencil, Trash2, UserPlus } from "lucide-react";
+import { PlanViewDialog } from "./PlanViewDialog";
 import { useTranslations } from "next-intl";
 
 interface WorkoutPlanCardProps {
@@ -38,10 +39,15 @@ export function WorkoutPlanCard({
           {plan.exercises.length} exercises
         </p>
         <div className="flex flex-wrap gap-2">
-          {role === "athlete" && onStart && (
-            <Button size="sm" onClick={() => onStart(plan)}>
-              <Play className="w-4 h-4 mr-1" /> Start Workout
-            </Button>
+          {role === "athlete" && (
+            <>
+              <PlanViewDialog plan={plan} />
+              {onStart && (
+                <Button size="sm" onClick={() => onStart(plan)}>
+                  <Play className="w-4 h-4 mr-1" /> Start Workout
+                </Button>
+              )}
+            </>
           )}
           {role === "trainer" && (
             <>

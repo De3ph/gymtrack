@@ -607,7 +607,8 @@
     "workout_plans": {
       "title": "Antrenman Planlarım",
       "description": "Antrenörünüz tarafından oluşturulan planları görüntüleyin ve başlatın",
-      "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!"
+      "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!",
+      "view_plan": "Planı Görüntüle"
     },
     "profile": {
       "title": "Sporcu Profili",
