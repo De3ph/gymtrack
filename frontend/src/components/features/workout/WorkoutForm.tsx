@@ -20,6 +20,7 @@ import { useTranslations } from "next-intl";
 
 interface WorkoutFormProps {
   onSuccess?: () => void;
+  onClear?: () => void;
   workout?: Workout;
 }
 
@@ -65,10 +66,12 @@ const formatExercisesForApi = (exercises: WorkoutExercise[]) => {
 
 export function WorkoutForm({
   onSuccess,
+  onClear,
   workout: initialWorkout,
 }: WorkoutFormProps) {
   const queryClient = useQueryClient();
   const t = useTranslations("workout.form");
+  const tCommon = useTranslations("common.actions");
 
   const form = useForm({
     defaultValues: {
@@ -253,6 +256,17 @@ export function WorkoutForm({
             </Button>
           )}
         </form.Field>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            form.reset();
+            onClear?.();
+          }}
+          className="w-full md:w-auto"
+        >
+          {tCommon("clear")}
+        </Button>
         <Button
           type="submit"
           disabled={isPending}
