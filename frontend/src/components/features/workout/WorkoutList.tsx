@@ -137,7 +137,7 @@ export function WorkoutList({
                     <span className='text-muted-foreground'>
                       {ex.sets && ex.sets.length > 0 ? (
                         <>
-                          {ex.sets.length} {t("sets_x")}{" "}
+                          {t("sets_x", { sets: ex.sets.length })}{" "}
                           {ex.sets
                             .map(
                               (set: ExerciseSet) =>

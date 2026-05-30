@@ -120,8 +120,8 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
               <div>
                 <CardTitle className="text-lg">
                   {userType === "trainer"
-                    ? tList('request_from', { name: request.athlete?.profile?.name || request.athlete?.email })
-                    : tList('request_to', { name: request.trainer?.profile?.name || request.trainer?.email })}
+                    ? tList('request_from', { name: request.athlete?.profile?.name || request.athlete?.email || "" })
+                    : tList('request_to', { name: request.trainer?.profile?.name || request.trainer?.email || "" })}
                 </CardTitle>
                 <div className="flex items-center gap-2 mt-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />

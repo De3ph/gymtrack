@@ -55,7 +55,8 @@ function CommentNodeRow({
   replyingToId,
   onStartReply,
   onCancelReply,
-  depth
+  depth,
+  t
 }: {
   node: CommentNode
   targetType: "workout" | "meal"
@@ -66,6 +67,7 @@ function CommentNodeRow({
   onStartReply: (parentCommentId: string) => void
   onCancelReply: () => void
   depth: number
+  t: ReturnType<typeof useTranslations<"comment">>
 }) {
   const isReply = depth > 0
   return (
@@ -102,6 +104,7 @@ function CommentNodeRow({
           onStartReply={onStartReply}
           onCancelReply={onCancelReply}
           depth={depth + 1}
+          t={t}
         />
       ))}
     </div>
@@ -143,6 +146,7 @@ export function CommentList({
           onStartReply={onStartReply}
           onCancelReply={onCancelReply}
           depth={0}
+          t={t}
         />
       ))}
     </div>

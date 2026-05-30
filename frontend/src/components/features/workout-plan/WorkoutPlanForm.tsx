@@ -124,7 +124,6 @@ export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
               </div>
               <div className="mt-2">
                 <ExerciseSelector
-                  value={exercise.name}
                   onSelect={(selected) => handleExerciseSelect(
                     { exerciseId: selected.exerciseId, name: selected.name },
                     index

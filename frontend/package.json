@@ -12,7 +12,7 @@
     "test:run": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "validate:translations": "ts-node scripts/validate-translations.ts"
+    "validate:i18n": "ts-node scripts/validate-translations.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

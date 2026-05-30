@@ -1,0 +1,48 @@
+Design Review - Gymtrack Frontend
+
+Current Design Status:
+- Well-structured dark theme with purple primary color (#0.518 0.253 323.949)
+- Consistent use of Base UI + Shadcn wrapper components
+- Clean CSS variable system in globals.css
+- Good contrast ratios and spacing
+
+Component Usage Analysis:
+- 56 UI component files exist in src/components/ui/
+- Only 25 components are actively used in the codebase
+- Many useful components are implemented but unused
+
+Missing Components (Not Used):
+1. Select - for dropdowns/filters
+2. Popover - for contextual actions
+3. Radio Group - for multiple choice inputs
+4. Button Group - for grouped actions
+5. Carousel - for image sliders
+6. Accordion - for collapsible content
+7. Avatar - for user profile images
+8. Breadcrumb - for navigation trails
+9. Context Menu - for right-click actions
+10. Progress Bars - for progress indicators
+11. Toggle Switch - for form toggles
+12. Table - for data tables
+
+Existing but Underused Components:
+- accordion, avatar, breadcrumb, button-group, carousel, collapsible, command, context-menu, direction, hover-card, input-otp, item, kbd, menubar, native-select, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, table, sonner, slider, switch, toggle-group
+
+Page Audit Opportunities:
+1. Athlete Dashboard - needs filters (use Select), could use Accordion for stats
+2. Trainer Catalog - needs pagination (use Pagination), could use Carousel for featured trainers
+3. Workout Plans - needs image carousel, could use Accordion for exercise details
+4. Comments section - could use Table for organization
+5. Settings pages - needs Toggle switches, Radio Groups for options
+6. Navigation - could use Breadcrumbs for hierarchy
+7. User profiles - needs Avatars
+8. Progress tracking - needs Progress bars, Charts
+
+Recommendations:
+1. Implement missing components if not available: Date-picker, File-upload, Rich-text-editor
+2. Add micro-interactions: hover effects, transitions
+3. Improve visual hierarchy with typography and color
+4. Add entrance animations using tw-animate-css
+5. Use data-attributes consistently for theming
+
+Next Step: Audit specific pages to identify exact placement opportunities.

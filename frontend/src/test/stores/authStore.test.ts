@@ -47,6 +47,7 @@ describe('AuthStore', () => {
   it('should login successfully and set auth state', async () => {
     const mockUser = {
       userId: 'user-1',
+      username: 'testuser',
       email: 'test@example.com',
       role: 'athlete' as const,
       profile: {
@@ -62,7 +63,7 @@ describe('AuthStore', () => {
 
     const mockToken = 'mock-jwt-token'
 
-    vi.mocked(authApi.login).mockResolvedValue({ message: 'Login successful', token: mockToken })
+    vi.mocked(authApi.login).mockResolvedValue({ message: 'Login successful', accessToken: mockToken, refreshToken: 'refresh-token', user: mockUser })
     vi.mocked(userApi.getCurrentUser).mockResolvedValue(mockUser)
 
     const { login } = useAuthStore.getState()
@@ -121,6 +122,7 @@ describe('AuthStore', () => {
   it('should initialize auth from localStorage token', async () => {
     const mockUser = {
       userId: 'user-1',
+      username: 'testuser',
       email: 'test@example.com',
       role: 'athlete' as const,
       profile: {
@@ -180,6 +182,7 @@ describe('AuthStore', () => {
   it('should update user state', () => {
     const mockUser = {
       userId: 'user-1',
+      username: 'testuser',
       email: 'test@example.com',
       role: 'athlete' as const,
       profile: {

@@ -13,7 +13,11 @@ interface WorkoutPlanListProps {
   onAssign: (plan: WorkoutPlan) => void;
 }
 
-export function WorkoutPlanList({ onEdit, onDelete, onAssign }: WorkoutPlanListProps) {
+export function WorkoutPlanList({
+  onEdit,
+  onDelete,
+  onAssign,
+}: WorkoutPlanListProps) {
   const t = useTranslations("trainer.workout_plans");
 
   const { data, isLoading } = useQuery({

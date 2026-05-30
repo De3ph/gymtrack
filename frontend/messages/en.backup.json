@@ -186,7 +186,6 @@
       },
       "submit": "Create Account",
       "submitting": "Creating account...",
-      "cancel": "Cancel",
       "has_account": "Already have an account?",
       "sign_in": "Sign in"
     },
@@ -217,10 +216,10 @@
   "workout": {
     "title": "Workouts",
     "form": {
-      "title": "Log New Workout",
+      "title": "Log Workout",
       "date": {
-        "label": "Date",
-        "placeholder": "Select a date"
+        "label": "Workout Date & Time",
+        "placeholder": "Select date"
       },
       "time": {
         "label": "Time",
@@ -228,8 +227,8 @@
       },
       "exercise": {
         "name": {
-          "label": "Exercise",
-          "placeholder": "Search exercises..."
+          "label": "Exercise Name",
+          "placeholder": "Search or enter exercise name"
         },
         "sets": {
           "label": "Sets",
@@ -240,25 +239,25 @@
           "reps": "Reps",
           "rest": "Rest",
           "seconds": "sec",
-          "no_sets": "No sets yet",
-          "weight_unit": "Unit"
+          "no_sets": "No sets defined",
+          "weight_unit": "kg"
         },
         "weight": {
           "label": "Weight",
-          "placeholder": "e.g., 50"
+          "placeholder": "Enter weight"
         },
         "reps": {
           "label": "Reps",
-          "placeholder": "e.g., 10"
+          "placeholder": "Enter reps"
         },
         "rest": {
-          "label": "Rest (sec)",
-          "placeholder": "e.g., 60"
+          "label": "Rest Time",
+          "placeholder": "Rest time (seconds)"
         },
         "fallback_name": "Exercise {number}"
       },
       "add_exercise": "Add Exercise",
-      "submit": "Log Workout",
+      "submit": "Save Workout",
       "submitting": "Saving..."
     },
     "list": {
@@ -269,26 +268,26 @@
       "edit": "Edit",
       "delete": "Delete",
       "exercises": "Exercises",
-      "sets_x": "{sets} sets",
-      "set_detail": "{weight} {unit} x {reps}",
-      "no_sets": "No sets",
+      "sets_x": "sets x",
+      "set_detail": "{reps} reps @ {weight}{unit}",
+      "no_sets": "No sets defined",
       "comments": "Comments"
     },
     "calendar": {
-      "title": "Workout Calendar",
-      "select_date": "Select a date to view workouts",
+      "title": "Calendar",
+      "select_date": "Select a date",
       "no_workouts_this_month": "No workouts this month",
-      "no_workouts": "No workouts on this date"
+      "no_workouts": "No workouts recorded for this day."
     },
     "edit_dialog": {
       "title": "Edit Workout",
-      "date_label": "Date & Time",
+      "date_label": "Date",
       "save_changes": "Save Changes",
-      "fallback_exercise": "Exercise {index}",
-      "invalid_time_format": "Invalid time format. Use HH:MM.",
-      "invalid_time_values": "Invalid time values.",
-      "no_workout_to_update": "No workout to update.",
-      "exercises_must_be_valid": "All exercises must be valid."
+      "fallback_exercise": "Exercise",
+      "invalid_time_format": "Invalid time format. Use HH:MM format.",
+      "invalid_time_values": "Invalid time values. Hours must be 0-23, minutes must be 0-59.",
+      "no_workout_to_update": "No workout to update",
+      "exercises_must_be_valid": "All exercises must be selected and have valid names"
     },
     "delete_dialog": {
       "title": "Delete Workout",
@@ -299,24 +298,23 @@
     },
     "charts": {
       "weekly_volume": {
-        "title": "Weekly Volume",
-        "description": "Total volume per week",
+        "title": "Weekly Workout Volume",
+        "description": "Total volume (sets × reps × weight) per week",
         "no_data": "No workout data available"
       }
     }
   },
   "meal": {
-    "title": "Meals & Nutrition",
+    "title": "Meals",
     "form": {
-      "title": "Log New Meal",
-      "date_time_label": "Date & Time",
-      "meal_type_label": "Meal Type",
+      "title": "Log Meal",
+      "date_time_label": "Meal Date & Time",
       "meal_type_placeholder": "Select meal type",
       "food_item_title": "Food Item {index}",
       "food_name_label": "Food Name",
       "date": {
         "label": "Date",
-        "placeholder": "Select a date"
+        "placeholder": "Select date"
       },
       "time": {
         "label": "Time",
@@ -330,22 +328,22 @@
         "snack": "Snack"
       },
       "food": {
-        "label": "Food",
-        "placeholder": "e.g., Chicken Breast"
+        "label": "Food Item",
+        "placeholder": "e.g. Oatmeal"
       },
       "quantity": {
         "label": "Quantity",
-        "placeholder": "e.g., 200g, 1 cup"
+        "placeholder": "e.g. 1 cup"
       },
       "calories": {
         "label": "Calories",
-        "placeholder": "e.g., 250"
+        "placeholder": "e.g. 150"
       },
       "macros": {
-        "label": "Macros (g)",
         "protein": "Protein",
         "carbs": "Carbs",
-        "fats": "Fats"
+        "fats": "Fats",
+        "label": "Macros (g)"
       },
       "add_item": "Add Item",
       "add_food_item": "Add Food Item",
@@ -356,41 +354,41 @@
     "list": {
       "title": "Meal History",
       "loading": "Loading meals...",
-      "no_meals": "No meals recorded yet",
+      "no_meals": "No meals logged yet. Start tracking your nutrition!",
       "view_details": "View Details",
       "edit": "Edit",
       "delete": "Delete"
     },
     "summary": {
       "title": "Daily Summary",
-      "loading_title": "Loading summary...",
-      "title_with_date": "Summary for {date}",
+      "loading_title": "Loading Nutrition Summary...",
+      "title_with_date": "Nutrition Summary for {date}",
       "total_calories": "Total Calories",
-      "total_protein": "Protein",
-      "total_carbs": "Carbs",
-      "total_fats": "Fats"
+      "total_protein": "Total Protein",
+      "total_carbs": "Total Carbs",
+      "total_fats": "Total Fats"
     },
     "card": {
-      "items": "items",
+      "items": "Items",
       "kcal": "kcal",
-      "confirm_delete": "Delete this meal?",
+      "confirm_delete": "Are you sure?",
       "comments": "Comments"
     },
     "item": {
-      "protein_short": "P",
-      "carbs_short": "C",
-      "fats_short": "F"
+      "protein_short": "P:",
+      "carbs_short": "C:",
+      "fats_short": "F:"
     },
     "calendar": {
-      "loading_meals": "Loading meals...",
-      "loading_details": "Loading details...",
-      "title": "Meal Calendar",
-      "select_date": "Select a date to view meals",
-      "no_meals": "No meals on this date"
+      "loading_meals": "Loading Meals...",
+      "loading_details": "Loading Meal Details...",
+      "title": "Calendar",
+      "select_date": "Select a date",
+      "no_meals": "No meals recorded for this day."
     },
     "edit_dialog": {
       "title": "Edit Meal",
-      "description": "Update your meal entry",
+      "description": "Update your meal details. Changes can only be made within 24 hours of logging.",
       "cancel": "Cancel",
       "save_changes": "Save Changes"
     }
@@ -410,13 +408,6 @@
       "no_clients_title": "No Clients Yet",
       "no_clients_description": "You don't have any active clients yet. Generate an invitation code to start working with athletes.",
       "invite_first_athlete": "Invite Your First Athlete",
-      "no_results_title": "No Results Found",
-      "no_results_description": "No clients match your search.",
-      "all_clients": "All Clients",
-      "active": "Active",
-      "inactive": "Inactive",
-      "pending": "Pending",
-      "invite_athlete": "Invite Athlete",
       "no_clients": "No clients yet",
       "add_client": "Add Client",
       "view_client": "View Client",
@@ -424,7 +415,10 @@
       "goals": "Goals",
       "client_since": "Client since",
       "unknown_athlete": "Unknown Athlete",
-      "this_athlete": "this athlete"
+      "this_athlete": "this athlete",
+      "invite_athlete": "Invite Athlete",
+      "no_results_title": "No Results Found",
+      "no_results_description": "No clients match your search."
     },
     "requests": {
       "title": "Coaching Requests",
@@ -443,7 +437,7 @@
         "total_workouts": "Total Workouts",
         "total_meals": "Total Meals",
         "workouts_this_week": "Workouts This Week",
-        "meaks_this_week": "Meals This Week",
+        "meals_this_week": "Meals This Week",
         "athlete_profile": "Athlete Profile",
         "filter_data": "Filter Data",
         "filter_description": "Filter workouts and meals by date range and type",
@@ -467,11 +461,11 @@
         "meals": "Meals",
         "progress_charts": "Progress Charts",
         "workout_history": "Workout History",
-        "workout_description": "View your client's workout logs",
-        "no_workouts": "No workouts recorded",
+        "workout_description": "View all workouts logged by this athlete",
+        "no_workouts": "No workouts found",
         "meal_history": "Meal History",
-        "meal_description": "View your client's meal logs",
-        "no_meals": "No meals recorded",
+        "meal_description": "View all meals logged by this athlete",
+        "no_meals": "No meals found",
         "plans": "Plans"
       },
       "terminate_dialog": {
@@ -596,7 +590,7 @@
       "create": "Create Plan",
       "edit": "Edit Plan",
       "delete": "Delete Plan",
-      "delete_confirm": "Delete this plan? It has {count} exercise(s).",
+      "delete_confirm": "Are you sure you want to delete this plan?",
       "assign": "Assign to Clients",
       "plan_name": "Plan Name",
       "description_label": "Description",
@@ -604,32 +598,28 @@
       "no_plans": "No workout plans yet. Create your first one!",
       "exercises": "Exercises",
       "clients_assigned": "Assigned Clients",
-      "all_plans": "All Plans",
-      "active": "Active",
-      "inactive": "Inactive",
-      "archived": "Archived",
-      "exercise_name_placeholder": "Exercise name",
-      "description_placeholder": "Brief description of the plan",
-      "notes_placeholder": "Notes for this exercise",
+      "exercise_name_placeholder": "e.g. Push Day A",
+      "description_placeholder": "Optional description...",
+      "notes_placeholder": "Notes / instructions for this exercise...",
       "fallback_exercise_name": "Exercise {index}",
-      "assign_plan_title": "Assign Plan",
-      "no_active_clients": "No active clients available",
-      "assign_button": "Assign",
+      "assign_plan_title": "Assign Plan to Clients",
+      "no_active_clients": "No active clients found.",
+      "assign_button": "Assign ({count})",
       "plan_update": "Update Plan",
       "plan_create": "Create Plan",
       "back": "Back",
-      "plan_not_found": "Plan not found",
-      "exercise_detail": "{sets} sets, {reps} reps",
-      "no_clients_yet": "No clients yet",
-      "athlete_label": "Athlete"
+      "plan_not_found": "Plan not found.",
+      "exercise_detail": "{count, plural, one {# set} other {# sets}} — target weights: {weights}",
+      "no_clients_yet": "No clients assigned yet.",
+      "athlete_label": "Athlete: {id}"
     }
   },
   "profile": {
-    "title": "Profile",
+    "title": "My Profile",
     "edit_profile": "Edit Profile",
     "loading": "Loading profile...",
     "not_found": "User not found",
-    "update_error": "Failed to update profile",
+    "update_error": "Failed to update profile. Please try again.",
     "fields": {
       "email": "Email",
       "role": "Role",
@@ -646,12 +636,12 @@
       "cm": "cm"
     },
     "actions": {
-      "save": "Save",
+      "save": "Save Changes",
       "saving": "Saving...",
       "cancel": "Cancel"
     },
     "validation": {
-      "field_required": "This field is required"
+      "field_required": "{field} is required"
     }
   },
   "athlete": {
@@ -741,10 +731,6 @@
         "certifications": "Certifications",
         "years_of_experience": "Years of Experience: ",
         "location": "Location: ",
-        "languages": "Languages",
-        "languages_placeholder": "e.g., English, Spanish",
-        "not_set": "Not set",
-        "available": "Available for new clients",
         "reviews_title": "Reviews",
         "write_review": "Write Review",
         "no_reviews": "No reviews yet",
@@ -899,7 +885,7 @@
     "delete": {
       "title": "Delete Review",
       "description": "Are you sure you want to delete this review? This action cannot be undone.",
-      "confirm_text": "Delete",
+      "confirm_text": "Are you sure you want to delete this review? This action cannot be undone.",
       "cancel": "Cancel",
       "deleting": "Deleting..."
     },

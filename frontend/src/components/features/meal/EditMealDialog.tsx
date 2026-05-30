@@ -46,7 +46,7 @@ export function EditMealDialog({
   const t = useTranslations("meal")
   const queryClient = useQueryClient()
 
-  const form = useForm<MealFormData>({
+  const form = useForm({
     defaultValues: {
       date: dayjs().format(DATE_FORMATS.DATE_ONLY),
       mealTime: dayjs().format("HH:mm"),
@@ -61,7 +61,7 @@ export function EditMealDialog({
       ]
     },
     onSubmit: async ({ value }) => {
-      updateMeal(value)
+      updateMeal(value as unknown as MealFormData)
     }
   })
 
@@ -71,10 +71,10 @@ export function EditMealDialog({
       const mealDate = dayjs(meal.date)
       form.setFieldValue("date", mealDate.format(DATE_FORMATS.DATE_ONLY))
       form.setFieldValue("mealTime", mealDate.format("HH:mm"))
-      form.setFieldValue("mealType", meal.mealType)
+      form.setFieldValue("mealType", meal.mealType as "breakfast")
       form.setFieldValue(
         "items",
-        meal.items.map((item) => ({
+        meal.items.map((item): { food: string; quantity: string; calories: number; macros: { protein: number; carbs: number; fats: number } } => ({
           food: item.food,
           quantity: item.quantity,
           calories: item.calories || 0,
@@ -83,7 +83,7 @@ export function EditMealDialog({
             carbs: item.macros?.carbs || 0,
             fats: item.macros?.fats || 0
           }
-        })) as FoodItemFormData[]
+        }))
       )
     }
   }, [meal, form])
@@ -173,18 +173,12 @@ export function EditMealDialog({
                 {(field) => (
                   <Combobox>
                     <ComboboxInput
-                      placeholder={t("form.meal_type_placeholder")}
                       value={field.state.value}
                       onChange={(e) =>
                         field.handleChange(
-                          e.target.value as
-                            | "breakfast"
-                            | "lunch"
-                            | "dinner"
-                            | "snack"
+                          (e.target.value ?? "breakfast") as Parameters<typeof field.handleChange>[0]
                         )
                       }
-                      onBlur={field.handleBlur}
                     />
                     <ComboboxContent>
                       <ComboboxList>

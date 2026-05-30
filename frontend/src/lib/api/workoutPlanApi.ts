@@ -37,7 +37,7 @@ export const workoutPlanApi = {
     api.get<WorkoutPlanListResponse>("/workout-plans/assigned"),
 
   startWorkout: (id: string) =>
-    api.post<Workout>(`/workout-plans/${id}/start`),
+    api.post<Workout>(`/workout-plans/${id}/start`, {}),
 
   getClientPlans: (username: string) =>
     api.get<WorkoutPlanListResponse>(`/clients/${username}/workout-plans`),

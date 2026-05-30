@@ -1,19 +1,27 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { useTranslations } from "next-intl"
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react"
+import { Search } from "lucide-react";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { exerciseApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { MuscleGroupBadge } from "./MuscleGroupBadge";
 import { EquipmentBadge } from "./EquipmentBadge";
 import { ExerciseFilters } from "./exercise-selector/ExerciseFilters";
-import { ExerciseLibrary, ExerciseSearchParams } from "@/types"
+import { ExerciseLibrary, ExerciseSearchParams } from "@/types";
 
 interface ExerciseSelectorProps {
   onSelect: (exercise: ExerciseLibrary) => void;
@@ -27,23 +35,35 @@ export function ExerciseSelector({
   selectedExerciseId,
   disabled = false,
 }: ExerciseSelectorProps) {
-  const t = useTranslations("exercise")
+  const t = useTranslations("exercise");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<number | undefined>();
-  const [selectedEquipment, setSelectedEquipment] = useState<number | undefined>();
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<
+    number | undefined
+  >();
+  const [selectedEquipment, setSelectedEquipment] = useState<
+    number | undefined
+  >();
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   // Fetch muscle groups
-  const { data: muscleGroupsData, isLoading: isLoadingMuscleGroups, error: muscleGroupsError } = useQuery({
+  const {
+    data: muscleGroupsData,
+    isLoading: isLoadingMuscleGroups,
+    error: muscleGroupsError,
+  } = useQuery({
     queryKey: ["muscleGroups"],
     queryFn: () => exerciseApi.getMuscleGroups(),
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 
   // Fetch equipment types
-  const { data: equipmentData, isLoading: isLoadingEquipment, error: equipmentError } = useQuery({
+  const {
+    data: equipmentData,
+    isLoading: isLoadingEquipment,
+    error: equipmentError,
+  } = useQuery({
     queryKey: ["equipmentTypes"],
     queryFn: () => exerciseApi.getEquipment(),
     staleTime: 1000 * 60 * 10, // 10 minutes
@@ -67,14 +87,17 @@ export function ExerciseSelector({
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const handleSelect = useCallback((exercise: ExerciseLibrary) => {
-    onSelect(exercise);
-    setIsDialogOpen(false);
-    // Reset filters
-    setSearchQuery("");
-    setSelectedMuscleGroup(undefined);
-    setSelectedEquipment(undefined);
-  }, [onSelect]);
+  const handleSelect = useCallback(
+    (exercise: ExerciseLibrary) => {
+      onSelect(exercise);
+      setIsDialogOpen(false);
+      // Reset filters
+      setSearchQuery("");
+      setSelectedMuscleGroup(undefined);
+      setSelectedEquipment(undefined);
+    },
+    [onSelect],
+  );
 
   const clearFilters = useCallback(() => {
     setSelectedMuscleGroup(undefined);
@@ -93,43 +116,43 @@ export function ExerciseSelector({
   // Join muscle group and equipment data
   const exercises = rawExercises.map((exercise: ExerciseLibrary) => ({
     ...exercise,
-    muscleGroup: muscleGroups.find(mg => mg.id === exercise.muscleGroupId),
-    equipment: equipment.find(eq => eq.id === exercise.equipmentId),
+    muscleGroup: muscleGroups.find((mg) => mg.id === exercise.muscleGroupId),
+    equipment: equipment.find((eq) => eq.id === exercise.equipmentId),
   }));
 
   return (
-    <div className='flex items-center gap-2'>
+    <div className="flex items-center gap-2">
       {/* Pick Exercise Button */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger
           render={
             <Button
-              type='button'
-              variant='outline'
-              size='sm'
+              type="button"
+              variant="outline"
+              size="sm"
               disabled={disabled}
             >
               {t("selector.pick_exercise")}
             </Button>
           }
         />
-        <DialogContent className='max-w-2xl max-h-[80vh] overflow-y-auto'>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("selector.select_exercise")}</DialogTitle>
             <DialogDescription>{t("selector.description")}</DialogDescription>
           </DialogHeader>
 
-          <div className='space-y-4'>
+          <div className="space-y-4">
             {/* Loading State */}
             {isLoading && (
-              <div className='text-center py-8 text-sm text-muted-foreground'>
+              <div className="text-center py-8 text-sm text-muted-foreground">
                 {t("selector.loading")}
               </div>
             )}
 
             {/* Error State */}
             {hasError && (
-              <div className='text-center py-8 text-sm text-red-600'>
+              <div className="text-center py-8 text-sm text-red-600">
                 {t("selector.error")}
               </div>
             )}
@@ -138,13 +161,13 @@ export function ExerciseSelector({
             {!isLoading && !hasError && (
               <>
                 {/* Search Input */}
-                <div className='relative'>
-                  <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t("selector.search_placeholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className='pl-10'
+                    className="pl-10"
                     autoFocus
                   />
                 </div>
@@ -162,45 +185,45 @@ export function ExerciseSelector({
                 />
 
                 {/* Exercise List */}
-                <div className='max-h-96 overflow-y-auto space-y-2'>
+                <ScrollArea className="max-h-96 [&>[data-slot=scroll-area-viewport]>:space-y-2">
                   {isLoadingExercises ? (
-                    <div className='text-center py-8 text-sm text-muted-foreground'>
-                      {t('selector.loading')}
+                    <div className="text-center py-8 text-sm text-muted-foreground">
+                      {t("selector.loading")}
                     </div>
                   ) : exercises.length === 0 ? (
-                    <div className='text-center py-8 text-sm text-muted-foreground'>
-                      {t('filters.no_results')}
+                    <div className="text-center py-8 text-sm text-muted-foreground">
+                      {t("filters.no_results")}
                     </div>
                   ) : (
                     exercises.map((exercise: ExerciseLibrary) => (
                       <Card
                         key={exercise.exerciseId}
-                        className='cursor-pointer hover:bg-accent transition-colors'
+                        className="cursor-pointer hover:bg-accent transition-colors rounded-none border-0"
                         onClick={() => handleSelect(exercise)}
                       >
-                        <CardContent className='p-4'>
-                          <div className='flex items-start justify-between'>
-                            <div className='flex-1'>
-                              <div className='font-medium'>{exercise.name}</div>
-                              <div className='text-sm text-muted-foreground capitalize'>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="font-medium">{exercise.name}</div>
+                              <div className="text-sm text-muted-foreground capitalize">
                                 {exercise.category}
                               </div>
-                              <div className='flex flex-wrap gap-1 mt-2'>
+                              <div className="flex flex-wrap gap-1 mt-2">
                                 {exercise.muscleGroup && (
                                   <MuscleGroupBadge
                                     muscleGroup={exercise.muscleGroup}
-                                    variant='small'
+                                    variant="small"
                                   />
                                 )}
                                 {exercise.equipment && (
                                   <EquipmentBadge
                                     equipment={exercise.equipment}
-                                    variant='small'
+                                    variant="small"
                                   />
                                 )}
                               </div>
                               {exercise.instructions && (
-                                <div className='text-xs text-muted-foreground mt-2 line-clamp-2'>
+                                <div className="text-xs text-muted-foreground mt-2 line-clamp-2">
                                   {exercise.instructions}
                                 </div>
                               )}
@@ -210,12 +233,12 @@ export function ExerciseSelector({
                       </Card>
                     ))
                   )}
-                </div>
+                </ScrollArea>
               </>
             )}
           </div>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

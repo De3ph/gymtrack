@@ -13,11 +13,14 @@ import {
 } from "@/components/ui/empty";
 import { relationshipApi } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
-import { Loader2, UserPlus, Users } from "lucide-react";
+import {
+  Loader2,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query"; // useEffect removed as data fetching handled by TanStack Query
+import { useState, useTransition, useEffect } from "react"; import { useQuery } from "@tanstack/react-query"; // useEffect removed as data fetching handled by TanStack Query
 import { ROUTES, buildRoute } from "@/lib/routes";
 import { motion } from "motion/react";
 import { staggerContainer } from "@/lib/animations";
@@ -26,7 +29,7 @@ export default function TrainerClientsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState("");
-  const t = useTranslations("trainer.clients");
+  const t = useTranslations('trainer.clients');
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -61,7 +64,7 @@ export default function TrainerClientsPage() {
   };
 
   const handleViewClient = (clientId: string) => {
-    router.push(buildRoute("TRAINER_CLIENT_DETAIL", clientId));
+    router.push(buildRoute('TRAINER_CLIENT_DETAIL', clientId));
   };
 
   if (isLoading) {
@@ -76,14 +79,14 @@ export default function TrainerClientsPage() {
     <div className="container mx-auto py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">My Clients</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage your athlete relationships and view their progress
+            {t('description')}
           </p>
         </div>
         <Button onClick={() => setShowInviteDialog(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
-          Invite Athlete
+          {t('invite_athlete')}
         </Button>
       </div>
 
@@ -97,7 +100,7 @@ export default function TrainerClientsPage() {
         <div className="mb-4">
           <input
             type="text"
-            placeholder={t("search_placeholder")}
+            placeholder={t('search_placeholder')}
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -111,13 +114,15 @@ export default function TrainerClientsPage() {
             <EmptyMedia variant="icon">
               <Users className="size-6" />
             </EmptyMedia>
-            <EmptyTitle>{t("no_clients_title")}</EmptyTitle>
+            <EmptyTitle>{t('no_clients_title')}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <EmptyDescription>{t("no_clients_description")}</EmptyDescription>
+            <EmptyDescription>
+              {t('no_clients_description')}
+            </EmptyDescription>
             <Button onClick={() => setShowInviteDialog(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
-              {t("invite_first_athlete")}
+              {t('invite_first_athlete')}
             </Button>
           </EmptyContent>
         </Empty>
@@ -141,10 +146,12 @@ export default function TrainerClientsPage() {
       {filteredClients.length === 0 && clients.length > 0 && (
         <Empty>
           <EmptyHeader>
-            <EmptyTitle>No Results Found</EmptyTitle>
+                <EmptyTitle>{t('no_results_title')}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <EmptyDescription>No clients match your search.</EmptyDescription>
+            <EmptyDescription>
+              {t('no_results_description')}
+            </EmptyDescription>
           </EmptyContent>
         </Empty>
       )}

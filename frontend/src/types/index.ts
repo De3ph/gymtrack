@@ -345,6 +345,7 @@ export interface WorkoutPlan {
   name: string;
   description?: string;
   exercises: WorkoutPlanExercise[];
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }
