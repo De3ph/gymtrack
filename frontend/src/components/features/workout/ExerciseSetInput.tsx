@@ -67,12 +67,13 @@ export function ExerciseSetInput({
   }, [value]);
 
   const addSet = () => {
+    const prevSet = setsWithIds[setsWithIds.length - 1];
     const newSet: ExerciseSetWithId = {
-      weight: 0,
-      weightUnit: "kg",
-      reps: 1,
-      restTime: 60, // Default 1 minute rest
-      completed: false,
+      weight: prevSet?.weight ?? 0,
+      weightUnit: prevSet?.weightUnit ?? "kg",
+      reps: prevSet?.reps ?? 1,
+      restTime: prevSet?.restTime ?? 60,
+      completed: prevSet?.completed ?? false,
       id: `set-${Date.now()}`,
     };
     const newSetsWithIds = [...setsWithIds, newSet];

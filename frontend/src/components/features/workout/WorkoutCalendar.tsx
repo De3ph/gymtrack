@@ -78,7 +78,7 @@ export function WorkoutCalendar() {
                     {workout.exercises.map((ex: WorkoutExercise) => (
                       <li key={ex.exerciseId || ex.name}>
                         {ex.name}: {ex.sets && ex.sets.length > 0 ?
-                          `${ex.sets.length} ${tList("sets_x")} ${ex.sets.map((set: ExerciseSet) => tList("set_detail", { reps: set.reps, weight: set.weight, unit: set.weightUnit || "kg" })).join(", ")}` :
+                          tList("sets_x", { sets: ex.sets.length }) + " " + ex.sets.map((set: ExerciseSet) => tList("set_detail", { reps: set.reps, weight: set.weight, unit: set.weightUnit || "kg" })).join(", ") :
                           tList("no_sets")
                         }
                       </li>
