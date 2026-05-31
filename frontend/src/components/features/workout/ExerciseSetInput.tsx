@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ExerciseSet } from "@/types";
-import { ExerciseSetFormData } from "@/lib/validations/workout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -38,32 +38,25 @@ export function ExerciseSetInput({
     }));
   });
 
-  // Sync with external value changes
+  // Sync external value changes into internal state, preserving IDs by index
   useMemo(() => {
-    const currentIds = new Set(setsWithIds.map((s) => s.id));
-    const newSets = (value || []).map((set, index) => {
-      // Try to find an existing set with matching properties
-      const existingSet = setsWithIds.find(
-        (s) =>
-          s.weight === set.weight &&
-          s.reps === set.reps &&
-          s.restTime === set.restTime &&
-          !currentIds.has(s.id),
+    const newVal = value ?? [];
+    setSetsWithIds((prev) => {
+      const updated = newVal.map((set, i) => {
+        const existing = i < prev.length ? prev[i] : null;
+        return existing
+          ? { ...set, id: existing.id }
+          : { ...set, id: `set-${Date.now()}-${i}` };
+      });
+      const changed = updated.some(
+        (s, i) =>
+          !prev[i] ||
+          prev[i].weight !== s.weight ||
+          prev[i].reps !== s.reps ||
+          prev[i].restTime !== s.restTime,
       );
-
-      if (existingSet) {
-        currentIds.add(existingSet.id);
-        return existingSet;
-      }
-
-      // Create new set with stable ID
-      return {
-        ...set,
-        id: `set-${Date.now()}-${index}`,
-      };
+      return changed ? updated : prev;
     });
-
-    setSetsWithIds(newSets);
   }, [value]);
 
   const addSet = () => {

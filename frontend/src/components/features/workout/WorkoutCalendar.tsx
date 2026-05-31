@@ -6,16 +6,28 @@ import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { workoutApi } from "@/lib/api";
-import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
+import { WorkoutExercise, ExerciseSet } from "@/types";
+import { Button } from "@/components/ui/button";
 
 export function WorkoutCalendar() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
     dayjs().toDate(),
   );
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  );
+
   const t = useTranslations("workout.calendar");
   const tList = useTranslations("workout.list");
+  const tDate = useTranslations("common.date");
 
   const { data: workoutsData } = useQuery({
     queryKey: ["workouts"],
@@ -53,14 +65,34 @@ export function WorkoutCalendar() {
               workout: "font-bold text-primary underline",
             }}
             className="rounded-md border"
+            month={currentMonth}
+            onMonthChange={setCurrentMonth}
           />
         </CardContent>
+        <CardFooter className="flex flex-wrap gap-2 border-t">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => {
+              const today = dayjs().toDate();
+              setSelectedDate(today);
+              setCurrentMonth(
+                new Date(today.getFullYear(), today.getMonth(), 1),
+              );
+            }}
+          >
+            {tDate(`today`)}
+          </Button>
+        </CardFooter>
       </Card>
 
       <Card>
         <CardHeader>
           <CardTitle>
-            {selectedDate ? dayjs(selectedDate).format("dddd, MMMM D, YYYY") : t("select_date")}
+            {selectedDate
+              ? dayjs(selectedDate).format("dddd, MMMM D, YYYY")
+              : t("select_date")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -77,10 +109,20 @@ export function WorkoutCalendar() {
                   <ul className="list-disc pl-5 mt-2">
                     {workout.exercises.map((ex: WorkoutExercise) => (
                       <li key={ex.exerciseId || ex.name}>
-                        {ex.name}: {ex.sets && ex.sets.length > 0 ?
-                          tList("sets_x", { sets: ex.sets.length }) + " " + ex.sets.map((set: ExerciseSet) => tList("set_detail", { reps: set.reps, weight: set.weight, unit: set.weightUnit || "kg" })).join(", ") :
-                          tList("no_sets")
-                        }
+                        {ex.name}:{" "}
+                        {ex.sets && ex.sets.length > 0
+                          ? tList("sets_x", { sets: ex.sets.length }) +
+                            " " +
+                            ex.sets
+                              .map((set: ExerciseSet) =>
+                                tList("set_detail", {
+                                  reps: set.reps,
+                                  weight: set.weight,
+                                  unit: set.weightUnit || "kg",
+                                }),
+                              )
+                              .join(", ")
+                          : tList("no_sets")}
                       </li>
                     ))}
                   </ul>
@@ -88,9 +130,7 @@ export function WorkoutCalendar() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">
-              {t("no_workouts")}
-            </p>
+            <p className="text-muted-foreground">{t("no_workouts")}</p>
           )}
         </CardContent>
       </Card>
