@@ -436,8 +436,6 @@ const translationSchema = z.object({
       client_details: z.string(),
       overview: z.object({
         title: z.string(),
-        total_workouts: z.string(),
-        total_meals: z.string(),
         workouts_this_week: z.string(),
         meaks_this_week: z.string(),
         athlete_profile: z.string(),

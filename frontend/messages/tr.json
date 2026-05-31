@@ -441,10 +441,8 @@
       "client_details": "Danışan Detayları",
       "overview": {
         "title": "Danışan Genel Bakış",
-        "total_workouts": "Toplam Antrenmanlar",
-        "total_meals": "Toplam Öğünler",
         "workouts_this_week": "Bu Haftaki Antrenmanlar",
-        "meaks_this_week": "Bu Haftaki Öğünler",
+        "meals_this_week": "Bu Haftaki Öğünler",
         "athlete_profile": "Sporcu Profili",
         "filter_data": "Verileri Filtrele",
         "filter_description": "Antrenman ve öğünleri tarih aralığı ve türe göre filtreleyin",

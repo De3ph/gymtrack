@@ -128,8 +128,6 @@ export interface Relationship {
 }
 
 export interface ClientStats {
-  totalWorkouts: number;
-  totalMeals: number;
   workoutsThisWeek: number;
   mealsThisWeek: number;
 }

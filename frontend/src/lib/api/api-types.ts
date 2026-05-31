@@ -156,8 +156,6 @@ export interface ClientWithAthlete {
  * Client stats for dashboard
  */
 export interface ClientStats {
-  totalWorkouts: number;
-  totalMeals: number;
   workoutsThisWeek: number;
   mealsThisWeek: number;
 }

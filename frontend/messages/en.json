@@ -440,10 +440,8 @@
       "client_details": "Client Details",
       "overview": {
         "title": "Client Overview",
-        "total_workouts": "Total Workouts",
-        "total_meals": "Total Meals",
         "workouts_this_week": "Workouts This Week",
-        "meaks_this_week": "Meals This Week",
+        "meals_this_week": "Meals This Week",
         "athlete_profile": "Athlete Profile",
         "filter_data": "Filter Data",
         "filter_description": "Filter workouts and meals by date range and type",

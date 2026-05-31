@@ -58,8 +58,6 @@ type GetClientDetailsResponse struct {
 
 // ClientStats contains summary statistics for an athlete client.
 type ClientStats struct {
-	TotalWorkouts    int `json:"totalWorkouts"`
-	TotalMeals       int `json:"totalMeals"`
 	WorkoutsThisWeek int `json:"workoutsThisWeek"`
 	MealsThisWeek    int `json:"mealsThisWeek"`
 }
@@ -422,8 +420,6 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 	}
 
 	stats := &ClientStats{
-		TotalWorkouts:    len(allWorkouts),
-		TotalMeals:       len(allMeals),
 		WorkoutsThisWeek: workoutsThisWeek,
 		MealsThisWeek:    mealsThisWeek,
 	}

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "./StatCard";
-import { Dumbbell, Utensils, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { User, ClientStats } from "@/types";
 import { useTranslations } from 'next-intl';
 
@@ -20,17 +20,7 @@ export function ClientOverview({ athlete, stats }: ClientOverviewProps) {
     <>
       {/* Stats Cards */}
       {stats && (
-        <div className="mb-6 grid gap-4 md:grid-cols-4">
-          <StatCard
-            title={t('total_workouts')}
-            value={stats.totalWorkouts}
-            icon={Dumbbell}
-          />
-          <StatCard
-            title={t('total_meals')}
-            value={stats.totalMeals}
-            icon={Utensils}
-          />
+        <div className="mb-6 grid gap-4 md:grid-cols-2">
           <StatCard
             title={t('workouts_this_week')}
             value={stats.workoutsThisWeek}
