@@ -27,7 +27,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={cn("font-sans", inter.variable)}>
+    <html lang={locale} className={cn("font-sans", inter.variable)} suppressHydrationWarning>
       <body className="antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>

@@ -3,8 +3,8 @@
   * D:\Dev\gymtrack\frontend\src\components\features\trainer\client-tabs\WorkoutsTab.tsx
   * D:\Dev\gymtrack\frontend\src\components\features\trainer\client-tabs\MealsTab.tsx
 
-- [ ] Add theme toggle
-- [ ] Add lang toggle
+- [x] Add theme toggle
+- [x] Add lang toggle
 - [x] yeni set eklerken, bir önceki setin değerlerini kullan
 - [ ] login ve register formundaki hataları göster
 - [ ] input fields lose focus when entering values, it interrupts the user flow

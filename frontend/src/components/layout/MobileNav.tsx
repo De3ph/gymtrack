@@ -4,6 +4,8 @@ import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./theme-toggle";
+import { LocaleToggle } from "./locale-toggle";
 import {
   Drawer,
   DrawerClose,
@@ -13,8 +15,6 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { linkStyles } from "./dashboard-styles";
-import { AthleteNav } from "./athlete-nav";
-import { TrainerNav } from "./trainer-nav";
 import { ROUTES } from "@/lib/routes";
 
 interface MobileNavProps {
@@ -31,7 +31,7 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon" className="lg:hidden">
           <Menu className="h-5 w-5" />
-          <span className="sr-only">{tCommon('toggle_menu')}</span>
+          <span className="sr-only">{tCommon("toggle_menu")}</span>
         </Button>
       </DrawerTrigger>
       <DrawerContent className="h-full w-3/4 max-w-sm">
@@ -53,13 +53,13 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
           {userRole === "trainer" && <TrainerNavLinks />}
         </nav>
         <div className="mt-auto border-t p-4">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <ThemeToggle />
+            <LocaleToggle />
+          </div>
           <div className="mb-3 text-sm text-muted-foreground">{userName}</div>
           <DrawerClose asChild>
-            <Button
-              onClick={onLogout}
-              variant="secondary"
-              className="w-full"
-            >
+            <Button onClick={onLogout} variant="secondary" className="w-full">
               {tCommon("logout")}
             </Button>
           </DrawerClose>
