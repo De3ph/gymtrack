@@ -12,8 +12,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, isLoading, user, logout, initializeAuth, isInitialized } =
-    useAuthStore();
+  const {
+    isAuthenticated,
+    isLoading,
+    user,
+    logout,
+    initializeAuth,
+    isInitialized,
+  } = useAuthStore();
 
   useEffect(() => {
     // Initialize auth if not already done
@@ -41,15 +47,15 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
+    <div className="min-h-screen bg-background">
       <DashboardNav
         userRole={user?.role}
         userName={user?.profile.name}
         onLogout={logout}
       />
-      <main className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {children}
       </main>
     </div>
-  )
+  );
 }

@@ -93,9 +93,7 @@ export default function WorkoutsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>{t("card_title")}</CardTitle>
-                <CardDescription>
-                  {t("card_description")}
-                </CardDescription>
+                <CardDescription>{t("card_description")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <WorkoutForm

@@ -1,37 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { useParams, useRouter } from "next/navigation"
-import { trainerClientApi, relationshipApi } from "@/lib/api"
-import { User, ClientStats } from "@/types"
-import { useAuthStore } from "@/stores/authStore"
-import { Button } from "@/components/ui/button"
-import { ClientTabs } from "@/components/features/trainer/client-tabs/ClientTabs"
-import { ClientOverview } from "@/components/features/trainer/ClientOverview"
-import { TerminateRelationshipDialog } from "@/components/features/trainer/TerminateRelationshipDialog"
-import { Loader2, ArrowLeft, UserX } from "lucide-react"
-import { ROUTES } from "@/lib/routes"
-import { useTranslations } from 'next-intl'
-
-interface ClientDetails {
-  athlete: User | null
-  stats: ClientStats | null
-}
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { trainerClientApi, relationshipApi } from "@/lib/api";
+import { User, ClientStats } from "@/types";
+import { useAuthStore } from "@/stores/authStore";
+import { Button } from "@/components/ui/button";
+import { ClientTabs } from "@/components/features/trainer/client-tabs/ClientTabs";
+import { ClientOverview } from "@/components/features/trainer/ClientOverview";
+import { TerminateRelationshipDialog } from "@/components/features/trainer/TerminateRelationshipDialog";
+import { Loader2, ArrowLeft, UserX } from "lucide-react";
+import { ROUTES } from "@/lib/routes";
+import { useTranslations } from "next-intl";
 
 export default function ClientDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { user } = useAuthStore()
-  const username = params.username as string
-  const t = useTranslations('trainer.client_detail')
+  const params = useParams();
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const username = params.username as string;
+  const t = useTranslations("trainer.client_detail");
 
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Filter states
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" })
-  const [exerciseType, setExerciseType] = useState("")
-  const [mealType, setMealType] = useState("")
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: "",
+    end: "",
+  });
+  const [exerciseType, setExerciseType] = useState("");
+  const [mealType, setMealType] = useState("");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["clientData", username, dateRange, exerciseType, mealType],
@@ -63,51 +61,56 @@ export default function ClientDetailPage() {
     enabled: user?.role === "trainer",
   });
 
-  const clientDetails = { athlete: data?.athlete ?? null, stats: data?.stats ?? null };
+  const clientDetails = {
+    athlete: data?.athlete ?? null,
+    stats: data?.stats ?? null,
+  };
   const workouts = data?.workouts ?? [];
   const meals = data?.meals ?? [];
   const workoutStats = data?.workoutStats ?? null;
   const mealStats = data?.mealStats ?? null;
   const loading = isLoading;
 
-
   const clearFilters = () => {
-    setDateRange({ start: "", end: "" })
-    setExerciseType("")
-    setMealType("")
+    setDateRange({ start: "", end: "" });
+    setExerciseType("");
+    setMealType("");
     // Query will refetch automatically due to queryKey change
-  }
+  };
 
   const applyFilters = () => {
     // No-op: query automatically refetches when filter state changes
-  }
+  };
 
   useEffect(() => {
     if (user?.role !== "trainer") {
-      router.push(ROUTES.HOME)
-      return
+      router.push(ROUTES.HOME);
+      return;
     }
-  }, [user, router])
+  }, [user, router]);
 
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}>
+          <Button
+            variant="outline"
+            onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('back')}
+            {t("back")}
           </Button>
           <div>
             <h1 className="text-3xl font-bold">
-              {clientDetails.athlete?.profile?.name || t('client_details')}
+              {clientDetails.athlete?.profile?.name || t("client_details")}
             </h1>
             <p className="text-muted-foreground">
               {clientDetails.athlete?.email}
@@ -120,13 +123,16 @@ export default function ClientDetailPage() {
           trigger={
             <Button variant="destructive">
               <UserX className="mr-2 h-4 w-4" />
-              {t('end_relationship')}
+              {t("end_relationship")}
             </Button>
           }
         />
       </div>
 
-      <ClientOverview athlete={clientDetails.athlete} stats={clientDetails.stats} />
+      <ClientOverview
+        athlete={clientDetails.athlete}
+        stats={clientDetails.stats}
+      />
 
       <ClientTabs
         activeTab={activeTab}
@@ -144,5 +150,5 @@ export default function ClientDetailPage() {
         onClearFilters={clearFilters}
       />
     </div>
-  )
+  );
 }
