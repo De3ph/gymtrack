@@ -140,7 +140,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
           <form.Field name="mealType">
             {(field) => (
               <div className="space-y-2">
-                 <Select
+                <Select
                   items={mealTypeItems}
                   value={field.state.value}
                   onValueChange={(e: string | null) => {
