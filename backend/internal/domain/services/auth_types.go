@@ -14,6 +14,7 @@ const (
 
 // RegisterRequest represents the request for user registration
 type RegisterRequest struct {
+	Username string             `json:"username" validate:"required,min=3,max=30,alphanum"`
 	Email    string             `json:"email" validate:"required,email"`
 	Password string             `json:"password" validate:"required,min=8"`
 	Role     models.UserRole    `json:"role" validate:"required,oneof=trainer athlete"`
@@ -22,8 +23,8 @@ type RegisterRequest struct {
 
 // LoginRequest represents the request for user login
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Identifier string `json:"identifier" validate:"required"` // Can be email or username
+	Password   string `json:"password" validate:"required"`
 }
 
 // LoginResponse represents the response after successful login
@@ -47,14 +48,16 @@ type TokenClaims struct {
 
 // Service errors
 var (
-	ErrUserAlreadyExists  = NewServiceError("user with this email already exists", "USER_EXISTS")
-	ErrInvalidCredentials = NewServiceError("invalid credentials", "INVALID_CREDENTIALS")
-	ErrInvalidToken       = NewServiceError("invalid token", "INVALID_TOKEN")
-	ErrTokenExpired       = NewServiceError("token expired", "TOKEN_EXPIRED")
-	ErrInvalidTokenType   = NewServiceError("invalid token type", "INVALID_TOKEN_TYPE")
-	ErrUserNotFound       = NewServiceError("user not found", "USER_NOT_FOUND")
-	ErrWorkoutNotFound    = NewServiceError("workout not found", "WORKOUT_NOT_FOUND")
-	ErrMealNotFound       = NewServiceError("meal not found", "MEAL_NOT_FOUND")
+	ErrUserAlreadyExists     = NewServiceError("user with this email already exists", "USER_EXISTS")
+	ErrUsernameAlreadyExists = NewServiceError("username already taken", "USERNAME_EXISTS")
+	ErrInvalidCredentials    = NewServiceError("invalid credentials", "INVALID_CREDENTIALS")
+	ErrInvalidToken          = NewServiceError("invalid token", "INVALID_TOKEN")
+	ErrTokenExpired          = NewServiceError("token expired", "TOKEN_EXPIRED")
+	ErrInvalidTokenType      = NewServiceError("invalid token type", "INVALID_TOKEN_TYPE")
+	ErrUserNotFound          = NewServiceError("user not found", "USER_NOT_FOUND")
+	ErrWorkoutNotFound       = NewServiceError("workout not found", "WORKOUT_NOT_FOUND")
+	ErrMealNotFound          = NewServiceError("meal not found", "MEAL_NOT_FOUND")
+	ErrWorkoutPlanNotFound   = NewServiceError("workout plan not found", "WORKOUT_PLAN_NOT_FOUND")
 )
 
 // ServiceError represents a business logic error with a code

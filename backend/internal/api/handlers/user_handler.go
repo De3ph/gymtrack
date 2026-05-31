@@ -21,6 +21,7 @@ func NewUserHandler(userService *services.UserService) *UserHandler {
 
 type UserResponse struct {
 	UserID    string             `json:"userId"`
+	Username  string             `json:"username"`
 	Email     string             `json:"email"`
 	Role      models.UserRole    `json:"role"`
 	Profile   models.UserProfile `json:"profile"`
@@ -58,6 +59,7 @@ func (h *UserHandler) GetCurrentUser(c *gin.Context) {
 
 	response := UserResponse{
 		UserID:    user.UserID,
+		Username:  user.Username,
 		Email:     user.Email,
 		Role:      user.Role,
 		Profile:   user.Profile,
@@ -110,6 +112,7 @@ func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 
 	response := UserResponse{
 		UserID:    user.UserID,
+		Username:  user.Username,
 		Email:     user.Email,
 		Role:      user.Role,
 		Profile:   user.Profile,

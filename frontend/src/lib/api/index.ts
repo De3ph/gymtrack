@@ -13,6 +13,7 @@ import { availabilityApi } from "./availabilityApi"
 import { reviewApi } from "./reviewApi"
 import { coachingRequestApi } from "./coachingRequestApi"
 import { exerciseApi } from "./exerciseApi"
+import { workoutPlanApi } from "./workoutPlanApi"
 
 
 const API_BASE_URL =
@@ -129,7 +130,8 @@ export {
   availabilityApi,
   reviewApi,
   coachingRequestApi,
-  exerciseApi
+  exerciseApi,
+  workoutPlanApi
 }
 
 export default api

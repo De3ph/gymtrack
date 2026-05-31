@@ -9,19 +9,19 @@ import {
   ComboboxList,
   ComboboxItem,
 } from "@/components/ui/combobox";
+import { useTranslations } from "next-intl"
 
 interface MealType {
-  label: string;
-  value: string;
+  value: string
 }
 
 const mealTypes: MealType[] = [
-  { label: "All", value: "" },
-  { label: "Breakfast", value: "breakfast" },
-  { label: "Lunch", value: "lunch" },
-  { label: "Dinner", value: "dinner" },
-  { label: "Snack", value: "snack" },
-];
+  { value: "" },
+  { value: "breakfast" },
+  { value: "lunch" },
+  { value: "dinner" },
+  { value: "snack" }
+]
 
 interface OverviewTabProps {
   dateRange: { start: string; end: string };
@@ -42,47 +42,54 @@ export function OverviewTab({
   onMealTypeChange,
   onClearFilters,
 }: OverviewTabProps) {
+  const t = useTranslations("trainer.client_detail.overview")
+  const tCommon = useTranslations("common.actions")
+
   return (
-    <Card className="mb-6">
+    <Card className='mb-6'>
       <CardHeader>
-        <CardTitle>Filter Data</CardTitle>
-        <CardDescription>Filter workouts and meals by date range and type</CardDescription>
+        <CardTitle>{t("filter_data")}</CardTitle>
+        <CardDescription>{t("filter_description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-4">
+        <div className='flex flex-wrap gap-4'>
           <div>
-            <label className="text-sm font-medium">Start Date</label>
+            <label className='text-sm font-medium'>{t("start_date")}</label>
             <input
-              type="date"
+              type='date'
               value={dateRange.start}
-              onChange={(e) => onDateRangeChange({ ...dateRange, start: e.target.value })}
-              className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm"
+              onChange={(e) =>
+                onDateRangeChange({ ...dateRange, start: e.target.value })
+              }
+              className='mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm'
             />
           </div>
           <div>
-            <label className="text-sm font-medium">End Date</label>
+            <label className='text-sm font-medium'>{t("end_date")}</label>
             <input
-              type="date"
+              type='date'
               value={dateRange.end}
-              onChange={(e) => onDateRangeChange({ ...dateRange, end: e.target.value })}
-              className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm"
+              onChange={(e) =>
+                onDateRangeChange({ ...dateRange, end: e.target.value })
+              }
+              className='mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm'
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Exercise Type</label>
+            <label className='text-sm font-medium'>{t("exercise_type")}</label>
             <input
-              type="text"
-              placeholder="e.g., Bench Press"
+              type='text'
+              placeholder={t("exercise_placeholder")}
               value={exerciseType}
               onChange={(e) => onExerciseTypeChange(e.target.value)}
-              className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className='mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm'
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Meal Type</label>
+            <label className='text-sm font-medium'>{t("meal_type")}</label>
             <Combobox>
               <ComboboxInput
-                placeholder="All meal types"
+                placeholder={t("meal_placeholder")}
                 value={mealType}
                 onChange={(e) => onMealTypeChange(e.target.value)}
               />
@@ -90,21 +97,21 @@ export function OverviewTab({
                 <ComboboxList>
                   {mealTypes.map((type) => (
                     <ComboboxItem key={type.value} value={type}>
-                      {type.label}
+                      {t(`meal_types.${type.value || "all"}`)}
                     </ComboboxItem>
                   ))}
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
           </div>
-          <div className="flex items-end gap-2">
-            <Button>Apply Filters</Button>
-            <Button variant="outline" onClick={onClearFilters}>
-              Clear
+          <div className='flex items-end gap-2'>
+            <Button>{tCommon("apply_filters")}</Button>
+            <Button variant='outline' onClick={onClearFilters}>
+              {tCommon("clear")}
             </Button>
           </div>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

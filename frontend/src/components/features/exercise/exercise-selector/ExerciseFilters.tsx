@@ -1,6 +1,16 @@
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { MuscleGroup, Equipment } from "@/types";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ExerciseFiltersProps {
   selectedMuscleGroup?: number;
@@ -23,39 +33,69 @@ export function ExerciseFilters({
   onEquipmentChange,
   onClearFilters,
 }: ExerciseFiltersProps) {
-  const hasActiveFilters = selectedMuscleGroup || selectedEquipment || searchQuery;
+  const t = useTranslations("exercise");
+  const hasActiveFilters =
+    selectedMuscleGroup || selectedEquipment || searchQuery;
+
+  const muscleGroupItems = [
+    { value: "", label: t("filters.all_muscle_groups") },
+    ...muscleGroups.map((mg) => ({
+      value: String(mg.id),
+      label: mg.description,
+    })),
+  ];
+
+  const equipmentItems = [
+    { value: "", label: t("filters.all_equipment") },
+    ...equipment.map((eq) => ({ value: String(eq.id), label: eq.description })),
+  ];
 
   return (
     <div className="flex flex-wrap gap-2">
-      {/* Muscle Group Filter */}
-      <select
-        value={selectedMuscleGroup || ""}
-        onChange={(e) => onMuscleGroupChange(e.target.value ? Number(e.target.value) : undefined)}
-        className="px-3 py-1 text-sm border rounded-md bg-background"
+      <Select
+        items={muscleGroupItems}
+        value={selectedMuscleGroup ? String(selectedMuscleGroup) : ""}
+        onValueChange={(v: string | null) =>
+          onMuscleGroupChange(v ? Number(v) : undefined)
+        }
       >
-        <option value="">All Muscle Groups</option>
-        {muscleGroups.map((mg: MuscleGroup) => (
-          <option key={mg.id} value={mg.id}>
-            {mg.description}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger className="w-auto min-w-40">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>{t("filters.all_muscle_groups")}</SelectLabel>
+            {muscleGroupItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
-      {/* Equipment Filter */}
-      <select
-        value={selectedEquipment || ""}
-        onChange={(e) => onEquipmentChange(e.target.value ? Number(e.target.value) : undefined)}
-        className="px-3 py-1 text-sm border rounded-md bg-background"
+      <Select
+        items={equipmentItems}
+        value={selectedEquipment ? String(selectedEquipment) : ""}
+        onValueChange={(v: string | null) =>
+          onEquipmentChange(v ? Number(v) : undefined)
+        }
       >
-        <option value="">All Equipment</option>
-        {equipment.map((eq: Equipment) => (
-          <option key={eq.id} value={eq.id}>
-            {eq.description}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger className="w-auto min-w-40">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>{t("filters.all_equipment")}</SelectLabel>
+            {equipmentItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
-      {/* Clear Filters */}
       {hasActiveFilters && (
         <Button
           variant="ghost"
@@ -64,7 +104,7 @@ export function ExerciseFilters({
           className="text-xs"
         >
           <X className="w-3 h-3 mr-1" />
-          Clear
+          {t("filters.clear")}
         </Button>
       )}
     </div>

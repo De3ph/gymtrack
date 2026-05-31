@@ -14,6 +14,7 @@ import (
 type UserRepository interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	GetUserByID(ctx context.Context, userID string) (*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
 }
@@ -52,6 +53,34 @@ func (r *CouchbaseUserRepository) GetUserByEmail(ctx context.Context, email stri
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query user by email: %w", err)
+	}
+	defer rows.Close()
+
+	var user models.User
+	if rows.Next() {
+		err := rows.Row(&user)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal user from query result: %w", err)
+		}
+	} else if rows.Err() != nil {
+		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
+	} else {
+		return nil, nil // User not found
+	}
+
+	return &user, nil
+}
+
+func (r *CouchbaseUserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' AND LOWER(u.username) = LOWER($1)",
+		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+
+	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+		Context:              ctx,
+		PositionalParameters: []interface{}{username},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query user by username: %w", err)
 	}
 	defer rows.Close()
 

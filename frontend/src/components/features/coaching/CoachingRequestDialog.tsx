@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { useTranslations } from "next-intl"
 
 interface CoachingRequestDialogProps {
   trainerId: string
@@ -16,6 +17,8 @@ interface CoachingRequestDialogProps {
 }
 
 export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, children }: CoachingRequestDialogProps) {
+  const t = useTranslations('coaching.request_dialog')
+  const tCommon = useTranslations('common.actions')
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -29,13 +32,13 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
     try {
       await coachingRequestApi.createCoachingRequest({
         trainerId,
-        message: message.trim() || `I would like to request coaching from ${trainerName}.`
+        message: message.trim()
       })
       setOpen(false)
       setMessage("")
       onRequestSent?.()
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to send coaching request")
+      setError(err.response?.data?.error || t('error_fallback'))
     } finally {
       setSubmitting(false)
     }
@@ -43,22 +46,22 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Request Coaching from {trainerName}</DialogTitle>
+          <DialogTitle>{t('title', { trainerName })}</DialogTitle>
           <DialogDescription>
-            Send a personalized message to introduce yourself and request coaching services
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="message">Message to Trainer (optional)</Label>
+            <Label htmlFor="message">{t('message_label')}</Label>
             <Textarea
               id="message"
-              placeholder="Introduce yourself and explain why you'd like to work with this trainer..."
+              placeholder={t('message_placeholder')}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="mt-1"
@@ -74,13 +77,13 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
 
           <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-sm text-gray-600">
-              <strong>What happens next:</strong>
+              <strong>{t('what_happens_next')}</strong>
             </p>
             <ul className="text-sm text-gray-600 mt-2 space-y-1">
-              <li>• {trainerName} will receive your request</li>
-              <li>• They can accept or decline your request</li>
-              <li>• If accepted, you'll be connected as trainer-athlete</li>
-              <li>• You can then start tracking workouts and meals together</li>
+              <li>• {t('bullet_trainer_receives', { trainerName })}</li>
+              <li>• {t('bullet_accept_decline')}</li>
+              <li>• {t('bullet_connected')}</li>
+              <li>• {t('bullet_track')}</li>
             </ul>
           </div>
 
@@ -91,14 +94,14 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
               onClick={() => setOpen(false)}
               className="flex-1"
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={submitting}
               className="flex-1"
             >
-              {submitting ? "Sending..." : "Send Request"}
+              {submitting ? t('sending') : t('send_request')}
             </Button>
           </div>
         </form>

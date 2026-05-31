@@ -1,0 +1,909 @@
+{
+  "home": {
+    "title": "GymTrack",
+    "description": "The ultimate fitness tracking platform connecting trainers and athletes. Track workouts, monitor nutrition, and achieve your fitness goals together.",
+    "sign_up": "Sign Up",
+    "login": "Login"
+  },
+  "common": {
+    "actions": {
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "update": "Update",
+      "confirm": "Confirm",
+      "submit": "Submit",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "close": "Close",
+      "open": "Open",
+      "view": "View",
+      "add": "Add",
+      "remove": "Remove",
+      "view_client": "View Client",
+      "apply_filters": "Apply Filters",
+      "clear": "Clear"
+    },
+    "navigation": {
+      "dashboard": "Dashboard",
+      "profile": "Profile",
+      "settings": "Settings",
+      "logout": "Logout",
+      "workouts": "Workouts",
+      "meals": "Meals",
+      "clients": "Clients",
+      "trainer": "Trainer",
+      "athlete": "Athlete",
+      "workout_plans": "Workout Plans",
+      "toggle_menu": "Toggle navigation menu"
+    },
+    "status": {
+      "available": "Available for New Clients",
+      "unavailable": "Unavailable",
+      "active": "Active"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "network": "Network error. Check your connection.",
+      "required": "This field is required.",
+      "invalid": "Invalid input.",
+      "unauthorized": "You are not authorized to perform this action.",
+      "not_found": "The requested resource was not found.",
+      "server_error": "Server error. Please try again later."
+    },
+    "loading": "Loading...",
+    "search": {
+      "placeholder": "Search...",
+      "no_results": "No results found.",
+      "searching": "Searching..."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of",
+      "results": "results"
+    },
+    "date": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "tomorrow": "Tomorrow",
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "time": {
+      "seconds": "seconds",
+      "minutes": "minutes",
+      "hours": "hours"
+    },
+    "not_set": "Not set"
+  },
+  "auth": {
+    "login": {
+      "title": "Login to Your Account",
+      "email": {
+        "label": "Email or Username",
+        "placeholder": "Enter your email or username",
+        "error": {
+          "required": "Email or username is required",
+          "invalid": "Please enter a valid email or username (3-30 alphanumeric characters)"
+        }
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Enter your password",
+        "error": {
+          "required": "Password is required",
+          "min_length": "Password must be at least 6 characters"
+        }
+      },
+      "submit": "Login",
+      "submitting": "Logging in...",
+      "forgot_password": "Forgot password?",
+      "no_account": "Don't have an account?",
+      "sign_up": "Sign up"
+    },
+    "register": {
+      "title": "Create Your Account",
+      "name": {
+        "label": "Full Name",
+        "placeholder": "Enter your full name",
+        "error": {
+          "required": "Name is required"
+        }
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter your email",
+        "error": {
+          "required": "Email is required",
+          "invalid": "Please enter a valid email"
+        }
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Create a password",
+        "error": {
+          "required": "Password is required",
+          "min_length": "Password must be at least 6 characters"
+        }
+      },
+      "confirm_password": {
+        "label": "Confirm Password",
+        "placeholder": "Confirm your password",
+        "error": {
+          "required": "Please confirm your password",
+          "mismatch": "Passwords do not match"
+        }
+      },
+      "role": {
+        "label": "I am a",
+        "athlete": "Athlete",
+        "trainer": "Trainer"
+      },
+      "username": {
+        "label": "Username",
+        "placeholder": "Choose a username",
+        "error": {
+          "required": "Username is required",
+          "min_length": "Username must be at least 3 characters",
+          "max_length": "Username must be less than 30 characters",
+          "invalid": "Username must contain only letters and numbers"
+        }
+      },
+      "age": {
+        "label": "Age",
+        "placeholder": "Enter your age"
+      },
+      "weight": {
+        "label": "Weight",
+        "placeholder": "Enter your weight"
+      },
+      "height": {
+        "label": "Height",
+        "placeholder": "Enter your height"
+      },
+      "fitness_goals": {
+        "label": "Fitness Goals",
+        "placeholder": "Describe your fitness goals"
+      },
+      "certifications": {
+        "label": "Certifications",
+        "placeholder": "e.g., NASM CPT, ACE"
+      },
+      "specializations": {
+        "label": "Specializations",
+        "placeholder": "e.g., Strength Training, Nutrition"
+      },
+      "submit": "Create Account",
+      "submitting": "Creating account...",
+      "cancel": "Cancel",
+      "has_account": "Already have an account?",
+      "sign_in": "Sign in"
+    },
+    "logout": {
+      "confirm": "Are you sure you want to logout?",
+      "button": "Logout"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {name}",
+    "no_data": {
+      "title": "No data yet",
+      "description": "Start tracking your fitness journey"
+    },
+    "stats": {
+      "workouts": "Workouts",
+      "meals": "Meals",
+      "calories": "Calories",
+      "clients": "Clients"
+    },
+    "recent": {
+      "workouts": "Recent Workouts",
+      "meals": "Recent Meals",
+      "activities": "Recent Activities"
+    }
+  },
+  "workout": {
+    "title": "Workouts",
+    "form": {
+      "title": "Log New Workout",
+      "date": {
+        "label": "Date",
+        "placeholder": "Select a date"
+      },
+      "time": {
+        "label": "Time",
+        "placeholder": "Select time"
+      },
+      "exercise": {
+        "name": {
+          "label": "Exercise",
+          "placeholder": "Search exercises..."
+        },
+        "sets": {
+          "label": "Sets",
+          "add": "Add Set",
+          "remove": "Remove Set",
+          "set_number": "Set {number}",
+          "weight": "Weight",
+          "reps": "Reps",
+          "rest": "Rest",
+          "seconds": "sec",
+          "no_sets": "No sets yet",
+          "weight_unit": "Unit"
+        },
+        "weight": {
+          "label": "Weight",
+          "placeholder": "e.g., 50"
+        },
+        "reps": {
+          "label": "Reps",
+          "placeholder": "e.g., 10"
+        },
+        "rest": {
+          "label": "Rest (sec)",
+          "placeholder": "e.g., 60"
+        },
+        "fallback_name": "Exercise {number}"
+      },
+      "add_exercise": "Add Exercise",
+      "submit": "Log Workout",
+      "submitting": "Saving..."
+    },
+    "list": {
+      "title": "Workout History",
+      "loading": "Loading workouts...",
+      "no_workouts": "No workouts recorded yet",
+      "view_details": "View Details",
+      "edit": "Edit",
+      "delete": "Delete",
+      "exercises": "Exercises",
+      "sets_x": "{sets} sets",
+      "set_detail": "{weight} {unit} x {reps}",
+      "no_sets": "No sets",
+      "comments": "Comments"
+    },
+    "calendar": {
+      "title": "Workout Calendar",
+      "select_date": "Select a date to view workouts",
+      "no_workouts_this_month": "No workouts this month",
+      "no_workouts": "No workouts on this date"
+    },
+    "edit_dialog": {
+      "title": "Edit Workout",
+      "date_label": "Date & Time",
+      "save_changes": "Save Changes",
+      "fallback_exercise": "Exercise {index}",
+      "invalid_time_format": "Invalid time format. Use HH:MM.",
+      "invalid_time_values": "Invalid time values.",
+      "no_workout_to_update": "No workout to update.",
+      "exercises_must_be_valid": "All exercises must be valid."
+    },
+    "delete_dialog": {
+      "title": "Delete Workout",
+      "description": "Are you sure you want to delete this workout? This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "deleting": "Deleting..."
+    },
+    "charts": {
+      "weekly_volume": {
+        "title": "Weekly Volume",
+        "description": "Total volume per week",
+        "no_data": "No workout data available"
+      }
+    }
+  },
+  "meal": {
+    "title": "Meals & Nutrition",
+    "form": {
+      "title": "Log New Meal",
+      "date_time_label": "Date & Time",
+      "meal_type_label": "Meal Type",
+      "meal_type_placeholder": "Select meal type",
+      "food_item_title": "Food Item {index}",
+      "food_name_label": "Food Name",
+      "date": {
+        "label": "Date",
+        "placeholder": "Select a date"
+      },
+      "time": {
+        "label": "Time",
+        "placeholder": "Select time"
+      },
+      "meal_type": {
+        "label": "Meal Type",
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "snack": "Snack"
+      },
+      "food": {
+        "label": "Food",
+        "placeholder": "e.g., Chicken Breast"
+      },
+      "quantity": {
+        "label": "Quantity",
+        "placeholder": "e.g., 200g, 1 cup"
+      },
+      "calories": {
+        "label": "Calories",
+        "placeholder": "e.g., 250"
+      },
+      "macros": {
+        "label": "Macros (g)",
+        "protein": "Protein",
+        "carbs": "Carbs",
+        "fats": "Fats"
+      },
+      "add_item": "Add Item",
+      "add_food_item": "Add Food Item",
+      "submit": "Save Meal",
+      "log_meal": "Log Meal",
+      "submitting": "Saving..."
+    },
+    "list": {
+      "title": "Meal History",
+      "loading": "Loading meals...",
+      "no_meals": "No meals recorded yet",
+      "view_details": "View Details",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "summary": {
+      "title": "Daily Summary",
+      "loading_title": "Loading summary...",
+      "title_with_date": "Summary for {date}",
+      "total_calories": "Total Calories",
+      "total_protein": "Protein",
+      "total_carbs": "Carbs",
+      "total_fats": "Fats"
+    },
+    "card": {
+      "items": "items",
+      "kcal": "kcal",
+      "confirm_delete": "Delete this meal?",
+      "comments": "Comments"
+    },
+    "item": {
+      "protein_short": "P",
+      "carbs_short": "C",
+      "fats_short": "F"
+    },
+    "calendar": {
+      "loading_meals": "Loading meals...",
+      "loading_details": "Loading details...",
+      "title": "Meal Calendar",
+      "select_date": "Select a date to view meals",
+      "no_meals": "No meals on this date"
+    },
+    "edit_dialog": {
+      "title": "Edit Meal",
+      "description": "Update your meal entry",
+      "cancel": "Cancel",
+      "save_changes": "Save Changes"
+    }
+  },
+  "trainer": {
+    "title": "Trainer",
+    "dashboard": {
+      "title": "Trainer Dashboard",
+      "clients": "My Clients",
+      "recent_activity": "Recent Activity",
+      "pending_requests": "Pending Requests"
+    },
+    "clients": {
+      "title": "My Clients",
+      "description": "Manage your athlete relationships and view their progress",
+      "search_placeholder": "Search by name or email...",
+      "no_clients_title": "No Clients Yet",
+      "no_clients_description": "You don't have any active clients yet. Generate an invitation code to start working with athletes.",
+      "invite_first_athlete": "Invite Your First Athlete",
+      "no_results_title": "No Results Found",
+      "no_results_description": "No clients match your search.",
+      "all_clients": "All Clients",
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "invite_athlete": "Invite Athlete",
+      "no_clients": "No clients yet",
+      "add_client": "Add Client",
+      "view_client": "View Client",
+      "client_details": "Client Details",
+      "goals": "Goals",
+      "client_since": "Client since",
+      "unknown_athlete": "Unknown Athlete",
+      "this_athlete": "this athlete"
+    },
+    "requests": {
+      "title": "Coaching Requests",
+      "description": "Manage coaching requests from athletes who want to work with you",
+      "pending_title": "Pending Requests",
+      "no_requests": "No pending requests",
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    "client_detail": {
+      "back": "Back",
+      "end_relationship": "End Relationship",
+      "client_details": "Client Details",
+      "overview": {
+        "title": "Client Overview",
+        "workouts_this_week": "Workouts This Week",
+        "meals_this_week": "Meals This Week",
+        "athlete_profile": "Athlete Profile",
+        "filter_data": "Filter Data",
+        "filter_description": "Filter workouts and meals by date range and type",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "exercise_type": "Exercise Type",
+        "exercise_placeholder": "e.g., Bench Press",
+        "meal_type": "Meal Type",
+        "meal_placeholder": "All meal types",
+        "meal_types": {
+          "all": "All",
+          "breakfast": "Breakfast",
+          "lunch": "Lunch",
+          "dinner": "Dinner",
+          "snack": "Snack"
+        }
+      },
+      "tabs": {
+        "overview": "Overview",
+        "workouts": "Workouts",
+        "meals": "Meals",
+        "progress_charts": "Progress Charts",
+        "workout_history": "Workout History",
+        "workout_description": "View your client's workout logs",
+        "no_workouts": "No workouts recorded",
+        "meal_history": "Meal History",
+        "meal_description": "View your client's meal logs",
+        "no_meals": "No meals recorded",
+        "plans": "Plans"
+      },
+      "terminate_dialog": {
+        "title": "End Relationship",
+        "description": "Are you sure you want to end your relationship with {name}? This action cannot be undone.",
+        "confirm": "End Relationship",
+        "cancel": "Cancel",
+        "error": "Failed to terminate relationship"
+      },
+      "relationship_details": "Relationship Details",
+      "status": "Status",
+      "connected_since": "Connected Since",
+      "relationship_id": "Relationship ID"
+    },
+    "profile": {
+      "title": "Trainer Profile",
+      "edit_profile": "Edit Profile",
+      "specializations": "Specializations",
+      "certifications": "Certifications",
+      "loading": "Loading profile...",
+      "profile_saved": "Profile saved successfully!",
+      "profile_save_failed": "Failed to save profile.",
+      "profile_load_failed": "Failed to load profile",
+      "my_profile": {
+        "title": "Trainer Profile",
+        "name_label": "Name",
+        "email_label": "Email",
+        "certifications_label": "Certifications",
+        "specializations_label": "Specializations"
+      },
+      "public_profile": {
+        "title": "Public Profile",
+        "bio": "Bio",
+        "bio_placeholder": "Tell athletes about yourself...",
+        "hourly_rate": "Hourly Rate ($)",
+        "hourly_rate_format": "{rate} €/h",
+        "years_of_experience": "Years of Experience",
+        "location": "Location",
+        "location_placeholder": "e.g., New York, NY",
+        "languages": "Languages (comma-separated)",
+        "languages_placeholder": "e.g., English, Spanish",
+        "not_set": "Not set",
+        "available": "Available for new clients",
+        "loading": "Loading profile...",
+        "save": "Save",
+        "saving": "Saving...",
+        "cancel": "Cancel",
+        "edit_profile": "Edit Profile"
+      }
+    },
+    "availability": {
+      "title": "Availability",
+      "loading": "Loading availability...",
+      "saved_success": "Availability saved successfully!",
+      "save_failed": "Failed to save availability",
+      "to_label": "to",
+      "remove_slot": "X"
+    },
+    "catalog": {
+      "specializations": "Specializations",
+      "certifications": "Certifications",
+      "rating": "Rating",
+      "hourly_rate": "Hourly Rate",
+      "reviews": "reviews",
+      "currency_symbol": "$"
+    },
+    "generate_invitation": {
+      "title": "Invite Athlete",
+      "description": "Generate an invitation code that athletes can use to connect with you. Codes expire after 7 days.",
+      "instruction": "Click the button below to generate a unique invitation code for an athlete.",
+      "generate_code_button": "Generate Code",
+      "code_label": "Invitation Code",
+      "expires_on": "Expires on {date}",
+      "expires_at": "at {time}",
+      "instructions_text": "Instructions:",
+      "generate_new_code": "Generate New Code",
+      "error_fallback": "Failed to generate invitation code"
+    },
+    "charts": {
+      "nutrition_trends": {
+        "title": "Weekly Nutrition Trends",
+        "description": "Average daily macros per week",
+        "no_data": "No meal data available"
+      },
+      "workout_volume": {
+        "title": "Weekly Workout Volume",
+        "description": "Total volume (sets x reps x weight) per week",
+        "volume": "Volume (kg)",
+        "workouts": "Workouts",
+        "no_data": "No workout data available"
+      },
+      "meal_type_distribution": {
+        "title": "Meal Type Distribution",
+        "description": "Breakdown of meals by type",
+        "no_data": "No meal data available"
+      },
+      "exercise_breakdown": {
+        "title": "Top Exercises",
+        "description": "Most performed exercises",
+        "total_sets": "Total Sets",
+        "total_reps": "Total Reps",
+        "no_data": "No workout data available"
+      },
+      "stats": {
+        "avg_calories_per_day": "Average Calories/Day",
+        "avg_protein_per_day": "Avg Protein/Day",
+        "total_volume": "Total Volume",
+        "workout_consistency": "Workout Consistency",
+        "volume_label": "Volume (kg)",
+        "workouts_label": "Workouts",
+        "calories_label": "Calories",
+        "protein_label": "Protein (g)",
+        "carbs_label": "Carbs (g)",
+        "fats_label": "Fats (g)",
+        "total_sets_label": "Total Sets",
+        "total_reps_label": "Total Reps"
+      }
+    },
+    "workout_plans": {
+      "title": "Workout Plans",
+      "description": "Create and manage workout templates for your clients",
+      "create": "Create Plan",
+      "edit": "Edit Plan",
+      "delete": "Delete Plan",
+      "delete_confirm": "Delete this plan? It has {count} exercise(s).",
+      "assign": "Assign to Clients",
+      "plan_name": "Plan Name",
+      "description_label": "Description",
+      "add_exercise": "Add Exercise",
+      "no_plans": "No workout plans yet. Create your first one!",
+      "exercises": "Exercises",
+      "clients_assigned": "Assigned Clients",
+      "all_plans": "All Plans",
+      "active": "Active",
+      "inactive": "Inactive",
+      "archived": "Archived",
+      "exercise_name_placeholder": "Exercise name",
+      "description_placeholder": "Brief description of the plan",
+      "notes_placeholder": "Notes for this exercise",
+      "fallback_exercise_name": "Exercise {index}",
+      "assign_plan_title": "Assign Plan",
+      "no_active_clients": "No active clients available",
+      "assign_button": "Assign",
+      "plan_update": "Update Plan",
+      "plan_create": "Create Plan",
+      "back": "Back",
+      "plan_not_found": "Plan not found",
+      "exercise_detail": "{sets} sets, {reps} reps",
+      "no_clients_yet": "No clients yet",
+      "athlete_label": "Athlete"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "edit_profile": "Edit Profile",
+    "loading": "Loading profile...",
+    "not_found": "User not found",
+    "update_error": "Failed to update profile",
+    "fields": {
+      "email": "Email",
+      "role": "Role",
+      "name": "Name",
+      "age": "Age",
+      "weight": "Weight",
+      "height": "Height",
+      "fitness_goals": "Fitness Goals",
+      "certifications": "Certifications",
+      "specializations": "Specializations"
+    },
+    "units": {
+      "kg": "kg",
+      "cm": "cm"
+    },
+    "actions": {
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "field_required": "This field is required"
+    }
+  },
+  "athlete": {
+    "title": "Athlete",
+    "dashboard": {
+      "title": "Athlete Dashboard",
+      "workouts": "My Workouts",
+      "meals": "My Meals",
+      "progress": "Progress",
+      "trainer": "My Trainer"
+    },
+    "workouts": {
+      "title": "Workouts",
+      "description": "Log your training and track your progress.",
+      "log_workout": "Log Workout",
+      "view_history": "View History",
+      "no_workouts": "No workouts recorded yet",
+      "log_tab": "Log Workout",
+      "list_tab": "History (List)",
+      "calendar_tab": "History (Calendar)",
+      "card_title": "Log New Workout",
+      "card_description": "Record your latest session details."
+    },
+    "meals": {
+      "title": "Meals & Nutrition",
+      "description": "Track your nutrition to reach your goals.",
+      "log_meal": "Log Meal",
+      "view_history": "View History",
+      "no_meals": "No meals recorded yet",
+      "log_tab": "Log Meal",
+      "list_tab": "History (List)",
+      "calendar_tab": "History (Calendar)",
+      "card_title": "Log New Meal",
+      "card_description": "Record what you ate."
+    },
+    "trainer": {
+      "title": "My Trainer",
+      "no_trainer": "No trainer assigned",
+      "find_trainer": "Find Trainer",
+      "trainer_info": "Trainer Information",
+      "loading": "Loading trainer details...",
+      "not_found_or_access": "Trainer not found or you don't have access to view this profile.",
+      "view_workouts": "View My Workouts",
+      "view_meals": "View My Meals"
+    },
+    "invitation": {
+      "title": "Connect with Trainer",
+      "description": "Enter the invitation code provided by your trainer to connect with them.",
+      "code_label": "Invitation Code",
+      "code_placeholder": "Enter 8-character code (case-sensitive)",
+      "code_hint": "The code should be 8 characters long (e.g., a1b2c3d4 or A1B2C3D4)",
+      "connecting": "Connecting...",
+      "submit": "Connect with Trainer",
+      "success": "Successfully connected with your trainer!",
+      "error_invalid_chars": "Invitation code must contain only letters and numbers",
+      "error_length": "Invitation code must be exactly 8 characters ({count}/8)"
+    },
+    "requests": {
+      "title": "My Coaching Requests",
+      "description": "Track the status of your coaching requests and see responses from trainers",
+      "looking_for_trainers": "Looking for Trainers?",
+      "browse_description": "Browse our catalog of qualified trainers and send them coaching requests.",
+      "browse_trainers": "Browse Trainers",
+      "your_requests": "Your Requests"
+    },
+    "trainers": {
+      "title": "Top Trainers",
+      "description": "Discover the highest-rated trainers on our platform",
+      "filters": "Filters",
+      "specialization": "Specialization",
+      "location": "Location",
+      "min_rating": "Minimum Rating",
+      "search": "Search",
+      "no_trainers": "No trainers found",
+      "view_profile": "View Profile",
+      "loading": "Loading...",
+      "specialization_placeholder": "e.g., Weight Loss",
+      "location_placeholder": "e.g., New York",
+      "filter_help": "Try adjusting your filters.",
+      "detail": {
+        "loading": "Loading...",
+        "not_found": "Trainer not found",
+        "reviews_count": "{count} reviews",
+        "hourly_rate": "Hourly Rate: ",
+        "about": "About",
+        "specializations": "Specializations",
+        "certifications": "Certifications",
+        "years_of_experience": "Years of Experience: ",
+        "location": "Location: ",
+        "languages": "Languages",
+        "languages_placeholder": "e.g., English, Spanish",
+        "not_set": "Not set",
+        "available": "Available for new clients",
+        "reviews_title": "Reviews",
+        "write_review": "Write Review",
+        "no_reviews": "No reviews yet",
+        "availability_title": "Availability",
+        "no_availability": "No availability set",
+        "request_coaching": "Request Coaching"
+      }
+    },
+    "workout_plans": {
+      "title": "My Workout Plans",
+      "description": "View and start workout plans created by your trainer",
+      "empty": "You don't have any workout plans yet. Ask your trainer to create one!",
+      "view_plan": "View Plan",
+      "start_workout": "Start Workout",
+      "exercises": "exercises",
+      "set_format": "{count} set, {reps} reps"
+    },
+    "profile": {
+      "title": "Athlete Profile",
+      "edit_profile": "Edit Profile",
+      "goals": "Fitness Goals",
+      "stats": "Statistics"
+    }
+  },
+  "comment": {
+    "form": {
+      "title": "Comment",
+      "comment": "Your comment",
+      "reply": "Reply",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "cancel": "Cancel",
+      "content_required": "Content is required",
+      "content_too_long": "Content must be less than 1000 characters",
+      "post_failed": "Failed to post comment",
+      "reply_placeholder": "Write a reply..."
+    },
+    "list": {
+      "title": "Comments",
+      "no_comments": "No comments yet",
+      "comments_count": "Comments ({count})",
+      "load_failed": "Failed to load comments"
+    },
+    "item": {
+      "by": "by",
+      "at": "at",
+      "reply": "Reply",
+      "delete": "Delete",
+      "delete_confirm": "Delete this comment?",
+      "edited_label": "(edited)"
+    }
+  },
+  "coaching": {
+    "title": "Coaching Requests",
+    "request": "Request Coaching",
+    "requests": "Your Requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined"
+    },
+    "pending": "Pending Requests",
+    "no_requests": "No coaching requests",
+    "request_dialog": {
+      "title": "Request Coaching from {trainerName}",
+      "description": "Send a personalized message to introduce yourself and request coaching services",
+      "message_label": "Message to Trainer (optional)",
+      "message_placeholder": "Introduce yourself and explain why you'd like to work with this trainer...",
+      "what_happens_next": "What happens next:",
+      "bullet_trainer_receives": "{trainerName} will receive your request",
+      "bullet_accept_decline": "They can accept or decline your request",
+      "bullet_connected": "If accepted, you'll be connected as trainer-athlete",
+      "bullet_track": "You can then start tracking workouts and meals together",
+      "cancel": "Cancel",
+      "sending": "Sending...",
+      "send_request": "Send Request",
+      "error_fallback": "Failed to send coaching request"
+    },
+    "list": {
+      "loading": "Loading coaching requests...",
+      "no_pending_requests": "No pending coaching requests",
+      "no_requests_sent": "No coaching requests sent",
+      "request_from": "Request from {name}",
+      "request_to": "Request to {name}",
+      "message_label": "Message:",
+      "accept": "Accept",
+      "accepting": "Accepting...",
+      "reject": "Reject",
+      "rejecting": "Rejecting...",
+      "request_accepted": "Request Accepted!",
+      "accepted_description": "You can now start working with your trainer.",
+      "rejected_description": "This request was declined by the trainer. You can try sending a new request or look for other trainers."
+    }
+  },
+  "exercise": {
+    "equipment": {
+      "label": "Equipment",
+      "categories": "Categories"
+    },
+    "muscle_group": {
+      "label": "Muscle Group"
+    },
+    "filters": {
+      "label": "Filters",
+      "search": "Search exercises",
+      "no_results": "No exercises found",
+      "all_muscle_groups": "All Muscle Groups",
+      "all_equipment": "All Equipment",
+      "clear": "Clear"
+    },
+    "card": {
+      "select": "Select",
+      "category": "Category",
+      "instructions": "Instructions",
+      "show_more": "Show more",
+      "show_less": "Show less"
+    },
+    "selector": {
+      "pick_exercise": "Pick Exercise",
+      "select_exercise": "Select Exercise",
+      "description": "Search and filter exercises to add to your workout",
+      "loading": "Loading exercise data...",
+      "error": "Error loading exercise data. Please try again.",
+      "search_placeholder": "Search exercises..."
+    }
+  },
+  "review": {
+    "create": {
+      "title": "Write a Review for {trainerName}",
+      "rating": "Rating",
+      "comment": "Your review",
+      "comment_label": "Comment (optional)",
+      "comment_placeholder": "Share your experience with this trainer...",
+      "submit": "Submit Review",
+      "submitting": "Submitting...",
+      "cancel": "Cancel"
+    },
+    "edit": {
+      "title": "Edit Your Review",
+      "description": "Update your rating and comment for this trainer",
+      "rating": "Rating",
+      "comment": "Comment",
+      "comment_placeholder": "Update your comment...",
+      "cancel": "Cancel",
+      "updating": "Updating...",
+      "update": "Update Review",
+      "error_update": "Failed to update review",
+      "error_delete": "Failed to delete review"
+    },
+    "delete": {
+      "title": "Delete Review",
+      "description": "Are you sure you want to delete this review? This action cannot be undone.",
+      "confirm_text": "Delete",
+      "cancel": "Cancel",
+      "deleting": "Deleting..."
+    },
+    "actions": {
+      "helpful": "Helpful",
+      "report": "Report"
+    }
+  }
+}

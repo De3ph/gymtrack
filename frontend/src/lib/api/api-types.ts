@@ -72,6 +72,7 @@ export interface LoginResponse {
  */
 export interface UserResponse {
   userId: string;
+  username: string;
   email: string;
   role: import('@/types').UserRole;
   profile: import('@/types').UserProfile;
@@ -155,8 +156,6 @@ export interface ClientWithAthlete {
  * Client stats for dashboard
  */
 export interface ClientStats {
-  totalWorkouts: number;
-  totalMeals: number;
   workoutsThisWeek: number;
   mealsThisWeek: number;
 }

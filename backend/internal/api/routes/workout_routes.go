@@ -22,6 +22,6 @@ func WorkoutRoutes(router *gin.RouterGroup, workoutHandler *handlers.WorkoutHand
 	clients := router.Group("/clients")
 	clients.Use(middleware.JWTAuthMiddleware())
 	{
-		clients.GET("/:id/workouts", workoutHandler.GetClientWorkouts)
+		clients.GET("/:username/workouts", workoutHandler.GetClientWorkouts)
 	}
 }

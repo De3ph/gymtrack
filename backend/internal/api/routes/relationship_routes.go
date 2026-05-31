@@ -14,8 +14,8 @@ func RelationshipRoutes(router *gin.RouterGroup, handler *handlers.RelationshipH
 		// Trainer endpoints
 		relationships.POST("/invite", handler.GenerateInvitation)
 		relationships.GET("/my-clients", handler.GetMyClients)
-		relationships.GET("/client/:id", handler.GetClientDetails)
-		relationships.GET("/client/:id/stats", handler.GetClientStats)
+		relationships.GET("/client/:username", handler.GetClientDetails)
+		relationships.GET("/client/:username/stats", handler.GetClientStats)
 
 		// Athlete endpoints
 		relationships.POST("/accept", handler.AcceptInvitation)

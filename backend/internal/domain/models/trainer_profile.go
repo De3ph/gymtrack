@@ -1,13 +1,13 @@
 package models
 
 type TrainerProfile struct {
-	Bio                      string   `json:"bio,omitempty"`
-	ProfilePhotoURL          string   `json:"profilePhotoUrl,omitempty"`
-	HourlyRate               float64  `json:"hourlyRate,omitempty"`
-	YearsOfExperience        int      `json:"yearsOfExperience,omitempty"`
-	IsAvailableForNewClients bool     `json:"isAvailableForNewClients,omitempty"`
-	Location                 string   `json:"location,omitempty"`
-	Languages                []string `json:"languages,omitempty"`
+	Bio                      string   `json:"bio"`
+	ProfilePhotoURL          string   `json:"profilePhotoUrl"`
+	HourlyRate               float64  `json:"hourlyRate"`
+	YearsOfExperience        int      `json:"yearsOfExperience"`
+	IsAvailableForNewClients bool     `json:"isAvailableForNewClients"`
+	Location                 string   `json:"location"`
+	Languages                []string `json:"languages"`
 }
 
 type TrainerWithProfile struct {

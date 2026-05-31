@@ -62,6 +62,8 @@ func main() {
 	muscleGroupCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionMuscleGroups)
 	equipmentCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionEquipment)
 	exerciseCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises)
+	workoutPlanCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
+	workoutPlanAssignmentCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlanAssignments)
 
 	// Initialize repositories with specific collections
 	userRepo := repositories.NewCouchbaseUserRepository(userCollection)
@@ -74,6 +76,10 @@ func main() {
 	muscleGroupRepo := repositories.NewCouchbaseMuscleGroupRepository(muscleGroupCollection)
 	equipmentRepo := repositories.NewCouchbaseEquipmentRepository(equipmentCollection)
 	exerciseRepo := repositories.NewCouchbaseExerciseRepository(exerciseCollection)
+
+	// Workout plan repositories
+	workoutPlanRepo := repositories.NewWorkoutPlanRepository(workoutPlanCollection)
+	workoutPlanAssignmentRepo := repositories.NewWorkoutPlanAssignmentRepository(workoutPlanAssignmentCollection)
 
 	// Trainer feature repositories
 	trainerProfileRepo := repositories.NewCouchbaseTrainerProfileRepository(userCollection)
@@ -118,11 +124,11 @@ func main() {
 	routes.UserRoutes(apiGroup, userHandler)
 
 	workoutService := services.NewWorkoutService(workoutRepo, relationshipRepo)
-	workoutHandler := handlers.NewWorkoutHandler(workoutService)
+	workoutHandler := handlers.NewWorkoutHandler(workoutService, userRepo)
 	routes.WorkoutRoutes(apiGroup, workoutHandler)
 
 	mealService := services.NewMealService(mealRepo, relationshipRepo)
-	mealHandler := handlers.NewMealHandler(mealService)
+	mealHandler := handlers.NewMealHandler(mealService, userRepo)
 	routes.MealRoutes(apiGroup, mealHandler)
 
 	relationshipHandler := handlers.NewRelationshipHandler(invitationService, relationshipRepo, userRepo, workoutRepo, mealRepo)
@@ -144,6 +150,11 @@ func main() {
 	routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler)
 	routes.RegisterCoachingRequestRoutes(router, coachingRequestHandler)
 	routes.RegisterExerciseRoutes(router, exerciseHandler)
+
+	// Workout plan service, handler, routes
+	workoutPlanService := services.NewWorkoutPlanService(workoutPlanRepo, workoutPlanAssignmentRepo, relationshipRepo, workoutRepo)
+	workoutPlanHandler := handlers.NewWorkoutPlanHandler(workoutPlanService, userRepo)
+	routes.RegisterWorkoutPlanRoutes(apiGroup, workoutPlanHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

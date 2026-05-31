@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTranslations } from 'next-intl';
 
 interface TerminateRelationshipDialogProps {
   clientId: string;
@@ -26,6 +27,8 @@ export function TerminateRelationshipDialog({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [terminateError, setTerminateError] = useState<string | null>(null);
+  const t = useTranslations('trainer.client_detail.terminate_dialog');
+  const tClients = useTranslations('trainer.clients');
 
   const handleTerminateRelationship = async () => {
     try {
@@ -36,7 +39,7 @@ export function TerminateRelationshipDialog({
       setOpen(false);
       router.push(ROUTES.TRAINER_CLIENTS);
     } catch (err) {
-      setTerminateError(err instanceof Error ? err.message : "Failed to terminate relationship");
+      setTerminateError(err instanceof Error ? err.message : t('error'));
     }
   };
 
@@ -53,9 +56,9 @@ export function TerminateRelationshipDialog({
         <AlertDialog open={open} onOpenChange={setOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>End Relationship</AlertDialogTitle>
+              <AlertDialogTitle>{t('title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to end your relationship with {athleteName || "this athlete"}? This action cannot be undone.
+{t('description', { name: athleteName || tClients('this_athlete') })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             {terminateError && (
@@ -64,12 +67,12 @@ export function TerminateRelationshipDialog({
               </div>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleTerminate}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                End Relationship
+                {t('confirm')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -82,9 +85,9 @@ export function TerminateRelationshipDialog({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>End Relationship</AlertDialogTitle>
+          <AlertDialogTitle>{t('title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to end your relationship with {athleteName || "this athlete"}? This action cannot be undone.
+            {t('description', { name: athleteName || "this athlete" })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {terminateError && (
@@ -93,12 +96,12 @@ export function TerminateRelationshipDialog({
           </div>
         )}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleTerminate}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            End Relationship
+            {t('confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -5,14 +5,18 @@ import { OverviewTab } from "./OverviewTab";
 import { WorkoutsTab } from "./WorkoutsTab";
 import { MealsTab } from "./MealsTab";
 import { ProgressTab } from "./ProgressTab";
+import { ClientPlansTab } from "@/components/features/workout-plan/ClientPlansTab";
+import { useTranslations } from "next-intl";
+import { Workout, Meal } from "@/types";
+import { WorkoutStats, MealStats } from "@/lib/api/api-types";
 
 interface ClientTabsProps {
   activeTab: string;
   onTabChange: (value: string) => void;
-  workouts: any[];
-  meals: any[];
-  workoutStats: any;
-  mealStats: any;
+  workouts: Workout[];
+  meals: Meal[];
+  workoutStats: WorkoutStats | null;
+  mealStats: MealStats | null;
   dateRange: { start: string; end: string };
   exerciseType: string;
   mealType: string;
@@ -37,13 +41,20 @@ export function ClientTabs({
   onMealTypeChange,
   onClearFilters,
 }: ClientTabsProps) {
+  const t = useTranslations("trainer.client_detail.tabs");
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
       <TabsList className="mb-4">
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="workouts">Workouts ({workouts.length})</TabsTrigger>
-        <TabsTrigger value="meals">Meals ({meals.length})</TabsTrigger>
-        <TabsTrigger value="progress">Progress Charts</TabsTrigger>
+        <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
+        <TabsTrigger value="workouts">
+          {t("workouts")} ({workouts.length})
+        </TabsTrigger>
+        <TabsTrigger value="meals">
+          {t("meals")} ({meals.length})
+        </TabsTrigger>
+        <TabsTrigger value="progress">{t("progress_charts")}</TabsTrigger>
+        <TabsTrigger value="plans">{t("plans")}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview">
@@ -68,6 +79,10 @@ export function ClientTabs({
 
       <TabsContent value="progress">
         <ProgressTab workoutStats={workoutStats} mealStats={mealStats} />
+      </TabsContent>
+
+      <TabsContent value="plans">
+        <ClientPlansTab />
       </TabsContent>
     </Tabs>
   );

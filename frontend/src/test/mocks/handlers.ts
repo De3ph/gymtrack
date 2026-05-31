@@ -5,6 +5,7 @@ import { User, Workout, Meal } from '@/types'
 const mockUsers: User[] = [
   {
     userId: 'user-1',
+    username: 'testathlete',
     email: 'athlete@test.com',
     role: 'athlete',
     profile: {
@@ -19,6 +20,7 @@ const mockUsers: User[] = [
   },
   {
     userId: 'user-2',
+    username: 'testtrainer',
     email: 'trainer@test.com',
     role: 'trainer',
     profile: {
@@ -40,11 +42,12 @@ const mockWorkouts: Workout[] = [
       {
         exerciseId: 'ex-1',
         name: 'Bench Press',
-        weight: 80,
-        weightUnit: 'kg',
-        sets: 3,
-        reps: [12, 10, 8],
-        restTime: 60
+        sets: [
+          { weight: 80, weightUnit: 'kg', reps: 12 },
+          { weight: 80, weightUnit: 'kg', reps: 10 },
+          { weight: 80, weightUnit: 'kg', reps: 8 }
+        ],
+        notes: 'Rest 60 seconds between sets'
       }
     ],
     createdAt: new Date().toISOString(),
