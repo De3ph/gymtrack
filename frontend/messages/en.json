@@ -304,6 +304,16 @@
         "description": "Total volume per week",
         "no_data": "No workout data available"
       }
+    },
+    "filter": {
+      "label": "Filter",
+      "start_date": "Start date",
+      "end_date": "End date",
+      "clear": "Clear",
+      "apply": "Apply"
+    },
+    "pagination": {
+      "count": "{count, plural, =0 {No workouts} =1 {1 workout} other {# workouts}}"
     }
   },
   "meal": {
@@ -394,6 +404,16 @@
       "description": "Update your meal entry",
       "cancel": "Cancel",
       "save_changes": "Save Changes"
+    },
+    "filter": {
+      "label": "Filter",
+      "start_date": "Start date",
+      "end_date": "End date",
+      "clear": "Clear",
+      "apply": "Apply"
+    },
+    "pagination": {
+      "count": "{count, plural, =0 {No meals} =1 {1 meal} other {# meals}}"
     }
   },
   "body_measurement": {
@@ -795,6 +815,7 @@
       "charts_tab": "Progress Charts",
       "log_card_title": "New Body Measurement",
       "log_card_description": "Record your current weight and any body part measurements.",
+      "fetch_previous": "Use Previous",
       "latest": {
         "title": "Latest",
         "weight": "Weight",

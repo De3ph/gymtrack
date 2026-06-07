@@ -100,7 +100,7 @@ export function WorkoutForm({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"], exact: true });
+      queryClient.invalidateQueries({ queryKey: ["workouts"] });
       form.reset();
       if (onSuccess) onSuccess();
     },
