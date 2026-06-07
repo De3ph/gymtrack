@@ -35,6 +35,7 @@
       "logout": "Çıkış Yap",
       "workouts": "Antrenmanlar",
       "meals": "Öğünler",
+      "measurements": "Ölçümler",
       "clients": "Danışanlar",
       "trainer": "Antrenör",
       "athlete": "Sporcu",
@@ -396,6 +397,61 @@
       "save_changes": "Değişiklikleri Kaydet"
     }
   },
+  "body_measurement": {
+    "list": {
+      "loading": "Vücut ölçümleri yükleniyor...",
+      "no_measurements": "Henüz vücut ölçümü kaydedilmedi. İlk ölçümünüzü kaydedin!",
+      "weight": "{value} {unit}",
+      "body_fat": "Yağ oranı: {value}%",
+      "vs_previous": "önceki ölçüme göre",
+      "part_labels": {
+        "chest": "Göğüs",
+        "waist": "Bel",
+        "hips": "Kalça",
+        "neck": "Boyun",
+        "shoulders": "Omuz",
+        "bicepLeft": "Pazu (Sol)",
+        "bicepRight": "Pazu (Sağ)",
+        "forearmLeft": "Önkol (Sol)",
+        "forearmRight": "Önkol (Sağ)",
+        "thighLeft": "Uyluk (Sol)",
+        "thighRight": "Uyluk (Sağ)",
+        "calfLeft": "Baldır (Sol)",
+        "calfRight": "Baldır (Sağ)"
+      }
+    },
+    "charts": {
+      "loading": "Grafikler yükleniyor...",
+      "no_data": "Grafikleri göstermek için yeterli veri yok. Eğilimleri görmek için birkaç ölçüm kaydedin.",
+      "weight_title": "Kilo Zaman İçinde",
+      "weight_label": "Kilo",
+      "weight_unit_kg": "kg",
+      "body_fat_title": "Yağ Oranı % Zaman İçinde",
+      "body_fat_label": "Yağ Oranı %",
+      "parts_title": "Vücut Bölümü Ölçümleri"
+    },
+    "edit": {
+      "title": "Vücut Ölçümünü Düzenle",
+      "description": "Vücut ölçümünüzü güncelleyin. Not: Ölçümler yalnızca kaydedildikten sonraki 24 saat içinde düzenlenebilir."
+    },
+    "delete": {
+      "title": "Vücut Ölçümünü Sil",
+      "description": "{date} tarihli ölçümü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "description_generic": "Bu vücut ölçümünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "cancel": "İptal",
+      "confirm": "Sil"
+    },
+    "filter": {
+      "label": "Filtrele",
+      "start_date": "Başlangıç tarihi",
+      "end_date": "Bitiş tarihi",
+      "clear": "Temizle",
+      "apply": "Uygula"
+    },
+    "pagination": {
+      "count": "{count, plural, =0 {Ölçüm yok} =1 {1 ölçüm} other {# ölçüm}}"
+    }
+  },
   "trainer": {
     "title": "Antrenör",
     "dashboard": {
@@ -462,8 +518,10 @@
       },
       "tabs": {
         "overview": "Genel Bakış",
-        "workouts": "Antrenmanlar",
-        "meals": "Öğünler",
+      "workouts": "Antrenmanlar",
+      "meals": "Öğünler",
+      "measurements": "Ölçümler",
+        "measurements": "Ölçümler",
         "progress_charts": "İlerleme Grafikleri",
         "workout_history": "Antrenman Geçmişi",
         "workout_description": "Danışanınızın antrenman kayıtlarını görüntüleyin",
@@ -471,6 +529,11 @@
         "meal_history": "Öğün Geçmişi",
         "meal_description": "Danışanınızın öğün kayıtlarını görüntüleyin",
         "no_meals": "Öğün kaydı yok",
+        "measurements_title": "Vücut Ölçümleri",
+        "measurements_description": "Danışanınızın vücut kompozisyonundaki gelişimi zaman içinde görüntüleyin.",
+        "measurements_list": "Geçmiş",
+        "measurements_charts": "Grafikler",
+        "no_measurements": "Vücut ölçümü kaydedilmemiş",
         "plans": "Planlar"
       },
       "terminate_dialog": {
@@ -685,6 +748,60 @@
       "calendar_tab": "Geçmiş (Takvim)",
       "card_title": "Yeni Öğün Kaydet",
       "card_description": "Ne yediğinizi kaydedin."
+    },
+    "measurements": {
+      "title": "Vücut Ölçümleri",
+      "description": "Kilonuzu ve vücut kompozisyonunuzu zaman içinde takip edin.",
+      "submit": "Ölçümü Kaydet",
+      "date": {
+        "label": "Tarih"
+      },
+      "time": {
+        "label": "Saat"
+      },
+      "weight": {
+        "label": "Kilo"
+      },
+      "unit": {
+        "label": "Birim"
+      },
+      "body_fat": {
+        "label": "Yağ Oranı %",
+        "optional": "opsiyonel"
+      },
+      "parts": {
+        "label": "Vücut Bölümleri (cm)",
+        "hint": "Ölçmediğiniz bölümleri boş bırakın.",
+        "chest": "Göğüs",
+        "waist": "Bel",
+        "hips": "Kalça",
+        "neck": "Boyun",
+        "shoulders": "Omuz",
+        "bicepLeft": "Pazu (Sol)",
+        "bicepRight": "Pazu (Sağ)",
+        "forearmLeft": "Önkol (Sol)",
+        "forearmRight": "Önkol (Sağ)",
+        "thighLeft": "Uyluk (Sol)",
+        "thighRight": "Uyluk (Sağ)",
+        "calfLeft": "Baldır (Sol)",
+        "calfRight": "Baldır (Sağ)"
+      },
+      "notes": {
+        "label": "Notlar",
+        "optional": "opsiyonel",
+        "placeholder": "Nasıl hissediyordunuz? Bu rakamlar için herhangi bir bağlam var mı?"
+      },
+      "log_tab": "Ölçüm Kaydet",
+      "list_tab": "Geçmiş",
+      "charts_tab": "İlerleme Grafikleri",
+      "log_card_title": "Yeni Vücut Ölçümü",
+      "log_card_description": "Mevcut kilonuzu ve ölçtüğünüz vücut bölümlerini kaydedin.",
+      "latest": {
+        "title": "Son Ölçüm",
+        "weight": "Kilo",
+        "body_fat": "Yağ Oranı",
+        "parts_count": "{count, plural, =0 {Bölüm yok} =1 {1 bölüm} other {# bölüm}} takip edildi"
+      }
     },
     "trainer": {
       "title": "Antrenörüm",

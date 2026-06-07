@@ -205,3 +205,11 @@ export interface GetClientStatsResponse {
 export interface CommentListResponse {
   comments: import('@/types').Comment[];
 }
+
+/**
+ * Body measurement list response (matches backend format)
+ */
+export interface BodyMeasurementListResponse {
+  measurements: import('@/types').BodyMeasurement[];
+  count: number;
+}
