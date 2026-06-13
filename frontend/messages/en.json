@@ -1,9 +1,84 @@
 {
   "home": {
     "title": "GymTrack",
+    "eyebrow": "Training intelligence",
+    "eyebrow_badge": "Built for measurable progress",
     "description": "The ultimate fitness tracking platform connecting trainers and athletes. Track workouts, monitor nutrition, and achieve your fitness goals together.",
-    "sign_up": "Sign Up",
-    "login": "Login"
+    "hero": {
+      "title": "Train smarter. Coach clearer. Progress together.",
+      "description": "GymTrack turns workouts, meals, measurements, and coaching into one focused command center for athletes and trainers."
+    },
+    "sign_up": "Start Free",
+    "login": "Login",
+    "metrics": {
+      "roles": {
+        "value": "2",
+        "label": "Roles"
+      },
+      "track": {
+        "value": "360",
+        "label": "Tracking"
+      },
+      "coach": {
+        "value": "1",
+        "label": "Coach loop"
+      }
+    },
+    "console": {
+      "kicker": "Live signal",
+      "title": "Your week in motion"
+    },
+    "features": {
+      "workouts": {
+        "title": "Workout tracking",
+        "description": "Log sets, reps, weight, and workout history with calendar and list views.",
+        "metric": "Sets logged"
+      },
+      "nutrition": {
+        "title": "Nutrition logging",
+        "description": "Track meals, calories, macros, and daily nutrition patterns.",
+        "metric": "Macros tracked"
+      },
+      "measurements": {
+        "title": "Body measurements",
+        "description": "Record weight, body fat, and body-part measurements over time.",
+        "metric": "Trends visible"
+      },
+      "coaching": {
+        "title": "Trainer connection",
+        "description": "Find trainers, send requests, accept clients, and assign workout plans.",
+        "metric": "Requests managed"
+      }
+    },
+    "role_paths": {
+      "athlete": {
+        "kicker": "Athlete path",
+        "title": "Build a body of evidence.",
+        "description": "Keep every rep, meal, measurement, and plan in one place so progress stops being a guess.",
+        "bullets": [
+          "Log workouts, meals, and measurements fast.",
+          "View progress through history, charts, and assigned plans.",
+          "Connect with a trainer when you want guided coaching."
+        ],
+        "cta": "Join as athlete"
+      },
+      "trainer": {
+        "kicker": "Trainer path",
+        "title": "Run clients without the chaos.",
+        "description": "Manage relationships, requests, plans, and client progress from one focused workspace.",
+        "bullets": [
+          "Invite athletes and manage your client roster.",
+          "Create and assign workout plans to clients.",
+          "Review client workouts, meals, measurements, and charts."
+        ],
+        "cta": "Join as trainer"
+      }
+    },
+    "proof": {
+      "kicker": "Progress system",
+      "title": "One loop from intention to proof.",
+      "description": "GymTrack keeps the full training relationship visible: what was planned, what was done, what changed, and what happens next."
+    }
   },
   "common": {
     "actions": {

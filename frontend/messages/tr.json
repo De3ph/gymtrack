@@ -1,9 +1,84 @@
 {
   "home": {
     "title": "GymTrack",
+    "eyebrow": "Antrenman zekası",
+    "eyebrow_badge": "Ölçülebilir ilerleme için tasarlandı",
     "description": "Antrenörleri ve sporcuları birbirine bağlayan nihai fitness takip platformu. Antrenmanları takip edin, beslenmeyi izleyin ve fitness hedeflerinize birlikte ulaşın.",
-    "sign_up": "Kaydol",
-    "login": "Giriş Yap"
+    "hero": {
+      "title": "Daha akıllı antrenman. Daha net koçluk. Ortak ilerleme.",
+      "description": "GymTrack; antrenmanları, öğünleri, ölçümleri ve koçluğu sporcu ile antrenör için tek odaklı kontrol merkezinde toplar."
+    },
+    "sign_up": "Ücretsiz Başla",
+    "login": "Giriş Yap",
+    "metrics": {
+      "roles": {
+        "value": "2",
+        "label": "Rol"
+      },
+      "track": {
+        "value": "360",
+        "label": "Takip"
+      },
+      "coach": {
+        "value": "1",
+        "label": "Koçluk döngüsü"
+      }
+    },
+    "console": {
+      "kicker": "Canlı sinyal",
+      "title": "Haftan hareket halinde"
+    },
+    "features": {
+      "workouts": {
+        "title": "Antrenman takibi",
+        "description": "Set, tekrar, ağırlık ve antrenman geçmişini liste ve takvim görünümleriyle kaydet.",
+        "metric": "Set kaydedildi"
+      },
+      "nutrition": {
+        "title": "Beslenme takibi",
+        "description": "Öğünleri, kaloriyi, makroları ve günlük beslenme düzenini takip et.",
+        "metric": "Makro takip edildi"
+      },
+      "measurements": {
+        "title": "Vücut ölçümleri",
+        "description": "Kilo, yağ oranı ve vücut bölümü ölçümlerini zaman içinde kaydet.",
+        "metric": "Trend görünür"
+      },
+      "coaching": {
+        "title": "Antrenör bağlantısı",
+        "description": "Antrenör bul, istek gönder, müşteri kabul et ve antrenman planı ata.",
+        "metric": "Talepler yönetildi"
+      }
+    },
+    "role_paths": {
+      "athlete": {
+        "kicker": "Sporcu yolu",
+        "title": "İlerlemeyi kanıta dönüştür.",
+        "description": "Her repi, öğünü, ölçümü ve planı tek yerde tut; ilerleme tahmin değil, görünür veri olsun.",
+        "bullets": [
+          "Antrenman, öğün ve ölçümleri hızlıca kaydet.",
+          "Geçmiş, grafikler ve atanmış planlarla ilerlemeyi gör.",
+          "Koçluk istediğinde antrenörle bağlantı kur."
+        ],
+        "cta": "Sporcu olarak katıl"
+      },
+      "trainer": {
+        "kicker": "Antrenör yolu",
+        "title": "Danışanları karmaşa olmadan yönet.",
+        "description": "İlişkileri, istekleri, planları ve danışan ilerlemesini tek odaklı çalışma alanında yönet.",
+        "bullets": [
+          "Sporcu davet et ve müşteri listesini yönet.",
+          "Danışanlara antrenman planı oluştur ve ata.",
+          "Danışan antrenmanlarını, öğünlerini, ölçümlerini ve grafiklerini incele."
+        ],
+        "cta": "Antrenör olarak katıl"
+      }
+    },
+    "proof": {
+      "kicker": "İlerleme sistemi",
+      "title": "Niyetten kanıta tek döngü.",
+      "description": "GymTrack antrenman ilişkisini görünür tutar: ne planlandı, ne yapıldı, ne değişti ve sırada ne var."
+    }
   },
   "common": {
     "actions": {
