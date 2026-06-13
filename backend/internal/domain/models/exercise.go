@@ -27,8 +27,8 @@ type ExerciseSet struct {
 }
 
 type WorkoutExercise struct {
-	ExerciseID string        `json:"exerciseId"`
-	Name       string        `json:"name"` // denormalized for convenience
+	ExerciseID string        `json:"exerciseId" validate:"required"`
+	Name       string        `json:"name" validate:"required"` // denormalized for convenience
 	Sets       []ExerciseSet `json:"sets" validate:"required,min=1,dive"`
 	Notes      string        `json:"notes,omitempty"`
 }
