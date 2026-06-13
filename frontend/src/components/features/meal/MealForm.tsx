@@ -25,6 +25,7 @@ import { mealApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { DATE_FORMATS } from "@/lib/constants";
 import type { MealFormData, FoodItemFormData } from "@/lib/validations/meal";
+import { createMealSchema } from "@/lib/validations/meal";
 
 interface MealFormProps {
   onSuccess?: () => void;
@@ -33,6 +34,13 @@ interface MealFormProps {
 export function MealForm({ onSuccess }: MealFormProps) {
   const queryClient = useQueryClient();
   const t = useTranslations("meal");
+  const tValidation = useTranslations("meal.form.validation");
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+
+  const mealSchema = React.useMemo(
+    () => createMealSchema((key) => tValidation(key)),
+    [tValidation],
+  );
 
   const mealTypeItems = [
     { value: "breakfast" as const, label: t("form.meal_type.breakfast") },
@@ -43,7 +51,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
 
   const form = useForm({
     defaultValues: {
-      date: dayjs().format(DATE_FORMATS.DATE_ONLY),
+      date: new Date(),
       mealTime: dayjs().format("HH:mm"),
       mealType: "breakfast" as const,
       items: [
@@ -55,8 +63,12 @@ export function MealForm({ onSuccess }: MealFormProps) {
         },
       ],
     },
+    validators: {
+      onSubmit: mealSchema,
+    },
     onSubmit: async ({ value }) => {
-      createMeal(value as unknown as MealFormData);
+      setSubmitError(null);
+      createMeal(value);
     },
   });
 
@@ -92,7 +104,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
     },
     onError: (error) => {
       const errorMessage = ApiErrorHandler.handle(error);
-      // TODO: Show toast notification with errorMessage
+      setSubmitError(errorMessage);
       console.error("Failed to log meal:", errorMessage);
     },
   });
@@ -101,10 +113,20 @@ export function MealForm({ onSuccess }: MealFormProps) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        setSubmitError(null);
         form.handleSubmit();
       }}
       className="space-y-6"
     >
+      {submitError && (
+        <div
+          role="alert"
+          className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-md"
+        >
+          {submitError}
+        </div>
+      )}
+
       <div className="flex space-x-16">
         <div className="flex flex-col space-y-2">
           <FieldLabel htmlFor="date">{t("form.date_time_label")}</FieldLabel>
@@ -112,8 +134,10 @@ export function MealForm({ onSuccess }: MealFormProps) {
             <form.Field name="date">
               {(field) => (
                 <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
+                  onChange={(e) =>
+                    field.handleChange(dayjs(e.target.value).toDate())
+                  }
                   onBlur={field.handleBlur}
                   type="date"
                   id="date"
@@ -216,14 +240,17 @@ export function MealForm({ onSuccess }: MealFormProps) {
                     <FieldLabel>{t("form.quantity.label")}</FieldLabel>
                     <form.Field name={`items[${index}].quantity`}>
                       {(subField) => (
-                        <Input
-                          value={subField.state.value}
-                          onChange={(e) =>
-                            subField.handleChange(e.target.value)
-                          }
-                          onBlur={subField.handleBlur}
-                          placeholder={t("form.quantity.placeholder")}
-                        />
+                        <Field>
+                          <Input
+                            value={subField.state.value}
+                            onChange={(e) =>
+                              subField.handleChange(e.target.value)
+                            }
+                            onBlur={subField.handleBlur}
+                            placeholder={t("form.quantity.placeholder")}
+                          />
+                          <FieldInfo field={subField} />
+                        </Field>
                       )}
                     </form.Field>
                   </div>

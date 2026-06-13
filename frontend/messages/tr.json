@@ -261,7 +261,19 @@
       },
       "add_exercise": "Egzersiz Ekle",
       "submit": "Antrenman Kaydet",
-      "submitting": "Kaydediliyor..."
+      "submitting": "Kaydediliyor...",
+      "validation": {
+        "invalid_time_format": "Geçersiz saat formatı. SS:DD kullanın.",
+        "exercise_selection_required": "Egzersiz seçimi gerekli",
+        "exercise_name_required": "Egzersiz adı gerekli",
+        "sets_min_one": "En az bir set gerekli",
+        "weight_non_negative": "Ağırlık negatif olamaz",
+        "reps_min_one": "Tekrar en az 1 olmalı",
+        "rest_time_non_negative": "Dinlenme süresi negatif olamaz",
+        "exercises_min_one": "En az bir egzersiz gerekli",
+        "date_required": "Tarih gerekli",
+        "date_invalid": "Geçersiz tarih"
+      }
     },
     "list": {
       "title": "Antrenman Geçmişi",
@@ -363,7 +375,17 @@
       "add_food_item": "Besin Ekle",
       "submit": "Öğünü Kaydet",
       "log_meal": "Öğün Kaydet",
-      "submitting": "Kaydediliyor..."
+      "submitting": "Kaydediliyor...",
+      "validation": {
+        "food_required": "Besin adı gerekli",
+        "quantity_required": "Miktar gerekli",
+        "calories_non_negative": "Kalori negatif olamaz",
+        "macro_non_negative": "Değer negatif olamaz",
+        "invalid_time_format": "Geçersiz saat formatı. SS:DD kullanın.",
+        "items_min_one": "En az bir besin gerekli",
+        "date_required": "Tarih gerekli",
+        "date_invalid": "Geçersiz tarih"
+      }
     },
     "list": {
       "title": "Öğün Geçmişi",

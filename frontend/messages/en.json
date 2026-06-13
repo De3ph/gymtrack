@@ -260,7 +260,19 @@
       },
       "add_exercise": "Add Exercise",
       "submit": "Log Workout",
-      "submitting": "Saving..."
+      "submitting": "Saving...",
+      "validation": {
+        "invalid_time_format": "Invalid time format. Use HH:MM.",
+        "exercise_selection_required": "Exercise selection is required",
+        "exercise_name_required": "Exercise name is required",
+        "sets_min_one": "At least one set is required",
+        "weight_non_negative": "Weight cannot be negative",
+        "reps_min_one": "Reps must be at least 1",
+        "rest_time_non_negative": "Rest time cannot be negative",
+        "exercises_min_one": "At least one exercise is required",
+        "date_required": "Date is required",
+        "date_invalid": "Invalid date"
+      }
     },
     "list": {
       "title": "Workout History",
@@ -362,7 +374,17 @@
       "add_food_item": "Add Food Item",
       "submit": "Save Meal",
       "log_meal": "Log Meal",
-      "submitting": "Saving..."
+      "submitting": "Saving...",
+      "validation": {
+        "food_required": "Food name is required",
+        "quantity_required": "Quantity is required",
+        "calories_non_negative": "Calories cannot be negative",
+        "macro_non_negative": "Value cannot be negative",
+        "invalid_time_format": "Invalid time format. Use HH:MM.",
+        "items_min_one": "At least one food item is required",
+        "date_required": "Date is required",
+        "date_invalid": "Invalid date"
+      }
     },
     "list": {
       "title": "Meal History",
