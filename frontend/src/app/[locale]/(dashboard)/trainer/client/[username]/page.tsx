@@ -35,7 +35,7 @@ export default function ClientDetailPage() {
     queryKey: ["clientData", username, dateRange, exerciseType, mealType],
     queryFn: async () => {
       const details = await relationshipApi.getClientDetails(username);
-      const [workoutsResp, mealsResp, statsResp] = await Promise.all([
+      const [workoutsResp, mealsResp, measurementsResp, statsResp] = await Promise.all([
         trainerClientApi.getClientWorkouts(username, {
           ...(dateRange.start && { startDate: dateRange.start }),
           ...(dateRange.end && { endDate: dateRange.end }),
@@ -46,6 +46,10 @@ export default function ClientDetailPage() {
           ...(dateRange.end && { endDate: dateRange.end }),
           ...(mealType && { mealType }),
         }),
+        trainerClientApi.getClientMeasurements(username, {
+          ...(dateRange.start && { startDate: dateRange.start }),
+          ...(dateRange.end && { endDate: dateRange.end }),
+        }),
         trainerClientApi.getClientStats(username),
       ]);
       return {
@@ -53,6 +57,7 @@ export default function ClientDetailPage() {
         stats: details.stats,
         workouts: workoutsResp.workouts,
         meals: mealsResp.meals,
+        measurements: measurementsResp.measurements,
         workoutStats: statsResp.workoutStats,
         mealStats: statsResp.mealStats,
       };
@@ -67,6 +72,7 @@ export default function ClientDetailPage() {
   };
   const workouts = data?.workouts ?? [];
   const meals = data?.meals ?? [];
+  const measurements = data?.measurements ?? [];
   const workoutStats = data?.workoutStats ?? null;
   const mealStats = data?.mealStats ?? null;
   const loading = isLoading;
@@ -139,6 +145,7 @@ export default function ClientDetailPage() {
         onTabChange={setActiveTab}
         workouts={workouts}
         meals={meals}
+        measurements={measurements}
         workoutStats={workoutStats}
         mealStats={mealStats}
         dateRange={dateRange}

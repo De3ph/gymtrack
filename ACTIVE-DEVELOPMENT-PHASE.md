@@ -53,10 +53,10 @@ Currently, the workout and meal logging is quite basic.
 - [x] Considiring migrate to Base UI from Radix UI based system (shadcn/ui)
 - [ ] Add loading states and spinners
 - [ ] Decide on a consistent color scheme and design
-- [ ] Add theme toggle (light/dark)
+- [x] Add theme toggle (light/dark)
 - [ ] Replacing custom components with shadcn/ui components
 
-## Phase 6: i18n support for frontend
+## Phase 6: i18n support for frontend - DONE
 
 - [x] Create blueprint for i18n architecture
     - [x] decide on a library to use
@@ -65,5 +65,5 @@ Currently, the workout and meal logging is quite basic.
 - [x] Implement i18n support for frontend
 - [x] Add translations for all strings
     - [x] English
-    - [ ] Turkish
-- [ ] Add language toggle
+    - [x] Turkish
+- [x] Add language toggle

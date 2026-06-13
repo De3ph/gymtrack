@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus } from "lucide-react";
+import { History, Loader2, Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
 import { useState } from "react";
@@ -124,6 +124,34 @@ export function BodyMeasurementForm({
       const errorMessage = ApiErrorHandler.handle(error);
       setSubmitError(errorMessage);
       console.error("Failed to save body measurement:", errorMessage);
+    }
+  });
+
+  const { mutate: fetchPrevious, isPending: isFetchingPrevious } = useMutation({
+    mutationFn: () => bodyMeasurementApi.getLatest(),
+    onSuccess: (latest) => {
+      const nextParts: Record<string, BodyMeasurementPart> =
+        (latest.parts as Record<string, BodyMeasurementPart>) ?? {};
+      form.reset({
+        date: new Date(latest.date),
+        measurementTime: dayjs(latest.date).format("HH:mm"),
+        weight: latest.weight,
+        weightUnit: latest.weightUnit,
+        bodyFatPct: latest.bodyFatPct ?? undefined,
+        parts: nextParts,
+        notes: ""
+      });
+      const map: Record<string, string> = {};
+      for (const [k, v] of Object.entries(nextParts)) {
+        map[k] = String(v.value ?? "");
+      }
+      setPartInputs(map);
+      setSubmitError(null);
+    },
+    onError: (error) => {
+      const errorMessage = ApiErrorHandler.handle(error);
+      setSubmitError(errorMessage);
+      console.error("Failed to fetch previous measurement:", errorMessage);
     }
   });
 
@@ -384,6 +412,22 @@ export function BodyMeasurementForm({
         >
           {tCommon("clear")}
         </Button>
+        {!initialMeasurement && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fetchPrevious()}
+            disabled={isFetchingPrevious}
+            className="w-full md:w-auto"
+          >
+            {isFetchingPrevious ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <History className="mr-2 h-4 w-4" />
+            )}
+            {t("fetch_previous")}
+          </Button>
+        )}
         <Button
           type="submit"
           disabled={isPending}

@@ -22,6 +22,7 @@ const (
 	CollectionExercises             = "exercises"
 	CollectionWorkoutPlans          = "workout_plans"
 	CollectionWorkoutPlanAssignments = "workout_plan_assignments"
+	CollectionBodyMeasurements       = "body_measurements"
 )
 
 // Scope names
@@ -46,6 +47,7 @@ func InitializeCollections(cluster *gocb.Cluster, bucket *gocb.Bucket) error {
 		CollectionExercises,
 		CollectionWorkoutPlans,
 		CollectionWorkoutPlanAssignments,
+		CollectionBodyMeasurements,
 	}
 
 	// Get the default scope
@@ -182,6 +184,12 @@ func createIndexes(ctx context.Context, cluster *gocb.Cluster, bucketName string
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wpa_athlete ON `%s`.`%s`.`%s`(athleteId)", bucketName, scopeName, CollectionWorkoutPlanAssignments),
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wpa_trainer ON `%s`.`%s`.`%s`(trainerId)", bucketName, scopeName, CollectionWorkoutPlanAssignments),
 			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_wpa_type ON `%s`.`%s`.`%s`(type)", bucketName, scopeName, CollectionWorkoutPlanAssignments),
+		},
+		CollectionBodyMeasurements: {
+			fmt.Sprintf("CREATE PRIMARY INDEX IF NOT EXISTS ON `%s`.`%s`.`%s`", bucketName, scopeName, CollectionBodyMeasurements),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_bm_athlete ON `%s`.`%s`.`%s`(athleteId)", bucketName, scopeName, CollectionBodyMeasurements),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_bm_date ON `%s`.`%s`.`%s`(date)", bucketName, scopeName, CollectionBodyMeasurements),
+			fmt.Sprintf("CREATE INDEX IF NOT EXISTS idx_bm_athlete_date ON `%s`.`%s`.`%s`(athleteId, date)", bucketName, scopeName, CollectionBodyMeasurements),
 		},
 	}
 
