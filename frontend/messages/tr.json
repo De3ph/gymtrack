@@ -313,6 +313,10 @@
       "empty_description": "Davet gönder veya istekleri kabul et.",
       "unknown_athlete": "Bilinmeyen sporcu",
       "no_goal": "Hedef yok"
+    },
+    "auth_required": {
+      "title": "Giriş gerekli",
+      "description": "Panelini açmak için lütfen giriş yap."
     }
   },
   "workout": {

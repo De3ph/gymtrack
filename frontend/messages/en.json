@@ -312,6 +312,10 @@
       "empty_description": "Invite athletes or accept requests to build your roster.",
       "unknown_athlete": "Unknown athlete",
       "no_goal": "No goal set"
+    },
+    "auth_required": {
+      "title": "Sign in required",
+      "description": "Please sign in to open your dashboard."
     }
   },
   "workout": {

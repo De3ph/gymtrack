@@ -1,23 +1,29 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "@/i18n/navigation";
-import { useAuthStore } from "@/stores/authStore";
-import { motion } from "motion/react";
-import { ROUTES } from "@/lib/routes";
-import { Zap } from "lucide-react";
-import { landingStagger } from "@/components/features/landing/landing-variants";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { LandingConsole } from "@/components/features/landing/LandingConsole";
 import { LandingFeatureGrid } from "@/components/features/landing/LandingFeatureGrid";
 import { LandingHeader } from "@/components/features/landing/LandingHeader";
 import { LandingHero } from "@/components/features/landing/LandingHero";
 import { LandingProof } from "@/components/features/landing/LandingProof";
 import { LandingRolePaths } from "@/components/features/landing/LandingRolePaths";
+import { landingStagger } from "@/components/features/landing/landing-variants";
+import { ROUTES } from "@/lib/routes";
+import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { Zap } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "@/i18n/navigation";
+import { useAuthStore } from "@/stores/authStore";
+import { motion } from "motion/react";
 
 export default function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const t = useTranslations("dashboard");
   const { isAuthenticated, isLoading, initializeAuth, user, isInitialized } =
     useAuthStore();
+  const showAuthError = searchParams.get("error") === "auth_required";
 
   useEffect(() => {
     if (!isInitialized) {
@@ -56,6 +62,14 @@ export default function Home() {
 
       <div className="container relative mx-auto flex min-h-screen flex-col px-4 py-5 sm:px-6 lg:px-8">
         <LandingHeader />
+
+        {showAuthError && (
+          <Alert variant="destructive" className="mx-auto max-w-xl" aria-live="polite">
+            <Zap className="size-4" />
+            <AlertTitle>{t("auth_required.title")}</AlertTitle>
+            <AlertDescription>{t("auth_required.description")}</AlertDescription>
+          </Alert>
+        )}
 
         <motion.main
           className="flex flex-1 flex-col justify-center py-12 lg:py-8"
