@@ -9,10 +9,12 @@ export const ROUTES = {
 
   // Profile routes
   PROFILE: '/profile',
+  DASHBOARD: '/dashboard',
 
   // Athlete routes
   ATHLETE_WORKOUTS: '/athlete/workouts',
   ATHLETE_MEALS: '/athlete/meals',
+  ATHLETE_MEASUREMENTS: '/athlete/measurements',
   ATHLETE_TRAINERS: '/athlete/trainers',
   ATHLETE_REQUESTS: '/athlete/requests',
 

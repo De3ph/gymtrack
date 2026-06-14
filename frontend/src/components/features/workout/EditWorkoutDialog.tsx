@@ -20,7 +20,7 @@ import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import {
-  workoutWithPerSetSchema,
+  createWorkoutWithPerSetSchema,
   WorkoutWithPerSetFormData,
 } from "@/lib/validations/workout";
 import { DATE_FORMATS } from "@/lib/constants";
@@ -42,7 +42,13 @@ export function EditWorkoutDialog({
   const queryClient = useQueryClient();
   const [error, setError] = React.useState<string | null>(null);
   const t = useTranslations("workout.edit_dialog");
+  const tValidation = useTranslations("workout.form.validation");
   const tCommon = useTranslations("common.actions");
+
+  const workoutWithPerSetSchema = React.useMemo(
+    () => createWorkoutWithPerSetSchema((key) => tValidation(key)),
+    [tValidation],
+  );
 
   // Initialize form with workout data when dialog opens
   const form = useForm({

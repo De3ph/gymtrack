@@ -8,12 +8,14 @@ import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface WorkoutPlanListProps {
+  plans?: WorkoutPlan[];
   onEdit: (plan: WorkoutPlan) => void;
   onDelete: (plan: WorkoutPlan) => void;
   onAssign: (plan: WorkoutPlan) => void;
 }
 
 export function WorkoutPlanList({
+  plans: providedPlans,
   onEdit,
   onDelete,
   onAssign,
@@ -23,17 +25,18 @@ export function WorkoutPlanList({
   const { data, isLoading } = useQuery({
     queryKey: ["workout-plans"],
     queryFn: () => workoutPlanApi.getAll(),
+    enabled: providedPlans === undefined,
   });
 
-  if (isLoading) {
+  const plans = providedPlans ?? data?.plans ?? [];
+
+  if (providedPlans === undefined && isLoading) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
   }
-
-  const plans = data?.plans || [];
 
   if (plans.length === 0) {
     return (

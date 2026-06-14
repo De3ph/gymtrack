@@ -5,9 +5,10 @@ import { OverviewTab } from "./OverviewTab";
 import { WorkoutsTab } from "./WorkoutsTab";
 import { MealsTab } from "./MealsTab";
 import { ProgressTab } from "./ProgressTab";
+import { MeasurementsTab } from "./MeasurementsTab";
 import { ClientPlansTab } from "@/components/features/workout-plan/ClientPlansTab";
 import { useTranslations } from "next-intl";
-import { Workout, Meal } from "@/types";
+import { Workout, Meal, BodyMeasurement } from "@/types";
 import { WorkoutStats, MealStats } from "@/lib/api/api-types";
 
 interface ClientTabsProps {
@@ -15,6 +16,7 @@ interface ClientTabsProps {
   onTabChange: (value: string) => void;
   workouts: Workout[];
   meals: Meal[];
+  measurements: BodyMeasurement[];
   workoutStats: WorkoutStats | null;
   mealStats: MealStats | null;
   dateRange: { start: string; end: string };
@@ -31,6 +33,7 @@ export function ClientTabs({
   onTabChange,
   workouts,
   meals,
+  measurements,
   workoutStats,
   mealStats,
   dateRange,
@@ -45,13 +48,16 @@ export function ClientTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
-      <TabsList className="mb-4">
+      <TabsList className="mb-4 flex-wrap">
         <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
         <TabsTrigger value="workouts">
           {t("workouts")} ({workouts.length})
         </TabsTrigger>
         <TabsTrigger value="meals">
           {t("meals")} ({meals.length})
+        </TabsTrigger>
+        <TabsTrigger value="measurements">
+          {t("measurements")} ({measurements.length})
         </TabsTrigger>
         <TabsTrigger value="progress">{t("progress_charts")}</TabsTrigger>
         <TabsTrigger value="plans">{t("plans")}</TabsTrigger>
@@ -75,6 +81,10 @@ export function ClientTabs({
 
       <TabsContent value="meals">
         <MealsTab meals={meals} />
+      </TabsContent>
+
+      <TabsContent value="measurements">
+        <MeasurementsTab measurements={measurements} />
       </TabsContent>
 
       <TabsContent value="progress">

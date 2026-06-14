@@ -20,15 +20,16 @@ Use AGENTS.md, ARCHITECTURE.md, CODE_STYLE.md, PHASES.MD and context-map.md to u
 
 ## Architecture Overview
 - **Framework**: Next.js 16 (app router) with TypeScript.
+- **Internationalization**: next-intl with `[locale]` route group; English (en) and Turkish (tr) locales.
 - **State Management**: Zustand store + React Context for providers.
 - **Data Fetching**: @tanstack/react-query v5 handles server state, caching, invalidation.
 - **UI**: Base UI + Radix UI primitives (button, dialog, card, input, textarea, badge, calendar, tabs, alert-dialog, chart, combobox, empty, field, input-group, separator) built with Tailwind CSS v4.
-- **Feature Modules**: Components under `src/components/features/*` grouped by domain (athlete, trainer, workout, meal, comments, reviews, coaching, exercise).
-- **Pages**: Routes defined in `src/app` using nested folders; auth routes under `(auth)`, dashboard under `(dashboard)` with route groups for athlete/trainer.
+- **Feature Modules**: Components under `src/components/features/*` grouped by domain (athlete, trainer, workout, meal, comments, reviews, coaching, exercise, body-measurement).
+- **Pages**: Routes defined in `src/app` using nested folders; `[locale]` route group wraps all routes, auth routes under `(auth)`, dashboard under `(dashboard)` with route groups for athlete/trainer.
 - **Testing**: Unit tests in `src/test/*` using Vitest + React Testing Library. E2E tests via Playwright.
 - **Styling**: Tailwind CSS v4 with `tw-animate-css` for animations.
 - **Form handling**: TanStack React Form + Zod for validation.
-- **API Layer**: Centralized API client in `src/lib/api/` with typed domain modules (authApi, userApi, workoutApi, mealApi, commentApi, relationshipApi, trainerClientApi, trainerCatalogApi, availabilityApi, reviewApi, coachingRequestApi, exerciseApi).
+- **API Layer**: Centralized API client in `src/lib/api/` with typed domain modules (authApi, userApi, workoutApi, mealApi, commentApi, relationshipApi, trainerClientApi, trainerCatalogApi, availabilityApi, reviewApi, coachingRequestApi, exerciseApi, bodyMeasurementApi).
 
 ## Important Configurations
 - **Tailwind**: Configured for v4 with CSS-based configuration in `src/app/globals.css`.

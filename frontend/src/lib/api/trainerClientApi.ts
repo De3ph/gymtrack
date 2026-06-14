@@ -1,5 +1,11 @@
 import api from "./index"
-import { PaginationParams, WorkoutListResponse, MealListResponse, GetClientStatsResponse } from "./api-types"
+import {
+  PaginationParams,
+  WorkoutListResponse,
+  MealListResponse,
+  BodyMeasurementListResponse,
+  GetClientStatsResponse
+} from "./api-types"
 
 export const trainerClientApi = {
   getClientWorkouts: async (
@@ -18,6 +24,16 @@ export const trainerClientApi = {
     return api.get<MealListResponse>(`/clients/${username}/meals`, {
       params
     })
+  },
+
+  getClientMeasurements: async (
+    username: string,
+    params?: PaginationParams
+  ) => {
+    return api.get<BodyMeasurementListResponse>(
+      `/clients/${username}/measurements`,
+      { params }
+    )
   },
 
   getClientStats: async (username: string) => {

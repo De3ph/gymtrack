@@ -31,19 +31,12 @@ export default function LoginPage() {
       setError("");
 
       try {
-        const user = await login(value.identifier, value.password);
+        await login(value.identifier, value.password);
 
         // Add a small delay to ensure tokens are persisted in localStorage
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Redirect based on user role
-        if (user?.role === "athlete") {
-          router.push(ROUTES.ATHLETE_WORKOUTS);
-        } else if (user?.role === "trainer") {
-          router.push(ROUTES.TRAINER_CLIENTS);
-        } else {
-          router.push(ROUTES.PROFILE);
-        }
+        router.push(ROUTES.DASHBOARD);
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error ? err.message : tCommon("errors.generic");

@@ -57,7 +57,8 @@ var (
 	ErrUserNotFound          = NewServiceError("user not found", "USER_NOT_FOUND")
 	ErrWorkoutNotFound       = NewServiceError("workout not found", "WORKOUT_NOT_FOUND")
 	ErrMealNotFound          = NewServiceError("meal not found", "MEAL_NOT_FOUND")
-	ErrWorkoutPlanNotFound   = NewServiceError("workout plan not found", "WORKOUT_PLAN_NOT_FOUND")
+	ErrWorkoutPlanNotFound    = NewServiceError("workout plan not found", "WORKOUT_PLAN_NOT_FOUND")
+	ErrBodyMeasurementNotFound = NewServiceError("body measurement not found", "BODY_MEASUREMENT_NOT_FOUND")
 )
 
 // ServiceError represents a business logic error with a code

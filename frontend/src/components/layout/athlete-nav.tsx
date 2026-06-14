@@ -25,6 +25,12 @@ export function AthleteNav() {
         {tNav('meals')}
       </Link>
       <Link
+        href={ROUTES.ATHLETE_MEASUREMENTS}
+        className={cn(linkStyles.nav, pathname.endsWith(ROUTES.ATHLETE_MEASUREMENTS) && "bg-gray-200 dark:bg-gray-700")}
+      >
+        {tNav('measurements')}
+      </Link>
+      <Link
         href={ROUTES.ATHLETE_TRAINERS}
         className={cn(linkStyles.nav, pathname.endsWith(ROUTES.ATHLETE_TRAINERS) && "bg-gray-200 dark:bg-gray-700")}
       >

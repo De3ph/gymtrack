@@ -12,7 +12,7 @@ translationFiles.forEach(file => {
 
   if (!result.success) {
     console.error(`❌ Translation validation failed for ${file}:`);
-    result.error.issues.forEach((err: { message: string; path: (string | number)[] }) => {
+    result.error.issues.forEach((err) => {
       console.error(`   - ${err.path.join('.')}: ${err.message}`);
     });
     process.exit(1);

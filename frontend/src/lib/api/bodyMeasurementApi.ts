@@ -1,0 +1,39 @@
+import {
+  BodyMeasurement,
+  CreateBodyMeasurementRequest,
+  UpdateBodyMeasurementRequest
+} from "@/types"
+import api from "./index"
+import {
+  BodyMeasurementListResponse,
+  MessageResponse,
+  PaginationParams
+} from "./api-types"
+
+export const bodyMeasurementApi = {
+  create: async (data: CreateBodyMeasurementRequest) => {
+    return api.post<BodyMeasurement>("/measurements", data)
+  },
+
+  getAll: async (params?: PaginationParams) => {
+    return api.get<BodyMeasurementListResponse>("/measurements", { params })
+  },
+
+  getById: async (id: string) => {
+    return api.get<BodyMeasurement>(`/measurements/${id}`)
+  },
+
+  getLatest: async (athleteId?: string) => {
+    return api.get<BodyMeasurement>("/measurements/latest", {
+      params: athleteId ? { athleteId } : undefined
+    })
+  },
+
+  update: async (id: string, data: UpdateBodyMeasurementRequest) => {
+    return api.put<BodyMeasurement>(`/measurements/${id}`, data)
+  },
+
+  delete: async (id: string) => {
+    return api.delete<MessageResponse>(`/measurements/${id}`)
+  }
+}

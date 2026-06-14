@@ -4,17 +4,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Loader2, Plus, Trash2 } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { FieldInfo } from "@/components/ui/form-field";
 import { workoutApi } from "@/lib/api";
 import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
 import { ExerciseSetInput } from "./ExerciseSetInput";
 import { DATE_FORMATS } from "@/lib/constants";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
-import { WorkoutWithPerSetFormData } from "@/lib/validations/workout";
+import {
+  createWorkoutWithPerSetSchema,
+  WorkoutWithPerSetFormData,
+} from "@/lib/validations/workout";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 
@@ -71,7 +75,14 @@ export function WorkoutForm({
 }: WorkoutFormProps) {
   const queryClient = useQueryClient();
   const t = useTranslations("workout.form");
+  const tValidation = useTranslations("workout.form.validation");
   const tCommon = useTranslations("common.actions");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const workoutWithPerSetSchema = useMemo(
+    () => createWorkoutWithPerSetSchema((key) => tValidation(key)),
+    [tValidation],
+  );
 
   const form = useForm({
     defaultValues: {
@@ -83,7 +94,11 @@ export function WorkoutForm({
         ? initialWorkout.exercises
         : [createDefaultExercise()],
     },
+    validators: {
+      onSubmit: workoutWithPerSetSchema,
+    },
     onSubmit: async ({ value }) => {
+      setSubmitError(null);
       createWorkout(value);
     },
   });
@@ -100,13 +115,13 @@ export function WorkoutForm({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"], exact: true });
+      queryClient.invalidateQueries({ queryKey: ["workouts"] });
       form.reset();
       if (onSuccess) onSuccess();
     },
     onError: (error) => {
       const errorMessage = ApiErrorHandler.handle(error);
-      // TODO: Show toast notification with errorMessage
+      setSubmitError(errorMessage);
       console.error("Failed to log workout:", errorMessage);
     },
   });
@@ -120,6 +135,7 @@ export function WorkoutForm({
   // Event handlers
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     form.handleSubmit();
   };
 
@@ -138,6 +154,15 @@ export function WorkoutForm({
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6">
+      {submitError && (
+        <div
+          role="alert"
+          className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-md"
+        >
+          {submitError}
+        </div>
+      )}
+
       <div className="flex flex-col space-y-2">
         <FieldLabel htmlFor="date">{t("date.label")}</FieldLabel>
         <div className="flex flex-wrap gap-4">
@@ -208,18 +233,27 @@ export function WorkoutForm({
                     </Button>
                   </div>
                   <div className="mt-2">
-                    <ExerciseSelector
-                      selectedExerciseId={exercise.exerciseId}
-                      onSelect={(selected) => {
-                        const newExercises = [...field.state.value];
-                        newExercises[index] = {
-                          ...newExercises[index],
-                          exerciseId: selected.exerciseId,
-                          name: selected.name,
-                        };
-                        field.setValue(newExercises);
-                      }}
-                    />
+                    <form.Field name={`exercises[${index}].exerciseId`}>
+                      {(subField) => (
+                        <Field>
+                          <ExerciseSelector
+                            selectedExerciseId={subField.state.value}
+                            onSelect={(selected) => {
+                              field.setValue((prev) => {
+                                const newExercises = [...prev];
+                                newExercises[index] = {
+                                  ...newExercises[index],
+                                  exerciseId: selected.exerciseId,
+                                  name: selected.name,
+                                };
+                                return newExercises;
+                              });
+                            }}
+                          />
+                          <FieldInfo field={subField} />
+                        </Field>
+                      )}
+                    </form.Field>
                   </div>
                 </CardHeader>
                 {!collapsedMap[index] && (
@@ -227,12 +261,15 @@ export function WorkoutForm({
                     {/* Per-Set Input */}
                     <form.Field name={`exercises[${index}].sets`}>
                       {(subField) => (
-                        <ExerciseSetInput
-                          value={subField.state.value}
-                          onChange={(sets) =>
-                            handleSetsChange(sets, index, field)
-                          }
-                        />
+                        <Field>
+                          <ExerciseSetInput
+                            value={subField.state.value}
+                            onChange={(sets) =>
+                              handleSetsChange(sets, index, field)
+                            }
+                          />
+                          <FieldInfo field={subField} />
+                        </Field>
                       )}
                     </form.Field>
                   </CardContent>

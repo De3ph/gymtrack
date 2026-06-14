@@ -64,6 +64,7 @@ func main() {
 	exerciseCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises)
 	workoutPlanCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
 	workoutPlanAssignmentCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlanAssignments)
+	bodyMeasurementCollection := config.GlobalBucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
 
 	// Initialize repositories with specific collections
 	userRepo := repositories.NewCouchbaseUserRepository(userCollection)
@@ -80,6 +81,9 @@ func main() {
 	// Workout plan repositories
 	workoutPlanRepo := repositories.NewWorkoutPlanRepository(workoutPlanCollection)
 	workoutPlanAssignmentRepo := repositories.NewWorkoutPlanAssignmentRepository(workoutPlanAssignmentCollection)
+
+	// Body measurement repository
+	bodyMeasurementRepo := repositories.NewBodyMeasurementRepository(bodyMeasurementCollection)
 
 	// Trainer feature repositories
 	trainerProfileRepo := repositories.NewCouchbaseTrainerProfileRepository(userCollection)
@@ -147,6 +151,10 @@ func main() {
 	// Exercise feature handler
 	exerciseHandler := handlers.NewExerciseHandler(exerciseService)
 
+	// Body measurement service & handler
+	bodyMeasurementService := services.NewBodyMeasurementService(bodyMeasurementRepo, relationshipRepo, userRepo)
+	bodyMeasurementHandler := handlers.NewBodyMeasurementHandler(bodyMeasurementService, userRepo)
+
 	routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler)
 	routes.RegisterCoachingRequestRoutes(router, coachingRequestHandler)
 	routes.RegisterExerciseRoutes(router, exerciseHandler)
@@ -155,6 +163,9 @@ func main() {
 	workoutPlanService := services.NewWorkoutPlanService(workoutPlanRepo, workoutPlanAssignmentRepo, relationshipRepo, workoutRepo)
 	workoutPlanHandler := handlers.NewWorkoutPlanHandler(workoutPlanService, userRepo)
 	routes.RegisterWorkoutPlanRoutes(apiGroup, workoutPlanHandler)
+
+	// Body measurement routes
+	routes.MeasurementRoutes(apiGroup, bodyMeasurementHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

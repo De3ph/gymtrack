@@ -1,7 +1,7 @@
 # GymTrack Project Context Map
 
-> Generated: 2026-04-24
-> Status: Phases 1-5 Complete ✅ | Phase 6 (Polish) In Progress
+> Generated: 2026-06-07
+> Status: Phases 1-6 Complete ✅ | Body Measurement Feature In Progress
 
 ---
 
@@ -22,7 +22,7 @@
 
 ## 1. Project Overview
 
-**GymTrack** is a two-sided fitness tracking platform connecting **personal trainers** with **athletes**. Athletes log workouts and meals; trainers monitor progress and provide feedback through comments.
+**GymTrack** is a two-sided fitness tracking platform connecting **personal trainers** with **athletes**. Athletes log workouts, meals, and body measurements; trainers monitor progress and provide feedback through comments.
 
 ### Tech Stack Summary
 
@@ -32,6 +32,7 @@
 | **Frontend Language** | TypeScript + React | 5.9.3 + 19.2.3 |
 | **Frontend Styling** | Tailwind CSS v4 | v4.2.4 |
 | **Animation** | Motion + tw-animate-css | v12.38.0 + v1.4.0 |
+| **Internationalization** | next-intl | v4.x |
 | **Server State** | TanStack React Query | v5.99.2 |
 | **Client State** | Zustand | v5.0.12 |
 | **Forms** | TanStack React Form + Zod | v1.29.1 + v4.3.6 |
@@ -52,7 +53,8 @@
 | Phase 3 | Trainer Features (dashboard, client views) | ✅ Complete |
 | Phase 4 | Communication (comments) | ✅ Complete |
 | Phase 5 | Trainer Improvements (catalog, reviews, coaching) | ✅ Complete |
-| Phase 6 | Polish & Optimization | 🔄 In Progress |
+| Phase 6 | Polish & Optimization (i18n, theme) | ✅ Complete |
+| Body Measurement | Athlete body tracking + trainer view | 🔄 In Progress |
 
 ---
 
@@ -66,17 +68,17 @@ backend/
 │   ├── main.go              # Application entry point, DI wiring
 ├── internal/
 │   ├── api/
-│   │   ├── handlers/        # HTTP request handlers (11 handlers)
+│   │   ├── handlers/        # HTTP request handlers (12 handlers)
 │   │   ├── middleware/      # JWT auth middleware
-│   │   └── routes/          # Route definitions per domain
+│   │   └── routes/          # Route definitions per domain (9 files)
 │   ├── config/
 │   │   ├── config.go        # Env config loading (godotenv)
 │   │   ├── db.go            # Couchbase connection management
 │   │   └── collections.go   # Bucket/scope/collection setup
 │   ├── domain/
-│   │   ├── models/          # Data structures + factory methods (13 entities)
-│   │   ├── repositories/  # Couchbase data access layer (12 repos)
-│   │   ├── services/       # Business logic layer (12 services)
+│   │   ├── models/          # Data structures + factory methods (14 entities)
+│   │   ├── repositories/  # Couchbase data access layer (13 repos)
+│   │   ├── services/       # Business logic layer (13 services)
 │   │   ├── errors/         # Custom error types
 │   │   └── testutils/      # Test mocks
 │   └── utils/              # Helper utilities
@@ -118,7 +120,7 @@ backend/
 └─────────────────────────┴──────────────────┘
 ```
 
-### 2.3 Domain Models (13 entities)
+### 2.3 Domain Models (14 entities)
 
 | Model | File | Key Fields | Business Rules |
 |-------|------|-----------|----------------|
@@ -135,6 +137,7 @@ backend/
 | **Exercise** | `exercise.go` | exerciseId, name, muscleGroup, equipment, description | Exercise catalog for workout logging |
 | **Equipment** | `equipment.go` | equipmentId, name, description | Equipment types (dumbbells, barbells, machines, etc.) |
 | **MuscleGroup** | `muscle_group.go` | muscleGroupId, name | Muscle groups (chest, back, legs, etc.) |
+| **BodyMeasurement** | `body_measurement.go` | measurementId, athleteId, date, weight, weightUnit, bodyFatPct, parts{}, notes | Editable within 24h. Flexible parts map for body part measurements |
 
 ### 2.4 API Endpoints (by domain)
 
@@ -166,6 +169,17 @@ GET    /api/meals/:id          - Get specific meal
 PUT    /api/meals/:id          - Update meal
 DELETE /api/meals/:id          - Delete meal
 GET    /api/clients/:id/meals   - Trainer view client meals
+```
+
+#### Body Measurements
+```
+POST   /api/measurements                    - Create body measurement (athlete only)
+GET    /api/measurements                   - Get own measurements (paginated, date filtered)
+GET    /api/measurements/latest            - Get latest measurement (athlete own / trainer client)
+GET    /api/measurements/:id               - Get specific measurement
+PUT    /api/measurements/:id               - Update measurement (24h window)
+DELETE /api/measurements/:id               - Delete measurement (24h window)
+GET    /api/clients/:username/measurements - Trainer view client measurements
 ```
 
 #### Relationships
@@ -211,7 +225,7 @@ PUT    /api/coaching-requests/:id/accept - Trainer accepts request
 PUT    /api/coaching-requests/:id/reject - Trainer rejects request
 ```
 
-#### Exercise Catalog (New)
+#### Exercise Catalog
 ```
 GET    /api/exercises           - Get all exercises (with filters)
 GET    /api/exercises/:id       - Get specific exercise
@@ -240,16 +254,19 @@ GET    /swagger/*any              - Swagger UI
 Couchbase Cluster
 └── Bucket: "gymtrack"
     ├── Scope: "_default"
-    │   ├── Collection: "users"         → User docs, TrainerProfiles, Reviews, Availability
-    │   ├── Collection: "workouts"      → Workout docs
-    │   ├── Collection: "meals"       → Meal docs
-    │   ├── Collection: "relationships" → Relationship docs
-    │   ├── Collection: "comments"     → Comment docs
-    │   ├── Collection: "invitations"   → Invitation docs
-    │   ├── Collection: "exercises"    → Exercise catalog docs
-    │   ├── Collection: "equipment"    → Equipment type docs
-    │   └── Collection: "muscle_groups" → Muscle group docs
-    └── Scope: "coaching_requests"     → Coaching request docs (separate scope)
+    │   ├── Collection: "users"                  → User docs, TrainerProfiles, Reviews, Availability
+    │   ├── Collection: "workouts"               → Workout docs
+    │   ├── Collection: "meals"                  → Meal docs
+    │   ├── Collection: "relationships"          → Relationship docs
+    │   ├── Collection: "comments"               → Comment docs
+    │   ├── Collection: "invitations"            → Invitation docs
+    │   ├── Collection: "exercises"              → Exercise catalog docs
+    │   ├── Collection: "equipment"              → Equipment type docs
+    │   ├── Collection: "muscle_groups"          → Muscle group docs
+    │   ├── Collection: "body_measurements"      → Body measurement docs
+    │   ├── Collection: "workout_plans"          → Workout plan docs
+    │   └── Collection: "workout_plan_assignments" → Plan assignment docs
+    └── Scope: "coaching_requests"               → Coaching request docs (separate scope)
 ```
 
 ### 2.7 Dependency Injection Pattern
@@ -267,6 +284,7 @@ Config → Couchbase → Collections → Repositories → Services → Handlers 
 | **UserService** | `user_service.go` | User profile operations |
 | **WorkoutService** | `workout_service.go` | Workout CRUD with 24h edit validation |
 | **MealService** | `meal_service.go` | Meal CRUD with 24h edit validation |
+| **BodyMeasurementService** | `body_measurement_service.go` | Body measurement CRUD with 24h edit validation, relationship checks for trainer access |
 | **CommentService** | `comment_service.go` | Comment creation with authorization checks |
 | **InvitationService** | `invitation_service.go` | Code-based invitation flow. Validates athlete has no active trainer |
 | **TrainerCatalogService** | `trainer_catalog_service.go` | Trainer search, profile retrieval |
@@ -290,27 +308,39 @@ frontend/
 │   │   ├── page.tsx              # Landing page (redirects based on auth)
 │   │   ├── providers.tsx         # TanStack Query provider
 │   │   ├── globals.css           # Global styles + Tailwind v4
-│   │   ├── (auth)/
-│   │   │   ├── layout.tsx       # Auth layout
-│   │   │   ├── login/page.tsx   # Login page
-│   │   │   └── register/page.tsx # Registration page
-│   │   └── (dashboard)/
-│   │       ├── layout.tsx        # Dashboard layout + nav (auth guard)
-│   │       ├── page.tsx         # Dashboard home
-│   │       ├── athlete/
-│   │       │   ├── workouts/    # Workout logging + history
-│   │       │   ├── meals/       # Meal logging + history
-│   │       │   ├── trainers/    # Browse trainers catalog
-│   │       │   ├── trainer/[id]/ # Current trainer view
-│   │       │   └── requests/   # Coaching request management
-│   │       ├── trainer/
-│   │       │   ├── clients/      # Client list dashboard
-│   │       │   ├── client/[id]/   # Individual client detail
-│   │       │   ├── profile/      # Trainer profile management
-│   │       │   └── requests/   # Incoming coaching requests
-│   │       └── profile/          # Profile editing (role-agnostic)
+│   │   ├── [locale]/             # next-intl locale route group
+│   │   │   ├── (auth)/
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── login/page.tsx
+│   │   │   │   └── register/page.tsx
+│   │   │   └── (dashboard)/
+│   │   │       ├── layout.tsx    # Dashboard layout + nav (auth guard)
+│   │   │       ├── page.tsx
+│   │   │       ├── athlete/
+│   │   │       │   ├── workouts/ # Workout logging + history
+│   │   │       │   ├── meals/    # Meal logging + history
+│   │   │       │   ├── measurements/ # Body measurement logging + history + charts
+│   │   │       │   ├── trainers/ # Browse trainers catalog
+│   │   │       │   ├── trainer/[id]/ # Current trainer view
+│   │   │       │   ├── requests/ # Coaching request management
+│   │   │       │   └── workout-plans/ # Assigned workout plans
+│   │   │       └── trainer/
+│   │   │           ├── clients/  # Client list dashboard
+│   │   │           ├── client/[username]/ # Individual client detail (now with measurements tab)
+│   │   │           ├── profile/  # Trainer profile management
+│   │   │           ├── requests/ # Incoming coaching requests
+│   │   │           └── workout-plans/ # Workout plan management
+│   │   └── (dashboard)/profile/   # Profile editing (role-agnostic)
+│   ├── i18n/                     # next-intl configuration
+│   │   ├── request.ts            # getRequestConfig for server
+│   │   ├── routing.ts            # defineRouting (en, tr, default: en)
+│   │   ├── navigation.ts         # createNavigation wrappers
+│   │   └── translations-schema.ts # Zod schema for type-safe translations
+│   ├── messages/                 # Translation JSON files
+│   │   ├── en.json               # English translations
+│   │   └── tr.json               # Turkish translations
 │   ├── components/
-│   │   ├── ui/                 # Base UI components (17 components)
+│   │   ├── ui/                   # Base UI components (17 components)
 │   │   │   ├── button.tsx, input.tsx, label.tsx
 │   │   │   ├── card.tsx, dialog.tsx, tabs.tsx
 │   │   │   ├── badge.tsx, calendar.tsx, textarea.tsx
@@ -318,24 +348,27 @@ frontend/
 │   │   │   ├── empty.tsx, field.tsx, form-field.tsx
 │   │   │   ├── input-group.tsx, separator.tsx
 │   │   │   └── [Base UI components]
-│   │   ├── layout/             # Layout components (4)
-│   │   └── features/           # Feature-specific components (8 domains)
-│   │       ├── workout/        # Workout components (6)
-│   │       ├── meal/           # Meal components (7)
-│   │       ├── comments/       # Comment components (4)
-│   │       ├── athlete/        # Athlete components (2)
-│   │       ├── trainer/        # Trainer components (21)
-│   │       ├── coaching/       # Coaching components (2)
-│   │       ├── reviews/        # Review components (2)
-│   │       └── exercise/       # Exercise components (5)
+│   │   ├── layout/               # Layout components (4)
+│   │   └── features/             # Feature-specific components (9 domains)
+│   │       ├── workout/          # Workout components (6)
+│   │       ├── meal/             # Meal components (7)
+│   │       ├── comments/         # Comment components (4)
+│   │       ├── athlete/          # Athlete components (2)
+│   │       ├── trainer/          # Trainer components (21)
+│   │       ├── coaching/         # Coaching components (2)
+│   │       ├── reviews/          # Review components (2)
+│   │       ├── exercise/         # Exercise components (5)
+│   │       ├── body-measurement/ # Body measurement components (5)
+│   │       └── workout-plan/     # Workout plan components
 │   ├── lib/
-│   │   ├── api/                # API client modules (14 files)
-│   │   │   ├── index.ts        # Centralized API client
-│   │   │   ├── api-types.ts    # API response types
+│   │   ├── api/                  # API client modules (15 files)
+│   │   │   ├── index.ts          # Centralized API client
+│   │   │   ├── api-types.ts      # API response types
 │   │   │   ├── authApi.ts
 │   │   │   ├── userApi.ts
 │   │   │   ├── workoutApi.ts
 │   │   │   ├── mealApi.ts
+│   │   │   ├── bodyMeasurementApi.ts
 │   │   │   ├── commentApi.ts
 │   │   │   ├── relationshipApi.ts
 │   │   │   ├── trainerClientApi.ts
@@ -344,25 +377,26 @@ frontend/
 │   │   │   ├── reviewApi.ts
 │   │   │   ├── coachingRequestApi.ts
 │   │   │   └── exerciseApi.ts
-│   │   ├── token-service.ts    # JWT token storage/management
-│   │   ├── error-handler.ts   # Error handling utilities
-│   │   ├── animations.ts     # Animation utilities (Motion)
-│   │   ├── constants.ts       # App constants
-│   │   ├── routes.ts          # Route helpers
-│   │   ├── performance.ts     # Performance utilities
-│   │   ├── utils.ts           # General utilities (cn, etc.)
-│   │   ├── hooks/             # Custom React hooks
-│   │   └── validations/        # Zod validation schemas (4)
+│   │   ├── token-service.ts      # JWT token storage/management
+│   │   ├── error-handler.ts      # Error handling utilities
+│   │   ├── animations.ts         # Animation utilities (Motion)
+│   │   ├── constants.ts          # App constants (incl. BODY_PARTS)
+│   │   ├── routes.ts             # Route constants + dynamic builders
+│   │   ├── performance.ts        # Performance utilities
+│   │   ├── utils.ts              # General utilities (cn, etc.)
+│   │   ├── hooks/                # Custom React hooks
+│   │   └── validations/          # Zod validation schemas (5)
 │   ├── stores/
-│   │   └── authStore.ts       # Zustand auth state
+│   │   └── authStore.ts          # Zustand auth state
 │   ├── types/
-│   │   └── index.ts         # All TypeScript types
-│   ├── e2e/               # Playwright E2E tests
-│   └── test/               # Vitest setup + MSW + component tests (19 files)
+│   │   └── index.ts              # All TypeScript types
+│   ├── e2e/                      # Playwright E2E tests
+│   └── test/                     # Vitest setup + MSW + component tests
+├── messages/                     # next-intl translation files (en.json, tr.json)
 ├── package.json
 ├── next.config.ts
 ├── tsconfig.json
-├── components.json          # ShadCN config
+├── components.json               # ShadCN config
 ├── vitest.config.ts
 ├── playwright.config.ts
 ├── postcss.config.mjs
@@ -374,22 +408,46 @@ frontend/
 
 ```
 /                              → Landing page (redirects if authenticated)
-/(auth)/login                  → Login form
-/(auth)/register              → Registration form (role selection)
-/(dashboard)/                  → Dashboard home (auth-guarded)
-/(dashboard)/athlete/workouts  → Workout logging + calendar + list
-/(dashboard)/athlete/meals     → Meal logging + calendar + list
-/(dashboard)/athlete/trainers  → Browse trainer catalog
-/(dashboard)/athlete/trainer/:id → View specific trainer
-/(dashboard)/athlete/requests → Coaching request management
-/(dashboard)/trainer/clients  → Client list dashboard
-/(dashboard)/trainer/client/:id → Individual client detail
-/(dashboard)/trainer/profile → Trainer profile management
-/(dashboard)/trainer/requests -> Incoming coaching requests
-/(dashboard)/profile          → Profile editing (role-agnostic)
+/[locale]/login                → Login form
+/[locale]/register             → Registration form (role selection)
+/[locale]/                     → Dashboard home (auth-guarded)
+/[locale]/athlete/workouts     → Workout logging + calendar + list
+/[locale]/athlete/meals        → Meal logging + calendar + list
+/[locale]/athlete/measurements → Body measurement logging + list + charts
+/[locale]/athlete/trainers     → Browse trainer catalog
+/[locale]/athlete/trainer/:id  → View specific trainer
+/[locale]/athlete/requests     → Coaching request management
+/[locale]/athlete/workout-plans → Assigned workout plans
+/[locale]/trainer/clients      → Client list dashboard
+/[locale]/trainer/client/:username → Individual client detail (tabs: overview, workouts, meals, measurements, progress, plans)
+/[locale]/trainer/profile      → Trainer profile management
+/[locale]/trainer/requests     → Incoming coaching requests
+/[locale]/trainer/workout-plans → Workout plan management
+/[locale]/profile              → Profile editing (role-agnostic)
 ```
 
-### 3.3 State Management Architecture
+### 3.3 Internationalization (i18n)
+
+**Library**: next-intl v4
+
+**Configuration** (`src/i18n/`):
+- `routing.ts` — defines locales `['en', 'tr']`, default `'en'`, `localePrefix: 'as-needed'`
+- `request.ts` — `getRequestConfig` loads messages from `messages/{locale}.json`
+- `navigation.ts` — `createNavigation` wrappers (Link, redirect, usePathname, useRouter, getPathname)
+- `translations-schema.ts` — Zod schema for type-safe translation keys
+
+**Usage pattern**:
+```typescript
+import { useTranslations } from 'next-intl';
+const t = useTranslations("athlete.measurements");
+// t("date.label") → translated string
+```
+
+**Route structure**: `[locale]` route group wraps all routes. Middleware handles locale detection and prefixing.
+
+**Translation files**: `messages/en.json`, `messages/tr.json` — flat JSON keyed by translation namespace.
+
+### 3.4 State Management Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -403,7 +461,7 @@ frontend/
 │  │  Actions: login, logout, setUser,          │      │
 │  │           initializeAuth, refreshAccessToken │    │
 │  └─────────────────────────────────────────────┘      │
-└──────────────────────────────────────────────────��─��┘
+└──────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────┐
 │              TanStack React Query                       │
@@ -416,7 +474,7 @@ frontend/
 └──────────────────────────────────────────────────────┘
 ```
 
-### 3.4 API Client Architecture
+### 3.5 API Client Architecture
 
 ```
 lib/api/index.ts               →  Centralized request wrapper
@@ -426,9 +484,10 @@ Domain API modules:
   - userApi                →  User operations
   - workoutApi            →  Workout CRUD
   - mealApi               →  Meal CRUD
+  - bodyMeasurementApi    →  Body measurement CRUD
   - commentApi            →  Comment CRUD
   - relationshipApi       →  Trainer-athlete relationships
-  - trainerClientApi      →  Trainer client data
+  - trainerClientApi      →  Trainer client data (incl. getClientMeasurements)
   - trainerCatalogApi    →  Public trainer catalog
   - availabilityApi     →  Availability CRUD
   - reviewApi            →  Review CRUD
@@ -436,7 +495,7 @@ Domain API modules:
   - exerciseApi          →  Exercise catalog CRUD
 ```
 
-### 3.5 Validation Schemas (Zod v4)
+### 3.6 Validation Schemas (Zod v4)
 
 | Schema | File | Covers |
 |--------|------|--------|
@@ -444,8 +503,9 @@ Domain API modules:
 | **workout** | `validations/workout.ts` | Exercise, Workout |
 | **meal** | `validations/meal.ts` | FoodItem, Meal |
 | **comment** | `validations/comment.ts` | Comment content (1-2000 chars) |
+| **bodyMeasurement** | `validations/bodyMeasurement.ts` | BodyMeasurementFormData (date, time, weight, weightUnit, bodyFatPct, parts, notes) |
 
-### 3.6 UI Component Library
+### 3.7 UI Component Library
 
 **Base UI** + Radix UI primitives:
 
@@ -496,7 +556,49 @@ Athlete fills WorkoutForm
   WorkoutList/WorkoutCalendar re-renders
 ```
 
-### 4.2 Trainer Comment Flow
+### 4.2 Body Measurement Logging Flow (Athlete)
+
+```
+Athlete fills BodyMeasurementForm (weight + body parts + body fat)
+       ↓
+  TanStack Form + Zod validation (bodyMeasurementSchema)
+       ↓
+  bodyMeasurementApi.create(CreateBodyMeasurementRequest)
+       ↓
+  POST /api/measurements (Go backend)
+       ↓
+  JWTAuthMiddleware validates token
+       ↓
+  BodyMeasurementHandler validates input (athlete role required)
+       ↓
+  BodyMeasurementService.CreateBodyMeasurement → NewBodyMeasurement factory
+       ↓
+  BodyMeasurementRepository.Create → Couchbase Insert
+       ↓
+  React Query invalidates ["body-measurements"], ["latest-body-measurement"]
+       ↓
+  BodyMeasurementList/BodyMeasurementCharts re-render
+```
+
+### 4.3 Trainer Viewing Client Measurements
+
+```
+Trainer opens client detail page → ClientTabs with "measurements" tab
+       ↓
+  trainerClientApi.getClientMeasurements(username, dateRange?)
+       ↓
+  GET /api/clients/:username/measurements
+       ↓
+  BodyMeasurementHandler.GetClientBodyMeasurements
+       ↓
+  BodyMeasurementService verifies active relationship
+       ↓
+  BodyMeasurementRepository.GetByAthleteID or GetByAthleteDateRange
+       ↓
+  MeasurementsTab renders BodyMeasurementList (readOnly) + BodyMeasurementCharts
+```
+
+### 4.4 Trainer Comment Flow
 
 ```
 Trainer views client workout
@@ -520,7 +622,7 @@ Trainer views client workout
   CommentThread updates
 ```
 
-### 4.3 Coaching Request Flow (Phase 5)
+### 4.5 Coaching Request Flow (Phase 5)
 
 ```
 Athlete browses /athlete/trainers
@@ -615,17 +717,19 @@ useEffect(() => {
 
 | Pattern | Implementation |
 |---------|---------------|
-| **Route Groups** | `(auth)` and `(dashboard)` for layout separation |
+| **Route Groups** | `[locale]`, `(auth)`, and `(dashboard)` for layout separation |
 | **Client Components** | All interactive pages use `'use client'` directive |
 | **API Client Pattern** | Centralized `lib/api/index.ts` with typed domain modules |
 | **Inline React Query** | useQuery/useMutation defined in page components |
 | **TanStack Form** | TanStack React Form with Zod validation |
 | **Dialog Pattern** | Feature dialogs for CRUD operations |
 | **Calendar + List** | Dual view pattern for workouts and meals |
+| **Charts + List** | Dual view pattern for body measurements |
 | **Token Service** | Dedicated `token-service.ts` for localStorage |
 | **Error Handling** | `handleAuthError()` clears state and redirects on 401/403 |
 | **Animations** | Motion library for transitions |
 | **Performance** | Performance utilities for optimization |
+| **i18n** | next-intl with `useTranslations()` hook, Zod schema for type safety |
 
 ### 6.3 Naming Conventions
 
@@ -633,10 +737,11 @@ useEffect(() => {
 |--------|-----------|---------|
 | **Go files** | snake_case | `auth_handler.go` |
 | **Go types** | PascalCase | `Workout`, `MealType` |
-| **TS files** | PascalCase (components), camelCase (utils) | `WorkoutForm.tsx`, `api.ts` |
-| **TS types** | PascalCase | `Workout`, `CreateWorkoutRequest` |
-| **API endpoints** | kebab-case | `/api/auth/login` |
-| **DB fields** | camelCase in JSON | `workoutId`, `athleteId` |
+| **TS files** | kebab-case | `workout-form.tsx`, `body-measurement-form.tsx`, `api.ts` |
+| **TS types** | PascalCase | `Workout`, `CreateWorkoutRequest`, `BodyMeasurement` |
+| **API endpoints** | kebab-case | `/api/auth/login`, `/api/measurements` |
+| **DB fields** | camelCase in JSON | `workoutId`, `measurementId` |
+| **Translation keys** | dot notation | `athlete.measurements.date.label` |
 
 ---
 
@@ -696,6 +801,7 @@ Backend allows:
 | User | Profile operations |
 | Workout | CRUD + authorization |
 | Meal | CRUD + authorization |
+| Body Measurement | CRUD + authorization + relationship checks |
 | Comment | CRUD + threading |
 | Relationship | Invite, accept, terminate |
 | Trainer Catalog | Search, profiles |
@@ -739,6 +845,7 @@ Backend allows:
 |---------|---------|
 | `next` | React framework (App Router) |
 | `react` / `react-dom` | UI library |
+| `next-intl` | Internationalization (i18n) |
 | `@tanstack/react-query` | Server state management |
 | `@tanstack/react-form` | Form management |
 | `zustand` | Client state management |
@@ -764,17 +871,18 @@ Backend allows:
 
 ## 10. File Inventory
 
-### 10.1 Backend Files (80+ Go files)
+### 10.1 Backend Files (85+ Go files)
 
 ```
 cmd/server/main.go
 internal/config/config.go, db.go, collections.go
 internal/api/middleware/auth_middleware.go
-internal/api/handlers/ (11 handlers)
+internal/api/handlers/ (12 handlers)
   - auth_handler.go
   - user_handler.go
   - workout_handler.go
   - meal_handler.go
+  - body_measurement_handler.go
   - comment_handler.go
   - relationship_handler.go
   - trainer_catalog_handler.go
@@ -782,28 +890,30 @@ internal/api/handlers/ (11 handlers)
   - review_handler.go
   - coaching_request_handler.go
   - exercise_handler.go
-internal/api/routes/ (9 route files)
+internal/api/routes/ (10 route files)
   - auth_routes.go, user_routes.go
   - workout_routes.go, meal_routes.go
+  - measurement_routes.go
   - comment_routes.go, relationship_routes.go
   - trainer_routes.go, coaching_request_routes.go
   - exercise_routes.go
 internal/domain/
-  - models/ (13 entity models)
-    * user.go, workout.go, meal.go, comment.go
+  - models/ (14 entity models)
+    * user.go, workout.go, meal.go, body_measurement.go, comment.go
     * relationship.go, invitation.go, trainer_profile.go
     * availability.go, coaching_request.go, review.go
     * exercise.go, equipment.go, muscle_group.go
-  - repositories/ (12 repositories)
+  - repositories/ (13 repositories)
     * user_repository.go, workout_repository.go, meal_repository.go
-    * comment_repository.go, relationship_repository.go
-    * trainer_profile_repository.go, availability_repository.go
-    * review_repository.go, coaching_request_repository.go
-    * exercise_repository.go, equipment_repository.go, muscle_group_repository.go
-  - services/ (12 services)
+    * body_measurement_repository.go, comment_repository.go
+    * relationship_repository.go, trainer_profile_repository.go
+    * availability_repository.go, review_repository.go
+    * coaching_request_repository.go, exercise_repository.go
+    * equipment_repository.go, muscle_group_repository.go
+  - services/ (13 services)
     * auth_service.go, auth_types.go, user_service.go
-    * workout_service.go, meal_service.go, comment_service.go
-    * invitation_service.go, trainer_catalog_service.go
+    * workout_service.go, meal_service.go, body_measurement_service.go
+    * comment_service.go, invitation_service.go, trainer_catalog_service.go
     * availability_service.go, review_service.go
     * coaching_request_service.go, exercise_service.go
   - errors/errors.go
@@ -813,49 +923,65 @@ internal/docs/{docs.go, swagger.json, swagger.yaml}
 go.mod, go.sum, .env
 ```
 
-### 10.2 Frontend Files (140+ files)
+### 10.2 Frontend Files (150+ files)
 
 ```
-src/app/
-  - layout.tsx, page.tsx, providers.tsx, globals.css
-  - (auth)/layout.tsx, login/page.tsx, register/page.tsx
-  - (dashboard)/layout.tsx, page.tsx
-  - (dashboard)/athlete/workouts/page.tsx, meals/page.tsx, trainers/page.tsx
-  - (dashboard)/athlete/trainer/[id]/page.tsx, requests/page.tsx
-  - (dashboard)/trainer/clients/page.tsx
-  - (dashboard)/trainer/client/[id]/page.tsx, profile/page.tsx, requests/page.tsx
-  - (dashboard)/profile/page.tsx
-src/components/
-  - ui/ (17 Base UI + Radix components)
-    * button.tsx, input.tsx, label.tsx, card.tsx
-    * dialog.tsx, tabs.tsx, badge.tsx, calendar.tsx
-    * textarea.tsx, alert-dialog.tsx, chart.tsx
-    * combobox.tsx, empty.tsx, field.tsx, form-field.tsx
-    * input-group.tsx, separator.tsx
-  - layout/ (4 layout components)
-  - features/ (8 feature domains, 49 components)
-    * workout/ (6 components)
-    * meal/ (7 components)
-    * comments/ (4 components)
-    * athlete/ (2 components)
-    * trainer/ (21 components)
-    * coaching/ (2 components)
-    * reviews/ (2 components)
-    * exercise/ (5 components)
-src/lib/
-  - api/ (14 API modules)
-    * index.ts, api-types.ts, authApi.ts, userApi.ts
-    * workoutApi.ts, mealApi.ts, commentApi.ts
-    * relationshipApi.ts, trainerClientApi.ts, trainerCatalogApi.ts
-    * availabilityApi.ts, reviewApi.ts, coachingRequestApi.ts, exerciseApi.ts
-  - token-service.ts, error-handler.ts, animations.ts
-  - constants.ts, routes.ts, performance.ts, utils.ts
-  - hooks/ (custom React hooks)
-  - validations/ (4 Zod schemas)
-src/stores/authStore.ts
-src/types/index.ts
-src/e2e/ (Playwright E2E tests)
-src/test/ (19 test files - Vitest + MSW + component tests)
+src/
+  i18n/
+    - request.ts, routing.ts, navigation.ts, translations-schema.ts
+  messages/
+    - en.json, tr.json
+  app/
+    - layout.tsx, page.tsx, providers.tsx, globals.css
+    - [locale]/(auth)/layout.tsx, login/page.tsx, register/page.tsx
+    - [locale]/(dashboard)/layout.tsx, page.tsx
+    - [locale]/(dashboard)/athlete/workouts/page.tsx, meals/page.tsx, measurements/page.tsx
+    - [locale]/(dashboard)/athlete/trainers/page.tsx
+    - [locale]/(dashboard)/athlete/trainer/[id]/page.tsx, requests/page.tsx
+    - [locale]/(dashboard)/athlete/workout-plans/page.tsx
+    - [locale]/(dashboard)/trainer/clients/page.tsx
+    - [locale]/(dashboard)/trainer/client/[username]/page.tsx, profile/page.tsx, requests/page.tsx
+    - [locale]/(dashboard)/trainer/workout-plans/page.tsx
+    - [locale]/(dashboard)/profile/page.tsx
+  components/
+    - ui/ (17 Base UI + Radix components)
+      * button.tsx, input.tsx, label.tsx, card.tsx
+      * dialog.tsx, tabs.tsx, badge.tsx, calendar.tsx
+      * textarea.tsx, alert-dialog.tsx, chart.tsx
+      * combobox.tsx, empty.tsx, field.tsx, form-field.tsx
+      * input-group.tsx, separator.tsx
+    - layout/ (4 layout components)
+    - features/ (9 feature domains, 54+ components)
+      * workout/ (6 components)
+      * meal/ (7 components)
+      * comments/ (4 components)
+      * athlete/ (2 components)
+      * trainer/ (21 components)
+      * coaching/ (2 components)
+      * reviews/ (2 components)
+      * exercise/ (5 components)
+      * body-measurement/ (5 components)
+        - BodyMeasurementForm.tsx
+        - BodyMeasurementList.tsx
+        - BodyMeasurementCharts.tsx
+        - EditBodyMeasurementDialog.tsx
+        - DeleteBodyMeasurementDialog.tsx
+      * workout-plan/ (components)
+  lib/
+    - api/ (15 API modules)
+      * index.ts, api-types.ts, authApi.ts, userApi.ts
+      * workoutApi.ts, mealApi.ts, bodyMeasurementApi.ts
+      * commentApi.ts, relationshipApi.ts, trainerClientApi.ts
+      * trainerCatalogApi.ts, availabilityApi.ts, reviewApi.ts
+      * coachingRequestApi.ts, exerciseApi.ts
+    - token-service.ts, error-handler.ts, animations.ts
+    - constants.ts, routes.ts, performance.ts, utils.ts
+    - hooks/ (custom React hooks)
+    - validations/ (5 Zod schemas: auth, workout, meal, comment, bodyMeasurement)
+  stores/authStore.ts
+  types/index.ts
+  e2e/ (Playwright E2E tests)
+  test/ (Vitest setup + MSW + component tests)
 package.json, next.config.ts, tsconfig.json
 components.json, vitest.config.ts, playwright.config.ts
 postcss.config.mjs, eslint.config.mjs
@@ -874,7 +1000,7 @@ postcss.config.mjs, eslint.config.mjs
 | **Authorization** | Role-based checks in handlers + services |
 | **CORS** | Restricted to localhost origins only |
 | **Input Validation** | Frontend: Zod. Backend: go-playground/validator |
-| **24h Edit Window** | Workout/Meal `CanEdit()` method enforces 24h limit |
+| **24h Edit Window** | Workout/Meal/BodyMeasurement `CanEdit()` method enforces 24h limit |
 
 ### 11.2 Error Handling
 
@@ -882,7 +1008,7 @@ postcss.config.mjs, eslint.config.mjs
 |-------|----------|
 | **Backend** | Consistent `{"error": "message"}` JSON responses |
 | **Frontend API** | `api.ts` parses error responses, throws `Error` |
-| **Frontend Forms** | Zod validation errors via React Hook Form |
+| **Frontend Forms** | Zod validation errors via TanStack Form |
 | **Auth Errors** | `handleAuthError()` clears state, redirects to login |
 
 ### 11.3 Date Handling
@@ -891,24 +1017,24 @@ postcss.config.mjs, eslint.config.mjs
 |---------|---------|
 | **Frontend** | `dayjs` + `date-fns` for manipulation |
 | **Backend** | Go `time.Time` with JSON marshaling |
-| **API** | ISO 8601 string format for date fields |
+| **API** | ISO 8601 / RFC3339 string format for date fields |
 
 ---
 
-## 12. Known Gaps & Phase 6 Opportunities
+## 12. Known Gaps & Opportunities
 
-Based on the codebase:
-
-1. **Loading states** - Basic "Loading..." text used everywhere, no skeleton loaders
-2. **Error boundaries** - No React error boundaries implemented
-3. **Query caching** - TanStack Query staleTime set to 5min but no prefetching
-4. **Error handling** - Inconsistent error UI across pages
-5. **Real-time updates** - Comments mention optional WebSockets but not implemented
-6. **Optimistic updates** - No optimistic mutations in React Query
-7. **Mobile responsiveness** - Tailwind classes present but mobile UX untested
-8. **Notification system** - No push/in-app notifications for new comments
-9. **Exercise catalog** - New feature added (Exercise, Equipment, MuscleGroup models) - needs frontend integration
-10. **Form migration** - Migration from React Hook Form to TanStack React Form in progress
+1. **Loading states** — Basic "Loading..." text used everywhere, no skeleton loaders
+2. **Error boundaries** — No React error boundaries implemented
+3. **Query caching** — TanStack Query staleTime set to 5min but no prefetching
+4. **Error handling** — Inconsistent error UI across pages
+5. **Real-time updates** — No WebSocket/polling for live updates
+6. **Optimistic updates** — No optimistic mutations in React Query
+7. **Mobile responsiveness** — Tailwind classes present but mobile UX untested
+8. **Notification system** — No push/in-app notifications for new comments
+9. **Body measurement frontend page** — Route directory exists but page.tsx not yet created
+10. **Body measurement i18n keys** — Translation schema needs `body_measurement` and `athlete.measurements` namespaces
+11. **Backend tests** — Service/handler tests broken or outdated, need rewrite
+12. **E2E tests** — Missing for body measurement and other newer features
 
 ---
 

@@ -402,3 +402,55 @@ export interface UpdateWorkoutWithPerSetRequest {
   date: string;
   exercises: WorkoutExercise[];
 }
+
+// ===== BODY MEASUREMENTS TYPES =====
+
+export interface BodyMeasurementPart {
+  value: number;
+}
+
+export type BodyPartKey =
+  | "chest"
+  | "waist"
+  | "hips"
+  | "neck"
+  | "shoulders"
+  | "bicepLeft"
+  | "bicepRight"
+  | "forearmLeft"
+  | "forearmRight"
+  | "thighLeft"
+  | "thighRight"
+  | "calfLeft"
+  | "calfRight";
+
+export interface BodyMeasurement {
+  measurementId: string;
+  athleteId: string;
+  date: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  bodyFatPct?: number;
+  parts?: Record<string, BodyMeasurementPart>;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBodyMeasurementRequest {
+  date: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  bodyFatPct?: number;
+  parts?: Record<string, BodyMeasurementPart>;
+  notes?: string;
+}
+
+export interface UpdateBodyMeasurementRequest {
+  date: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  bodyFatPct?: number;
+  parts?: Record<string, BodyMeasurementPart>;
+  notes?: string;
+}

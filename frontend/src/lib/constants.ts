@@ -45,5 +45,36 @@ export const REQUEST_STATUS = {
 export const DATE_FORMATS = {
   DATE_ONLY: "YYYY-MM-DD",
   TIME_ONLY: "HH:mm",
-  DATE_TIME: "YYYY-MM-DD HH:mm",
+  DATE_TIME: "YYYY-MM-DD HH:mm"
 } as const;
+
+export const PAGINATION = {
+  BODY_MEASUREMENT_PAGE_SIZE: 10,
+  BODY_MEASUREMENT_CHART_LIMIT: 365,
+  WORKOUT_PAGE_SIZE: 10,
+  MEAL_PAGE_SIZE: 10
+} as const;
+
+export const BODY_PARTS = [
+  { key: "chest", labelKey: "chest" },
+  { key: "waist", labelKey: "waist" },
+  { key: "hips", labelKey: "hips" },
+  { key: "neck", labelKey: "neck" },
+  { key: "shoulders", labelKey: "shoulders" },
+  { key: "bicepLeft", labelKey: "bicepLeft" },
+  { key: "bicepRight", labelKey: "bicepRight" },
+  { key: "forearmLeft", labelKey: "forearmLeft" },
+  { key: "forearmRight", labelKey: "forearmRight" },
+  { key: "thighLeft", labelKey: "thighLeft" },
+  { key: "thighRight", labelKey: "thighRight" },
+  { key: "calfLeft", labelKey: "calfLeft" },
+  { key: "calfRight", labelKey: "calfRight" }
+] as const;
+
+export const PART_LABEL_KEYS = BODY_PARTS.reduce(
+  (acc, p) => {
+    acc[p.key] = p.labelKey;
+    return acc;
+  },
+  {} as Record<string, string>
+);
