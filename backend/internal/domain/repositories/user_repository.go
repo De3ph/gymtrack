@@ -16,6 +16,7 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	GetUserByID(ctx context.Context, userID string) (*models.User, error)
+	GetAllUsers(ctx context.Context) ([]*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
 }
 
@@ -117,6 +118,34 @@ func (r *CouchbaseUserRepository) GetUserByID(ctx context.Context, userID string
 	}
 
 	return &user, nil
+}
+
+func (r *CouchbaseUserRepository) GetAllUsers(ctx context.Context) ([]*models.User, error) {
+	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' ORDER BY u.createdAt DESC",
+		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+
+	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+		Context: ctx,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Row(&user)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal user from query result: %w", err)
+		}
+		users = append(users, &user)
+	}
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
+	}
+
+	return users, nil
 }
 
 func (r *CouchbaseUserRepository) UpdateUser(ctx context.Context, user *models.User) error {

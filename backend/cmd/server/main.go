@@ -123,9 +123,13 @@ func main() {
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
+	adminService := services.NewAdminService(userRepo)
+	adminHandler := handlers.NewAdminHandler(adminService)
+
 	apiGroup := router.Group("/api")
 	routes.AuthRoutes(apiGroup, authHandler)
 	routes.UserRoutes(apiGroup, userHandler)
+	routes.AdminRoutes(apiGroup, adminHandler)
 
 	workoutService := services.NewWorkoutService(workoutRepo, relationshipRepo)
 	workoutHandler := handlers.NewWorkoutHandler(workoutService, userRepo)
