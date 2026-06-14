@@ -25,7 +25,7 @@ type FoodItem struct {
 	Food     string  `json:"food" validate:"required"`
 	Quantity string  `json:"quantity" validate:"required"`
 	Calories float64 `json:"calories,omitempty" validate:"gte=0"`
-	Macros   Macros  `json:"macros,omitempty" validate:"omitempty,dive"`
+	Macros   Macros  `json:"macros"`
 }
 
 type Meal struct {
