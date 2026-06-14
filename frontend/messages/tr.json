@@ -289,6 +289,30 @@
       "workouts": "Son Antrenmanlar",
       "meals": "Son Öğünler",
       "activities": "Son Aktiviteler"
+    },
+    "calendar": {
+      "title": "Antrenman takvimi",
+      "description": "Antrenmanlar ve öğünler tek tarih görünümünde.",
+      "loading": "Takvim yükleniyor...",
+      "workout": "Antrenman",
+      "meal": "Öğün",
+      "events": {
+        "workout": "Antrenman",
+        "exercises": "hareket",
+        "no_exercises": "Hareket kaydı yok"
+      }
+    },
+    "events": {
+      "empty_title": "Bu tarih için kayıt yok",
+      "empty_description": "Bugünü görünür yapmak için antrenman veya öğün ekle."
+    },
+    "todayClients": {
+      "title": "Bugünün odağı",
+      "description": "Önce ilgi bekleyen danışanlarla başla.",
+      "empty_title": "Bugün danışan yok",
+      "empty_description": "Davet gönder veya istekleri kabul et.",
+      "unknown_athlete": "Bilinmeyen sporcu",
+      "no_goal": "Hedef yok"
     }
   },
   "workout": {
@@ -572,10 +596,28 @@
   "trainer": {
     "title": "Antrenör",
     "dashboard": {
-      "title": "Antrenör Paneli",
+      "title": "Danışan odası, sakin.",
+      "eyebrow": "Antrenör komuta merkezi",
+      "description": "Güne ilgi bekleyen sporcularla başla, sonra davet, plan ve danışan incelemelerine dağınıklık olmadan geç.",
       "clients": "Danışanlarım",
       "recent_activity": "Son Aktiviteler",
-      "pending_requests": "Bekleyen İstekler"
+      "pending_requests": "Bekleyen İstekler",
+      "client_hint": "Aktif ilişkiler",
+      "today_focus": "Bugünün odağı",
+      "focus_hint": "İncelemeye hazır danışanlar",
+      "plans": "Planlar",
+      "plan_hint": "Program oluştur veya ata",
+      "actions_title": "Koçluk akışı",
+      "actions_description": "Sonraki faydalı işlem yakın dursun.",
+      "invite_athlete": "Sporcu davet et",
+      "invite_description": "Davet kodu oluştur.",
+      "workout_plans": "Antrenman planları",
+      "plans_description": "Antrenman programı oluştur ve ata.",
+      "clients_description": "Tüm danışan listesini aç.",
+      "unknown_athlete": "Bilinmeyen sporcu",
+      "no_goal": "Hedef yok",
+      "no_clients_title": "Henüz danışan yok",
+      "no_clients_description": "Davet gönder veya istekleri kabul et."
     },
     "clients": {
       "title": "Danışanlarım",
@@ -836,11 +878,28 @@
   "athlete": {
     "title": "Sporcu",
     "dashboard": {
-      "title": "Sporcu Paneli",
+      "title": "Bugün net, ilerleme görünür.",
+      "eyebrow": "Sporcu komuta merkezi",
+      "description": "Hafta sinyalini gör, antrenman ve öğünleri tek takvimde tut, aktif koçun varsa bağlantını koru.",
       "workouts": "Antrenmanlarım",
       "meals": "Öğünlerim",
       "progress": "İlerleme",
-      "trainer": "Antrenörüm"
+      "trainer": "Antrenörüm",
+      "workout_hint": "Bu hafta kaydedildi",
+      "meal_hint": "Bu hafta kaydedildi",
+      "trainer_connected": "Koç bağlı",
+      "trainer_empty": "Henüz koç bağlı değil",
+      "trainer_connected_description": "Koç profilini ve bağlamını aç.",
+      "quick_title": "Hızlı işlemler",
+      "quick_description": "Niyetten kanıta tek tıkla geç.",
+      "log_workout": "Antrenman kaydet",
+      "log_workout_description": "Set, tekrar ve yükü yakala.",
+      "log_meal": "Öğün kaydet",
+      "log_meal_description": "Yiyecek ve makroları takip et.",
+      "calendar": "Takvimi aç",
+      "calendar_description": "Tarihe göre antrenman ve öğünleri incele.",
+      "find_trainer": "Antrenör bul",
+      "find_trainer_description": "Koçlara göz at ve istek gönder."
     },
     "workouts": {
       "title": "Antrenmanlar",

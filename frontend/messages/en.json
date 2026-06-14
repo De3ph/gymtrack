@@ -288,6 +288,30 @@
       "workouts": "Recent Workouts",
       "meals": "Recent Meals",
       "activities": "Recent Activities"
+    },
+    "calendar": {
+      "title": "Training calendar",
+      "description": "Workouts and meals share one date view.",
+      "loading": "Loading calendar...",
+      "workout": "Workout",
+      "meal": "Meal",
+      "events": {
+        "workout": "Workout",
+        "exercises": "exercises",
+        "no_exercises": "No exercises recorded"
+      }
+    },
+    "events": {
+      "empty_title": "No entries for this date",
+      "empty_description": "Log a workout or meal to make today visible."
+    },
+    "todayClients": {
+      "title": "Today focus",
+      "description": "Start with the clients who need attention first.",
+      "empty_title": "No clients today",
+      "empty_description": "Invite athletes or accept requests to build your roster.",
+      "unknown_athlete": "Unknown athlete",
+      "no_goal": "No goal set"
     }
   },
   "workout": {
@@ -571,10 +595,28 @@
   "trainer": {
     "title": "Trainer",
     "dashboard": {
-      "title": "Trainer Dashboard",
+      "title": "Client room, calm.",
+      "eyebrow": "Trainer command center",
+      "description": "Start each day with the athletes who need attention, then move into invites, plans, and client reviews without clutter.",
       "clients": "My Clients",
       "recent_activity": "Recent Activity",
-      "pending_requests": "Pending Requests"
+      "pending_requests": "Pending Requests",
+      "client_hint": "Active relationships",
+      "today_focus": "Today focus",
+      "focus_hint": "Clients ready for review",
+      "plans": "Plans",
+      "plan_hint": "Create or assign programs",
+      "actions_title": "Coach flow",
+      "actions_description": "The next useful action stays close.",
+      "invite_athlete": "Invite athlete",
+      "invite_description": "Generate an invitation code.",
+      "workout_plans": "Workout plans",
+      "plans_description": "Build and assign training programs.",
+      "clients_description": "Open the full client roster.",
+      "unknown_athlete": "Unknown athlete",
+      "no_goal": "No goal set",
+      "no_clients_title": "No clients yet",
+      "no_clients_description": "Invite athletes or accept requests to build your roster."
     },
     "clients": {
       "title": "My Clients",
@@ -835,11 +877,28 @@
   "athlete": {
     "title": "Athlete",
     "dashboard": {
-      "title": "Athlete Dashboard",
+      "title": "Your training day, clear.",
+      "eyebrow": "Athlete command center",
+      "description": "See the week signal, keep workouts and meals on one calendar, and stay connected to your coach when guidance is active.",
       "workouts": "My Workouts",
       "meals": "My Meals",
       "progress": "Progress",
-      "trainer": "My Trainer"
+      "trainer": "My Trainer",
+      "workout_hint": "Logged this week",
+      "meal_hint": "Logged this week",
+      "trainer_connected": "Coach connected",
+      "trainer_empty": "No coach connected yet",
+      "trainer_connected_description": "Open your coach profile and context.",
+      "quick_title": "Quick actions",
+      "quick_description": "Move from intention to proof with one tap.",
+      "log_workout": "Log workout",
+      "log_workout_description": "Capture sets, reps, and load.",
+      "log_meal": "Log meal",
+      "log_meal_description": "Track food and macros.",
+      "calendar": "Open calendar",
+      "calendar_description": "Review workouts and meals by date.",
+      "find_trainer": "Find trainer",
+      "find_trainer_description": "Browse coaches and send a request."
     },
     "workouts": {
       "title": "Workouts",

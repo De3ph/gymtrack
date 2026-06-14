@@ -11,7 +11,7 @@
 - [ ] auto scroll to bottom when adding a new set or new exercise in the form
 - [x] after loggin workout, it redirects to the list tab, but it not invalidate query
 - [x] editing workout not works
-- [ ] add validations in log meal and workout forms
+- [x] add validations in log meal and workout forms
 - [ ] improve main page of athletes.
   - [ ] add common calendar to track workouts and meals
   - [ ] add trainers info if exists
