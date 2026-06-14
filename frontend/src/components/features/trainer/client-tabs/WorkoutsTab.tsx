@@ -1,22 +1,34 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { WorkoutList } from "@/components/features/workout/WorkoutList";
+import { useTranslations } from "next-intl";
+import { Workout } from "@/types";
 
 interface WorkoutsTabProps {
-  workouts: any[];
+  workouts: Workout[];
 }
 
 export function WorkoutsTab({ workouts }: WorkoutsTabProps) {
+  const t = useTranslations("trainer.client_detail.tabs");
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Workout History</CardTitle>
-        <CardDescription>View all workouts logged by this athlete</CardDescription>
+        <CardTitle>{t("workout_history")}</CardTitle>
+        <CardDescription>{t("workout_description")}</CardDescription>
       </CardHeader>
       <CardContent>
         {workouts.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">No workouts found</p>
+          <p className="text-center text-muted-foreground py-8">
+            {t("no_workouts")}
+          </p>
         ) : (
           <WorkoutList workouts={workouts} readOnly={true} />
         )}

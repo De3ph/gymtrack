@@ -19,12 +19,13 @@ type Workout struct {
 	AthleteID string            `json:"athleteId" validate:"required"`
 	Date      time.Time         `json:"date" validate:"required"`
 	Exercises []WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
+	PlanID    string            `json:"planId,omitempty"` // Set when started from a plan
 	CreatedAt time.Time         `json:"createdAt"`
 	UpdatedAt time.Time         `json:"updatedAt"`
 }
 
 // NewWorkout creates a new workout with generated IDs and timestamps
-func NewWorkout(athleteID string, date time.Time, exercises []WorkoutExercise) *Workout {
+func NewWorkout(athleteID string, date time.Time, exercises []WorkoutExercise, planID string) *Workout {
 	now := time.Now()
 	workoutID := uuid.New().String()
 
@@ -46,6 +47,7 @@ func NewWorkout(athleteID string, date time.Time, exercises []WorkoutExercise) *
 		AthleteID: athleteID,
 		Date:      date,
 		Exercises: exercises,
+		PlanID:    planID,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}

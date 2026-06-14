@@ -1,0 +1,102 @@
+Page Audit - Gymtrack Frontend
+
+1. Athlete Meals Page (src/app/(dashboard)/athlete/meals/page.tsx)
+Current Components: Tabs, Card, CardHeader, CardTitle, CardDescription, CardContent, MealForm
+Opportunities:
+- MealForm: Add Select for meal type (breakfast/lunch/dinner/snack)
+- MealForm: Add Input fields for calories, protein, carbs, fat
+- MealList: Replace simple list with Table for better data organization
+- Nutrition summary: Use Accordion to show/hide detailed macros
+- Add ButtonGroup for quick actions (copy, delete, share)
+- Use Avatar for food images or user avatar
+
+2. Athlete Workouts Page (src/app/(dashboard)/athlete/workouts/page.tsx)
+Current Components: Tabs, Card, CardHeader, CardTitle, CardDescription, CardContent, WorkoutForm
+Opportunities:
+- WorkoutForm: Add Select for exercise selection from database
+- WorkoutForm: Add Input fields for weight, reps, rest time
+- Exercise list: Use Accordion to expand/collapse exercise details
+- Progress tracking: Add Progress bars to show set completion percentage
+- Use ButtonGroup for workout actions (start, log, complete)
+- Add Table to display past workouts with columns
+
+3. Trainer Workout Plans Page (src/app/(dashboard)/trainer/workout-plans/page.tsx)
+Current Components: Button, Dialog, DialogContent, DialogHeader, DialogTitle, WorkoutPlanList
+Opportunities:
+- WorkoutPlanList: Convert to Table with columns (name, exercises, creation date, actions)
+- Add Select dropdown for filtering plans (by athlete, by status)
+- Add ButtonGroup for bulk operations (delete, assign, archive)
+- Use Progress bars to show plan completion statistics
+- Add Tabs for separating active/inactive/archived plans
+
+4. Trainer Clients Page (src/app/(dashboard)/trainer/clients/page.tsx)
+Current Components: Button, Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyContent, EmptyDescription, ClientCard
+Opportunities:
+- Replace plain search input with Input component from ui/
+- Add Select for sorting clients (by name, by last workout, by status)
+- Convert client list to Table with columns: Avatar, Name, Email, Status, Actions
+- Use Avatar component for client profile pictures
+- Add ButtonGroup for client actions (view, message, assign plan)
+- Use Progress bars to show client progress towards goals
+- Add Tabs for active/inactive/pending clients
+
+5. Trainer Detail Page (src/app/(dashboard)/trainer/client/[username]/page.tsx)
+Current Components: Button
+Opportunities:
+- Add Tabs to separate Trainer Profile from Relationship Details
+- Use Accordion for collapsible sections (achievements, notes, history)
+- Add Progress bars for tracking relationship progress
+- Use Avatar for trainer profile image
+- Add Table for workout history and meal logs
+
+6. Athlete My Trainer Page (src/app/(dashboard)/athlete/my-trainer/[id]/page.tsx)
+Current Components: Button
+Opportunities:
+- Add Tabs for Trainer Info, Progress, Communication
+- Use Accordion for trainer bio, specialties, availability
+- Add Progress bars for tracking fitness goals
+- Use Avatar for trainer image
+- Add Table for session history and upcoming appointments
+
+7. Auth Pages (login/register)
+Current Components: Input, Button, Field, FieldLabel, FieldInfo, Spinner
+Opportunities:
+- Use Input component consistently
+- Add ShowPassword feature using PasswordToggleField (Radix UI)
+- Use Card for centered layout on mobile
+- Add Progress indicator for multi-step forms
+- Use Alert for error messages instead of plain text
+
+8. Common Opportunities Across All Pages:
+- Replace plain buttons with variants (outline, secondary, ghost, destructive)
+- Use ButtonGroup for related actions
+- Implement Select components for better dropdowns
+- Add Popover for contextual actions (hover over data points)
+- Use Radio Group for multiple choice inputs
+- Add Table components for structured data display
+- Use Progress bars for visual progress indicators
+- Implement Avatar for user/trainer images
+- Add Breadcrumb navigation for hierarchy
+- Use Accordion for collapsible content sections
+- Add Toggle switches for settings and options
+
+Priority Implementation Order:
+1. Select - for filters and dropdowns (high impact)
+2. Table - for data organization (high impact)
+3. Progress - for visual feedback (medium impact)
+4. Avatar - for user profiles (medium impact)
+5. ButtonGroup - for action organization (medium impact)
+6. Accordion - for collapsible content (medium impact)
+7. Popover - for contextual actions (low impact)
+8. Radio Group - for multiple choice (low impact)
+9. Breadcrumb - for navigation (low impact)
+10. Toggle Switch - for settings (low impact)
+11. Carousel - for image display (low impact)
+12. Context Menu - for right-click actions (low impact)
+
+Implementation Notes:
+- All these components already exist in src/components/ui/
+- Just need to import and use them in page components
+- Follow existing patterns (use data-slot attributes)
+- Maintain consistent styling with globals.css
+- Add animations using tw-animate-css where appropriate

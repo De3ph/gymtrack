@@ -89,7 +89,7 @@ describe('MealList', () => {
   })
 
   it('fetches meals when no props provided', async () => {
-    vi.mocked(mealApi.getAll).mockResolvedValue({ meals: mockMeals })
+    vi.mocked(mealApi.getAll).mockResolvedValue({ meals: mockMeals, count: mockMeals.length })
     renderWithProvider(<MealList />)
 
     await waitFor(() => {

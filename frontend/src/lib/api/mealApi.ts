@@ -3,6 +3,11 @@ import api from "./index"
 import { MessageResponse, PaginationParams, MealListResponse } from "./api-types"
 import { Meal } from "@/types"
 
+type FetchOptions = RequestInit & {
+  params?: Record<string, unknown> | PaginationParams
+  timeout?: number
+}
+
 export const mealApi = {
   create: async (data: CreateMealRequest) => {
     return api.post<Meal>("/meals", data)
@@ -27,7 +32,7 @@ export const mealApi = {
   },
 
   // Get meals by specific date
-  getByDate: async (date: string, config?: RequestInit) => {
+  getByDate: async (date: string, config?: FetchOptions) => {
     return api.get<MealListResponse>("/meals", {
       params: { date },
       ...config

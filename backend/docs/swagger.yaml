@@ -139,14 +139,14 @@ definitions:
     type: object
   handlers.LoginRequest:
     properties:
-      email:
-        example: test@example.com
+      identifier:
+        example: test@example.com or johndoe
         type: string
       password:
         example: password123
         type: string
     required:
-    - email
+    - identifier
     - password
     type: object
   handlers.MealStats:
@@ -198,10 +198,16 @@ definitions:
         - athlete
         example: athlete
         type: string
+      username:
+        example: johndoe
+        maxLength: 30
+        minLength: 3
+        type: string
     required:
     - email
     - password
     - role
+    - username
     type: object
   handlers.UpdateCommentRequest:
     description: Request body for updating an existing comment's content.
@@ -282,6 +288,8 @@ definitions:
       updatedAt:
         type: string
       userId:
+        type: string
+      username:
         type: string
     type: object
   handlers.WeeklyMealAvg:
@@ -663,9 +671,14 @@ definitions:
         type: string
       userId:
         type: string
+      username:
+        maxLength: 30
+        minLength: 3
+        type: string
     required:
     - email
     - role
+    - username
     type: object
   models.User:
     properties:
@@ -690,9 +703,14 @@ definitions:
         type: string
       userId:
         type: string
+      username:
+        maxLength: 30
+        minLength: 3
+        type: string
     required:
     - email
     - role
+    - username
     type: object
   models.UserProfile:
     properties:

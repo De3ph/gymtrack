@@ -96,6 +96,9 @@ func (s *TrainerCatalogService) GetTrainerProfile(ctx context.Context, trainerID
 }
 
 func (s *TrainerCatalogService) UpdateTrainerProfile(ctx context.Context, trainerID string, profile *models.TrainerProfile) error {
+	if err := s.ValidateProfileUpdate(profile); err != nil {
+		return err
+	}
 	err := s.profileRepo.UpdateTrainerProfile(ctx, trainerID, profile)
 	if err != nil {
 		return fmt.Errorf("failed to update trainer profile: %w", err)

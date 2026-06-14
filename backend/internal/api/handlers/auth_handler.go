@@ -26,6 +26,7 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 }
 
 type RegisterRequest struct {
+	Username string      `json:"username" validate:"required,min=3,max=30,alphanum" example:"johndoe"`
 	Email    string      `json:"email" validate:"required,email" example:"test@example.com"`
 	Password string      `json:"password" validate:"required,min=8" example:"password123"`
 	Role     string      `json:"role" validate:"required,oneof=trainer athlete" example:"athlete"`
@@ -34,14 +35,14 @@ type RegisterRequest struct {
 
 // Register godoc
 // @Summary User registration
-// @Description Register a new user with email, password, and role.
+// @Description Register a new user with username, email, password, and role.
 // @Tags Auth
 // @Accept json
 // @Produce json
 // @Param request body handlers.RegisterRequest true "Register Request"
 // @Success 201 {object} map[string]interface{} "User registered successfully"
 // @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input"
-// @Failure 409 {object} map[string]interface{} "Conflict - User with email already exists"
+// @Failure 409 {object} map[string]interface{} "Conflict - User with email or username already exists"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error"
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
@@ -72,6 +73,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		}
 	}
 	serviceReq := services.RegisterRequest{
+		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
 		Role:     models.UserRole(req.Role),
@@ -80,7 +82,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	user, err := h.authService.Register(ctx, serviceReq)
 	if err != nil {
-		if err == services.ErrUserAlreadyExists {
+		if err == services.ErrUserAlreadyExists || err == services.ErrUsernameAlreadyExists {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
 		}
@@ -92,13 +94,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email" example:"test@example.com"`
-	Password string `json:"password" validate:"required" example:"password123"`
+	Identifier string `json:"identifier" validate:"required" example:"test@example.com or johndoe"`
+	Password   string `json:"password" validate:"required" example:"password123"`
 }
 
 // Login godoc
 // @Summary User login
-// @Description Authenticate user and return JWT token with refresh token.
+// @Description Authenticate user with email or username and return JWT token with refresh token.
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -123,8 +125,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	defer cancel()
 
 	serviceReq := services.LoginRequest{
-		Email:    req.Email,
-		Password: req.Password,
+		Identifier: req.Identifier,
+		Password:   req.Password,
 	}
 
 	response, err := h.authService.Login(ctx, serviceReq)
@@ -140,6 +142,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	// Convert to UserResponse to exclude password hash
 	userResponse := UserResponse{
 		UserID:    response.User.UserID,
+		Username:  response.User.Username,
 		Email:     response.User.Email,
 		Role:      response.User.Role,
 		Profile:   response.User.Profile,

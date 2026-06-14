@@ -12,22 +12,32 @@ const (
 )
 
 type UserProfile struct {
-	Name            string `json:"name"`
-	Age             int    `json:"age,omitempty"`
-	Weight          int    `json:"weight,omitempty"`
-	Height          int    `json:"height,omitempty"`
-	FitnessGoals    string `json:"fitnessGoals,omitempty"`
+	Name              string `json:"name"`
+	Age               int    `json:"age,omitempty"`
+	Weight            int    `json:"weight,omitempty"`
+	Height            int    `json:"height,omitempty"`
+	FitnessGoals      string `json:"fitnessGoals,omitempty"`
 	TrainerAssignment string `json:"trainerAssignment,omitempty"` // Athlete's trainer ID
 
 	// Trainer specific fields
-	Certifications  string `json:"certifications,omitempty"`
-	Specializations string `json:"specializations,omitempty"`
-	ClientList      []string `json:"clientList,omitempty"` // List of athlete IDs
+	Certifications         string   `json:"certifications,omitempty"`
+	Specializations        string   `json:"specializations,omitempty"`
+	ClientList             []string `json:"clientList,omitempty"` // List of athlete IDs
+
+	// Trainer profile fields (stored in UserProfile for simplicity)
+	Bio                      string   `json:"bio,omitempty"`
+	ProfilePhotoURL          string   `json:"profilePhotoUrl,omitempty"`
+	HourlyRate               float64  `json:"hourlyRate,omitempty"`
+	YearsOfExperience        int      `json:"yearsOfExperience,omitempty"`
+	Location                 string   `json:"location,omitempty"`
+	IsAvailableForNewClients bool     `json:"isAvailableForNewClients,omitempty"`
+	Languages                []string `json:"languages,omitempty"`
 }
 
 type User struct {
 	Type         string      `json:"type"` // Always "user"
 	UserID       string      `json:"userId"`
+	Username     string      `json:"username" validate:"required,min=3,max=30,alphanum"`
 	Email        string      `json:"email" validate:"required,email"`
 	PasswordHash string      `json:"passwordHash"`
 	Role         UserRole    `json:"role" validate:"required,oneof=trainer athlete"`

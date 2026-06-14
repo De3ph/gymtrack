@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { ExerciseSet } from "@/types";
-import { ExerciseSetFormData } from "@/lib/validations/workout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
+
+// Extended ExerciseSet type with unique ID for stable keys
+interface ExerciseSetWithId extends ExerciseSet {
+  id: string;
+}
 
 interface ExerciseSetInputProps {
   value: ExerciseSet[];
@@ -20,152 +26,178 @@ export function ExerciseSetInput({
   value,
   onChange,
   disabled = false,
-  className
+  className,
 }: ExerciseSetInputProps) {
+  const t = useTranslations("workout.form.exercise.sets");
+
+  // Maintain internal state with stable IDs
+  const [setsWithIds, setSetsWithIds] = useState<ExerciseSetWithId[]>(() => {
+    return (value || []).map((set, index) => ({
+      ...set,
+      id: `set-${index}`,
+    }));
+  });
+
+  // Sync external value changes into internal state, preserving IDs by index
+  useMemo(() => {
+    const newVal = value ?? [];
+    setSetsWithIds((prev) => {
+      const updated = newVal.map((set, i) => {
+        const existing = i < prev.length ? prev[i] : null;
+        return existing
+          ? { ...set, id: existing.id }
+          : { ...set, id: `set-${Date.now()}-${i}` };
+      });
+      const changed = updated.some(
+        (s, i) =>
+          !prev[i] ||
+          prev[i].weight !== s.weight ||
+          prev[i].reps !== s.reps ||
+          prev[i].restTime !== s.restTime,
+      );
+      return changed ? updated : prev;
+    });
+  }, [value]);
+
   const addSet = () => {
-    const newSet: ExerciseSet = {
-      weight: 0,
-      weightUnit: "kg",
-      reps: 1,
-      restTime: 60, // Default 1 minute rest
-      completed: false,
+    const prevSet = setsWithIds[setsWithIds.length - 1];
+    const newSet: ExerciseSetWithId = {
+      weight: prevSet?.weight ?? 0,
+      weightUnit: prevSet?.weightUnit ?? "kg",
+      reps: prevSet?.reps ?? 1,
+      restTime: prevSet?.restTime ?? 60,
+      completed: prevSet?.completed ?? false,
+      id: `set-${Date.now()}`,
     };
-    onChange([...(value || []), newSet]);
+    const newSetsWithIds = [...setsWithIds, newSet];
+    setSetsWithIds(newSetsWithIds);
+    // Convert back to ExerciseSet[] for the parent component
+    onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
-  const removeSet = (index: number) => {
-    const newSets = (value || []).filter((_, i) => i !== index);
-    onChange(newSets);
+  const removeSet = (setId: string) => {
+    const newSetsWithIds = setsWithIds.filter((set) => set.id !== setId);
+    setSetsWithIds(newSetsWithIds);
+    // Convert back to ExerciseSet[] for the parent component
+    onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
-  const updateSet = (index: number, field: keyof ExerciseSet, newValue: number) => {
-    const currentSets = value || [];
-    const newSets = [...currentSets];
-    newSets[index] = { ...newSets[index], [field]: newValue };
-    onChange(newSets);
-  };
-
-  const moveSet = (index: number, direction: "up" | "down") => {
-    const currentSets = value || [];
-    if (
-      (direction === "up" && index === 0) ||
-      (direction === "down" && index === currentSets.length - 1)
-    ) {
-      return;
-    }
-
-    const newSets = [...currentSets];
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-
-    // Swap sets
-    [newSets[index], newSets[targetIndex]] = [newSets[targetIndex], newSets[index]];
-    onChange(newSets);
+  const updateSet = (
+    setId: string,
+    field: keyof ExerciseSet,
+    newValue: number,
+  ) => {
+    const newSetsWithIds = setsWithIds.map((set) =>
+      set.id === setId ? { ...set, [field]: newValue } : set,
+    );
+    setSetsWithIds(newSetsWithIds);
+    // Convert back to ExerciseSet[] for the parent component
+    onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="flex items-center justify-between">
-        <FieldLabel>Sets</FieldLabel>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addSet}
-          disabled={disabled}
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add Set
-        </Button>
-      </div>
+      <FieldLabel>{t("label")}</FieldLabel>
 
       {!value || value.length === 0 ? (
-        <div className="text-center py-4 text-sm text-muted-foreground border rounded-md">
-          No sets added. Click "Add Set" to get started.
+        <div className="space-y-3">
+          <div className="text-center py-4 text-sm text-muted-foreground border rounded-md">
+            {t("no_sets")}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addSet}
+            disabled={disabled}
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            {t("add")}
+          </Button>
         </div>
       ) : (
         <div className="space-y-2">
-          {(value || []).map((set, index) => (
+          {setsWithIds.map((set, index) => (
             <div
-              key={index}
-              className="flex items-center gap-2 p-3 border rounded-md bg-background"
+              key={set.id}
+              className="flex flex-wrap items-center gap-2 p-3 border rounded-md bg-background"
             >
               {/* Set Number */}
-              <div className="flex items-center gap-1 min-w-[60px]">
-                <span className="text-sm font-medium">Set {index + 1}</span>
-                <div className="flex flex-col">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0"
-                    onClick={() => moveSet(index, "up")}
-                    disabled={disabled || index === 0}
-                  >
-                    <ChevronUp className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0"
-                    onClick={() => moveSet(index, "down")}
-                    disabled={disabled || index === value.length - 1}
-                  >
-                    <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </div>
+              <div className="flex items-center gap-1 min-w-15">
+                <span className="text-sm font-medium">
+                  {t("set_number", { number: index + 1 })}
+                </span>
               </div>
 
               {/* Weight Input */}
-              <div className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-1 min-w-20">
                 <Field>
-                  <FieldLabel className="text-xs">Weight</FieldLabel>
+                  <FieldLabel className="text-xs">{t("weight")}</FieldLabel>
                   <Input
                     type="number"
                     step="0.5"
                     min="0"
                     value={set.weight}
-                    onChange={(e) => updateSet(index, "weight", parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateSet(
+                        set.id,
+                        "weight",
+                        parseFloat(e.target.value) || 0,
+                      )
+                    }
                     disabled={disabled}
-                    className="w-20"
+                    className="w-16"
                     placeholder="0"
                   />
                 </Field>
-                <span className="text-sm text-muted-foreground self-end pb-1">kg</span>
+                <span className="text-sm text-muted-foreground self-end pb-1">
+                  {t("weight_unit")}
+                </span>
               </div>
 
               {/* Reps Input */}
-              <div className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-1 min-w-17.5">
                 <Field>
-                  <FieldLabel className="text-xs">Reps</FieldLabel>
+                  <FieldLabel className="text-xs">{t("reps")}</FieldLabel>
                   <Input
                     type="number"
                     min="1"
                     value={set.reps}
-                    onChange={(e) => updateSet(index, "reps", parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      updateSet(set.id, "reps", parseInt(e.target.value) || 1)
+                    }
                     disabled={disabled}
-                    className="w-20"
+                    className="w-16"
                     placeholder="1"
                   />
                 </Field>
               </div>
 
               {/* Rest Time Input */}
-              <div className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-1 min-w-22.5">
                 <Field>
-                  <FieldLabel className="text-xs">Rest</FieldLabel>
+                  <FieldLabel className="text-xs">{t("rest")}</FieldLabel>
                   <Input
                     type="number"
                     min="0"
                     step="15"
                     value={set.restTime || 0}
-                    onChange={(e) => updateSet(index, "restTime", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateSet(
+                        set.id,
+                        "restTime",
+                        parseInt(e.target.value) || 0,
+                      )
+                    }
                     disabled={disabled}
-                    className="w-20"
+                    className="w-16"
                     placeholder="60"
                   />
                 </Field>
-                <span className="text-sm text-muted-foreground self-end pb-1">sec</span>
+                <span className="text-sm text-muted-foreground self-end pb-1">
+                  {t("seconds")}
+                </span>
               </div>
 
               {/* Remove Button */}
@@ -173,14 +205,27 @@ export function ExerciseSetInput({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => removeSet(index)}
+                onClick={() => removeSet(set.id)}
                 disabled={disabled}
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 ml-auto"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           ))}
+
+          {/* Add Set Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addSet}
+            disabled={disabled}
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            {t("add")}
+          </Button>
         </div>
       )}
     </div>

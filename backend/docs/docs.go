@@ -2942,13 +2942,13 @@ const docTemplate = `{
         "handlers.LoginRequest": {
             "type": "object",
             "required": [
-                "email",
+                "identifier",
                 "password"
             ],
             "properties": {
-                "email": {
+                "identifier": {
                     "type": "string",
-                    "example": "test@example.com"
+                    "example": "test@example.com or johndoe"
                 },
                 "password": {
                     "type": "string",
@@ -3012,7 +3012,8 @@ const docTemplate = `{
             "required": [
                 "email",
                 "password",
-                "role"
+                "role",
+                "username"
             ],
             "properties": {
                 "email": {
@@ -3032,6 +3033,12 @@ const docTemplate = `{
                         "athlete"
                     ],
                     "example": "athlete"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3,
+                    "example": "johndoe"
                 }
             }
         },
@@ -3150,6 +3157,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userId": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -3671,7 +3681,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "role"
+                "role",
+                "username"
             ],
             "properties": {
                 "averageRating": {
@@ -3712,6 +3723,11 @@ const docTemplate = `{
                 },
                 "userId": {
                     "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3
                 }
             }
         },
@@ -3719,7 +3735,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "role"
+                "role",
+                "username"
             ],
             "properties": {
                 "createdAt": {
@@ -3754,6 +3771,11 @@ const docTemplate = `{
                 },
                 "userId": {
                     "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3
                 }
             }
         },

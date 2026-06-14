@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { workoutApi } from "@/lib/api";
 import { Workout } from "@/types";
+import { useTranslations } from 'next-intl';
 
 interface DeleteWorkoutDialogProps {
   workout: Workout | null;
@@ -27,6 +29,8 @@ export function DeleteWorkoutDialog({
   onOpenChange,
 }: DeleteWorkoutDialogProps) {
   const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const t = useTranslations('workout.delete_dialog');
 
   const { mutate: deleteWorkout } = useMutation({
     mutationFn: (id: string) => workoutApi.delete(id),
@@ -45,6 +49,7 @@ export function DeleteWorkoutDialog({
 
   const handleDelete = () => {
     if (workout) {
+      setIsDeleting(true);
       deleteWorkout(workout.workoutId);
     }
   };
@@ -53,15 +58,15 @@ export function DeleteWorkoutDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Workout</AlertDialogTitle>
+          <AlertDialogTitle>{t('title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete this workout? This action cannot be undone.
+            {t('description')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={handleDelete}>
-            Delete
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+            {isDeleting ? t('deleting') : t('confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

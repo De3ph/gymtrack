@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
@@ -12,11 +13,13 @@ import (
 
 type MealHandler struct {
 	mealService *services.MealService
+	userRepo    repositories.UserRepository
 }
 
-func NewMealHandler(mealService *services.MealService) *MealHandler {
+func NewMealHandler(mealService *services.MealService, userRepo repositories.UserRepository) *MealHandler {
 	return &MealHandler{
 		mealService: mealService,
+		userRepo:    userRepo,
 	}
 }
 
@@ -293,7 +296,7 @@ func (h *MealHandler) DeleteMeal(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Failed to retrieve meals"
 // @Router /clients/{id}/meals [get]
 func (h *MealHandler) GetClientMeals(c *gin.Context) {
-	clientID := c.Param("id")
+	username := c.Param("username")
 	trainerID, _ := c.Get("userID")
 
 	limit, offset, startDate, endDate, _, err := services.ParseMealQueryParams(c)
@@ -308,9 +311,20 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 
 	mealType := c.Query("mealType")
 
+	// Get athlete by username first
+	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		return
+	}
+	if athlete == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		return
+	}
+
 	result, err := h.mealService.GetClientMeals(c.Request.Context(), services.GetClientMealsInput{
 		TrainerID: trainerID.(string),
-		ClientID:  clientID,
+		ClientID:  athlete.UserID,
 		Limit:     limit,
 		Offset:    offset,
 		StartDate: startDate,

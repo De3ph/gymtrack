@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 
@@ -29,17 +30,19 @@ export function CommentForm({
   parentCommentId = null,
   onSuccess,
   queryKey,
-  placeholder = "Add a comment...",
+  placeholder: placeholderProp,
   onCancel,
 }: CommentFormProps) {
   const queryClient = useQueryClient();
+  const t = useTranslations("comment");
+  const placeholder = placeholderProp ?? t("form.comment");
 
   const validateContent = ({ value }: { value: string }): string | undefined => {
     if (!value || value.trim().length === 0) {
-      return "Content is required"
+      return t('form.content_required')
     }
     if (value.length > 1000) {
-      return "Content must be less than 1000 characters"
+      return t('form.content_too_long')
     }
     return undefined
   };
@@ -99,7 +102,7 @@ export function CommentForm({
 
       {error && (
         <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
-          {error instanceof Error ? error.message : "Failed to post comment"}
+          {error instanceof Error ? error.message : t('form.post_failed')}
         </div>
       )}
 
@@ -109,11 +112,11 @@ export function CommentForm({
         {([canSubmit, isSubmitting]) => (
           <div className="flex gap-2">
             <Button type="submit" size="sm" disabled={!canSubmit || isPending || isSubmitting}>
-              {isPending || isSubmitting ? "Posting..." : parentCommentId ? "Reply" : "Comment"}
+              {isPending || isSubmitting ? t("form.submitting") : parentCommentId ? t("form.reply") : t("form.comment")}
             </Button>
             {onCancel && (
               <Button type="button" size="sm" variant="outline" onClick={onCancel}>
-                Cancel
+                {t('form.cancel')}
               </Button>
             )}
           </div>

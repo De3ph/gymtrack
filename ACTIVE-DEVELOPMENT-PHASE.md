@@ -16,9 +16,9 @@
 
 ## Phase 2: Enhance AI support
 
-- [ ] Revising existing files (deleting, refactor, reorganize etc.)
-- [ ] Update context-map.md
-- [ ] Update README.md
+- [x] Revising existing files (deleting, refactor, reorganize etc.)
+- [x] Update context-map.md
+- [x] Update README.md
 - [ ] Universial architecturial patterns should be documented
     - [ ] handler - service - repository pattern
     - [ ] custom errors
@@ -50,7 +50,7 @@ Currently, the workout and meal logging is quite basic.
 
 ## Phase 5: UI Polishments
 
-- [ ] Considiring migrate to Base UI from Radix UI based system (shadcn/ui)
+- [x] Considiring migrate to Base UI from Radix UI based system (shadcn/ui)
 - [ ] Add loading states and spinners
 - [ ] Decide on a consistent color scheme and design
 - [ ] Add theme toggle (light/dark)
@@ -58,12 +58,12 @@ Currently, the workout and meal logging is quite basic.
 
 ## Phase 6: i18n support for frontend
 
-- [ ] Create blueprint for i18n architecture
-    - [ ] decide on a library to use
-    - [ ] decide on a strategy for organizing translations
-    - [ ] decide on a strategy for loading translations (DON'T USE inline translations in jsx)
-- [ ] Implement i18n support for frontend
-- [ ] Add translations for all strings
-    - [ ] English
+- [x] Create blueprint for i18n architecture
+    - [x] decide on a library to use
+    - [x] decide on a strategy for organizing translations
+    - [x] decide on a strategy for loading translations (DON'T USE inline translations in jsx)
+- [x] Implement i18n support for frontend
+- [x] Add translations for all strings
+    - [x] English
     - [ ] Turkish
 - [ ] Add language toggle

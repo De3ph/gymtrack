@@ -17,6 +17,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { WorkoutStats } from "@/lib/api/api-types"
+import { useTranslations } from "next-intl"
 
 interface WorkoutVolumeChartProps {
   workoutStats: WorkoutStats
@@ -24,11 +25,13 @@ interface WorkoutVolumeChartProps {
 }
 
 export function WorkoutVolumeChart({ workoutStats, chartConfig }: WorkoutVolumeChartProps) {
+  const t = useTranslations('trainer.charts.workout_volume')
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Weekly Workout Volume</CardTitle>
-        <CardDescription>Total volume (sets × reps × weight) per week</CardDescription>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {workoutStats.weeklyVolume.length > 0 ? (
@@ -39,12 +42,12 @@ export function WorkoutVolumeChart({ workoutStats, chartConfig }: WorkoutVolumeC
               <YAxis />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="volume" fill="var(--color-volume)" name="Volume (kg)" />
-              <Bar dataKey="workouts" fill="var(--color-workouts)" name="Workouts" />
+              <Bar dataKey="volume" fill="var(--color-volume)" name={t('volume')} />
+              <Bar dataKey="workouts" fill="var(--color-workouts)" name={t('workouts')} />
             </BarChart>
           </ChartContainer>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No workout data available</p>
+          <p className="text-center text-muted-foreground py-8">{t('no_data')}</p>
         )}
       </CardContent>
     </Card>

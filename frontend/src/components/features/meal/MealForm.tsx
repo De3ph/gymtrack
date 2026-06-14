@@ -5,24 +5,26 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import dayjs from "dayjs";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-} from "@/components/ui/combobox";
+  Select,
+  SelectItem,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldInfo } from "@/components/ui/form-field";
-import { mealSchema, type MealFormData } from "@/lib/validations/meal";
 import { mealApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { DATE_FORMATS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import type { MealFormData, FoodItemFormData } from "@/lib/validations/meal";
 
 interface MealFormProps {
   onSuccess?: () => void;
@@ -30,6 +32,14 @@ interface MealFormProps {
 
 export function MealForm({ onSuccess }: MealFormProps) {
   const queryClient = useQueryClient();
+  const t = useTranslations("meal");
+
+  const mealTypeItems = [
+    { value: "breakfast" as const, label: t("form.meal_type.breakfast") },
+    { value: "lunch" as const, label: t("form.meal_type.lunch") },
+    { value: "dinner" as const, label: t("form.meal_type.dinner") },
+    { value: "snack" as const, label: t("form.meal_type.snack") },
+  ];
 
   const form = useForm({
     defaultValues: {
@@ -46,13 +56,13 @@ export function MealForm({ onSuccess }: MealFormProps) {
       ],
     },
     onSubmit: async ({ value }) => {
-      createMeal(value);
+      createMeal(value as unknown as MealFormData);
     },
   });
 
   // Mutation for creating meal
   const { mutate: createMeal, isPending } = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: MealFormData) => {
       // Combine date and time
       const [hours, minutes] = data.mealTime.split(":").map(Number);
       const combinedDate = dayjs(data.date)
@@ -64,7 +74,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
       return mealApi.create({
         date: combinedDate.toISOString(),
         mealType: data.mealType,
-        items: data.items.map((item: any) => ({
+        items: data.items.map((item: FoodItemFormData) => ({
           ...item,
           calories: item.calories || 0,
           macros: {
@@ -95,51 +105,68 @@ export function MealForm({ onSuccess }: MealFormProps) {
       }}
       className="space-y-6"
     >
-      <div className="flex flex-col space-y-2">
-        <FieldLabel htmlFor="date">Meal Date & Time</FieldLabel>
-        <div className="flex flex-wrap gap-4">
-          <form.Field name="date">
-            {(field) => (
-              <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                type="date"
-                id="date"
-                className="w-full md:w-[180px]"
-              />
-            )}
-          </form.Field>
-          <form.Field name="mealTime">
-            {(field) => (
-              <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                type="time"
-                id="mealTime"
-                className="w-full md:w-[120px]"
-              />
-            )}
-          </form.Field>
+      <div className="flex space-x-16">
+        <div className="flex flex-col space-y-2">
+          <FieldLabel htmlFor="date">{t("form.date_time_label")}</FieldLabel>
+          <div className="flex flex-wrap gap-4">
+            <form.Field name="date">
+              {(field) => (
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  type="date"
+                  id="date"
+                  className="w-full md:w-45"
+                />
+              )}
+            </form.Field>
+            <form.Field name="mealTime">
+              {(field) => (
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  type="time"
+                  id="mealTime"
+                  className="w-full md:w-[120px]"
+                />
+              )}
+            </form.Field>
+          </div>
+        </div>
+        <div className="flex flex-col space-y-2">
+          <FieldLabel>{t("form.meal_type_label")}</FieldLabel>
           <form.Field name="mealType">
             {(field) => (
-              <Combobox>
-                <ComboboxInput
-                  placeholder="Select meal type"
+              <div className="space-y-2">
+                <Select
+                  items={mealTypeItems}
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value as any)}
-                  onBlur={field.handleBlur}
-                />
-                <ComboboxContent>
-                  <ComboboxList>
-                    <ComboboxItem value="breakfast">Breakfast</ComboboxItem>
-                    <ComboboxItem value="lunch">Lunch</ComboboxItem>
-                    <ComboboxItem value="dinner">Dinner</ComboboxItem>
-                    <ComboboxItem value="snack">Snack</ComboboxItem>
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
+                  onValueChange={(e: string | null) => {
+                    field.handleChange(
+                      (e ?? "breakfast") as Parameters<
+                        typeof field.handleChange
+                      >[0],
+                    );
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>{t("form.meal_type_label")}</SelectLabel>
+                      {mealTypeItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <FieldInfo field={field} />
+              </div>
             )}
           </form.Field>
         </div>
@@ -162,20 +189,22 @@ export function MealForm({ onSuccess }: MealFormProps) {
                 </Button>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium">
-                    Food Item {index + 1}
+                    {t("form.food_item_title", { index: index + 1 })}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2 col-span-2">
-                    <FieldLabel>Food Name</FieldLabel>
+                    <FieldLabel>{t("form.food_name_label")}</FieldLabel>
                     <form.Field name={`items[${index}].food`}>
                       {(subField) => (
                         <Field>
                           <Input
                             value={subField.state.value}
-                            onChange={(e) => subField.handleChange(e.target.value)}
+                            onChange={(e) =>
+                              subField.handleChange(e.target.value)
+                            }
                             onBlur={subField.handleBlur}
-                            placeholder="e.g. Oatmeal"
+                            placeholder={t("form.food.placeholder")}
                           />
                           <FieldInfo field={subField} />
                         </Field>
@@ -184,46 +213,52 @@ export function MealForm({ onSuccess }: MealFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <FieldLabel>Quantity</FieldLabel>
+                    <FieldLabel>{t("form.quantity.label")}</FieldLabel>
                     <form.Field name={`items[${index}].quantity`}>
                       {(subField) => (
                         <Input
                           value={subField.state.value}
-                          onChange={(e) => subField.handleChange(e.target.value)}
+                          onChange={(e) =>
+                            subField.handleChange(e.target.value)
+                          }
                           onBlur={subField.handleBlur}
-                          placeholder="e.g. 1 cup"
+                          placeholder={t("form.quantity.placeholder")}
                         />
                       )}
                     </form.Field>
                   </div>
 
                   <div className="space-y-2">
-                    <FieldLabel>Calories</FieldLabel>
+                    <FieldLabel>{t("form.calories.label")}</FieldLabel>
                     <form.Field name={`items[${index}].calories`}>
                       {(subField) => (
                         <Input
                           value={subField.state.value}
-                          onChange={(e) => subField.handleChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            subField.handleChange(Number(e.target.value))
+                          }
                           onBlur={subField.handleBlur}
                           type="number"
-                          placeholder="e.g. 150"
+                          placeholder={t("form.calories.placeholder")}
                         />
                       )}
                     </form.Field>
                   </div>
 
                   <div className="space-y-2 col-span-full">
-                    <FieldLabel>Macros (g)</FieldLabel>
+                    <FieldLabel>{t("form.macros.label")}</FieldLabel>
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <FieldLabel className="text-xs text-muted-foreground">
-                          Protein
+                          {t("form.macros.protein")}
                         </FieldLabel>
                         <form.Field name={`items[${index}].macros.protein`}>
                           {(subField) => (
                             <Input
                               value={subField.state.value}
-                              onChange={(e) => subField.handleChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                subField.handleChange(Number(e.target.value))
+                              }
                               onBlur={subField.handleBlur}
                               type="number"
                             />
@@ -232,13 +267,15 @@ export function MealForm({ onSuccess }: MealFormProps) {
                       </div>
                       <div>
                         <FieldLabel className="text-xs text-muted-foreground">
-                          Carbs
+                          {t("form.macros.carbs")}
                         </FieldLabel>
                         <form.Field name={`items[${index}].macros.carbs`}>
                           {(subField) => (
                             <Input
                               value={subField.state.value}
-                              onChange={(e) => subField.handleChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                subField.handleChange(Number(e.target.value))
+                              }
                               onBlur={subField.handleBlur}
                               type="number"
                             />
@@ -247,13 +284,15 @@ export function MealForm({ onSuccess }: MealFormProps) {
                       </div>
                       <div>
                         <FieldLabel className="text-xs text-muted-foreground">
-                          Fats
+                          {t("form.macros.fats")}
                         </FieldLabel>
                         <form.Field name={`items[${index}].macros.fats`}>
                           {(subField) => (
                             <Input
                               value={subField.state.value}
-                              onChange={(e) => subField.handleChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                subField.handleChange(Number(e.target.value))
+                              }
                               onBlur={subField.handleBlur}
                               type="number"
                             />
@@ -285,7 +324,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
               }
               className="w-full md:w-auto"
             >
-              <Plus className="mr-2 h-4 w-4" /> Add Food Item
+              <Plus className="mr-2 h-4 w-4" /> {t("form.add_food_item")}
             </Button>
           )}
         </form.Field>
@@ -295,7 +334,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
           className="w-full md:w-auto md:ml-auto"
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Log Meal
+          {t("form.log_meal")}
         </Button>
       </div>
     </form>

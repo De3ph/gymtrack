@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Copy, Check, Loader2, RefreshCw } from "lucide-react";
 import { TIME_LIMITS } from "@/lib/constants";
+import { useTranslations } from "next-intl";
 
 interface GenerateInvitationDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ export function GenerateInvitationDialog({
   open,
   onOpenChange,
 }: GenerateInvitationDialogProps) {
+  const t = useTranslations('trainer.generate_invitation')
   const [code, setCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ export function GenerateInvitationDialog({
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to generate invitation code",
+          : t('error_fallback'),
       );
     } finally {
       setLoading(false);
@@ -79,10 +81,9 @@ export function GenerateInvitationDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Invite Athlete</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Generate an invitation code that athletes can use to connect with
-            you. Codes expire after 7 days.
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,8 +91,7 @@ export function GenerateInvitationDialog({
           {!code ? (
             <div className="flex flex-col items-center space-y-4 py-4">
               <p className="text-center text-sm text-muted-foreground">
-                Click the button below to generate a unique invitation code for
-                an athlete.
+                {t('instruction')}
               </p>
               <Button onClick={generateCode} disabled={loading} size="lg">
                 {loading ? (
@@ -99,13 +99,13 @@ export function GenerateInvitationDialog({
                 ) : (
                   <RefreshCw className="mr-2 h-4 w-4" />
                 )}
-                Generate Code
+                {t('generate_code_button')}
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="invitation-code">Invitation Code</Label>
+                <Label htmlFor="invitation-code">{t('code_label')}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="invitation-code"
@@ -133,16 +133,13 @@ export function GenerateInvitationDialog({
 
               {expiresAt && (
                 <p className="text-sm text-muted-foreground">
-                  Expires on {dayjs(expiresAt).format("MMM D, YYYY")} at{" "}
-                  {dayjs(expiresAt).format("h:mm A")}
+                  {t('expires_on', { date: dayjs(expiresAt).format("MMM D, YYYY") })} {t('expires_at', { time: dayjs(expiresAt).format("h:mm A") })}
                 </p>
               )}
 
               <div className="rounded-lg border bg-muted p-4">
                 <p className="text-sm">
-                  <strong>Instructions:</strong> Share this code with your
-                  athlete. They can enter it in their dashboard to connect with
-                  you as their trainer.
+                  <strong>{t('instructions_text')}</strong> {t('instruction')}
                 </p>
               </div>
 
@@ -157,7 +154,7 @@ export function GenerateInvitationDialog({
                 ) : (
                   <RefreshCw className="mr-2 h-4 w-4" />
                 )}
-                Generate New Code
+                {t('generate_new_code')}
               </Button>
             </div>
           )}

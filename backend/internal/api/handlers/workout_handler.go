@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
@@ -12,11 +13,13 @@ import (
 
 type WorkoutHandler struct {
 	workoutService *services.WorkoutService
+	userRepo       repositories.UserRepository
 }
 
-func NewWorkoutHandler(workoutService *services.WorkoutService) *WorkoutHandler {
+func NewWorkoutHandler(workoutService *services.WorkoutService, userRepo repositories.UserRepository) *WorkoutHandler {
 	return &WorkoutHandler{
 		workoutService: workoutService,
+		userRepo:       userRepo,
 	}
 }
 
@@ -280,7 +283,7 @@ func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Failed to retrieve workouts"
 // Router: /api/clients/:id/workouts
 func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
-	clientID := c.Param("id")
+	username := c.Param("username")
 	trainerID, _ := c.Get("userID")
 
 	limit, offset, startDate, endDate, err := services.ParseWorkoutQueryParams(c)
@@ -291,9 +294,20 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 
 	exerciseType := c.Query("exerciseType")
 
+	// Get athlete by username first
+	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		return
+	}
+	if athlete == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		return
+	}
+
 	result, err := h.workoutService.GetClientWorkouts(c.Request.Context(), services.GetClientWorkoutsInput{
 		TrainerID:    trainerID.(string),
-		ClientID:     clientID,
+		ClientID:     athlete.UserID,
 		Limit:        limit,
 		Offset:       offset,
 		StartDate:    startDate,

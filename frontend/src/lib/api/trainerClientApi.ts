@@ -3,26 +3,26 @@ import { PaginationParams, WorkoutListResponse, MealListResponse, GetClientStats
 
 export const trainerClientApi = {
   getClientWorkouts: async (
-    clientId: string,
+    username: string,
     params?: PaginationParams & { exerciseType?: string }
   ) => {
-    return api.get<WorkoutListResponse>(`/clients/${clientId}/workouts`, {
+    return api.get<WorkoutListResponse>(`/clients/${username}/workouts`, {
       params
     })
   },
 
   getClientMeals: async (
-    clientId: string,
+    username: string,
     params?: PaginationParams & { mealType?: string }
   ) => {
-    return api.get<MealListResponse>(`/clients/${clientId}/meals`, {
+    return api.get<MealListResponse>(`/clients/${username}/meals`, {
       params
     })
   },
 
-  getClientStats: async (clientId: string) => {
+  getClientStats: async (username: string) => {
     return api.get<GetClientStatsResponse>(
-      `/relationships/client/${clientId}/stats`
+      `/relationships/client/${username}/stats`
     )
   }
 }

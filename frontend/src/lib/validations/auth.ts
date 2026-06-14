@@ -1,7 +1,19 @@
 import { z } from "zod"
 
 export const loginSchema = z.object({
-  email: z.email("Invalid email address"),
+  identifier: z.string()
+    .min(1, "Email or username is required")
+    .refine((val) => {
+      // Check if it's a valid email
+      if (/^[\S]+@[\S]+\.[\S]+$/.test(val)) {
+        return true;
+      }
+      // Check if it's a valid username format (3-30 alphanumeric)
+      if (/^[a-zA-Z0-9]{3,30}$/.test(val)) {
+        return true;
+      }
+      return false;
+    }, "Please enter a valid email or username (3-30 alphanumeric characters)"),
   password: z.string().min(1, "Password is required")
 })
 
@@ -20,6 +32,10 @@ const checkNaN = (val: unknown) => {
 
 export const registerSchema = z
   .object({
+    username: z.string()
+      .min(3, "Username must be at least 3 characters")
+      .max(30, "Username must be less than 30 characters")
+      .regex(/^[a-zA-Z0-9]+$/, "Username must contain only letters and numbers"),
     email: z.email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
@@ -74,7 +90,10 @@ export const trainerProfileSchema = z.object({
   specializations: z.string().optional()
 })
 
-export type LoginFormData = z.infer<typeof loginSchema>
+export type LoginFormData = z.infer<typeof loginSchema> & {
+  identifier: string
+  password: string
+}
 export type RegisterFormData = z.infer<typeof registerSchema> & {
   profile: {
     age?: number | string | undefined

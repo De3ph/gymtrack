@@ -22,6 +22,10 @@ export const trainerCatalogApi = {
     return api.get<import("@/types").TrainerWithProfile>(`/trainers/${id}`)
   },
 
+  getMyProfile: async () => {
+    return api.get<import("@/types").TrainerWithProfile>("/trainers/me/profile")
+  },
+
   updateTrainerProfile: async (data: import("@/types").TrainerProfile) => {
     return api.put<MessageResponse>("/trainers/me/profile", data)
   }

@@ -82,24 +82,20 @@ func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Contex
 		if err := rows.Row(&trainer); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal trainer: %w", err)
 		}
-		// Map profile fields from UserProfile to TrainerProfile
-		trainer.Profile = models.TrainerProfile{
-			Bio:                      trainer.User.Profile.Certifications,
-			ProfilePhotoURL:          "",
-			HourlyRate:               0,
-			YearsOfExperience:        0,
-			IsAvailableForNewClients: true,
-			Location:                 "",
-			Languages:                nil,
-		}
-		// Use existing trainer-specific fields from UserProfile
-		if trainer.User.Profile.Certifications != "" {
-			trainer.Profile.Bio = trainer.User.Profile.Certifications
-		}
-		if trainer.User.Profile.Specializations != "" {
-			trainer.Profile.Location = trainer.User.Profile.Specializations
-		}
 		trainers = append(trainers, trainer)
+	}
+
+	// Enrich trainers with profile data from UserProfile
+	for i := range trainers {
+		trainers[i].Profile = models.TrainerProfile{
+			Bio:                      trainers[i].User.Profile.Bio,
+			ProfilePhotoURL:          trainers[i].User.Profile.ProfilePhotoURL,
+			HourlyRate:               trainers[i].User.Profile.HourlyRate,
+			YearsOfExperience:        trainers[i].User.Profile.YearsOfExperience,
+			IsAvailableForNewClients: trainers[i].User.Profile.IsAvailableForNewClients,
+			Location:                 trainers[i].User.Profile.Location,
+			Languages:                trainers[i].User.Profile.Languages,
+		}
 	}
 
 	return trainers, nil
@@ -123,13 +119,13 @@ func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, 
 	}
 
 	trainer.Profile = models.TrainerProfile{
-		Bio:                      trainer.User.Profile.Certifications,
-		ProfilePhotoURL:          "",
-		HourlyRate:               0,
-		YearsOfExperience:        0,
-		IsAvailableForNewClients: true,
-		Location:                 trainer.User.Profile.Specializations,
-		Languages:                nil,
+		Bio:                      trainer.User.Profile.Bio,
+		ProfilePhotoURL:          trainer.User.Profile.ProfilePhotoURL,
+		HourlyRate:               trainer.User.Profile.HourlyRate,
+		YearsOfExperience:        trainer.User.Profile.YearsOfExperience,
+		IsAvailableForNewClients: trainer.User.Profile.IsAvailableForNewClients,
+		Location:                 trainer.User.Profile.Location,
+		Languages:                trainer.User.Profile.Languages,
 	}
 
 	return &trainer, nil
@@ -150,8 +146,13 @@ func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Con
 	}
 
 	// Update profile fields
-	user.Profile.Certifications = profile.Bio
-	user.Profile.Specializations = profile.Location
+	user.Profile.Bio = profile.Bio
+	user.Profile.ProfilePhotoURL = profile.ProfilePhotoURL
+	user.Profile.HourlyRate = profile.HourlyRate
+	user.Profile.YearsOfExperience = profile.YearsOfExperience
+	user.Profile.Location = profile.Location
+	user.Profile.IsAvailableForNewClients = profile.IsAvailableForNewClients
+	user.Profile.Languages = profile.Languages
 
 	_, err = r.collection.Replace(trainerID, user, &gocb.ReplaceOptions{
 		Context: ctx,

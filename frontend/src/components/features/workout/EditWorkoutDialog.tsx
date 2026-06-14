@@ -6,7 +6,12 @@ import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
 import { Loader2, Save } from "lucide-react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,10 +19,14 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
-import { workoutWithPerSetSchema, WorkoutWithPerSetFormData } from "@/lib/validations/workout";
+import {
+  workoutWithPerSetSchema,
+  WorkoutWithPerSetFormData,
+} from "@/lib/validations/workout";
 import { DATE_FORMATS } from "@/lib/constants";
 import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
 import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
+import { useTranslations } from "next-intl";
 
 interface EditWorkoutDialogProps {
   workout: Workout | null;
@@ -32,35 +41,45 @@ export function EditWorkoutDialog({
 }: EditWorkoutDialogProps) {
   const queryClient = useQueryClient();
   const [error, setError] = React.useState<string | null>(null);
+  const t = useTranslations("workout.edit_dialog");
+  const tCommon = useTranslations("common.actions");
 
   // Initialize form with workout data when dialog opens
   const form = useForm({
     defaultValues: {
       date: workout ? dayjs(workout.date).toDate() : new Date(),
-      workoutTime: workout ? dayjs(workout.date).format("HH:mm") : dayjs().format("HH:mm"),
-      exercises: workout ? workout.exercises.map(ex => ({
-        exerciseId: ex.exerciseId,
-        name: ex.name,
-        notes: ex.notes,
-        sets: ex.sets.map(set => ({
-          setId: set.setId || "",
-          weight: set.weight,
-          weightUnit: set.weightUnit,
-          reps: set.reps,
-          restTime: set.restTime || 60,
-          completed: set.completed || false,
-        })),
-      })) : [{
-        exerciseId: "",
-        name: "",
-        sets: [{
-          weight: 0,
-          weightUnit: "kg" as const,
-          reps: 10,
-          restTime: 60,
-          completed: false,
-        } as ExerciseSet],
-      }],
+      workoutTime: workout
+        ? dayjs(workout.date).format("HH:mm")
+        : dayjs().format("HH:mm"),
+      exercises: workout
+        ? workout.exercises.map((ex) => ({
+            exerciseId: ex.exerciseId,
+            name: ex.name,
+            notes: ex.notes,
+            sets: ex.sets.map((set) => ({
+              setId: set.setId || "",
+              weight: set.weight,
+              weightUnit: set.weightUnit,
+              reps: set.reps,
+              restTime: set.restTime || 60,
+              completed: set.completed || false,
+            })),
+          }))
+        : [
+            {
+              exerciseId: "",
+              name: "",
+              sets: [
+                {
+                  weight: 0,
+                  weightUnit: "kg" as const,
+                  reps: 10,
+                  restTime: 60,
+                  completed: false,
+                } as ExerciseSet,
+              ],
+            },
+          ],
     },
     validators: {
       onSubmit: workoutWithPerSetSchema,
@@ -78,11 +97,11 @@ export function EditWorkoutDialog({
       form.reset({
         date: dayjs(workout.date).toDate(),
         workoutTime: dayjs(workout.date).format("HH:mm"),
-        exercises: workout.exercises.map(ex => ({
+        exercises: workout.exercises.map((ex) => ({
           exerciseId: ex.exerciseId,
           name: ex.name,
           notes: ex.notes,
-          sets: ex.sets.map(set => ({
+          sets: ex.sets.map((set) => ({
             setId: set.setId || "",
             weight: set.weight,
             weightUnit: set.weightUnit,
@@ -99,11 +118,18 @@ export function EditWorkoutDialog({
   const validateTimeFormat = (timeStr: string): [number, number] => {
     const timeParts = timeStr.split(":");
     if (timeParts.length !== 2) {
-      throw new Error("Invalid time format. Use HH:MM format.");
+      throw new Error(t('invalid_time_format'));
     }
     const [hours, minutes] = timeParts.map(Number);
-    if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-      throw new Error("Invalid time values. Hours must be 0-23, minutes must be 0-59.");
+    if (
+      isNaN(hours) ||
+      isNaN(minutes) ||
+      hours < 0 ||
+      hours > 23 ||
+      minutes < 0 ||
+      minutes > 59
+    ) {
+      throw new Error(t('invalid_time_values'));
     }
     return [hours, minutes];
   };
@@ -111,7 +137,7 @@ export function EditWorkoutDialog({
   // Mutation for updating workout
   const { mutate: updateWorkout, isPending } = useMutation({
     mutationFn: async (data: WorkoutWithPerSetFormData) => {
-      if (!workout) throw new Error("No workout to update");
+      if (!workout) throw new Error(t('no_workout_to_update'));
 
       // Combine date and time with validation
       const [hours, minutes] = validateTimeFormat(data.workoutTime);
@@ -122,12 +148,12 @@ export function EditWorkoutDialog({
         .millisecond(0);
 
       // Validate exercises before sending to API
-      const validExercises = data.exercises.filter(ex =>
-        ex.exerciseId.trim() !== "" && ex.name.trim() !== ""
+      const validExercises = data.exercises.filter(
+        (ex) => ex.exerciseId.trim() !== "" && ex.name.trim() !== "",
       );
 
       if (validExercises.length !== data.exercises.length) {
-        throw new Error("All exercises must be selected and have valid names");
+        throw new Error(t('exercises_must_be_valid'));
       }
 
       // Convert workout exercises to the format expected by the backend API
@@ -136,7 +162,7 @@ export function EditWorkoutDialog({
           exerciseId: exercise.exerciseId,
           name: exercise.name,
           notes: exercise.notes || "",
-          sets: exercise.sets.map(set => ({
+          sets: exercise.sets.map((set) => ({
             setId: set.setId || "", // Preserve existing ID or let backend generate
             weight: set.weight,
             weightUnit: set.weightUnit,
@@ -155,7 +181,7 @@ export function EditWorkoutDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["workouts"],
-        refetchType: "active" // Only refetch active queries
+        refetchType: "active", // Only refetch active queries
       });
       onOpenChange(false);
     },
@@ -179,9 +205,9 @@ export function EditWorkoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Workout</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
 
         {error && (
@@ -192,17 +218,21 @@ export function EditWorkoutDialog({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col space-y-2">
-            <FieldLabel htmlFor="date">Workout Date & Time</FieldLabel>
+            <FieldLabel htmlFor="date">{t("date_label")}</FieldLabel>
             <div className="flex flex-wrap gap-4">
               <form.Field name="date">
                 {(field) => (
                   <Input
-                    value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
-                    onChange={(e) => field.handleChange(dayjs(e.target.value).toDate())}
+                    value={dayjs(field.state.value).format(
+                      DATE_FORMATS.DATE_ONLY,
+                    )}
+                    onChange={(e) =>
+                      field.handleChange(dayjs(e.target.value).toDate())
+                    }
                     onBlur={field.handleBlur}
                     type="date"
                     id="date"
-                    className="w-full md:w-[180px]"
+                    className="w-full md:w-45"
                   />
                 )}
               </form.Field>
@@ -214,7 +244,7 @@ export function EditWorkoutDialog({
                     onBlur={field.handleBlur}
                     type="time"
                     id="workoutTime"
-                    className="w-full md:w-[120px]"
+                    className="w-full md:w-30"
                   />
                 )}
               </form.Field>
@@ -225,11 +255,14 @@ export function EditWorkoutDialog({
             {(field) => (
               <div className="space-y-4">
                 {field.state.value.map((exercise, index) => (
-                  <Card key={`${exercise.exerciseId || exercise.name}-${index}`}>
+                  <Card
+                    key={`${exercise.exerciseId || exercise.name}-${index}`}
+                  >
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-bold">
-                          {field.state.value[index]?.name || `Exercise ${index + 1}`}
+                          {field.state.value[index]?.name ||
+                            t("fallback_exercise", { number: index + 1 })}
                         </CardTitle>
                         <Button
                           type="button"
@@ -248,7 +281,7 @@ export function EditWorkoutDialog({
                             <ExerciseSelector
                               onSelect={(selectedExercise) => {
                                 // Update both exerciseId and name when exercise is selected
-                                field.setValue(prev => {
+                                field.setValue((prev) => {
                                   const newExercises = [...prev];
                                   newExercises[index] = {
                                     ...newExercises[index],
@@ -271,7 +304,7 @@ export function EditWorkoutDialog({
                           <ExerciseSetInput
                             value={subField.state.value}
                             onChange={(sets) => {
-                              field.setValue(prev => {
+                              field.setValue((prev) => {
                                 const newExercises = [...prev];
                                 newExercises[index] = {
                                   ...newExercises[index],
@@ -297,15 +330,12 @@ export function EditWorkoutDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
-            <Button
-              type="submit"
-              disabled={isPending}
-            >
+            <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <Save className="mr-2 h-4 w-4" />
-              Save Changes
+              {t("save_changes")}
             </Button>
           </div>
         </form>

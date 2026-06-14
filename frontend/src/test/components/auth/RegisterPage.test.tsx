@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRouter } from 'next/navigation'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import RegisterPage from '@/app/(auth)/register/page'
+import RegisterPage from '@/app/[locale]/(auth)/register/page'
 import { authApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -118,7 +118,7 @@ describe('RegisterPage', () => {
 
   it('submits form with valid data and redirects after success', async () => {
     const user = userEvent.setup()
-    vi.mocked(authApi.register).mockResolvedValue(undefined)
+    vi.mocked(authApi.register).mockResolvedValue({ message: 'Success', userId: 'user-1' })
     mockLogin.mockResolvedValue(undefined)
 
     render(<RegisterPage />)
