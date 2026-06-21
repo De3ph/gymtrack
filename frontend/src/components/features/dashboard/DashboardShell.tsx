@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import { ReactNode } from "react";
@@ -67,5 +68,15 @@ export function DashboardMetric({ label, value, hint, className }: DashboardMetr
       </p>
       {hint && <p className="mt-2 text-sm text-muted-foreground">{hint}</p>}
     </motion.div>
+  );
+}
+
+export function DashboardMetricSkeleton() {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-xs ring-1 ring-foreground/5">
+      <Skeleton className="h-3.5 w-20" />
+      <Skeleton className="mt-3 h-10 w-16" />
+      <Skeleton className="mt-2 h-4 w-36" />
+    </div>
   );
 }

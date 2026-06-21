@@ -37,6 +37,9 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
 
   return (
     <div className="space-y-3">
+      <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        {dayjs(date).format("dddd, MMMM D, YYYY")}
+      </p>
       {events.map((event) => (
         <div
           key={`${event.kind}-${event.id}`}
@@ -66,9 +69,6 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
           </div>
         </div>
       ))}
-      <p className="pt-2 text-center text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        {dayjs(date).format("dddd, MMMM D, YYYY")}
-      </p>
     </div>
   );
 }
