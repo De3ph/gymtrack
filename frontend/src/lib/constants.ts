@@ -9,21 +9,9 @@ export const API = {
   DEFAULT_TIMEOUT_MS: 5000,
 } as const;
 
-export const ROLES = {
-  TRAINER: "trainer",
-  ATHLETE: "athlete",
-} as const;
-
 export const TARGET_TYPES = {
   WORKOUT: "workout",
   MEAL: "meal",
-} as const;
-
-export const MEAL_TYPES = {
-  BREAKFAST: "breakfast",
-  LUNCH: "lunch",
-  DINNER: "dinner",
-  SNACK: "snack",
 } as const;
 
 export const DAYS_OF_WEEK = [
@@ -35,12 +23,6 @@ export const DAYS_OF_WEEK = [
   "Friday",
   "Saturday",
 ] as const;
-
-export const REQUEST_STATUS = {
-  PENDING: "pending",
-  ACCEPTED: "accepted",
-  REJECTED: "rejected",
-} as const;
 
 export const DATE_FORMATS = {
   DATE_ONLY: "YYYY-MM-DD",
@@ -71,10 +53,4 @@ export const BODY_PARTS = [
   { key: "calfRight", labelKey: "calfRight" }
 ] as const;
 
-export const PART_LABEL_KEYS = BODY_PARTS.reduce(
-  (acc, p) => {
-    acc[p.key] = p.labelKey;
-    return acc;
-  },
-  {} as Record<string, string>
-);
+

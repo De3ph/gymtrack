@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const bodyPartSchema = z.object({
+const bodyPartSchema = z.object({
   value: z
     .number()
     .min(0, "Value cannot be negative")

@@ -1,5 +1,5 @@
 import { CreateMealRequest, UpdateMealRequest } from "@/types"
-import api from "./index"
+import api from "./api-client"
 import { MessageResponse, PaginationParams, MealListResponse } from "./api-types"
 import { Meal } from "@/types"
 
