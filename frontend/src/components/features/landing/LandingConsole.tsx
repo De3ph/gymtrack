@@ -1,6 +1,6 @@
 import { Apple, Dumbbell, Ruler, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { motion } from "motion/react";
+import { motion, LazyMotion, domAnimation } from "framer-motion";
 import { landingReveal } from "./landing-variants";
 
 const consoleItems = [
@@ -30,7 +30,8 @@ export function LandingConsole() {
   const t = useTranslations("home");
 
   return (
-    <motion.div variants={landingReveal} className="relative">
+    <LazyMotion features={domAnimation}>
+      <motion.div variants={landingReveal} className="relative">
       <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-primary/20 via-transparent to-accent/20 blur-2xl" />
       <div className="rounded-[2rem] border border-border bg-card/80 p-4 shadow-2xl shadow-foreground/10 backdrop-blur sm:p-5">
         <div className="grid gap-3">
@@ -86,6 +87,7 @@ export function LandingConsole() {
           </div>
         </div>
       </div>
-    </motion.div>
+      </motion.div>
+    </LazyMotion>
   );
 }

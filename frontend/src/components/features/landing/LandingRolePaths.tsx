@@ -2,7 +2,7 @@ import { ArrowRight, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
-import { motion } from "motion/react";
+import { motion, LazyMotion, domAnimation } from "framer-motion";
 import { landingCard, landingStagger } from "./landing-variants";
 
 const roleKeys = ["athlete", "trainer"] as const;

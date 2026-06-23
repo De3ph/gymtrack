@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
+import { motion, LazyMotion, domAnimation } from "framer-motion";
 import { ReactNode } from "react";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
