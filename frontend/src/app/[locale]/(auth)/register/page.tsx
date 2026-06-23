@@ -180,7 +180,7 @@ export default function RegisterPage() {
               if (!value || value.length === 0) {
                 return t('password.error.required')
               }
-              if (value.length < 6) {
+              if (value.length < 8) {
                 return t('password.error.min_length')
               }
               return undefined

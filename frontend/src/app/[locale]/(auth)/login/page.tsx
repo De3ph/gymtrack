@@ -32,10 +32,6 @@ export default function LoginPage() {
 
       try {
         await login(value.identifier, value.password);
-
-        // Add a small delay to ensure tokens are persisted in localStorage
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
         router.push(ROUTES.DASHBOARD);
       } catch (err: unknown) {
         const errorMessage =
@@ -109,7 +105,7 @@ export default function LoginPage() {
               if (!value || value.length === 0) {
                 return t("password.error.required");
               }
-              if (value.length < 6) {
+              if (value.length < 8) {
                 return t("password.error.min_length");
               }
               return undefined;

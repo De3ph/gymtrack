@@ -4,6 +4,8 @@ import { authApi, userApi } from '@/lib/api';
 import { TokenService } from '@/lib/token-service';
 import { ROUTES } from '@/lib/routes';
 
+const SESSION_API = '/api/auth/session';
+
 interface AuthState {
   user: User | null
   token: string | null
@@ -26,38 +28,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isInitialized: false,
 
   login: async (identifier: string, password: string) => {
-    const response = await authApi.login({ identifier, password })
-    const { accessToken, refreshToken, user } = response
+    try {
+      const response = await authApi.login({ identifier, password })
+      const { accessToken, refreshToken, user } = response
 
-    TokenService.setTokens(accessToken, refreshToken)
+      TokenService.setTokens(accessToken, refreshToken)
 
-    // After successful login, update auth state and clear loading flag
-    set({
-      token: accessToken,
-      user,
-      isAuthenticated: true,
-      isLoading: false,
-      isInitialized: true
-    })
+      await fetch(SESSION_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken,
+          refreshToken,
+          userId: user.userId,
+          role: user.role,
+        }),
+      })
 
-    return user
+      set({
+        token: accessToken,
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        isInitialized: true,
+      })
+
+      return user
+    } catch (error) {
+      set({ isLoading: false })
+      throw error
+    }
   },
 
   logout: async () => {
     try {
-      // Call backend logout endpoint
-      await authApi.logout()
+      // 1. Remove HttpOnly session cookie
+      await fetch(SESSION_API, { method: 'DELETE' })
     } catch (error) {
-      console.error("Logout API call failed:", error)
+      console.error('Session delete call failed:', error)
     } finally {
-      // Always clear local tokens regardless of API call success
+      // 2. Clear in-memory tokens
       TokenService.remove()
       set({
         user: null,
         token: null,
         isAuthenticated: false,
         isLoading: false,
-        isInitialized: false
+        isInitialized: false,
       })
     }
   },
@@ -76,49 +93,46 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({ isLoading: true })
 
-    const accessToken = TokenService.getAccessToken()
-
-    if (!accessToken) {
-      set({
-        isLoading: false,
-        isAuthenticated: false,
-        isInitialized: true
-      })
-      return
-    }
-
     try {
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Auth initialization timeout")), 3000)
-      )
+      // 1. Recover access token from HttpOnly cookie (via server API)
+      const sessionRes = await fetch(SESSION_API)
+      const session = await sessionRes.json()
 
-      const user = await Promise.race([
-        userApi.getCurrentUser(),
-        timeoutPromise
-      ])
+      if (!session.accessToken) {
+        set({
+          isLoading: false,
+          isAuthenticated: false,
+          isInitialized: true,
+        })
+        return
+      }
+
+      // 2. Restore access token in memory
+      TokenService.set(session.accessToken)
+
+      // 3. Fetch full user profile from Go backend
+      const user = await userApi.getCurrentUser()
 
       set({
-        token: accessToken,
+        token: session.accessToken,
         user,
         isAuthenticated: true,
         isLoading: false,
-        isInitialized: true
+        isInitialized: true,
       })
     } catch (error) {
       console.log(
-        "Auth initialization failed, treating as unauthenticated:",
+        'Auth initialization failed, treating as unauthenticated:',
         error
       )
 
-      // For any error (timeout, network, auth), clear tokens and mark as unauthenticated
       TokenService.remove()
       set({
         user: null,
         token: null,
         isAuthenticated: false,
         isLoading: false,
-        isInitialized: true
+        isInitialized: true,
       })
     }
   },
@@ -134,45 +148,58 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await authApi.refreshToken(refreshToken)
       const { accessToken } = response
 
-      TokenService.setTokens(accessToken, refreshToken)
+      // Update in-memory token
+      TokenService.set(accessToken)
+
+      // Update the HttpOnly cookie with refreshed token
+      const state = get()
+      await fetch(SESSION_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken,
+          refreshToken,
+          userId: state.user?.userId,
+          role: state.user?.role,
+        }),
+      })
 
       // Update the token in state
       set({ token: accessToken })
 
       return true
     } catch (error) {
-      console.error("Token refresh failed:", error)
+      console.error('Token refresh failed:', error)
       return false
     }
   },
 
   handleAuthError: (error: unknown) => {
-    console.error("Auth error:", error)
+    console.error('Auth error:', error)
 
-    // Check for 401/403 errors or token-related issues
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase()
       const isAuthError =
-        errorMessage.includes("401") ||
-        errorMessage.includes("403") ||
-        errorMessage.includes("unauthorized") ||
-        errorMessage.includes("token") ||
-        errorMessage.includes("forbidden")
+        errorMessage.includes('401') ||
+        errorMessage.includes('403') ||
+        errorMessage.includes('unauthorized') ||
+        errorMessage.includes('token') ||
+        errorMessage.includes('forbidden')
 
       if (isAuthError) {
-        // Clear auth state and redirect to login
         TokenService.remove()
         set({
           user: null,
           token: null,
           isAuthenticated: false,
           isLoading: false,
-          isInitialized: true // Keep as true to prevent re-initialization loops
+          isInitialized: true,
         })
 
-        // Navigate to login page
-        if (typeof window !== "undefined") {
-          // Clear React Query cache to prevent stale data
+        // Clear the session cookie
+        fetch(SESSION_API, { method: 'DELETE' }).catch(() => {})
+
+        if (typeof window !== 'undefined') {
           if (window.__TANSTACK_QUERY_CLIENT__) {
             window.__TANSTACK_QUERY_CLIENT__.clear()
           }
@@ -182,7 +209,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     }
 
-    // For other errors, just set loading to false
     set({ isLoading: false })
   }
 }))

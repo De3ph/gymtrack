@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAuthStore } from '@/stores/authStore'
 import { authApi, userApi } from '@/lib/api'
+import { TokenService } from '@/lib/token-service'
+import { server } from '@/test/mocks/server'
+import { http, HttpResponse } from 'msw'
 
-// Mock API calls
 vi.mock('@/lib/api', () => ({
   authApi: {
     login: vi.fn(),
@@ -12,26 +14,30 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-}
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-})
-
 describe('AuthStore', () => {
   beforeEach(() => {
+    server.use(
+      http.post('/api/auth/session', () =>
+        HttpResponse.json({ success: true })
+      ),
+      http.get('/api/auth/session', () =>
+        HttpResponse.json({ accessToken: 'session-recovered-token', userId: 'user-1', role: 'athlete' })
+      ),
+      http.delete('/api/auth/session', () =>
+        HttpResponse.json({ success: true })
+      ),
+    )
+  })
+
+  beforeEach(() => {
     vi.clearAllMocks()
-    // Reset store state
+    TokenService.remove()
     useAuthStore.setState({
       user: null,
       token: null,
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true,
+      isInitialized: false,
     })
   })
 
@@ -41,7 +47,7 @@ describe('AuthStore', () => {
     expect(state.user).toBeNull()
     expect(state.token).toBeNull()
     expect(state.isAuthenticated).toBe(false)
-    expect(state.isLoading).toBe(true) // Initial loading state
+    expect(state.isLoading).toBe(true)
   })
 
   it('should login successfully and set auth state', async () => {
@@ -63,18 +69,22 @@ describe('AuthStore', () => {
 
     const mockToken = 'mock-jwt-token'
 
-    vi.mocked(authApi.login).mockResolvedValue({ message: 'Login successful', accessToken: mockToken, refreshToken: 'refresh-token', user: mockUser })
-    vi.mocked(userApi.getCurrentUser).mockResolvedValue(mockUser)
+    vi.mocked(authApi.login).mockResolvedValue({
+      message: 'Login successful',
+      accessToken: mockToken,
+      refreshToken: 'refresh-token',
+      user: mockUser,
+    })
 
     const { login } = useAuthStore.getState()
     await login('test@example.com', 'password123')
 
     expect(authApi.login).toHaveBeenCalledWith({
-      email: 'test@example.com',
+      identifier: 'test@example.com',
       password: 'password123',
     })
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('token', mockToken)
-    expect(userApi.getCurrentUser).toHaveBeenCalled()
+
+    expect(TokenService.getAccessToken()).toBe(mockToken)
 
     const state = useAuthStore.getState()
     expect(state.token).toBe(mockToken)
@@ -98,8 +108,8 @@ describe('AuthStore', () => {
     expect(state.isLoading).toBe(false)
   })
 
-  it('should logout and clear auth state', () => {
-    // Set some initial state
+  it('should logout and clear auth state', async () => {
+    TokenService.setTokens('some-token', 'refresh-token')
     useAuthStore.setState({
       user: { userId: 'user-1' } as any,
       token: 'some-token',
@@ -108,9 +118,10 @@ describe('AuthStore', () => {
     })
 
     const { logout } = useAuthStore.getState()
-    logout()
+    await logout()
 
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('token')
+    // In-memory tokens cleared
+    expect(TokenService.getAccessToken()).toBeNull()
 
     const state = useAuthStore.getState()
     expect(state.user).toBeNull()
@@ -119,7 +130,7 @@ describe('AuthStore', () => {
     expect(state.isLoading).toBe(false)
   })
 
-  it('should initialize auth from localStorage token', async () => {
+  it('should initialize auth from session cookie', async () => {
     const mockUser = {
       userId: 'user-1',
       username: 'testuser',
@@ -132,24 +143,27 @@ describe('AuthStore', () => {
       updatedAt: '2024-01-01T00:00:00Z',
     }
 
-    localStorageMock.getItem.mockReturnValue('existing-token')
     vi.mocked(userApi.getCurrentUser).mockResolvedValue(mockUser)
 
     const { initializeAuth } = useAuthStore.getState()
     await initializeAuth()
 
-    expect(localStorageMock.getItem).toHaveBeenCalledWith('token')
+    expect(TokenService.getAccessToken()).toBe('session-recovered-token')
     expect(userApi.getCurrentUser).toHaveBeenCalled()
 
     const state = useAuthStore.getState()
-    expect(state.token).toBe('existing-token')
+    expect(state.token).toBe('session-recovered-token')
     expect(state.user).toEqual(mockUser)
     expect(state.isAuthenticated).toBe(true)
     expect(state.isLoading).toBe(false)
   })
 
-  it('should handle missing token during initialization', async () => {
-    localStorageMock.getItem.mockReturnValue(null)
+  it('should handle missing session during initialization', async () => {
+    server.use(
+      http.get('/api/auth/session', () =>
+        HttpResponse.json({ accessToken: null, user: null })
+      ),
+    )
 
     const { initializeAuth } = useAuthStore.getState()
     await initializeAuth()
@@ -164,13 +178,13 @@ describe('AuthStore', () => {
   })
 
   it('should handle auth error during initialization', async () => {
-    localStorageMock.getItem.mockReturnValue('invalid-token')
     vi.mocked(userApi.getCurrentUser).mockRejectedValue(new Error('Unauthorized'))
 
     const { initializeAuth } = useAuthStore.getState()
     await initializeAuth()
 
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('token')
+    // In-memory tokens cleared
+    expect(TokenService.getAccessToken()).toBeNull()
 
     const state = useAuthStore.getState()
     expect(state.user).toBeNull()
@@ -200,7 +214,7 @@ describe('AuthStore', () => {
   })
 
   it('should handle auth error with 401 status', () => {
-    // Set initial authenticated state
+    TokenService.setTokens('some-token', 'refresh-token')
     useAuthStore.setState({
       user: { userId: 'user-1' } as any,
       token: 'some-token',
@@ -213,7 +227,7 @@ describe('AuthStore', () => {
     const { handleAuthError } = useAuthStore.getState()
     handleAuthError(error)
 
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('token')
+    expect(TokenService.getAccessToken()).toBeNull()
 
     const state = useAuthStore.getState()
     expect(state.user).toBeNull()
@@ -228,10 +242,7 @@ describe('AuthStore', () => {
     const { handleAuthError } = useAuthStore.getState()
     handleAuthError(error)
 
-    expect(localStorageMock.removeItem).not.toHaveBeenCalled()
-
     const state = useAuthStore.getState()
     expect(state.isLoading).toBe(false)
-    // Other state should remain unchanged
   })
 })
