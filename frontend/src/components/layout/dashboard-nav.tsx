@@ -26,7 +26,7 @@ export function DashboardNav({
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
           <div className="flex items-center">
-            <Link href={ROUTES.PROFILE} className={linkStyles.brand}>
+            <Link href={ROUTES.DASHBOARD} className={linkStyles.brand}>
               GymTrack
             </Link>
             <div className="ml-10 hidden lg:flex lg:items-baseline lg:space-x-4">
@@ -40,9 +40,9 @@ export function DashboardNav({
               <LocaleToggle />
             </div>
             <div className="hidden lg:flex lg:items-center lg:gap-4">
-              <span className="text-sm text-foreground">
+              <Link href={ROUTES.PROFILE} className="text-sm text-foreground hover:underline">
                 {userName} ({userRole})
-              </span>
+              </Link>
               <button
                 onClick={onLogout}
                 className="rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"

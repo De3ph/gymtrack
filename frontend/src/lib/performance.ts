@@ -3,7 +3,7 @@ import * as React from 'react';
 /**
  * Simple performance monitoring utilities for tracking API calls and component render times
  */
-export const PerformanceMetrics = {
+const PerformanceMetrics = {
   /** Track API request duration */
   trackApiCall: (name: string, durationMs: number) => {
     if (process.env.NODE_ENV !== 'production') {
@@ -29,7 +29,7 @@ export const PerformanceMetrics = {
 };
 
 /** Custom hook for measuring render performance */
-export const usePerformanceMonitor = (componentName: string) => {
+const usePerformanceMonitor = (componentName: string) => {
   const startTime = React.useRef<number | null>(null);
 
   React.useEffect(() => {

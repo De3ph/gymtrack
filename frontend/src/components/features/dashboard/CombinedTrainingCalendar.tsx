@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,28 +24,44 @@ interface CombinedTrainingCalendarProps {
   endDate?: string;
 }
 
-export function CombinedTrainingCalendar({
-  startDate,
-  endDate,
-}: CombinedTrainingCalendarProps) {
+function getMonthRange(date: Date) {
+  return {
+    startDate: dayjs(date).startOf("month").toISOString(),
+    endDate: dayjs(date).endOf("month").toISOString(),
+  };
+}
+
+export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) {
   const t = useTranslations("dashboard.calendar");
   const tEvent = useTranslations("dashboard.calendar.events");
   const tDate = useTranslations("common.date");
   const [selectedDate, setSelectedDate] = React.useState<Date>(dayjs().toDate());
+  const [viewMonth, setViewMonth] = React.useState<Date>(dayjs().toDate());
 
-  const { data: workoutData, isLoading: workoutsLoading } = useQuery({
-    queryKey: ["dashboard-workouts", startDate, endDate],
-    queryFn: () => workoutApi.getAll({ startDate, endDate }),
+  const monthRange = React.useMemo(() => getMonthRange(viewMonth), [viewMonth]);
+
+  const {
+    data: workoutData,
+    isLoading: workoutsLoading,
+    isRefetching: workoutsRefetching,
+  } = useQuery({
+    queryKey: ["dashboard-workouts", monthRange.startDate, monthRange.endDate],
+    queryFn: () => workoutApi.getAll(monthRange),
   });
 
-  const { data: mealData, isLoading: mealsLoading } = useQuery({
-    queryKey: ["dashboard-meals", startDate, endDate],
-    queryFn: () => mealApi.getAll({ startDate, endDate }),
+  const {
+    data: mealData,
+    isLoading: mealsLoading,
+    isRefetching: mealsRefetching,
+  } = useQuery({
+    queryKey: ["dashboard-meals", monthRange.startDate, monthRange.endDate],
+    queryFn: () => mealApi.getAll(monthRange),
   });
 
   const workouts = React.useMemo(() => workoutData?.workouts ?? [], [workoutData]);
   const meals = React.useMemo(() => mealData?.meals ?? [], [mealData]);
   const isLoading = workoutsLoading || mealsLoading;
+  const isRefetching = workoutsRefetching || mealsRefetching;
 
   const selectedEvents = React.useMemo<DashboardEvent[]>(() => {
     const selectedWorkouts = workouts.filter((workout) =>
@@ -63,16 +80,11 @@ export function CombinedTrainingCalendar({
   const handleToday = () => {
     const today = dayjs().toDate();
     setSelectedDate(today);
+    setViewMonth(today);
   };
 
   if (isLoading) {
-    return (
-      <Card className="rounded-[1.5rem]">
-        <CardHeader>
-          <CardTitle>{t("loading")}</CardTitle>
-        </CardHeader>
-      </Card>
-    );
+    return <CalendarSkeleton />;
   }
 
   return (
@@ -94,6 +106,8 @@ export function CombinedTrainingCalendar({
             mode="single"
             selected={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
+            month={viewMonth}
+            onMonthChange={setViewMonth}
             modifiers={{
               workout: workouts.map((workout) => dayjs(workout.date).toDate()),
               meal: meals.map((meal) => dayjs(meal.date).toDate()),
@@ -110,10 +124,76 @@ export function CombinedTrainingCalendar({
             <Legend icon={<CalendarDays className="h-3.5 w-3.5" />} label={t("workout")} />
             <Legend icon={<UtensilsCrossed className="h-3.5 w-3.5" />} label={t("meal")} />
           </div>
-          <DashboardEventList date={selectedDate} events={selectedEvents} />
+          <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
+            {isRefetching ? (
+              <EventsSkeleton />
+            ) : (
+              <DashboardEventList date={selectedDate} events={selectedEvents} />
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function CalendarSkeleton() {
+  return (
+    <Card className="overflow-hidden rounded-[1.5rem]">
+      <CardHeader className="gap-1 border-b border-border pb-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-60" />
+          </div>
+          <Skeleton className="h-9 w-20 rounded-md" />
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
+        <div className="flex justify-center rounded-2xl bg-muted/30 p-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-32" />
+              <div className="flex gap-1">
+                <Skeleton className="size-8 rounded-md" />
+                <Skeleton className="size-8 rounded-md" />
+              </div>
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: 35 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-square rounded-md" />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-4 rounded-2xl bg-muted/30 p-4">
+          <div className="flex gap-2">
+            <Skeleton className="h-7 w-20 rounded-full" />
+            <Skeleton className="h-7 w-16 rounded-full" />
+          </div>
+          <EventsSkeleton />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EventsSkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="flex items-start gap-4 rounded-2xl border border-border bg-card p-4">
+          <Skeleton className="size-10 shrink-0 rounded-2xl" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-5 w-12 rounded-full" />
+            </div>
+            <Skeleton className="h-3.5 w-44" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -153,4 +233,3 @@ function Legend({ icon, label }: { icon: React.ReactNode; label: string }) {
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
-

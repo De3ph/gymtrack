@@ -2,14 +2,14 @@ import { z } from "zod";
 
 type ValidationTranslator = (key: string) => string;
 
-export const createMacrosSchema = (t: ValidationTranslator) =>
+const createMacrosSchema = (t: ValidationTranslator) =>
   z.object({
     protein: z.number().min(0, t("macro_non_negative")).optional(),
     carbs: z.number().min(0, t("macro_non_negative")).optional(),
     fats: z.number().min(0, t("macro_non_negative")).optional(),
   });
 
-export const createFoodItemSchema = (t: ValidationTranslator) =>
+const createFoodItemSchema = (t: ValidationTranslator) =>
   z.object({
     food: z.string().trim().min(1, t("food_required")),
     quantity: z.string().trim().min(1, t("quantity_required")),

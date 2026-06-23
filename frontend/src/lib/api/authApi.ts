@@ -1,5 +1,5 @@
 import { LoginRequest, RegisterRequest } from "@/types";
-import api from "./index";
+import api from "./api-client";
 import { MessageResponse, RegisterResponse, LoginResponse } from "./api-types";
 
 export const authApi = {

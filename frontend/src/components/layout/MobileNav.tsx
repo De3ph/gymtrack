@@ -38,7 +38,7 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
         <DrawerHeader className="border-b">
           <DrawerTitle className="text-left">
             <Link
-              href={ROUTES.PROFILE}
+              href={ROUTES.DASHBOARD}
               className={linkStyles.brand}
               onClick={() => {
                 // Close handled by link navigation

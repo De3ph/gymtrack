@@ -1,5 +1,5 @@
 import { CreateWorkoutRequest, UpdateWorkoutRequest } from "@/types"
-import api from "./index"
+import api from "./api-client"
 import { MessageResponse, PaginationParams, WorkoutListResponse } from "./api-types"
 import { Workout } from "@/types"
 
