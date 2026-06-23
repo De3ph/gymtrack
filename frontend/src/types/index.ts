@@ -1,4 +1,4 @@
-export type UserRole = "trainer" | "athlete";
+export type UserRole = "trainer" | "athlete" | "admin";
 
 export type WeightUnit = "kg" | "lbs";
 
@@ -134,7 +134,7 @@ export interface ClientStats {
 
 export type CommentTargetType = "workout" | "meal";
 
-export type CommentAuthorRole = "trainer" | "athlete";
+export type CommentAuthorRole = "trainer" | "athlete" | "admin";
 
 export interface Comment {
   type: string;

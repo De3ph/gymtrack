@@ -51,6 +51,7 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
         <nav className="flex flex-col gap-1 p-4">
           {userRole === "athlete" && <AthleteNavLinks />}
           {userRole === "trainer" && <TrainerNavLinks />}
+          {userRole === "admin" && <AdminNavLinks />}
         </nav>
         <div className="mt-auto border-t p-4">
           <div className="mb-3 flex items-center justify-center gap-2">
@@ -94,6 +95,28 @@ function AthleteNavLinks() {
       <DrawerClose asChild>
         <Link href={ROUTES.ATHLETE_WORKOUT_PLANS} className={linkStyles.nav}>
           {tNav("workout_plans")}
+        </Link>
+      </DrawerClose>
+    </>
+  );
+}
+
+function AdminNavLinks() {
+  return (
+    <>
+      <DrawerClose asChild>
+        <Link href={ROUTES.ADMIN_DASHBOARD} className={linkStyles.nav}>
+          Dashboard
+        </Link>
+      </DrawerClose>
+      <DrawerClose asChild>
+        <Link href={ROUTES.ADMIN_USERS} className={linkStyles.nav}>
+          Users
+        </Link>
+      </DrawerClose>
+      <DrawerClose asChild>
+        <Link href={ROUTES.ADMIN_PROFILE} className={linkStyles.nav}>
+          Profile
         </Link>
       </DrawerClose>
     </>

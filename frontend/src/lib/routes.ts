@@ -26,6 +26,11 @@ export const ROUTES = {
 
   // Athlete workout plans
   ATHLETE_WORKOUT_PLANS: '/athlete/workout-plans',
+
+  // Admin routes
+  ADMIN_DASHBOARD: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_PROFILE: '/admin/profile',
 } as const;
 
 // Dynamic route builders - for routes with parameters

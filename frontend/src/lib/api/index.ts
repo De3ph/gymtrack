@@ -14,6 +14,7 @@ import { coachingRequestApi } from "./coachingRequestApi"
 import { exerciseApi } from "./exerciseApi"
 import { workoutPlanApi } from "./workoutPlanApi"
 import { bodyMeasurementApi } from "./bodyMeasurementApi"
+import { adminApi } from "./adminApi"
 
 
 export {
@@ -30,7 +31,8 @@ export {
   coachingRequestApi,
   exerciseApi,
   workoutPlanApi,
-  bodyMeasurementApi
+  bodyMeasurementApi,
+  adminApi,
 }
 
 export default api

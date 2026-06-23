@@ -2,6 +2,7 @@ import Link from "next/link";
 import { linkStyles } from "./dashboard-styles";
 import { AthleteNav } from "./athlete-nav";
 import { TrainerNav } from "./trainer-nav";
+import { AdminNav } from "./admin-nav";
 import { MobileNav } from "./MobileNav";
 import { ThemeToggle } from "./theme-toggle";
 import { LocaleToggle } from "./locale-toggle";
@@ -32,6 +33,7 @@ export function DashboardNav({
             <div className="ml-10 hidden lg:flex lg:items-baseline lg:space-x-4">
               {userRole === "athlete" && <AthleteNav />}
               {userRole === "trainer" && <TrainerNav />}
+              {userRole === "admin" && <AdminNav />}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -40,7 +42,10 @@ export function DashboardNav({
               <LocaleToggle />
             </div>
             <div className="hidden lg:flex lg:items-center lg:gap-4">
-              <Link href={ROUTES.PROFILE} className="text-sm text-foreground hover:underline">
+              <Link
+                href={userRole === "admin" ? ROUTES.ADMIN_PROFILE : ROUTES.PROFILE}
+                className="text-sm text-foreground hover:underline"
+              >
                 {userName} ({userRole})
               </Link>
               <button

@@ -5,3 +5,30 @@
 .vscode/settings.json
 .claude/
 obsidian-vault/
+.omo/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+tmp/
+all_go_files.txt
+
+# Node / Frontend
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

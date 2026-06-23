@@ -18,6 +18,13 @@ export default function RoleDashboardPage() {
     }
   }, [isLoading, router, user]);
 
+  // Redirect admin users to their dashboard
+  useEffect(() => {
+    if (!isLoading && user?.role === "admin") {
+      router.replace("/admin");
+    }
+  }, [isLoading, user, router]);
+
   if (isLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

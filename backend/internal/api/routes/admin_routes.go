@@ -12,7 +12,9 @@ func AdminRoutes(router *gin.RouterGroup, adminHandler *handlers.AdminHandler) {
 	admin.Use(middleware.JWTAuthMiddleware())
 	admin.Use(middleware.AdminOnlyMiddleware())
 	{
+		admin.GET("/stats", adminHandler.GetDashboardStats)
 		admin.GET("/users", adminHandler.ListAllUsers)
 		admin.GET("/users/:id", adminHandler.GetUserDetail)
+		admin.PUT("/profile/password", adminHandler.ChangePassword)
 	}
 }
