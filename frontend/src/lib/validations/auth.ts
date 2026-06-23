@@ -1,14 +1,12 @@
 import { z } from "zod"
 
-export const loginSchema = z.object({
+const loginSchema = z.object({
   identifier: z.string()
     .min(1, "Email or username is required")
     .refine((val) => {
-      // Check if it's a valid email
       if (/^[\S]+@[\S]+\.[\S]+$/.test(val)) {
         return true;
       }
-      // Check if it's a valid username format (3-30 alphanumeric)
       if (/^[a-zA-Z0-9]{3,30}$/.test(val)) {
         return true;
       }
@@ -30,7 +28,7 @@ const checkNaN = (val: unknown) => {
   return num;
 }
 
-export const registerSchema = z
+const registerSchema = z
   .object({
     username: z.string()
       .min(3, "Username must be at least 3 characters")
@@ -76,7 +74,7 @@ export const registerSchema = z
     path: ["confirmPassword"]
   })
 
-export const athleteProfileSchema = z.object({
+const athleteProfileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   age: z.number().optional(),
   weight: z.number().optional(),
@@ -84,7 +82,7 @@ export const athleteProfileSchema = z.object({
   fitnessGoals: z.string().optional()
 })
 
-export const trainerProfileSchema = z.object({
+const trainerProfileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   certifications: z.string().optional(),
   specializations: z.string().optional()
@@ -94,12 +92,3 @@ export type LoginFormData = z.infer<typeof loginSchema> & {
   identifier: string
   password: string
 }
-export type RegisterFormData = z.infer<typeof registerSchema> & {
-  profile: {
-    age?: number | string | undefined
-    weight?: number | string | undefined
-    height?: number | string | undefined
-  }
-}
-export type AthleteProfileFormData = z.infer<typeof athleteProfileSchema>
-export type TrainerProfileFormData = z.infer<typeof trainerProfileSchema>

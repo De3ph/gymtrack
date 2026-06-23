@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const commentTargetTypeSchema = z.enum(["workout", "meal"]);
+const commentTargetTypeSchema = z.enum(["workout", "meal"]);
 
-export const createCommentSchema = z.object({
+const createCommentSchema = z.object({
   targetType: commentTargetTypeSchema,
   targetId: z.string().min(1, "Target ID is required"),
   content: z
@@ -20,4 +20,3 @@ export const updateCommentSchema = z.object({
 });
 
 export type CreateCommentFormData = z.infer<typeof createCommentSchema>;
-export type UpdateCommentFormData = z.infer<typeof updateCommentSchema>;

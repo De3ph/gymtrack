@@ -1,5 +1,5 @@
 import { CreateCommentRequest, UpdateCommentRequest } from "@/types"
-import api from "./index"
+import api from "./api-client"
 import { CommentListResponse, MessageResponse } from "./api-types"
 import { Comment } from "@/types"
 
