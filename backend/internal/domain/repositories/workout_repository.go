@@ -21,12 +21,14 @@ type WorkoutRepository interface {
 }
 
 type CouchbaseWorkoutRepository struct {
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewWorkoutRepository(collection *gocb.Collection) *CouchbaseWorkoutRepository {
+func NewWorkoutRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseWorkoutRepository {
 	return &CouchbaseWorkoutRepository{
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
@@ -71,9 +73,9 @@ func (r *CouchbaseWorkoutRepository) GetByAthleteID(athleteID string, limit, off
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT w.* FROM `%s`.`%s`.`%s` w WHERE w.type = 'workout' AND w.athleteId = $1 ORDER BY w.date DESC LIMIT $2 OFFSET $3",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkouts)
+		r.bucketName, config.ScopeDefault, config.CollectionWorkouts)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, limit, offset},
 		Context:              ctx,
 	})
@@ -104,9 +106,9 @@ func (r *CouchbaseWorkoutRepository) GetByAthleteDateRange(athleteID string, sta
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT w.* FROM `%s`.`%s`.`%s` w WHERE w.type = 'workout' AND w.athleteId = $1 AND w.date >= $2 AND w.date <= $3 ORDER BY w.date DESC",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkouts)
+		r.bucketName, config.ScopeDefault, config.CollectionWorkouts)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
 		Context:              ctx,
 	})

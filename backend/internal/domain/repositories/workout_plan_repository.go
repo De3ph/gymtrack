@@ -22,12 +22,14 @@ type WorkoutPlanRepository interface {
 
 // CouchbaseWorkoutPlanRepository implements WorkoutPlanRepository with Couchbase
 type CouchbaseWorkoutPlanRepository struct {
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewWorkoutPlanRepository(collection *gocb.Collection) *CouchbaseWorkoutPlanRepository {
+func NewWorkoutPlanRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseWorkoutPlanRepository {
 	return &CouchbaseWorkoutPlanRepository{
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
@@ -36,7 +38,8 @@ func (r *CouchbaseWorkoutPlanRepository) Create(plan *models.WorkoutPlan) error 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Insert(plan.PlanID, plan, &gocb.InsertOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
+	_, err := collection.Insert(plan.PlanID, plan, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -50,7 +53,8 @@ func (r *CouchbaseWorkoutPlanRepository) GetByID(planID string) (*models.Workout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := r.collection.Get(planID, &gocb.GetOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
+	result, err := collection.Get(planID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -70,9 +74,9 @@ func (r *CouchbaseWorkoutPlanRepository) GetByTrainerID(trainerID string) ([]*mo
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT p.* FROM `%s`.`%s`.`%s` p WHERE p.type = 'workout_plan' AND p.trainerId = $1 ORDER BY p.createdAt DESC",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlans)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlans)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID},
 		Context:              ctx,
 	})
@@ -104,7 +108,8 @@ func (r *CouchbaseWorkoutPlanRepository) Update(plan *models.WorkoutPlan) error 
 
 	plan.UpdatedAt = time.Now()
 
-	_, err := r.collection.Replace(plan.PlanID, plan, &gocb.ReplaceOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
+	_, err := collection.Replace(plan.PlanID, plan, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -118,7 +123,8 @@ func (r *CouchbaseWorkoutPlanRepository) Delete(planID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Remove(planID, &gocb.RemoveOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
+	_, err := collection.Remove(planID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -139,12 +145,14 @@ type WorkoutPlanAssignmentRepository interface {
 
 // CouchbaseWorkoutPlanAssignmentRepository implements WorkoutPlanAssignmentRepository
 type CouchbaseWorkoutPlanAssignmentRepository struct {
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewWorkoutPlanAssignmentRepository(collection *gocb.Collection) *CouchbaseWorkoutPlanAssignmentRepository {
+func NewWorkoutPlanAssignmentRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseWorkoutPlanAssignmentRepository {
 	return &CouchbaseWorkoutPlanAssignmentRepository{
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
@@ -153,7 +161,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) Create(assignment *models.Wor
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Insert(assignment.AssignmentID, assignment, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlanAssignments).Insert(assignment.AssignmentID, assignment, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -168,9 +176,9 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByPlanID(planID string) ([
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.planId = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{planID},
 		Context:              ctx,
 	})
@@ -201,9 +209,9 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteID(athleteID stri
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.athleteId = $1 AND a.status = 'active'",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
 	})
@@ -234,9 +242,9 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteAndPlan(athleteID
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.athleteId = $1 AND a.planId = $2 LIMIT 1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, planID},
 		Context:              ctx,
 	})
@@ -266,9 +274,9 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByTrainerID(trainerID stri
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.trainerId = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID},
 		Context:              ctx,
 	})
@@ -299,9 +307,9 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) DeleteByPlanID(planID string)
 	defer cancel()
 
 	query := fmt.Sprintf("DELETE FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.planId = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
-	_, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	_, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{planID},
 		Context:              ctx,
 	})

@@ -16,20 +16,22 @@ type EquipmentRepository interface {
 }
 
 type CouchbaseEquipmentRepository struct {
-	collection *gocb.Collection
+	cluster    *gocb.Cluster
+	bucketName string
 }
 
-func NewCouchbaseEquipmentRepository(collection *gocb.Collection) *CouchbaseEquipmentRepository {
+func NewCouchbaseEquipmentRepository(cluster *gocb.Cluster, bucketName string) *CouchbaseEquipmentRepository {
 	return &CouchbaseEquipmentRepository{
-		collection: collection,
+		cluster:    cluster,
+		bucketName: bucketName,
 	}
 }
 
 func (r *CouchbaseEquipmentRepository) GetAllEquipment(ctx context.Context) ([]models.EquipmentDefinition, error) {
 	query := fmt.Sprintf("SELECT eq.* FROM `%s`.`%s`.`%s` eq WHERE eq.type = 'equipmentDefinition' ORDER BY eq.id",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionEquipment)
+		r.bucketName, config.ScopeDefault, config.CollectionEquipment)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -56,9 +58,9 @@ func (r *CouchbaseEquipmentRepository) GetAllEquipment(ctx context.Context) ([]m
 
 func (r *CouchbaseEquipmentRepository) GetEquipmentByID(ctx context.Context, id int) (*models.EquipmentDefinition, error) {
 	query := fmt.Sprintf("SELECT eq.* FROM `%s`.`%s`.`%s` eq WHERE eq.type = 'equipmentDefinition' AND eq.id = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionEquipment)
+		r.bucketName, config.ScopeDefault, config.CollectionEquipment)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{id},
 	})

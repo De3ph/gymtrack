@@ -23,11 +23,15 @@ type RelationshipRepository interface {
 }
 
 type CouchbaseRelationshipRepository struct {
+	cluster    *gocb.Cluster
+	bucketName string
 	collection *gocb.Collection
 }
 
-func NewRelationshipRepository(collection *gocb.Collection) *CouchbaseRelationshipRepository {
+func NewRelationshipRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseRelationshipRepository {
 	return &CouchbaseRelationshipRepository{
+		cluster:    cluster,
+		bucketName: bucketName,
 		collection: collection,
 	}
 }
@@ -67,9 +71,9 @@ func (r *CouchbaseRelationshipRepository) GetByID(ctx context.Context, relations
 func (r *CouchbaseRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.trainerId = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
+		r.bucketName, config.ScopeDefault, config.CollectionRelationships)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID},
 		Context:              ctx,
 	})
@@ -98,9 +102,9 @@ func (r *CouchbaseRelationshipRepository) GetByTrainerID(ctx context.Context, tr
 func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.athleteId = $1 AND r.status = 'active' LIMIT 1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
+		r.bucketName, config.ScopeDefault, config.CollectionRelationships)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
 	})
@@ -128,9 +132,9 @@ func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, at
 func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.athleteId = $1 AND r.status = 'pending'",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
+		r.bucketName, config.ScopeDefault, config.CollectionRelationships)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
 	})
@@ -158,9 +162,9 @@ func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Cont
 // HasActiveRelationship checks if an active relationship exists between a trainer and athlete
 func (r *CouchbaseRelationshipRepository) HasActiveRelationship(ctx context.Context, trainerID, athleteID string) (bool, error) {
 	query := fmt.Sprintf("SELECT COUNT(r) as count FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.trainerId = $1 AND r.athleteId = $2 AND r.status = 'active' LIMIT 1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionRelationships)
+		r.bucketName, config.ScopeDefault, config.CollectionRelationships)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID, athleteID},
 		Context:              ctx,
 	})

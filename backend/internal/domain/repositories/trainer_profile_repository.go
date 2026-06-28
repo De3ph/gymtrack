@@ -26,11 +26,15 @@ type TrainerFilters struct {
 }
 
 type CouchbaseTrainerProfileRepository struct {
+	cluster    *gocb.Cluster
+	bucketName string
 	collection *gocb.Collection
 }
 
-func NewCouchbaseTrainerProfileRepository(collection *gocb.Collection) *CouchbaseTrainerProfileRepository {
+func NewCouchbaseTrainerProfileRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseTrainerProfileRepository {
 	return &CouchbaseTrainerProfileRepository{
+		cluster:    cluster,
+		bucketName: bucketName,
 		collection: collection,
 	}
 }
@@ -59,7 +63,7 @@ func (r *CouchbaseTrainerProfileRepository) buildQuery(filters *TrainerFilters) 
 	}
 
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE %s",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers, whereClause)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers, whereClause)
 	return query, params
 }
 
@@ -67,7 +71,7 @@ func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Contex
 	query, params := r.buildQuery(filters)
 	query += fmt.Sprintf(" ORDER BY u.profile.averageRating DESC NULLS LAST LIMIT %d OFFSET %d", limit, offset)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: params,
 	})
@@ -103,7 +107,8 @@ func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Contex
 
 func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID string) (*models.TrainerWithProfile, error) {
 	var trainer models.TrainerWithProfile
-	getResult, err := r.collection.Get(trainerID, &gocb.GetOptions{
+	collection := r.collection
+	getResult, err := collection.Get(trainerID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -172,7 +177,7 @@ func (r *CouchbaseTrainerProfileRepository) CountTrainers(ctx context.Context, f
 	query, params := r.buildQuery(filters)
 	query = fmt.Sprintf("SELECT COUNT(*) as count FROM (%s) AS trainers", query)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: params,
 	})
@@ -194,3 +199,5 @@ func (r *CouchbaseTrainerProfileRepository) CountTrainers(ctx context.Context, f
 
 	return count, nil
 }
+
+

@@ -22,20 +22,22 @@ type AvailabilityRepository interface {
 }
 
 type CouchbaseAvailabilityRepository struct {
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCouchbaseAvailabilityRepository(collection *gocb.Collection) *CouchbaseAvailabilityRepository {
+func NewCouchbaseAvailabilityRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseAvailabilityRepository {
 	return &CouchbaseAvailabilityRepository{
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
 func (r *CouchbaseAvailabilityRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerAvailability, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'availability' AND a.trainerId = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
 	})
@@ -58,7 +60,8 @@ func (r *CouchbaseAvailabilityRepository) GetByTrainerID(ctx context.Context, tr
 
 func (r *CouchbaseAvailabilityRepository) GetBySlotID(ctx context.Context, slotID string) (*models.TrainerAvailability, error) {
 	var slot models.TrainerAvailability
-	getResult, err := r.collection.Get(slotID, &gocb.GetOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
+	getResult, err := collection.Get(slotID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -83,7 +86,7 @@ func (r *CouchbaseAvailabilityRepository) UpsertAvailability(ctx context.Context
 		slot.CreatedAt = time.Now()
 	}
 
-	_, err := r.collection.Upsert(slot.AvailabilityID, slot, &gocb.UpsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Upsert(slot.AvailabilityID, slot, &gocb.UpsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -93,7 +96,8 @@ func (r *CouchbaseAvailabilityRepository) UpsertAvailability(ctx context.Context
 }
 
 func (r *CouchbaseAvailabilityRepository) DeleteAvailability(ctx context.Context, slotID string) error {
-	_, err := r.collection.Remove(slotID, &gocb.RemoveOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
+	_, err := collection.Remove(slotID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -104,9 +108,9 @@ func (r *CouchbaseAvailabilityRepository) DeleteAvailability(ctx context.Context
 
 func (r *CouchbaseAvailabilityRepository) GetAvailableSlots(ctx context.Context, trainerID string, dayOfWeek int) ([]models.TrainerAvailability, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'availability' AND a.trainerId = $1 AND a.dayOfWeek = $2 AND a.isBooked = false",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID, dayOfWeek},
 	})
@@ -128,7 +132,8 @@ func (r *CouchbaseAvailabilityRepository) GetAvailableSlots(ctx context.Context,
 }
 
 func (r *CouchbaseAvailabilityRepository) BookSlotAtomic(ctx context.Context, slotID string) error {
-	_, err := r.collection.MutateIn(slotID, []gocb.MutateInSpec{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
+	_, err := collection.MutateIn(slotID, []gocb.MutateInSpec{
 		gocb.UpsertSpec("isBooked", true, nil),
 		gocb.UpsertSpec("updatedAt", time.Now(), nil),
 	}, &gocb.MutateInOptions{
@@ -143,9 +148,9 @@ func (r *CouchbaseAvailabilityRepository) BookSlotAtomic(ctx context.Context, sl
 func (r *CouchbaseAvailabilityRepository) CleanupExpiredSlots(ctx context.Context, retentionDays int) error {
 	cutoff := time.Now().AddDate(0, 0, -retentionDays)
 	query := fmt.Sprintf("SELECT a.availabilityId FROM `%s`.`%s`.`%s` a WHERE a.type = 'availability' AND a.createdAt < $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{cutoff},
 	})
@@ -159,7 +164,8 @@ func (r *CouchbaseAvailabilityRepository) CleanupExpiredSlots(ctx context.Contex
 		if err := rows.Row(&slotID); err != nil {
 			continue
 		}
-		_, _ = r.collection.Remove(slotID, &gocb.RemoveOptions{Context: ctx})
+		collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
+		_, _ = collection.Remove(slotID, &gocb.RemoveOptions{Context: ctx})
 	}
 
 	return nil

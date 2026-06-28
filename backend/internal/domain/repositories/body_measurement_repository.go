@@ -22,12 +22,14 @@ type BodyMeasurementRepository interface {
 }
 
 type CouchbaseBodyMeasurementRepository struct {
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewBodyMeasurementRepository(collection *gocb.Collection) *CouchbaseBodyMeasurementRepository {
+func NewBodyMeasurementRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseBodyMeasurementRepository {
 	return &CouchbaseBodyMeasurementRepository{
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
@@ -36,7 +38,8 @@ func (r *CouchbaseBodyMeasurementRepository) Create(measurement *models.BodyMeas
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Insert(measurement.MeasurementID, measurement, &gocb.InsertOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
+	_, err := collection.Insert(measurement.MeasurementID, measurement, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -51,7 +54,8 @@ func (r *CouchbaseBodyMeasurementRepository) GetByID(measurementID string) (*mod
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := r.collection.Get(measurementID, &gocb.GetOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
+	result, err := collection.Get(measurementID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -72,9 +76,9 @@ func (r *CouchbaseBodyMeasurementRepository) GetByAthleteID(athleteID string, li
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'body_measurement' AND m.athleteId = $1 ORDER BY m.date DESC LIMIT $2 OFFSET $3",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, limit, offset},
 		Context:              ctx,
 	})
@@ -105,9 +109,9 @@ func (r *CouchbaseBodyMeasurementRepository) GetByAthleteDateRange(athleteID str
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'body_measurement' AND m.athleteId = $1 AND m.date >= $2 AND m.date <= $3 ORDER BY m.date DESC",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
 		Context:              ctx,
 	})
@@ -138,9 +142,9 @@ func (r *CouchbaseBodyMeasurementRepository) GetLatestByAthleteID(athleteID stri
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'body_measurement' AND m.athleteId = $1 ORDER BY m.date DESC LIMIT 1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
 	})
@@ -167,7 +171,8 @@ func (r *CouchbaseBodyMeasurementRepository) Update(measurement *models.BodyMeas
 
 	measurement.UpdatedAt = time.Now()
 
-	_, err := r.collection.Replace(measurement.MeasurementID, measurement, &gocb.ReplaceOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
+	_, err := collection.Replace(measurement.MeasurementID, measurement, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -182,7 +187,8 @@ func (r *CouchbaseBodyMeasurementRepository) Delete(measurementID string) error 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Remove(measurementID, &gocb.RemoveOptions{
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
+	_, err := collection.Remove(measurementID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

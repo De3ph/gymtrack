@@ -21,11 +21,15 @@ type UserRepository interface {
 }
 
 type CouchbaseUserRepository struct {
+	cluster    *gocb.Cluster
+	bucketName string
 	collection *gocb.Collection
 }
 
-func NewCouchbaseUserRepository(collection *gocb.Collection) *CouchbaseUserRepository {
+func NewCouchbaseUserRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseUserRepository {
 	return &CouchbaseUserRepository{
+		cluster:    cluster,
+		bucketName: bucketName,
 		collection: collection,
 	}
 }
@@ -46,9 +50,9 @@ func (r *CouchbaseUserRepository) CreateUser(ctx context.Context, user *models.U
 
 func (r *CouchbaseUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' AND u.email = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{email},
 	})
@@ -74,9 +78,9 @@ func (r *CouchbaseUserRepository) GetUserByEmail(ctx context.Context, email stri
 
 func (r *CouchbaseUserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' AND LOWER(u.username) = LOWER($1)",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{username},
 	})
@@ -122,9 +126,9 @@ func (r *CouchbaseUserRepository) GetUserByID(ctx context.Context, userID string
 
 func (r *CouchbaseUserRepository) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' ORDER BY u.createdAt DESC",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
 	})
 	if err != nil {

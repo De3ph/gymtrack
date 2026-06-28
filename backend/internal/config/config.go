@@ -3,7 +3,9 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 
+	"github.com/couchbase/gocb/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -45,4 +47,28 @@ func getEnv(key string, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// ProvideCouchbaseConnection provides Couchbase cluster and bucket for fx
+func ProvideCouchbaseConnection(cfg *Config) (cluster *gocb.Cluster, bucket *gocb.Bucket, err error) {
+	cluster, err = gocb.Connect(cfg.CouchbaseConnectionString, gocb.ClusterOptions{
+		Authenticator: gocb.PasswordAuthenticator{
+			Username: cfg.CouchbaseUsername,
+			Password: cfg.CouchbasePassword,
+		},
+	})
+
+	if err != nil {
+		return
+	}
+
+	bucket = cluster.Bucket(cfg.CouchbaseBucket)
+	err = bucket.WaitUntilReady(10*time.Second, nil)
+
+	return
+}
+
+// GetCollection returns a collection from the bucket
+func GetCollection(bucket *gocb.Bucket, collectionName string) *gocb.Collection {
+	return bucket.Scope(ScopeDefault).Collection(collectionName)
 }

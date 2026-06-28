@@ -16,20 +16,22 @@ type MuscleGroupRepository interface {
 }
 
 type CouchbaseMuscleGroupRepository struct {
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCouchbaseMuscleGroupRepository(collection *gocb.Collection) *CouchbaseMuscleGroupRepository {
+func NewCouchbaseMuscleGroupRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseMuscleGroupRepository {
 	return &CouchbaseMuscleGroupRepository{
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
 func (r *CouchbaseMuscleGroupRepository) GetAllMuscleGroups(ctx context.Context) ([]models.MuscleGroupDefinition, error) {
 	query := fmt.Sprintf("SELECT mg.* FROM `%s`.`%s`.`%s` mg WHERE mg.type = 'muscleGroupDefinition' ORDER BY mg.id",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionMuscleGroups)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionMuscleGroups)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -56,9 +58,9 @@ func (r *CouchbaseMuscleGroupRepository) GetAllMuscleGroups(ctx context.Context)
 
 func (r *CouchbaseMuscleGroupRepository) GetMuscleGroupByID(ctx context.Context, id int) (*models.MuscleGroupDefinition, error) {
 	query := fmt.Sprintf("SELECT mg.* FROM `%s`.`%s`.`%s` mg WHERE mg.type = 'muscleGroupDefinition' AND mg.id = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionMuscleGroups)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionMuscleGroups)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{id},
 	})

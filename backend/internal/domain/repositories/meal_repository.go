@@ -21,11 +21,15 @@ type MealRepository interface {
 }
 
 type CouchbaseMealRepository struct {
+	cluster    *gocb.Cluster
+	bucketName string
 	collection *gocb.Collection
 }
 
-func NewMealRepository(collection *gocb.Collection) *CouchbaseMealRepository {
+func NewMealRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseMealRepository {
 	return &CouchbaseMealRepository{
+		cluster:    cluster,
+		bucketName: bucketName,
 		collection: collection,
 	}
 }
@@ -71,9 +75,9 @@ func (r *CouchbaseMealRepository) GetByAthleteID(athleteID string, limit, offset
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'meal' AND m.athleteId = $1 ORDER BY m.date DESC LIMIT $2 OFFSET $3",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionMeals)
+		r.bucketName, config.ScopeDefault, config.CollectionMeals)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, limit, offset},
 		Context:              ctx,
 	})
@@ -104,9 +108,9 @@ func (r *CouchbaseMealRepository) GetByAthleteDateRange(athleteID string, startD
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'meal' AND m.athleteId = $1 AND m.date >= $2 AND m.date <= $3 ORDER BY m.date DESC",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionMeals)
+		r.bucketName, config.ScopeDefault, config.CollectionMeals)
 
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
 		Context:              ctx,
 	})
@@ -162,3 +166,4 @@ func (r *CouchbaseMealRepository) Delete(mealID string) error {
 
 	return nil
 }
+

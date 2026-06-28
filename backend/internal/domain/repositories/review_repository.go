@@ -26,20 +26,24 @@ type ReviewRepository interface {
 }
 
 type CouchbaseReviewRepository struct {
+	cluster    *gocb.Cluster
+	bucketName string
 	collection *gocb.Collection
 }
 
-func NewCouchbaseReviewRepository(collection *gocb.Collection) *CouchbaseReviewRepository {
+func NewCouchbaseReviewRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseReviewRepository {
 	return &CouchbaseReviewRepository{
+		cluster:    cluster,
+		bucketName: bucketName,
 		collection: collection,
 	}
 }
 
 func (r *CouchbaseReviewRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerReview, error) {
 	query := fmt.Sprintf("SELECT rev.* FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.trainerId = $1 ORDER BY rev.createdAt DESC",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
 	})
@@ -65,7 +69,8 @@ func (r *CouchbaseReviewRepository) CreateReview(ctx context.Context, review *mo
 	review.CreatedAt = time.Now()
 	review.UpdatedAt = time.Now()
 
-	_, err := r.collection.Insert(review.ReviewID, review, &gocb.InsertOptions{
+	collection := r.collection
+	_, err := collection.Insert(review.ReviewID, review, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -77,7 +82,8 @@ func (r *CouchbaseReviewRepository) CreateReview(ctx context.Context, review *mo
 func (r *CouchbaseReviewRepository) UpdateReview(ctx context.Context, review *models.TrainerReview) error {
 	review.UpdatedAt = time.Now()
 
-	_, err := r.collection.Replace(review.ReviewID, review, &gocb.ReplaceOptions{
+	collection := r.collection
+	_, err := collection.Replace(review.ReviewID, review, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -87,7 +93,8 @@ func (r *CouchbaseReviewRepository) UpdateReview(ctx context.Context, review *mo
 }
 
 func (r *CouchbaseReviewRepository) DeleteReview(ctx context.Context, reviewID string) error {
-	_, err := r.collection.Remove(reviewID, &gocb.RemoveOptions{
+	collection := r.collection
+	_, err := collection.Remove(reviewID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -98,9 +105,9 @@ func (r *CouchbaseReviewRepository) DeleteReview(ctx context.Context, reviewID s
 
 func (r *CouchbaseReviewRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.TrainerReview, error) {
 	query := fmt.Sprintf("SELECT rev.* FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.athleteId = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{athleteID},
 	})
@@ -122,9 +129,9 @@ func (r *CouchbaseReviewRepository) GetByAthleteID(ctx context.Context, athleteI
 
 func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, trainerID string) (float64, int, error) {
 	query := fmt.Sprintf("SELECT AVG(rev.rating) as avgRating, COUNT(rev) as reviewCount FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.trainerId = $1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
 	})
@@ -150,7 +157,8 @@ func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, traine
 
 func (r *CouchbaseReviewRepository) GetReviewByID(ctx context.Context, reviewID string) (*models.TrainerReview, error) {
 	var review models.TrainerReview
-	getResult, err := r.collection.Get(reviewID, &gocb.GetOptions{
+	collection := r.collection
+	getResult, err := collection.Get(reviewID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -181,9 +189,9 @@ func (r *CouchbaseReviewRepository) GetRatingsForTrainers(ctx context.Context, t
 	}
 
 	query := fmt.Sprintf("SELECT rev.trainerId, AVG(rev.rating) as avgRating, COUNT(rev) as reviewCount FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.trainerId IN $1 GROUP BY rev.trainerId",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionUsers)
+		r.bucketName, config.ScopeDefault, config.CollectionUsers)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerIDs},
 	})

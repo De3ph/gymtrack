@@ -21,11 +21,15 @@ type ExerciseRepository interface {
 }
 
 type CouchbaseExerciseRepository struct {
+	cluster    *gocb.Cluster
+	bucketName string
 	collection *gocb.Collection
 }
 
-func NewCouchbaseExerciseRepository(collection *gocb.Collection) *CouchbaseExerciseRepository {
+func NewCouchbaseExerciseRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseExerciseRepository {
 	return &CouchbaseExerciseRepository{
+		cluster:    cluster,
+		bucketName: bucketName,
 		collection: collection,
 	}
 }
@@ -64,9 +68,9 @@ func (r *CouchbaseExerciseRepository) GetExerciseByID(ctx context.Context, exerc
 
 func (r *CouchbaseExerciseRepository) GetAllExercises(ctx context.Context) ([]models.Exercise, error) {
 	query := fmt.Sprintf("SELECT ex.* FROM `%s`.`%s`.`%s` ex WHERE ex.type = 'exercise' ORDER BY ex.name",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionExercises)
+		r.bucketName, config.ScopeDefault, config.CollectionExercises)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -93,9 +97,9 @@ func (r *CouchbaseExerciseRepository) GetAllExercises(ctx context.Context) ([]mo
 
 func (r *CouchbaseExerciseRepository) GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error) {
 	query := fmt.Sprintf("SELECT ex.* FROM `%s`.`%s`.`%s` ex WHERE ex.type = 'exercise' AND ex.muscleGroupId = $1 ORDER BY ex.name",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionExercises)
+		r.bucketName, config.ScopeDefault, config.CollectionExercises)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{muscleGroupID},
 	})
@@ -123,9 +127,9 @@ func (r *CouchbaseExerciseRepository) GetExercisesByMuscleGroup(ctx context.Cont
 
 func (r *CouchbaseExerciseRepository) GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error) {
 	query := fmt.Sprintf("SELECT ex.* FROM `%s`.`%s`.`%s` ex WHERE ex.type = 'exercise' AND ex.equipmentId = $1 ORDER BY ex.name",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionExercises)
+		r.bucketName, config.ScopeDefault, config.CollectionExercises)
 
-	rows, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{equipmentID},
 	})
@@ -157,23 +161,23 @@ func (r *CouchbaseExerciseRepository) SearchExercises(ctx context.Context, query
 
 	if muscleGroupID != nil && equipmentID != nil {
 		n1qlQuery = fmt.Sprintf("SELECT ex.* FROM `%s`.`%s`.`%s` ex WHERE ex.type = 'exercise' AND ex.name LIKE $1 AND ex.muscleGroupId = $2 AND ex.equipmentId = $3 ORDER BY ex.name",
-			config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionExercises)
+			r.bucketName, config.ScopeDefault, config.CollectionExercises)
 		params = []interface{}{"%" + query + "%", *muscleGroupID, *equipmentID}
 	} else if muscleGroupID != nil {
 		n1qlQuery = fmt.Sprintf("SELECT ex.* FROM `%s`.`%s`.`%s` ex WHERE ex.type = 'exercise' AND ex.name LIKE $1 AND ex.muscleGroupId = $2 ORDER BY ex.name",
-			config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionExercises)
+			r.bucketName, config.ScopeDefault, config.CollectionExercises)
 		params = []interface{}{"%" + query + "%", *muscleGroupID}
 	} else if equipmentID != nil {
 		n1qlQuery = fmt.Sprintf("SELECT ex.* FROM `%s`.`%s`.`%s` ex WHERE ex.type = 'exercise' AND ex.name LIKE $1 AND ex.equipmentId = $2 ORDER BY ex.name",
-			config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionExercises)
+			r.bucketName, config.ScopeDefault, config.CollectionExercises)
 		params = []interface{}{"%" + query + "%", *equipmentID}
 	} else {
 		n1qlQuery = fmt.Sprintf("SELECT ex.* FROM `%s`.`%s`.`%s` ex WHERE ex.type = 'exercise' AND ex.name LIKE $1 ORDER BY ex.name",
-			config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionExercises)
+			r.bucketName, config.ScopeDefault, config.CollectionExercises)
 		params = []interface{}{"%" + query + "%"}
 	}
 
-	rows, err := config.GlobalCluster.Query(n1qlQuery, &gocb.QueryOptions{
+	rows, err := r.cluster.Query(n1qlQuery, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: params,
 	})
