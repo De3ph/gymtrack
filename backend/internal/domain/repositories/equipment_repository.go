@@ -29,7 +29,7 @@ func NewCouchbaseEquipmentRepository(cluster *gocb.Cluster, bucketName string) *
 
 func (r *CouchbaseEquipmentRepository) GetAllEquipment(ctx context.Context) ([]models.EquipmentDefinition, error) {
 	query := fmt.Sprintf("SELECT eq.* FROM `%s`.`%s`.`%s` eq WHERE eq.type = 'equipmentDefinition' ORDER BY eq.id",
-		r.bucketName, config.ScopeDefault, config.CollectionEquipment)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionEquipment)
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
@@ -58,7 +58,7 @@ func (r *CouchbaseEquipmentRepository) GetAllEquipment(ctx context.Context) ([]m
 
 func (r *CouchbaseEquipmentRepository) GetEquipmentByID(ctx context.Context, id int) (*models.EquipmentDefinition, error) {
 	query := fmt.Sprintf("SELECT eq.* FROM `%s`.`%s`.`%s` eq WHERE eq.type = 'equipmentDefinition' AND eq.id = $1",
-		r.bucketName, config.ScopeDefault, config.CollectionEquipment)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionEquipment)
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,

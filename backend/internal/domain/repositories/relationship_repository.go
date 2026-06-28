@@ -39,7 +39,7 @@ func NewRelationshipRepository(cluster *gocb.Cluster, bucketName string, collect
 // Create inserts a new relationship into the database
 func (r *CouchbaseRelationshipRepository) Create(ctx context.Context, relationship *models.Relationship) error {
 
-	_, err := r.collection.Insert(relationship.RelationshipID, relationship, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Insert(relationship.RelationshipID, relationship, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -52,7 +52,7 @@ func (r *CouchbaseRelationshipRepository) Create(ctx context.Context, relationsh
 // GetByID retrieves a relationship by its ID
 func (r *CouchbaseRelationshipRepository) GetByID(ctx context.Context, relationshipID string) (*models.Relationship, error) {
 
-	result, err := r.collection.Get(relationshipID, &gocb.GetOptions{
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Get(relationshipID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {

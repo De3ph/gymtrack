@@ -63,7 +63,7 @@ func (r *CouchbaseTrainerProfileRepository) buildQuery(filters *TrainerFilters) 
 	}
 
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE %s",
-		r.bucketName, config.ScopeDefault, config.CollectionUsers, whereClause)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers, whereClause)
 	return query, params
 }
 
@@ -107,7 +107,7 @@ func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Contex
 
 func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID string) (*models.TrainerWithProfile, error) {
 	var trainer models.TrainerWithProfile
-	collection := r.collection
+	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
 	getResult, err := collection.Get(trainerID, &gocb.GetOptions{
 		Context: ctx,
 	})
@@ -138,7 +138,7 @@ func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, 
 
 func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID string, profile *models.TrainerProfile) error {
 	var user models.User
-	getResult, err := r.collection.Get(trainerID, &gocb.GetOptions{
+	getResult, err := collection.Get(trainerID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -159,7 +159,7 @@ func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Con
 	user.Profile.IsAvailableForNewClients = profile.IsAvailableForNewClients
 	user.Profile.Languages = profile.Languages
 
-	_, err = r.collection.Replace(trainerID, user, &gocb.ReplaceOptions{
+	_, err = collection.Replace(trainerID, user, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -199,5 +199,3 @@ func (r *CouchbaseTrainerProfileRepository) CountTrainers(ctx context.Context, f
 
 	return count, nil
 }
-
-

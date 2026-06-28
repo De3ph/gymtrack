@@ -39,7 +39,7 @@ func (r *CouchbaseMealRepository) Create(meal *models.Meal) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Insert(meal.MealID, meal, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Insert(meal.MealID, meal, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *CouchbaseMealRepository) GetByID(mealID string) (*models.Meal, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := r.collection.Get(mealID, &gocb.GetOptions{
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Get(mealID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -75,7 +75,7 @@ func (r *CouchbaseMealRepository) GetByAthleteID(athleteID string, limit, offset
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'meal' AND m.athleteId = $1 ORDER BY m.date DESC LIMIT $2 OFFSET $3",
-		r.bucketName, config.ScopeDefault, config.CollectionMeals)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionMeals)
 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, limit, offset},
@@ -108,7 +108,7 @@ func (r *CouchbaseMealRepository) GetByAthleteDateRange(athleteID string, startD
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'meal' AND m.athleteId = $1 AND m.date >= $2 AND m.date <= $3 ORDER BY m.date DESC",
-		r.bucketName, config.ScopeDefault, config.CollectionMeals)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionMeals)
 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
@@ -142,7 +142,7 @@ func (r *CouchbaseMealRepository) Update(meal *models.Meal) error {
 
 	meal.UpdatedAt = time.Now()
 
-	_, err := r.collection.Replace(meal.MealID, meal, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Replace(meal.MealID, meal, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -157,7 +157,7 @@ func (r *CouchbaseMealRepository) Delete(mealID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Remove(mealID, &gocb.RemoveOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Remove(mealID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -166,4 +166,3 @@ func (r *CouchbaseMealRepository) Delete(mealID string) error {
 
 	return nil
 }
-
