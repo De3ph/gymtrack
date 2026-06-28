@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"log"
-	"time"
 
 	"gymtrack-backend/internal/api/handlers"
 	"gymtrack-backend/internal/api/middleware"
@@ -11,6 +10,7 @@ import (
 	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
+	"gymtrack-backend/internal/utils"
 
 	"github.com/couchbase/gocb/v2"
 	"github.com/gin-contrib/cors"
@@ -23,22 +23,72 @@ import (
 var RepositoryModule = fx.Module("repositories",
 	fx.Provide(
 		func(cfg *config.Config) (*gocb.Cluster, *gocb.Bucket, error) {
-			cluster, err := gocb.Connect(cfg.CouchbaseConnectionString, gocb.ClusterOptions{
-				Authenticator: gocb.PasswordAuthenticator{
-					Username: cfg.CouchbaseUsername,
-					Password: cfg.CouchbasePassword,
-				},
-			})
-			if err != nil {
-				return nil, nil, err
-			}
+			return config.ProvideCouchbaseConnection(cfg)
+		},
 
-			bucket := cluster.Bucket(cfg.CouchbaseBucket)
-			if err := bucket.WaitUntilReady(10*time.Second, nil); err != nil {
-				return nil, nil, err
-			}
+		config.LoadConfig,
+		func() utils.Clock {
+			return utils.RealClock{}
+		},
 
-			return cluster, bucket, nil
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.UserRepository {
+			return repositories.NewCouchbaseUserRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.WorkoutRepository {
+			return repositories.NewWorkoutRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.MealRepository {
+			return repositories.NewMealRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.RelationshipRepository {
+			return repositories.NewRelationshipRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.CommentRepository {
+			return repositories.NewCommentRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.MuscleGroupRepository {
+			return repositories.NewCouchbaseMuscleGroupRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.EquipmentRepository {
+			return repositories.NewCouchbaseEquipmentRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.ExerciseRepository {
+			return repositories.NewCouchbaseExerciseRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.WorkoutPlanRepository {
+			return repositories.NewWorkoutPlanRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.WorkoutPlanAssignmentRepository {
+			return repositories.NewWorkoutPlanAssignmentRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.BodyMeasurementRepository {
+			return repositories.NewBodyMeasurementRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.TrainerProfileRepository {
+			return repositories.NewCouchbaseTrainerProfileRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.AvailabilityRepository {
+			return repositories.NewCouchbaseAvailabilityRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.ReviewRepository {
+			return repositories.NewCouchbaseReviewRepository(cluster, bucket)
+		},
+
+		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.CoachingRequestRepository {
+			return repositories.NewCoachingRequestRepository(cluster, bucket)
 		},
 
 		repositories.NewCouchbaseUserRepository,
@@ -56,24 +106,42 @@ var RepositoryModule = fx.Module("repositories",
 		repositories.NewCouchbaseAvailabilityRepository,
 		repositories.NewCouchbaseReviewRepository,
 		repositories.NewCoachingRequestRepository,
-	),
 
-	fx.Provide(
+		func(cfg *config.Config, clock utils.Clock, cluster *gocb.Cluster, bucket *gocb.Bucket) *services.AuthService {
+			return services.NewAuthService(repositories.NewCouchbaseUserRepository(cluster, bucket), cfg.JWTSecret, clock)
+		},
+
 		services.NewUserService,
 		services.NewWorkoutService,
 		services.NewMealService,
 		services.NewCommentService,
-		services.NewExerciseService,
+		func(
+			exerciseRepo repositories.ExerciseRepository,
+			muscleGroupRepo repositories.MuscleGroupRepository,
+			equipmentRepo repositories.EquipmentRepository,
+		) services.ExerciseService {
+			return services.NewExerciseService(exerciseRepo, muscleGroupRepo, equipmentRepo)
+		},
 		services.NewTrainerCatalogService,
 		services.NewAvailabilityService,
 		services.NewReviewService,
 		services.NewCoachingRequestService,
-		services.NewInvitationService,
+		services.NewWorkoutPlanService,
+		func(
+			bucket *gocb.Bucket,
+			clock utils.Clock,
+			relationshipRepo repositories.RelationshipRepository,
+			userRepo repositories.UserRepository,
+		) *services.InvitationService {
+			method := services.NewCodeBasedInvitation(
+				services.NewGocbCollectionAdapter(config.GetCollection(bucket, config.CollectionInvitations)),
+				clock,
+			)
+			return services.NewInvitationService(method, relationshipRepo, userRepo, clock)
+		},
 		services.NewBodyMeasurementService,
 		services.NewAdminService,
-	),
 
-	fx.Provide(
 		handlers.NewAuthHandler,
 		handlers.NewUserHandler,
 		handlers.NewAdminHandler,
@@ -88,6 +156,10 @@ var RepositoryModule = fx.Module("repositories",
 		handlers.NewCoachingRequestHandler,
 		handlers.NewWorkoutPlanHandler,
 		handlers.NewBodyMeasurementHandler,
+
+		func() *gin.Engine {
+			return gin.Default()
+		},
 	),
 
 	fx.Invoke(func(
@@ -105,8 +177,26 @@ var RepositoryModule = fx.Module("repositories",
 		coachingRequestHandler *handlers.CoachingRequestHandler,
 		workoutPlanHandler *handlers.WorkoutPlanHandler,
 		bodyMeasurementHandler *handlers.BodyMeasurementHandler,
+		cfg *config.Config,
+		cluster *gocb.Cluster,
+		bucket *gocb.Bucket,
+		authService *services.AuthService,
 		router *gin.Engine,
 	) {
+		config.GlobalCluster = cluster
+		config.GlobalBucket = bucket
+
+		middleware.InitAuthMiddleware(cfg, authService)
+
+		corsConfig := cors.DefaultConfig()
+		corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"}
+		corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}
+		corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+		corsConfig.AllowCredentials = true
+
+		router.Use(cors.New(corsConfig))
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 		apiGroup := router.Group("/api")
 		routes.AuthRoutes(apiGroup, authHandler)
 		routes.UserRoutes(apiGroup, userHandler)
@@ -127,6 +217,7 @@ var RepositoryModule = fx.Module("repositories",
 
 		routes.RegisterWorkoutPlanRoutes(apiGroup, workoutPlanHandler)
 	}),
+	fx.Invoke(StartServer),
 )
 
 type AppProvider struct {

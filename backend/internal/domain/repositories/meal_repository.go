@@ -21,16 +21,14 @@ type MealRepository interface {
 }
 
 type CouchbaseMealRepository struct {
-	cluster    *gocb.Cluster
-	bucketName string
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewMealRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseMealRepository {
+func NewMealRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseMealRepository {
 	return &CouchbaseMealRepository{
-		cluster:    cluster,
-		bucketName: bucketName,
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 

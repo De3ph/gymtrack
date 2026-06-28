@@ -22,16 +22,14 @@ type CommentRepository interface {
 }
 
 type CouchbaseCommentRepository struct {
-	cluster    *gocb.Cluster
-	bucketName string
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCommentRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseCommentRepository {
+func NewCommentRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseCommentRepository {
 	return &CouchbaseCommentRepository{
-		cluster:    cluster,
-		bucketName: bucketName,
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
@@ -40,7 +38,7 @@ func (r *CouchbaseCommentRepository) Create(comment *models.Comment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Insert(comment.CommentID, comment, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Insert(comment.CommentID, comment, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -55,7 +53,7 @@ func (r *CouchbaseCommentRepository) GetByID(commentID string) (*models.Comment,
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := r.collection.Get(commentID, &gocb.GetOptions{
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Get(commentID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -76,7 +74,7 @@ func (r *CouchbaseCommentRepository) GetByTarget(targetType models.TargetType, t
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT c.* FROM `%s`.`%s`.`%s` c WHERE c.type = 'comment' AND c.targetType = $1 AND c.targetId = $2 ORDER BY c.createdAt ASC",
-		r.bucketName, config.ScopeDefault, config.CollectionComments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionComments)
 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{targetType, targetID},
@@ -109,7 +107,7 @@ func (r *CouchbaseCommentRepository) GetByAuthor(authorID string) ([]*models.Com
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT c.* FROM `%s`.`%s`.`%s` c WHERE c.type = 'comment' AND c.authorId = $1 ORDER BY c.createdAt DESC",
-		r.bucketName, config.ScopeDefault, config.CollectionComments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionComments)
 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{authorID},
@@ -142,7 +140,7 @@ func (r *CouchbaseCommentRepository) GetReplies(parentCommentID string) ([]*mode
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT c.* FROM `%s`.`%s`.`%s` c WHERE c.type = 'comment' AND c.parentCommentId = $1 ORDER BY c.createdAt ASC",
-		r.bucketName, config.ScopeDefault, config.CollectionComments)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionComments)
 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{parentCommentID},
@@ -174,7 +172,7 @@ func (r *CouchbaseCommentRepository) Update(comment *models.Comment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Replace(comment.CommentID, comment, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Replace(comment.CommentID, comment, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -189,7 +187,7 @@ func (r *CouchbaseCommentRepository) Delete(commentID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Remove(commentID, &gocb.RemoveOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Remove(commentID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

@@ -21,16 +21,14 @@ type UserRepository interface {
 }
 
 type CouchbaseUserRepository struct {
-	cluster    *gocb.Cluster
-	bucketName string
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCouchbaseUserRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseUserRepository {
+func NewCouchbaseUserRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseUserRepository {
 	return &CouchbaseUserRepository{
-		cluster:    cluster,
-		bucketName: bucketName,
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 

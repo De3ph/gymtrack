@@ -16,14 +16,14 @@ type EquipmentRepository interface {
 }
 
 type CouchbaseEquipmentRepository struct {
-	cluster    *gocb.Cluster
-	bucketName string
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCouchbaseEquipmentRepository(cluster *gocb.Cluster, bucketName string) *CouchbaseEquipmentRepository {
+func NewCouchbaseEquipmentRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseEquipmentRepository {
 	return &CouchbaseEquipmentRepository{
-		cluster:    cluster,
-		bucketName: bucketName,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 

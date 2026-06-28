@@ -26,16 +26,14 @@ type ReviewRepository interface {
 }
 
 type CouchbaseReviewRepository struct {
-	cluster    *gocb.Cluster
-	bucketName string
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCouchbaseReviewRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseReviewRepository {
+func NewCouchbaseReviewRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseReviewRepository {
 	return &CouchbaseReviewRepository{
-		cluster:    cluster,
-		bucketName: bucketName,
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
@@ -69,8 +67,7 @@ func (r *CouchbaseReviewRepository) CreateReview(ctx context.Context, review *mo
 	review.CreatedAt = time.Now()
 	review.UpdatedAt = time.Now()
 
-	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.Insert(review.ReviewID, review, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Insert(review.ReviewID, review, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -82,8 +79,7 @@ func (r *CouchbaseReviewRepository) CreateReview(ctx context.Context, review *mo
 func (r *CouchbaseReviewRepository) UpdateReview(ctx context.Context, review *models.TrainerReview) error {
 	review.UpdatedAt = time.Now()
 
-	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.Replace(review.ReviewID, review, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(review.ReviewID, review, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -93,8 +89,7 @@ func (r *CouchbaseReviewRepository) UpdateReview(ctx context.Context, review *mo
 }
 
 func (r *CouchbaseReviewRepository) DeleteReview(ctx context.Context, reviewID string) error {
-	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.Remove(reviewID, &gocb.RemoveOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Remove(reviewID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -157,8 +152,7 @@ func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, traine
 
 func (r *CouchbaseReviewRepository) GetReviewByID(ctx context.Context, reviewID string) (*models.TrainerReview, error) {
 	var review models.TrainerReview
-	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	getResult, err := collection.Get(reviewID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(reviewID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {

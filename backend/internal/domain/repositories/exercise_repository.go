@@ -21,16 +21,14 @@ type ExerciseRepository interface {
 }
 
 type CouchbaseExerciseRepository struct {
-	cluster    *gocb.Cluster
-	bucketName string
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCouchbaseExerciseRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseExerciseRepository {
+func NewCouchbaseExerciseRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseExerciseRepository {
 	return &CouchbaseExerciseRepository{
-		cluster:    cluster,
-		bucketName: bucketName,
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 

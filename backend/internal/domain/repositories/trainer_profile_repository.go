@@ -26,16 +26,14 @@ type TrainerFilters struct {
 }
 
 type CouchbaseTrainerProfileRepository struct {
-	cluster    *gocb.Cluster
-	bucketName string
-	collection *gocb.Collection
+	cluster *gocb.Cluster
+	bucket  *gocb.Bucket
 }
 
-func NewCouchbaseTrainerProfileRepository(cluster *gocb.Cluster, bucketName string, collection *gocb.Collection) *CouchbaseTrainerProfileRepository {
+func NewCouchbaseTrainerProfileRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseTrainerProfileRepository {
 	return &CouchbaseTrainerProfileRepository{
-		cluster:    cluster,
-		bucketName: bucketName,
-		collection: collection,
+		cluster: cluster,
+		bucket:  bucket,
 	}
 }
 
@@ -107,8 +105,7 @@ func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Contex
 
 func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID string) (*models.TrainerWithProfile, error) {
 	var trainer models.TrainerWithProfile
-	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	getResult, err := collection.Get(trainerID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(trainerID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -138,7 +135,7 @@ func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, 
 
 func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID string, profile *models.TrainerProfile) error {
 	var user models.User
-	getResult, err := collection.Get(trainerID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(trainerID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -159,7 +156,7 @@ func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Con
 	user.Profile.IsAvailableForNewClients = profile.IsAvailableForNewClients
 	user.Profile.Languages = profile.Languages
 
-	_, err = collection.Replace(trainerID, user, &gocb.ReplaceOptions{
+	_, err = r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(trainerID, user, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
