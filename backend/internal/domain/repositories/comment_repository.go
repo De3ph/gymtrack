@@ -40,7 +40,7 @@ func (r *CouchbaseCommentRepository) Create(comment *models.Comment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Insert(comment.CommentID, comment, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Insert(comment.CommentID, comment, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -55,7 +55,7 @@ func (r *CouchbaseCommentRepository) GetByID(commentID string) (*models.Comment,
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := r.collection.Get(commentID, &gocb.GetOptions{
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Get(commentID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -198,4 +198,3 @@ func (r *CouchbaseCommentRepository) Delete(commentID string) error {
 
 	return nil
 }
-
