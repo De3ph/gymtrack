@@ -37,7 +37,7 @@ func (r *CouchbaseWorkoutRepository) Create(workout *models.Workout) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Insert(workout.WorkoutID, workout, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Insert(workout.WorkoutID, workout, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -52,7 +52,7 @@ func (r *CouchbaseWorkoutRepository) GetByID(workoutID string) (*models.Workout,
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := r.collection.Get(workoutID, &gocb.GetOptions{
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Get(workoutID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -73,7 +73,7 @@ func (r *CouchbaseWorkoutRepository) GetByAthleteID(athleteID string, limit, off
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT w.* FROM `%s`.`%s`.`%s` w WHERE w.type = 'workout' AND w.athleteId = $1 ORDER BY w.date DESC LIMIT $2 OFFSET $3",
-		r.bucketName, config.ScopeDefault, config.CollectionWorkouts)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkouts)
 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, limit, offset},
@@ -106,7 +106,7 @@ func (r *CouchbaseWorkoutRepository) GetByAthleteDateRange(athleteID string, sta
 	defer cancel()
 
 	query := fmt.Sprintf("SELECT w.* FROM `%s`.`%s`.`%s` w WHERE w.type = 'workout' AND w.athleteId = $1 AND w.date >= $2 AND w.date <= $3 ORDER BY w.date DESC",
-		r.bucketName, config.ScopeDefault, config.CollectionWorkouts)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkouts)
 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
@@ -140,7 +140,7 @@ func (r *CouchbaseWorkoutRepository) Update(workout *models.Workout) error {
 
 	workout.UpdatedAt = time.Now()
 
-	_, err := r.collection.Replace(workout.WorkoutID, workout, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Replace(workout.WorkoutID, workout, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -155,7 +155,7 @@ func (r *CouchbaseWorkoutRepository) Delete(workoutID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := r.collection.Remove(workoutID, &gocb.RemoveOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Remove(workoutID, &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

@@ -39,7 +39,7 @@ func (r *CouchbaseUserRepository) CreateUser(ctx context.Context, user *models.U
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	_, err := r.collection.Insert(user.UserID, user, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Insert(user.UserID, user, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -50,7 +50,7 @@ func (r *CouchbaseUserRepository) CreateUser(ctx context.Context, user *models.U
 
 func (r *CouchbaseUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' AND u.email = $1",
-		r.bucketName, config.ScopeDefault, config.CollectionUsers)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
@@ -78,7 +78,7 @@ func (r *CouchbaseUserRepository) GetUserByEmail(ctx context.Context, email stri
 
 func (r *CouchbaseUserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' AND LOWER(u.username) = LOWER($1)",
-		r.bucketName, config.ScopeDefault, config.CollectionUsers)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
@@ -126,7 +126,7 @@ func (r *CouchbaseUserRepository) GetUserByID(ctx context.Context, userID string
 
 func (r *CouchbaseUserRepository) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE u.type = 'user' ORDER BY u.createdAt DESC",
-		r.bucketName, config.ScopeDefault, config.CollectionUsers)
+		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
