@@ -37,7 +37,7 @@ func NewCouchbaseExerciseRepository(cluster *gocb.Cluster, bucketName string, co
 func (r *CouchbaseExerciseRepository) CreateExercise(ctx context.Context, exercise *models.Exercise) error {
 	exercise.CreatedAt = time.Now()
 
-	_, err := r.collection.Insert(exercise.ExerciseID, exercise, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises).Insert(exercise.ExerciseID, exercise, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -48,7 +48,7 @@ func (r *CouchbaseExerciseRepository) CreateExercise(ctx context.Context, exerci
 
 func (r *CouchbaseExerciseRepository) GetExerciseByID(ctx context.Context, exerciseID string) (*models.Exercise, error) {
 	var exercise models.Exercise
-	getResult, err := r.collection.Get(exerciseID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises).Get(exerciseID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {

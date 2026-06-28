@@ -106,7 +106,7 @@ func (r *CouchbaseUserRepository) GetUserByUsername(ctx context.Context, usernam
 
 func (r *CouchbaseUserRepository) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
 	var user models.User
-	getResult, err := r.collection.Get(userID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(userID, &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -155,7 +155,7 @@ func (r *CouchbaseUserRepository) GetAllUsers(ctx context.Context) ([]*models.Us
 func (r *CouchbaseUserRepository) UpdateUser(ctx context.Context, user *models.User) error {
 	user.UpdatedAt = time.Now()
 
-	_, err := r.collection.Replace(user.UserID, user, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(user.UserID, user, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
