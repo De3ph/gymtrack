@@ -541,6 +541,13 @@
       "count": "{count, plural, =0 {No meals} =1 {1 meal} other {# meals}}"
     }
   },
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "profile": "Profile"
+    }
+  },
   "body_measurement": {
     "list": {
       "loading": "Loading body measurements...",

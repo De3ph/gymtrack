@@ -1,42 +1,21 @@
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { linkStyles } from "./dashboard-styles";
+import { useTranslations } from "next-intl";
 import { ROUTES } from "@/lib/routes";
+import { NavLink } from "@/components/ui/nav-link";
 
 export function AdminNav() {
-  const pathname = usePathname();
+  const t = useTranslations("admin.nav");
 
   return (
     <>
-      <Link
-        href={ROUTES.ADMIN_DASHBOARD}
-        className={cn(
-          linkStyles.nav,
-          pathname === ROUTES.ADMIN_DASHBOARD && "bg-gray-200 dark:bg-gray-700",
-        )}
-      >
-        Dashboard
-      </Link>
-      <Link
-        href={ROUTES.ADMIN_USERS}
-        className={cn(
-          linkStyles.nav,
-          pathname.startsWith(ROUTES.ADMIN_USERS) &&
-            "bg-gray-200 dark:bg-gray-700",
-        )}
-      >
-        Users
-      </Link>
-      <Link
-        href={ROUTES.ADMIN_PROFILE}
-        className={cn(
-          linkStyles.nav,
-          pathname === ROUTES.ADMIN_PROFILE && "bg-gray-200 dark:bg-gray-700",
-        )}
-      >
-        Profile
-      </Link>
+      <NavLink href={ROUTES.ADMIN_DASHBOARD} activeMatch="endsWith">
+        {t("dashboard")}
+      </NavLink>
+      <NavLink href={ROUTES.ADMIN_USERS} activeMatch="includes">
+        {t("users")}
+      </NavLink>
+      <NavLink href={ROUTES.ADMIN_PROFILE} activeMatch="endsWith">
+        {t("profile")}
+      </NavLink>
     </>
   );
 }

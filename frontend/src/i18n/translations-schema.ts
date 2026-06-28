@@ -776,6 +776,13 @@ const translationSchema = z.object({
       stats: z.string(),
     }),
   }),
+  admin: z.object({
+    nav: z.object({
+      dashboard: z.string(),
+      users: z.string(),
+      profile: z.string(),
+    }),
+  }),
   comment: z.object({
     form: z.object({
       title: z.string(),

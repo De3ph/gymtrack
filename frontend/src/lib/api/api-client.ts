@@ -1,4 +1,4 @@
-import { TokenService } from "@/lib/token-service"
+import { tokenService } from "@/lib/token-service"
 import type { PaginationParams } from "./api-types"
 
 const API_BASE_URL =
@@ -20,7 +20,7 @@ async function request<T>(
     ...((headers as Record<string, string>) || {})
   }
 
-  const authHeader = TokenService.getAuthHeader()
+  const authHeader = tokenService.getAuthHeader()
   if (authHeader) {
     defaultHeaders.Authorization = authHeader
   }

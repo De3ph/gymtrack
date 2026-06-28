@@ -542,6 +542,13 @@
       "count": "{count, plural, =0 {Öğün yok} =1 {1 öğün} other {# öğün}}"
     }
   },
+  "admin": {
+    "nav": {
+      "dashboard": "Panel",
+      "users": "Kullanıcılar",
+      "profile": "Profil"
+    }
+  },
   "body_measurement": {
     "list": {
       "loading": "Vücut ölçümleri yükleniyor...",

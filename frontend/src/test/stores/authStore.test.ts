@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAuthStore } from '@/stores/authStore'
 import { authApi, userApi } from '@/lib/api'
-import { TokenService } from '@/lib/token-service'
+import { tokenService } from '@/lib/token-service'
 import { server } from '@/test/mocks/server'
 import { http, HttpResponse } from 'msw'
 
@@ -31,7 +31,7 @@ describe('AuthStore', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    TokenService.remove()
+    tokenService.remove()
     useAuthStore.setState({
       user: null,
       token: null,
@@ -84,7 +84,7 @@ describe('AuthStore', () => {
       password: 'password123',
     })
 
-    expect(TokenService.getAccessToken()).toBe(mockToken)
+    expect(tokenService.getAccessToken()).toBe(mockToken)
 
     const state = useAuthStore.getState()
     expect(state.token).toBe(mockToken)
@@ -109,7 +109,7 @@ describe('AuthStore', () => {
   })
 
   it('should logout and clear auth state', async () => {
-    TokenService.setTokens('some-token', 'refresh-token')
+    tokenService.setTokens('some-token', 'refresh-token')
     useAuthStore.setState({
       user: { userId: 'user-1' } as any,
       token: 'some-token',
@@ -121,7 +121,7 @@ describe('AuthStore', () => {
     await logout()
 
     // In-memory tokens cleared
-    expect(TokenService.getAccessToken()).toBeNull()
+    expect(tokenService.getAccessToken()).toBeNull()
 
     const state = useAuthStore.getState()
     expect(state.user).toBeNull()
@@ -148,7 +148,7 @@ describe('AuthStore', () => {
     const { initializeAuth } = useAuthStore.getState()
     await initializeAuth()
 
-    expect(TokenService.getAccessToken()).toBe('session-recovered-token')
+    expect(tokenService.getAccessToken()).toBe('session-recovered-token')
     expect(userApi.getCurrentUser).toHaveBeenCalled()
 
     const state = useAuthStore.getState()
@@ -184,7 +184,7 @@ describe('AuthStore', () => {
     await initializeAuth()
 
     // In-memory tokens cleared
-    expect(TokenService.getAccessToken()).toBeNull()
+    expect(tokenService.getAccessToken()).toBeNull()
 
     const state = useAuthStore.getState()
     expect(state.user).toBeNull()
@@ -214,7 +214,7 @@ describe('AuthStore', () => {
   })
 
   it('should handle auth error with 401 status', () => {
-    TokenService.setTokens('some-token', 'refresh-token')
+    tokenService.setTokens('some-token', 'refresh-token')
     useAuthStore.setState({
       user: { userId: 'user-1' } as any,
       token: 'some-token',
@@ -227,7 +227,7 @@ describe('AuthStore', () => {
     const { handleAuthError } = useAuthStore.getState()
     handleAuthError(error)
 
-    expect(TokenService.getAccessToken()).toBeNull()
+    expect(tokenService.getAccessToken()).toBeNull()
 
     const state = useAuthStore.getState()
     expect(state.user).toBeNull()

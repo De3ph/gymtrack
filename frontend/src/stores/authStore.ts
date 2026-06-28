@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { User } from '@/types';
 import { authApi, userApi } from '@/lib/api';
-import { TokenService } from '@/lib/token-service';
+import { tokenService } from '@/lib/token-service';
 import { ROUTES } from '@/lib/routes';
 
 const SESSION_API = '/api/auth/session';
@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await authApi.login({ identifier, password })
       const { accessToken, refreshToken, user } = response
 
-      TokenService.setTokens(accessToken, refreshToken)
+      tokenService.setTokens(accessToken, refreshToken)
 
       await fetch(SESSION_API, {
         method: 'POST',
@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.error('Session delete call failed:', error)
     } finally {
       // 2. Clear in-memory tokens
-      TokenService.remove()
+      tokenService.remove()
       set({
         user: null,
         token: null,
@@ -108,7 +108,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // 2. Restore access token in memory
-      TokenService.set(session.accessToken)
+      tokenService.set(session.accessToken)
 
       // 3. Fetch full user profile from Go backend
       const user = await userApi.getCurrentUser()
@@ -126,7 +126,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error
       )
 
-      TokenService.remove()
+      tokenService.remove()
       set({
         user: null,
         token: null,
@@ -138,7 +138,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   refreshAccessToken: async (): Promise<boolean> => {
-    const refreshToken = TokenService.getRefreshToken()
+    const refreshToken = tokenService.getRefreshToken()
 
     if (!refreshToken) {
       return false
@@ -149,7 +149,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { accessToken } = response
 
       // Update in-memory token
-      TokenService.set(accessToken)
+      tokenService.set(accessToken)
 
       // Update the HttpOnly cookie with refreshed token
       const state = get()
@@ -187,7 +187,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         errorMessage.includes('forbidden')
 
       if (isAuthError) {
-        TokenService.remove()
+        tokenService.remove()
         set({
           user: null,
           token: null,

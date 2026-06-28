@@ -22,17 +22,16 @@ export default function DashboardLayout({
   } = useAuthStore();
 
   useEffect(() => {
-    // Initialize auth if not already done
+    // Cheap condition first: only run init once (async-cheap-condition-before-await)
     if (!isInitialized) {
       initializeAuth();
+      return;
     }
-  }, [initializeAuth, isInitialized]);
-
-  useEffect(() => {
+    // After init resolves, redirect if session is missing
     if (!isLoading && !isAuthenticated) {
       router.push(ROUTES.LOGIN);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [initializeAuth, isInitialized, isLoading, isAuthenticated, router]);
 
   if (isLoading) {
     return (

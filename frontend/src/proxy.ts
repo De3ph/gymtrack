@@ -17,6 +17,16 @@ function isPublicRoute(pathname: string): boolean {
   return publicRoutes.some((route) => normalizedPath === route || normalizedPath.startsWith(route + '/'))
 }
 
+function isAdminRoute(pathname: string): boolean {
+  const parts = pathname.split('/').filter(Boolean)
+  // strip locale prefix (e.g. /en/admin -> /admin)
+  const normalized =
+    parts.length > 0 && parts[0].length === 2 && /^[a-z]{2}$/.test(parts[0])
+      ? '/' + parts.slice(1).join('/')
+      : pathname
+  return normalized === '/admin' || normalized.startsWith('/admin/')
+}
+
 export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
   const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value
@@ -28,6 +38,12 @@ export default async function proxy(req: NextRequest) {
       const loginUrl = new URL('/login', req.nextUrl)
       loginUrl.searchParams.set('redirect', path)
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Role gate: /admin/* requires admin role
+    if (isAdminRoute(path) && payload?.role !== 'admin') {
+      const dashboardUrl = new URL('/dashboard', req.nextUrl)
+      return NextResponse.redirect(dashboardUrl)
     }
   }
 
