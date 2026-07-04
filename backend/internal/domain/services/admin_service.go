@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
@@ -34,6 +36,9 @@ func (s *AdminService) GetAllUsers(ctx context.Context) ([]*models.User, error) 
 func (s *AdminService) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrUserNotFound
+		}
 		return nil, fmt.Errorf("failed to retrieve user: %w", err)
 	}
 	if user == nil {
@@ -111,6 +116,9 @@ type ChangePasswordRequest struct {
 func (s *AdminService) ChangePassword(ctx context.Context, req ChangePasswordRequest) error {
 	user, err := s.userRepo.GetUserByID(ctx, req.UserID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrUserNotFound
+		}
 		return fmt.Errorf("failed to retrieve user: %w", err)
 	}
 	if user == nil {

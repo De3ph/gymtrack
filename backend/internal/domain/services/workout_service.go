@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
@@ -65,7 +67,10 @@ type GetWorkoutInput struct {
 func (s *WorkoutService) GetWorkout(ctx context.Context, input GetWorkoutInput) (*models.Workout, error) {
 	workout, err := s.workoutRepo.GetByID(ctx, input.WorkoutID)
 	if err != nil {
-		return nil, ErrWorkoutNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutNotFound
+		}
+		return nil, fmt.Errorf("failed to get workout: %w", err)
 	}
 
 	if input.RequesterRole == models.RoleAthlete && workout.AthleteID != input.RequesterID {
@@ -123,7 +128,10 @@ type UpdateWorkoutInput struct {
 func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutInput) (*models.Workout, error) {
 	workout, err := s.workoutRepo.GetByID(ctx, input.WorkoutID)
 	if err != nil {
-		return nil, ErrWorkoutNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutNotFound
+		}
+		return nil, fmt.Errorf("failed to get workout: %w", err)
 	}
 
 	if workout.AthleteID != input.AthleteID {
@@ -151,7 +159,10 @@ func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutI
 func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID string) error {
 	workout, err := s.workoutRepo.GetByID(ctx, workoutID)
 	if err != nil {
-		return ErrWorkoutNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrWorkoutNotFound
+		}
+		return fmt.Errorf("failed to get workout: %w", err)
 	}
 
 	if workout.AthleteID != athleteID {

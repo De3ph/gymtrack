@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
@@ -69,7 +71,10 @@ func (s *WorkoutPlanService) GetPlans(ctx context.Context, trainerID string) ([]
 func (s *WorkoutPlanService) GetPlan(ctx context.Context, planID, requesterID string, requesterRole models.UserRole) (*models.WorkoutPlan, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
-		return nil, ErrWorkoutPlanNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutPlanNotFound
+		}
+		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
 	switch requesterRole {
@@ -100,7 +105,10 @@ func (s *WorkoutPlanService) UpdatePlan(
 ) (*models.WorkoutPlan, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
-		return nil, ErrWorkoutPlanNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutPlanNotFound
+		}
+		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
 	if plan.TrainerID != trainerID {
@@ -129,7 +137,10 @@ func (s *WorkoutPlanService) UpdatePlan(
 func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, trainerID string, force bool) error {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
-		return ErrWorkoutPlanNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrWorkoutPlanNotFound
+		}
+		return fmt.Errorf("failed to get plan: %w", err)
 	}
 
 	if plan.TrainerID != trainerID {
@@ -164,7 +175,10 @@ func (s *WorkoutPlanService) AssignPlan(
 ) ([]*models.WorkoutPlanAssignment, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
-		return nil, ErrWorkoutPlanNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutPlanNotFound
+		}
+		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
 	if plan.TrainerID != trainerID {
@@ -204,7 +218,10 @@ func (s *WorkoutPlanService) AssignPlan(
 func (s *WorkoutPlanService) GetAssignmentsForPlan(ctx context.Context, planID, trainerID string) ([]*models.WorkoutPlanAssignment, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
-		return nil, ErrWorkoutPlanNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutPlanNotFound
+		}
+		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
 	if plan.TrainerID != trainerID {
@@ -248,7 +265,10 @@ func (s *WorkoutPlanService) StartWorkoutFromPlan(
 
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
-		return nil, ErrWorkoutPlanNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutPlanNotFound
+		}
+		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
 	exercises := convertPlanExercisesToWorkout(plan.Exercises)

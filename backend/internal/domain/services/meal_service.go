@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
@@ -66,7 +68,10 @@ type GetMealInput struct {
 func (s *MealService) GetMeal(ctx context.Context, input GetMealInput) (*models.Meal, error) {
 	meal, err := s.mealRepo.GetByID(ctx, input.MealID)
 	if err != nil {
-		return nil, ErrMealNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrMealNotFound
+		}
+		return nil, fmt.Errorf("failed to get meal: %w", err)
 	}
 
 	if input.RequesterRole == models.RoleAthlete && meal.AthleteID != input.RequesterID {
@@ -136,7 +141,10 @@ type UpdateMealInput struct {
 func (s *MealService) UpdateMeal(ctx context.Context, input UpdateMealInput) (*models.Meal, error) {
 	meal, err := s.mealRepo.GetByID(ctx, input.MealID)
 	if err != nil {
-		return nil, ErrMealNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrMealNotFound
+		}
+		return nil, fmt.Errorf("failed to update meal: %w", err)
 	}
 
 	if meal.AthleteID != input.AthleteID {
@@ -165,7 +173,10 @@ func (s *MealService) UpdateMeal(ctx context.Context, input UpdateMealInput) (*m
 func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID string) error {
 	meal, err := s.mealRepo.GetByID(ctx, mealID)
 	if err != nil {
-		return ErrMealNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrMealNotFound
+		}
+		return fmt.Errorf("failed to delete meal: %w", err)
 	}
 
 	if meal.AthleteID != athleteID {

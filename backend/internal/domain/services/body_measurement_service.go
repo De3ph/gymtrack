@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
@@ -82,7 +84,10 @@ type GetBodyMeasurementInput struct {
 func (s *BodyMeasurementService) GetBodyMeasurement(ctx context.Context, input GetBodyMeasurementInput) (*models.BodyMeasurement, error) {
 	measurement, err := s.measurementRepo.GetByID(ctx, input.MeasurementID)
 	if err != nil {
-		return nil, ErrBodyMeasurementNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrBodyMeasurementNotFound
+		}
+		return nil, fmt.Errorf("failed to get body measurement: %w", err)
 	}
 
 	if input.RequesterRole == models.RoleAthlete {
@@ -154,7 +159,10 @@ type UpdateBodyMeasurementInput struct {
 func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, input UpdateBodyMeasurementInput) (*models.BodyMeasurement, error) {
 	measurement, err := s.measurementRepo.GetByID(ctx, input.MeasurementID)
 	if err != nil {
-		return nil, ErrBodyMeasurementNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrBodyMeasurementNotFound
+		}
+		return nil, fmt.Errorf("failed to get body measurement: %w", err)
 	}
 
 	if measurement.AthleteID != input.AthleteID {
@@ -186,7 +194,10 @@ func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, inpu
 func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, measurementID, athleteID string) error {
 	measurement, err := s.measurementRepo.GetByID(ctx, measurementID)
 	if err != nil {
-		return ErrBodyMeasurementNotFound
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrBodyMeasurementNotFound
+		}
+		return fmt.Errorf("failed to get body measurement: %w", err)
 	}
 
 	if measurement.AthleteID != athleteID {
