@@ -33,6 +33,7 @@ func (r *CouchbaseEquipmentRepository) GetAllEquipment(ctx context.Context) ([]m
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
+		Timeout: config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query equipment: %w", err)
@@ -63,6 +64,7 @@ func (r *CouchbaseEquipmentRepository) GetEquipmentByID(ctx context.Context, id 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{id},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query equipment by ID: %w", err)

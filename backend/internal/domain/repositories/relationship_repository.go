@@ -74,6 +74,7 @@ func (r *CouchbaseRelationshipRepository) GetByTrainerID(ctx context.Context, tr
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query relationships by trainer: %w", err)
@@ -105,6 +106,7 @@ func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, at
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query relationship by athlete: %w", err)
@@ -135,6 +137,7 @@ func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Cont
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query pending relationships: %w", err)
@@ -165,6 +168,7 @@ func (r *CouchbaseRelationshipRepository) HasActiveRelationship(ctx context.Cont
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID, athleteID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return false, fmt.Errorf("failed to query active relationship: %w", err)

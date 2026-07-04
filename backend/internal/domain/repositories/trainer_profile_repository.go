@@ -72,6 +72,7 @@ func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Contex
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: params,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query trainers: %w", err)
@@ -177,6 +178,7 @@ func (r *CouchbaseTrainerProfileRepository) CountTrainers(ctx context.Context, f
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: params,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to count trainers: %w", err)

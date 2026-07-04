@@ -70,6 +70,7 @@ func (r *CouchbaseWorkoutPlanRepository) GetByTrainerID(ctx context.Context, tra
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query workout plans: %w", err)
@@ -160,6 +161,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByPlanID(ctx context.Conte
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{planID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query assignments by plan: %w", err)
@@ -190,6 +192,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteID(ctx context.Co
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query assignments by athlete: %w", err)
@@ -220,6 +223,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteAndPlan(ctx conte
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, planID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query assignment by athlete and plan: %w", err)
@@ -249,6 +253,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByTrainerID(ctx context.Co
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{trainerID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query assignments by trainer: %w", err)
@@ -279,6 +284,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) DeleteByPlanID(ctx context.Co
 	_, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{planID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to delete assignments by plan: %w", err)

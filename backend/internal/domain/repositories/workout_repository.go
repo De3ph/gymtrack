@@ -69,6 +69,7 @@ func (r *CouchbaseWorkoutRepository) GetByAthleteID(ctx context.Context, athlete
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, limit, offset},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query workouts: %w", err)
@@ -99,6 +100,7 @@ func (r *CouchbaseWorkoutRepository) GetByAthleteDateRange(ctx context.Context, 
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query workouts by date range: %w", err)

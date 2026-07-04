@@ -53,6 +53,7 @@ func (r *CouchbaseUserRepository) GetUserByEmail(ctx context.Context, email stri
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{email},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query user by email: %w", err)
@@ -81,6 +82,7 @@ func (r *CouchbaseUserRepository) GetUserByUsername(ctx context.Context, usernam
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{username},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query user by username: %w", err)
@@ -128,6 +130,7 @@ func (r *CouchbaseUserRepository) GetAllUsers(ctx context.Context) ([]*models.Us
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
+		Timeout: config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all users: %w", err)

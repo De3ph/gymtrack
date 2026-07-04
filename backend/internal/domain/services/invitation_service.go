@@ -126,6 +126,7 @@ func (c *CodeBasedInvitation) ValidateInvitation(ctx context.Context, code strin
 	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{code},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query invitation: %w", err)

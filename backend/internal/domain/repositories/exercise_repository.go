@@ -70,6 +70,7 @@ func (r *CouchbaseExerciseRepository) GetAllExercises(ctx context.Context) ([]mo
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
+		Timeout: config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query exercises: %w", err)
@@ -100,6 +101,7 @@ func (r *CouchbaseExerciseRepository) GetExercisesByMuscleGroup(ctx context.Cont
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{muscleGroupID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query exercises by muscle group: %w", err)
@@ -130,6 +132,7 @@ func (r *CouchbaseExerciseRepository) GetExercisesByEquipment(ctx context.Contex
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{equipmentID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query exercises by equipment: %w", err)
@@ -178,6 +181,7 @@ func (r *CouchbaseExerciseRepository) SearchExercises(ctx context.Context, query
 	rows, err := r.cluster.Query(n1qlQuery, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: params,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to search exercises: %w", err)

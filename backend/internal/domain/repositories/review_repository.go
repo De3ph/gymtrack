@@ -44,6 +44,7 @@ func (r *CouchbaseReviewRepository) GetByTrainerID(ctx context.Context, trainerI
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query reviews: %w", err)
@@ -105,6 +106,7 @@ func (r *CouchbaseReviewRepository) GetByAthleteID(ctx context.Context, athleteI
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{athleteID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query review by athlete: %w", err)
@@ -129,6 +131,7 @@ func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, traine
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to query average rating: %w", err)
@@ -188,6 +191,7 @@ func (r *CouchbaseReviewRepository) GetRatingsForTrainers(ctx context.Context, t
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerIDs},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query ratings for trainers: %w", err)

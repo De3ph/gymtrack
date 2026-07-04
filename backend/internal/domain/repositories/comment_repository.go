@@ -69,6 +69,7 @@ func (r *CouchbaseCommentRepository) GetByTarget(ctx context.Context, targetType
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{targetType, targetID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query comments by target: %w", err)
@@ -99,6 +100,7 @@ func (r *CouchbaseCommentRepository) GetByAuthor(ctx context.Context, authorID s
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{authorID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query comments by author: %w", err)
@@ -129,6 +131,7 @@ func (r *CouchbaseCommentRepository) GetReplies(ctx context.Context, parentComme
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{parentCommentID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query comment replies: %w", err)

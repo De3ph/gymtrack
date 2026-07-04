@@ -72,6 +72,7 @@ func (r *CouchbaseBodyMeasurementRepository) GetByAthleteID(ctx context.Context,
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, limit, offset},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query body measurements: %w", err)
@@ -102,6 +103,7 @@ func (r *CouchbaseBodyMeasurementRepository) GetByAthleteDateRange(ctx context.C
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query body measurements by date range: %w", err)
@@ -132,6 +134,7 @@ func (r *CouchbaseBodyMeasurementRepository) GetLatestByAthleteID(ctx context.Co
 	result, err := r.cluster.Query(query, &gocb.QueryOptions{
 		PositionalParameters: []interface{}{athleteID},
 		Context:              ctx,
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query latest body measurement: %w", err)

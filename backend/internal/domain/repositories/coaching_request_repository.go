@@ -79,6 +79,7 @@ func (r *CouchbaseCoachingRequestRepository) GetByAthleteID(ctx context.Context,
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{athleteID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query coaching requests: %w", err)
@@ -104,6 +105,7 @@ func (r *CouchbaseCoachingRequestRepository) GetByTrainerID(ctx context.Context,
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query coaching requests: %w", err)
@@ -129,6 +131,7 @@ func (r *CouchbaseCoachingRequestRepository) GetPendingByTrainerID(ctx context.C
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query pending coaching requests: %w", err)

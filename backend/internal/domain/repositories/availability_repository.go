@@ -40,6 +40,7 @@ func (r *CouchbaseAvailabilityRepository) GetByTrainerID(ctx context.Context, tr
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query availability: %w", err)
@@ -113,6 +114,7 @@ func (r *CouchbaseAvailabilityRepository) GetAvailableSlots(ctx context.Context,
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{trainerID, dayOfWeek},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query available slots: %w", err)
@@ -153,6 +155,7 @@ func (r *CouchbaseAvailabilityRepository) CleanupExpiredSlots(ctx context.Contex
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{cutoff},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to query expired slots: %w", err)

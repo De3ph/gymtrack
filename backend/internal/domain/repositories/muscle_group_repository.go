@@ -33,6 +33,7 @@ func (r *CouchbaseMuscleGroupRepository) GetAllMuscleGroups(ctx context.Context)
 
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context: ctx,
+		Timeout: config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query muscle groups: %w", err)
@@ -63,6 +64,7 @@ func (r *CouchbaseMuscleGroupRepository) GetMuscleGroupByID(ctx context.Context,
 	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
 		Context:              ctx,
 		PositionalParameters: []interface{}{id},
+		Timeout:              config.DefaultQueryTimeout,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query muscle group by ID: %w", err)
