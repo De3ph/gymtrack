@@ -166,6 +166,9 @@ func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Con
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to update trainer profile: %w", err)
 	}
 

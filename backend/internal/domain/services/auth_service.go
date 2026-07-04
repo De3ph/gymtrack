@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
@@ -35,7 +37,7 @@ func NewAuthService(userRepo repositories.UserRepository, jwtSecret string, cloc
 func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*models.User, error) {
 	// Check if email already exists
 	existingUser, err := s.userRepo.GetUserByEmail(ctx, req.Email)
-	if err != nil {
+	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, fmt.Errorf("failed to check existing user: %w", err)
 	}
 	if existingUser != nil {
@@ -44,7 +46,7 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model
 
 	// Check if username already exists (case-insensitive)
 	existingUsername, err := s.userRepo.GetUserByUsername(ctx, req.Username)
-	if err != nil {
+	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, fmt.Errorf("failed to check existing username: %w", err)
 	}
 	if existingUsername != nil {
@@ -84,13 +86,13 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 	if strings.Contains(req.Identifier, "@") {
 		// Try email lookup
 		user, err = s.userRepo.GetUserByEmail(ctx, req.Identifier)
-		if err != nil {
+		if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 			return nil, fmt.Errorf("failed to retrieve user by email: %w", err)
 		}
 	} else {
 		// Try username lookup
 		user, err = s.userRepo.GetUserByUsername(ctx, req.Identifier)
-		if err != nil {
+		if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 			return nil, fmt.Errorf("failed to retrieve user by username: %w", err)
 		}
 	}

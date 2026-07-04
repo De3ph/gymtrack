@@ -173,7 +173,9 @@ func (r *CouchbaseAvailabilityRepository) CleanupExpiredSlots(ctx context.Contex
 			continue
 		}
 		collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-		_, _ = collection.Remove(slotID, &gocb.RemoveOptions{Context: ctx})
+		if _, err := collection.Remove(slotID, &gocb.RemoveOptions{Context: ctx}); err != nil && !errors.Is(err, gocb.ErrDocumentNotFound) {
+			fmt.Printf("warning: failed to remove expired availability slot %s: %v\n", slotID, err)
+		}
 	}
 
 	return nil

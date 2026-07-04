@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
@@ -101,6 +103,9 @@ func (s *TrainerCatalogService) UpdateTrainerProfile(ctx context.Context, traine
 	}
 	err := s.profileRepo.UpdateTrainerProfile(ctx, trainerID, profile)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrUserNotFound
+		}
 		return fmt.Errorf("failed to update trainer profile: %w", err)
 	}
 	return nil
