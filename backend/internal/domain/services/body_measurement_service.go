@@ -66,7 +66,7 @@ func (s *BodyMeasurementService) CreateBodyMeasurement(ctx context.Context, inpu
 		input.Notes,
 	)
 
-	if err := s.measurementRepo.Create(measurement); err != nil {
+	if err := s.measurementRepo.Create(ctx, measurement); err != nil {
 		return nil, fmt.Errorf("failed to create body measurement: %w", err)
 	}
 
@@ -74,13 +74,13 @@ func (s *BodyMeasurementService) CreateBodyMeasurement(ctx context.Context, inpu
 }
 
 type GetBodyMeasurementInput struct {
-	MeasurementID  string
-	RequesterID    string
-	RequesterRole  models.UserRole
+	MeasurementID string
+	RequesterID   string
+	RequesterRole models.UserRole
 }
 
 func (s *BodyMeasurementService) GetBodyMeasurement(ctx context.Context, input GetBodyMeasurementInput) (*models.BodyMeasurement, error) {
-	measurement, err := s.measurementRepo.GetByID(input.MeasurementID)
+	measurement, err := s.measurementRepo.GetByID(ctx, input.MeasurementID)
 	if err != nil {
 		return nil, ErrBodyMeasurementNotFound
 	}
@@ -125,9 +125,9 @@ func (s *BodyMeasurementService) GetBodyMeasurements(ctx context.Context, input 
 	var err error
 
 	if input.StartDate != nil && input.EndDate != nil {
-		measurements, err = s.measurementRepo.GetByAthleteDateRange(input.AthleteID, *input.StartDate, *input.EndDate)
+		measurements, err = s.measurementRepo.GetByAthleteDateRange(ctx, input.AthleteID, *input.StartDate, *input.EndDate)
 	} else {
-		measurements, err = s.measurementRepo.GetByAthleteID(input.AthleteID, input.Limit, input.Offset)
+		measurements, err = s.measurementRepo.GetByAthleteID(ctx, input.AthleteID, input.Limit, input.Offset)
 	}
 
 	if err != nil {
@@ -152,7 +152,7 @@ type UpdateBodyMeasurementInput struct {
 }
 
 func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, input UpdateBodyMeasurementInput) (*models.BodyMeasurement, error) {
-	measurement, err := s.measurementRepo.GetByID(input.MeasurementID)
+	measurement, err := s.measurementRepo.GetByID(ctx, input.MeasurementID)
 	if err != nil {
 		return nil, ErrBodyMeasurementNotFound
 	}
@@ -176,7 +176,7 @@ func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, inpu
 	measurement.Parts = input.Parts
 	measurement.Notes = input.Notes
 
-	if err := s.measurementRepo.Update(measurement); err != nil {
+	if err := s.measurementRepo.Update(ctx, measurement); err != nil {
 		return nil, fmt.Errorf("failed to update body measurement: %w", err)
 	}
 
@@ -184,7 +184,7 @@ func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, inpu
 }
 
 func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, measurementID, athleteID string) error {
-	measurement, err := s.measurementRepo.GetByID(measurementID)
+	measurement, err := s.measurementRepo.GetByID(ctx, measurementID)
 	if err != nil {
 		return ErrBodyMeasurementNotFound
 	}
@@ -197,7 +197,7 @@ func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, meas
 		return NewServiceError("Cannot delete body measurement after 24 hours", "FORBIDDEN")
 	}
 
-	if err := s.measurementRepo.Delete(measurementID); err != nil {
+	if err := s.measurementRepo.Delete(ctx, measurementID); err != nil {
 		return fmt.Errorf("failed to delete body measurement: %w", err)
 	}
 
@@ -225,9 +225,9 @@ func (s *BodyMeasurementService) GetClientBodyMeasurements(ctx context.Context, 
 
 	var measurements []*models.BodyMeasurement
 	if input.StartDate != nil && input.EndDate != nil {
-		measurements, err = s.measurementRepo.GetByAthleteDateRange(input.ClientID, *input.StartDate, *input.EndDate)
+		measurements, err = s.measurementRepo.GetByAthleteDateRange(ctx, input.ClientID, *input.StartDate, *input.EndDate)
 	} else {
-		measurements, err = s.measurementRepo.GetByAthleteID(input.ClientID, input.Limit, input.Offset)
+		measurements, err = s.measurementRepo.GetByAthleteID(ctx, input.ClientID, input.Limit, input.Offset)
 	}
 
 	if err != nil {
@@ -241,8 +241,8 @@ func (s *BodyMeasurementService) GetClientBodyMeasurements(ctx context.Context, 
 }
 
 type GetLatestBodyMeasurementInput struct {
-	AthleteID    string
-	RequesterID  string
+	AthleteID     string
+	RequesterID   string
 	RequesterRole models.UserRole
 }
 
@@ -261,7 +261,7 @@ func (s *BodyMeasurementService) GetLatestBodyMeasurement(ctx context.Context, i
 		}
 	}
 
-	measurement, err := s.measurementRepo.GetLatestByAthleteID(input.AthleteID)
+	measurement, err := s.measurementRepo.GetLatestByAthleteID(ctx, input.AthleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve latest body measurement: %w", err)
 	}

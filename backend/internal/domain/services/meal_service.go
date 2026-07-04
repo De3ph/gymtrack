@@ -14,9 +14,9 @@ import (
 )
 
 type MealService struct {
-	mealRepo          repositories.MealRepository
-	relationshipRepo  repositories.RelationshipRepository
-	validator         *validator.Validate
+	mealRepo         repositories.MealRepository
+	relationshipRepo repositories.RelationshipRepository
+	validator        *validator.Validate
 }
 
 func NewMealService(mealRepo repositories.MealRepository, relationshipRepo repositories.RelationshipRepository) *MealService {
@@ -50,7 +50,7 @@ func (s *MealService) CreateMeal(ctx context.Context, input CreateMealInput) (*m
 		return nil, fmt.Errorf("meal validation failed: %w", err)
 	}
 
-	if err := s.mealRepo.Create(meal); err != nil {
+	if err := s.mealRepo.Create(ctx, meal); err != nil {
 		return nil, fmt.Errorf("failed to create meal: %w", err)
 	}
 
@@ -58,13 +58,13 @@ func (s *MealService) CreateMeal(ctx context.Context, input CreateMealInput) (*m
 }
 
 type GetMealInput struct {
-	MealID       string
-	RequesterID  string
+	MealID        string
+	RequesterID   string
 	RequesterRole models.UserRole
 }
 
 func (s *MealService) GetMeal(ctx context.Context, input GetMealInput) (*models.Meal, error) {
-	meal, err := s.mealRepo.GetByID(input.MealID)
+	meal, err := s.mealRepo.GetByID(ctx, input.MealID)
 	if err != nil {
 		return nil, ErrMealNotFound
 	}
@@ -108,11 +108,11 @@ func (s *MealService) GetMeals(ctx context.Context, input GetMealsInput) (*GetMe
 		startDate := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, parsedDate.Location())
 		endDate := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 999999999, parsedDate.Location())
 
-		meals, err = s.mealRepo.GetByAthleteDateRange(input.AthleteID, startDate, endDate)
+		meals, err = s.mealRepo.GetByAthleteDateRange(ctx, input.AthleteID, startDate, endDate)
 	} else if input.StartDate != nil && input.EndDate != nil {
-		meals, err = s.mealRepo.GetByAthleteDateRange(input.AthleteID, *input.StartDate, *input.EndDate)
+		meals, err = s.mealRepo.GetByAthleteDateRange(ctx, input.AthleteID, *input.StartDate, *input.EndDate)
 	} else {
-		meals, err = s.mealRepo.GetByAthleteID(input.AthleteID, input.Limit, input.Offset)
+		meals, err = s.mealRepo.GetByAthleteID(ctx, input.AthleteID, input.Limit, input.Offset)
 	}
 
 	if err != nil {
@@ -134,7 +134,7 @@ type UpdateMealInput struct {
 }
 
 func (s *MealService) UpdateMeal(ctx context.Context, input UpdateMealInput) (*models.Meal, error) {
-	meal, err := s.mealRepo.GetByID(input.MealID)
+	meal, err := s.mealRepo.GetByID(ctx, input.MealID)
 	if err != nil {
 		return nil, ErrMealNotFound
 	}
@@ -155,7 +155,7 @@ func (s *MealService) UpdateMeal(ctx context.Context, input UpdateMealInput) (*m
 	meal.MealType = input.MealType
 	meal.Items = input.Items
 
-	if err := s.mealRepo.Update(meal); err != nil {
+	if err := s.mealRepo.Update(ctx, meal); err != nil {
 		return nil, fmt.Errorf("failed to update meal: %w", err)
 	}
 
@@ -163,7 +163,7 @@ func (s *MealService) UpdateMeal(ctx context.Context, input UpdateMealInput) (*m
 }
 
 func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID string) error {
-	meal, err := s.mealRepo.GetByID(mealID)
+	meal, err := s.mealRepo.GetByID(ctx, mealID)
 	if err != nil {
 		return ErrMealNotFound
 	}
@@ -176,7 +176,7 @@ func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID string) 
 		return NewServiceError("Cannot delete meal after 24 hours", "FORBIDDEN")
 	}
 
-	if err := s.mealRepo.Delete(mealID); err != nil {
+	if err := s.mealRepo.Delete(ctx, mealID); err != nil {
 		return fmt.Errorf("failed to delete meal: %w", err)
 	}
 
@@ -184,13 +184,13 @@ func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID string) 
 }
 
 type GetClientMealsInput struct {
-	TrainerID   string
-	ClientID    string
-	Limit       int
-	Offset      int
-	StartDate   *time.Time
-	EndDate     *time.Time
-	MealType    string
+	TrainerID string
+	ClientID  string
+	Limit     int
+	Offset    int
+	StartDate *time.Time
+	EndDate   *time.Time
+	MealType  string
 }
 
 func (s *MealService) GetClientMeals(ctx context.Context, input GetClientMealsInput) (*GetMealsOutput, error) {
@@ -214,9 +214,9 @@ func (s *MealService) GetClientMeals(ctx context.Context, input GetClientMealsIn
 	var meals []*models.Meal
 
 	if input.StartDate != nil && input.EndDate != nil {
-		meals, err = s.mealRepo.GetByAthleteDateRange(input.ClientID, *input.StartDate, *input.EndDate)
+		meals, err = s.mealRepo.GetByAthleteDateRange(ctx, input.ClientID, *input.StartDate, *input.EndDate)
 	} else {
-		meals, err = s.mealRepo.GetByAthleteID(input.ClientID, input.Limit, input.Offset)
+		meals, err = s.mealRepo.GetByAthleteID(ctx, input.ClientID, input.Limit, input.Offset)
 	}
 
 	if err != nil {

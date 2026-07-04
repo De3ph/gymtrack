@@ -39,16 +39,16 @@ func NewCommentService(
 
 // ResolveTargetAthlete returns the athleteID that owns the given target (workout or meal).
 // Returns ErrTargetNotFound if the target does not exist.
-func (s *CommentService) ResolveTargetAthlete(targetType models.TargetType, targetID string) (athleteID string, err error) {
+func (s *CommentService) ResolveTargetAthlete(ctx context.Context, targetType models.TargetType, targetID string) (athleteID string, err error) {
 	switch targetType {
 	case models.TargetTypeWorkout:
-		workout, err := s.workoutRepo.GetByID(targetID)
+		workout, err := s.workoutRepo.GetByID(ctx, targetID)
 		if err != nil || workout == nil {
 			return "", ErrTargetNotFound
 		}
 		return workout.AthleteID, nil
 	case models.TargetTypeMeal:
-		meal, err := s.mealRepo.GetByID(targetID)
+		meal, err := s.mealRepo.GetByID(ctx, targetID)
 		if err != nil || meal == nil {
 			return "", ErrTargetNotFound
 		}
@@ -61,7 +61,7 @@ func (s *CommentService) ResolveTargetAthlete(targetType models.TargetType, targ
 // CanAccessComments returns nil if the user (trainer or athlete) is allowed to list comments on the target.
 // Athlete: must own the target. Trainer: must have an active relationship with the target's athlete.
 func (s *CommentService) CanAccessComments(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string) error {
-	athleteID, err := s.ResolveTargetAthlete(targetType, targetID)
+	athleteID, err := s.ResolveTargetAthlete(ctx, targetType, targetID)
 	if err != nil {
 		return err
 	}
@@ -92,8 +92,8 @@ func (s *CommentService) CanCreateComment(ctx context.Context, userID string, us
 }
 
 // CanEditOrDeleteComment returns nil if the user can edit or delete the comment (must be the author).
-func (s *CommentService) CanEditOrDeleteComment(userID string, commentID string) error {
-	comment, err := s.commentRepo.GetByID(commentID)
+func (s *CommentService) CanEditOrDeleteComment(ctx context.Context, userID string, commentID string) error {
+	comment, err := s.commentRepo.GetByID(ctx, commentID)
 	if err != nil || comment == nil {
 		return ErrTargetNotFound
 	}

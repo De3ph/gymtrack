@@ -49,7 +49,7 @@ func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutI
 		return nil, fmt.Errorf("workout validation failed: %w", err)
 	}
 
-	if err := s.workoutRepo.Create(workout); err != nil {
+	if err := s.workoutRepo.Create(ctx, workout); err != nil {
 		return nil, fmt.Errorf("failed to create workout: %w", err)
 	}
 
@@ -63,7 +63,7 @@ type GetWorkoutInput struct {
 }
 
 func (s *WorkoutService) GetWorkout(ctx context.Context, input GetWorkoutInput) (*models.Workout, error) {
-	workout, err := s.workoutRepo.GetByID(input.WorkoutID)
+	workout, err := s.workoutRepo.GetByID(ctx, input.WorkoutID)
 	if err != nil {
 		return nil, ErrWorkoutNotFound
 	}
@@ -98,9 +98,9 @@ func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput
 	var err error
 
 	if input.StartDate != nil && input.EndDate != nil {
-		workouts, err = s.workoutRepo.GetByAthleteDateRange(input.AthleteID, *input.StartDate, *input.EndDate)
+		workouts, err = s.workoutRepo.GetByAthleteDateRange(ctx, input.AthleteID, *input.StartDate, *input.EndDate)
 	} else {
-		workouts, err = s.workoutRepo.GetByAthleteID(input.AthleteID, input.Limit, input.Offset)
+		workouts, err = s.workoutRepo.GetByAthleteID(ctx, input.AthleteID, input.Limit, input.Offset)
 	}
 
 	if err != nil {
@@ -121,7 +121,7 @@ type UpdateWorkoutInput struct {
 }
 
 func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutInput) (*models.Workout, error) {
-	workout, err := s.workoutRepo.GetByID(input.WorkoutID)
+	workout, err := s.workoutRepo.GetByID(ctx, input.WorkoutID)
 	if err != nil {
 		return nil, ErrWorkoutNotFound
 	}
@@ -141,7 +141,7 @@ func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutI
 	workout.Date = input.Date
 	workout.Exercises = input.Exercises
 
-	if err := s.workoutRepo.Update(workout); err != nil {
+	if err := s.workoutRepo.Update(ctx, workout); err != nil {
 		return nil, fmt.Errorf("failed to update workout: %w", err)
 	}
 
@@ -149,7 +149,7 @@ func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutI
 }
 
 func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID string) error {
-	workout, err := s.workoutRepo.GetByID(workoutID)
+	workout, err := s.workoutRepo.GetByID(ctx, workoutID)
 	if err != nil {
 		return ErrWorkoutNotFound
 	}
@@ -162,7 +162,7 @@ func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID
 		return NewServiceError("Cannot delete workout after 24 hours", "FORBIDDEN")
 	}
 
-	if err := s.workoutRepo.Delete(workoutID); err != nil {
+	if err := s.workoutRepo.Delete(ctx, workoutID); err != nil {
 		return fmt.Errorf("failed to delete workout: %w", err)
 	}
 
@@ -200,9 +200,9 @@ func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientW
 	var workouts []*models.Workout
 
 	if input.StartDate != nil && input.EndDate != nil {
-		workouts, err = s.workoutRepo.GetByAthleteDateRange(input.ClientID, *input.StartDate, *input.EndDate)
+		workouts, err = s.workoutRepo.GetByAthleteDateRange(ctx, input.ClientID, *input.StartDate, *input.EndDate)
 	} else {
-		workouts, err = s.workoutRepo.GetByAthleteID(input.ClientID, input.Limit, input.Offset)
+		workouts, err = s.workoutRepo.GetByAthleteID(ctx, input.ClientID, input.Limit, input.Offset)
 	}
 
 	if err != nil {

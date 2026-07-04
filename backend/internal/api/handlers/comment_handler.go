@@ -16,7 +16,7 @@ import (
 type CommentServiceInterface interface {
 	CanCreateComment(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string, parentCommentID *string) error
 	CanAccessComments(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string) error
-	CanEditOrDeleteComment(userID string, commentID string) error
+	CanEditOrDeleteComment(ctx context.Context, userID string, commentID string) error
 }
 
 type CommentHandler struct {
@@ -108,7 +108,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	}
 
 	if req.ParentCommentID != nil && *req.ParentCommentID != "" {
-		parent, err := h.commentRepo.GetByID(*req.ParentCommentID)
+		parent, err := h.commentRepo.GetByID(c.Request.Context(), *req.ParentCommentID)
 		if err != nil || parent == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Parent comment not found"})
 			return
@@ -124,7 +124,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		authorRole = models.AuthorRoleAthlete
 	}
 	comment := models.NewComment(req.TargetType, req.TargetID, userID.(string), authorRole, req.Content, req.ParentCommentID)
-	if err := h.commentRepo.Create(comment); err != nil {
+	if err := h.commentRepo.Create(c.Request.Context(), comment); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create comment", "details": err.Error()})
 		return
 	}
@@ -171,7 +171,7 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 		return
 	}
 
-	if err := h.commentSvc.CanAccessComments(c, userID.(string), userRole.(models.UserRole), targetType, targetID); err != nil {
+	if err := h.commentSvc.CanAccessComments(c.Request.Context(), userID.(string), userRole.(models.UserRole), targetType, targetID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Workout or meal not found"})
 			return
@@ -184,7 +184,7 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 		return
 	}
 
-	comments, err := h.commentRepo.GetByTarget(targetType, targetID)
+	comments, err := h.commentRepo.GetByTarget(c.Request.Context(), targetType, targetID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load comments", "details": err.Error()})
 		return
@@ -216,7 +216,7 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 	}
 	commentID := c.Param("id")
 
-	if err := h.commentSvc.CanEditOrDeleteComment(userID.(string), commentID); err != nil {
+	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userID.(string), commentID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
 			return
@@ -239,13 +239,13 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 		return
 	}
 
-	comment, err := h.commentRepo.GetByID(commentID)
+	comment, err := h.commentRepo.GetByID(c.Request.Context(), commentID)
 	if err != nil || comment == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
 		return
 	}
 	comment.Edit(req.Content)
-	if err := h.commentRepo.Update(comment); err != nil {
+	if err := h.commentRepo.Update(c.Request.Context(), comment); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update comment", "details": err.Error()})
 		return
 	}
@@ -274,7 +274,7 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 	}
 	commentID := c.Param("id")
 
-	if err := h.commentSvc.CanEditOrDeleteComment(userID.(string), commentID); err != nil {
+	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userID.(string), commentID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
 			return
@@ -287,7 +287,7 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 		return
 	}
 
-	if err := h.commentRepo.Delete(commentID); err != nil {
+	if err := h.commentRepo.Delete(c.Request.Context(), commentID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete comment", "details": err.Error()})
 		return
 	}

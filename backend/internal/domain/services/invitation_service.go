@@ -16,9 +16,9 @@ import (
 )
 
 type InvitationMethod interface {
-	GenerateInvitation(trainerID string, athleteID string) (*models.Invitation, error)
-	ValidateInvitation(code string) (*models.Invitation, error)
-	MarkInvitationUsed(invitationID string) error
+	GenerateInvitation(ctx context.Context, trainerID string, athleteID string) (*models.Invitation, error)
+	ValidateInvitation(ctx context.Context, code string) (*models.Invitation, error)
+	MarkInvitationUsed(ctx context.Context, invitationID string) error
 }
 
 type InvitationGetResult interface {
@@ -80,9 +80,7 @@ var generateUUIDSafe = func(ctx context.Context) (string, error) {
 }
 
 // GenerateInvitation creates a new invitation code
-func (c *CodeBasedInvitation) GenerateInvitation(trainerID string, athleteID string) (*models.Invitation, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (c *CodeBasedInvitation) GenerateInvitation(ctx context.Context, trainerID string, athleteID string) (*models.Invitation, error) {
 
 	code, err := generateRandomCode(ctx, 8)
 	if err != nil {
@@ -116,12 +114,10 @@ func (c *CodeBasedInvitation) GenerateInvitation(trainerID string, athleteID str
 }
 
 // ValidateInvitation checks if an invitation code is valid
-func (c *CodeBasedInvitation) ValidateInvitation(code string) (*models.Invitation, error) {
+func (c *CodeBasedInvitation) ValidateInvitation(ctx context.Context, code string) (*models.Invitation, error) {
 	if code == "" {
 		return nil, fmt.Errorf("code cannot be empty")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	// Query to find invitation by code using GlobalCluster
 	query := fmt.Sprintf("SELECT i.* FROM `%s`.`%s`.`%s` i WHERE i.type = 'invitation' AND i.code = $1 LIMIT 1",
@@ -158,9 +154,7 @@ func (c *CodeBasedInvitation) ValidateInvitation(code string) (*models.Invitatio
 }
 
 // MarkInvitationUsed marks an invitation as used with concurrency safety
-func (c *CodeBasedInvitation) MarkInvitationUsed(invitationID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (c *CodeBasedInvitation) MarkInvitationUsed(ctx context.Context, invitationID string) error {
 
 	result, err := c.collection.Get(invitationID, &gocb.GetOptions{
 		Context: ctx,
@@ -215,7 +209,7 @@ type InvitationService struct {
 	method           InvitationMethod
 	relationshipRepo repositories.RelationshipRepository
 	userRepo         repositories.UserRepository
-	clock           utils.Clock
+	clock            utils.Clock
 }
 
 // NewInvitationService creates a new invitation service
@@ -232,26 +226,24 @@ func NewInvitationService(
 		method:           method,
 		relationshipRepo: relationshipRepo,
 		userRepo:         userRepo,
-		clock:           clock,
+		clock:            clock,
 	}
 }
 
 // GenerateInvitation creates a new invitation for a trainer
-func (s *InvitationService) GenerateInvitation(trainerID string) (*models.Invitation, error) {
-	return s.method.GenerateInvitation(trainerID, "")
+func (s *InvitationService) GenerateInvitation(ctx context.Context, trainerID string) (*models.Invitation, error) {
+	return s.method.GenerateInvitation(ctx, trainerID, "")
 }
 
 // AcceptInvitation allows an athlete to accept an invitation
-func (s *InvitationService) AcceptInvitation(code string, athleteID string) (*models.Relationship, error) {
+func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, athleteID string) (*models.Relationship, error) {
 	// Validate the invitation code
-	invitation, err := s.method.ValidateInvitation(code)
+	invitation, err := s.method.ValidateInvitation(ctx, code)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if athlete already has an active trainer
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	existingRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
@@ -280,7 +272,7 @@ func (s *InvitationService) AcceptInvitation(code string, athleteID string) (*mo
 	}
 
 	// Mark invitation as used with concurrency safety
-	if err := s.method.MarkInvitationUsed(invitation.InvitationID); err != nil {
+	if err := s.method.MarkInvitationUsed(ctx, invitation.InvitationID); err != nil {
 		// Log error but don't fail the operation
 		fmt.Printf("Warning: failed to mark invitation as used: %v\n", err)
 	}
@@ -289,9 +281,7 @@ func (s *InvitationService) AcceptInvitation(code string, athleteID string) (*mo
 }
 
 // GetPendingInvitations gets pending invitations for an athlete
-func (s *InvitationService) GetPendingInvitations(athleteID string) ([]*models.Relationship, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (s *InvitationService) GetPendingInvitations(ctx context.Context, athleteID string) ([]*models.Relationship, error) {
 	relationships, err := s.relationshipRepo.GetPendingByAthleteID(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pending invitations: %w", err)

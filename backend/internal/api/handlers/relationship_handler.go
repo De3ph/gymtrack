@@ -144,7 +144,7 @@ func (h *RelationshipHandler) GenerateInvitation(c *gin.Context) {
 	}
 
 	// Generate invitation
-	invitation, err := h.invitationService.GenerateInvitation(trainerID.(string))
+	invitation, err := h.invitationService.GenerateInvitation(c.Request.Context(), trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate invitation", "details": err.Error()})
 		return
@@ -200,7 +200,7 @@ func (h *RelationshipHandler) AcceptInvitation(c *gin.Context) {
 	}
 
 	// Accept invitation
-	relationship, err := h.invitationService.AcceptInvitation(req.Code, athleteID.(string))
+	relationship, err := h.invitationService.AcceptInvitation(c.Request.Context(), req.Code, athleteID.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -239,14 +239,14 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 	}
 
 	// Get pending invitations
-	invitations, err := h.invitationService.GetPendingInvitations(athleteID.(string))
+	invitations, err := h.invitationService.GetPendingInvitations(c.Request.Context(), athleteID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve invitations", "details": err.Error()})
 		return
 	}
 
 	// Get active trainer relationship
-	activeRelationship, err := h.relationshipRepo.GetByAthleteID(c, athleteID.(string))
+	activeRelationship, err := h.relationshipRepo.GetByAthleteID(c.Request.Context(), athleteID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve relationships", "details": err.Error()})
 		return
@@ -301,7 +301,7 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 	}
 
 	// Get all relationships for this trainer
-	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
+	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve clients", "details": err.Error()})
 		return
@@ -378,7 +378,7 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 	}
 
 	// Verify relationship
-	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
+	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify relationship", "details": err.Error()})
 		return
@@ -398,8 +398,8 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 	}
 
 	// Get stats
-	allWorkouts, _ := h.workoutRepo.GetByAthleteID(athlete.UserID, 1000, 0)
-	allMeals, _ := h.mealRepo.GetByAthleteID(athlete.UserID, 1000, 0)
+	allWorkouts, _ := h.workoutRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
+	allMeals, _ := h.mealRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
 
 	// Calculate this week's stats
 	now := time.Now()
@@ -450,7 +450,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 	userRole, _ := c.Get("userRole")
 
 	// Get the relationship
-	relationship, err := h.relationshipRepo.GetByID(c, relationshipID)
+	relationship, err := h.relationshipRepo.GetByID(c.Request.Context(), relationshipID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Relationship not found"})
 		return
@@ -471,7 +471,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 
 	// Terminate the relationship
 	relationship.Terminate()
-	if err := h.relationshipRepo.Update(c, relationship); err != nil {
+	if err := h.relationshipRepo.Update(c.Request.Context(), relationship); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to terminate relationship", "details": err.Error()})
 		return
 	}
@@ -533,7 +533,7 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 	}
 
 	// Verify relationship
-	relationships, err := h.relationshipRepo.GetByTrainerID(c, trainerID.(string))
+	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify relationship", "details": err.Error()})
 		return
@@ -553,8 +553,8 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 	}
 
 	// Get all workouts and meals
-	allWorkouts, _ := h.workoutRepo.GetByAthleteID(athlete.UserID, 1000, 0)
-	allMeals, _ := h.mealRepo.GetByAthleteID(athlete.UserID, 1000, 0)
+	allWorkouts, _ := h.workoutRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
+	allMeals, _ := h.mealRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
 
 	// Calculate workout stats
 	workoutStats := calculateWorkoutStats(allWorkouts)
