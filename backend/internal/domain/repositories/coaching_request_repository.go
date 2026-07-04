@@ -2,11 +2,12 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"gymtrack-backend/internal/config"
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 
 	"github.com/couchbase/gocb/v2"
@@ -56,8 +57,8 @@ func (r *CouchbaseCoachingRequestRepository) GetByID(ctx context.Context, reques
 		Context: ctx,
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), "document not found") {
-			return nil, fmt.Errorf("coaching request not found")
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return nil, domainerrors.ErrNotFound
 		}
 		return nil, fmt.Errorf("failed to get coaching request: %w", err)
 	}
