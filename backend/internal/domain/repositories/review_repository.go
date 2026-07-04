@@ -122,7 +122,7 @@ func (r *CouchbaseReviewRepository) GetByAthleteID(ctx context.Context, athleteI
 		return &review, nil
 	}
 
-	return nil, nil
+	return nil, domainerrors.ErrNotFound
 }
 
 func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, trainerID string) (float64, int, error) {

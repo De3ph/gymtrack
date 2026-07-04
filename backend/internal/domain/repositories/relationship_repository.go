@@ -130,7 +130,7 @@ func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, at
 		return nil, fmt.Errorf("query iteration error: %w", err)
 	}
 
-	return nil, nil // No active relationship found
+	return nil, domainerrors.ErrNotFound
 }
 
 // GetPendingByAthleteID retrieves pending invitations for an athlete

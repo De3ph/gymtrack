@@ -70,7 +70,7 @@ func (r *CouchbaseUserRepository) GetUserByEmail(ctx context.Context, email stri
 	} else if rows.Err() != nil {
 		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
 	} else {
-		return nil, nil // User not found
+		return nil, domainerrors.ErrNotFound
 	}
 
 	return &user, nil
@@ -99,7 +99,7 @@ func (r *CouchbaseUserRepository) GetUserByUsername(ctx context.Context, usernam
 	} else if rows.Err() != nil {
 		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
 	} else {
-		return nil, nil // User not found
+		return nil, domainerrors.ErrNotFound
 	}
 
 	return &user, nil

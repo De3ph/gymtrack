@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"gymtrack-backend/internal/config"
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 
 	"github.com/couchbase/gocb/v2"
@@ -80,7 +81,7 @@ func (r *CouchbaseEquipmentRepository) GetEquipmentByID(ctx context.Context, id 
 	} else if rows.Err() != nil {
 		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
 	} else {
-		return nil, nil // Equipment not found
+		return nil, domainerrors.ErrNotFound
 	}
 
 	return &eq, nil

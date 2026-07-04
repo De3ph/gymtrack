@@ -253,7 +253,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteAndPlan(ctx conte
 		return nil, fmt.Errorf("query iteration error: %w", err)
 	}
 
-	return nil, nil
+	return nil, domainerrors.ErrNotFound
 }
 
 // GetByTrainerID retrieves all assignments for a trainer

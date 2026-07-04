@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"gymtrack-backend/internal/config"
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 
 	"github.com/couchbase/gocb/v2"
@@ -80,7 +81,7 @@ func (r *CouchbaseMuscleGroupRepository) GetMuscleGroupByID(ctx context.Context,
 	} else if rows.Err() != nil {
 		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
 	} else {
-		return nil, nil // Muscle group not found
+		return nil, domainerrors.ErrNotFound
 	}
 
 	return &mg, nil
