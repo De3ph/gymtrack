@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gymtrack-backend/internal/config"
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 
 	"github.com/couchbase/gocb/v2"
@@ -111,7 +112,7 @@ func (r *CouchbaseUserRepository) GetUserByID(ctx context.Context, userID string
 	})
 	if err != nil {
 		if err == gocb.ErrDocumentNotFound {
-			return nil, nil // User not found
+			return nil, domainerrors.ErrNotFound
 		}
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
@@ -161,7 +162,7 @@ func (r *CouchbaseUserRepository) UpdateUser(ctx context.Context, user *models.U
 	})
 	if err != nil {
 		if err == gocb.ErrDocumentNotFound {
-			return fmt.Errorf("user not found")
+			return domainerrors.ErrNotFound
 		}
 		return fmt.Errorf("failed to update user: %w", err)
 	}

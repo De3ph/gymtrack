@@ -2,10 +2,12 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"gymtrack-backend/internal/config"
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 
 	"github.com/couchbase/gocb/v2"
@@ -50,6 +52,9 @@ func (r *CouchbaseWorkoutRepository) GetByID(ctx context.Context, workoutID stri
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return nil, domainerrors.ErrNotFound
+		}
 		return nil, fmt.Errorf("failed to get workout: %w", err)
 	}
 
