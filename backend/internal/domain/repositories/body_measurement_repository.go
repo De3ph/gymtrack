@@ -166,6 +166,9 @@ func (r *CouchbaseBodyMeasurementRepository) Update(ctx context.Context, measure
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to update body measurement: %w", err)
 	}
 
@@ -179,6 +182,9 @@ func (r *CouchbaseBodyMeasurementRepository) Delete(ctx context.Context, measure
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to delete body measurement: %w", err)
 	}
 

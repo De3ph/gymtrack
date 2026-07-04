@@ -158,6 +158,9 @@ func (r *CouchbaseCoachingRequestRepository) Update(ctx context.Context, request
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to update coaching request: %w", err)
 	}
 
@@ -170,6 +173,9 @@ func (r *CouchbaseCoachingRequestRepository) Delete(ctx context.Context, request
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to delete coaching request: %w", err)
 	}
 

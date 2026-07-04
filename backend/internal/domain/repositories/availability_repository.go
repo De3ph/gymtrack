@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -103,6 +104,9 @@ func (r *CouchbaseAvailabilityRepository) DeleteAvailability(ctx context.Context
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to delete availability: %w", err)
 	}
 	return nil

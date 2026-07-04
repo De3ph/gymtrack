@@ -107,6 +107,9 @@ func (r *CouchbaseWorkoutPlanRepository) Update(ctx context.Context, plan *model
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to update workout plan: %w", err)
 	}
 	return nil
@@ -119,6 +122,9 @@ func (r *CouchbaseWorkoutPlanRepository) Delete(ctx context.Context, planID stri
 		Context: ctx,
 	})
 	if err != nil {
+		if errors.Is(err, gocb.ErrDocumentNotFound) {
+			return domainerrors.ErrNotFound
+		}
 		return fmt.Errorf("failed to delete workout plan: %w", err)
 	}
 	return nil
