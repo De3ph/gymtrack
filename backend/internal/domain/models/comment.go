@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type TargetType string
@@ -22,23 +20,23 @@ const (
 
 type Comment struct {
 	Type            string     `json:"type"` // Always "comment"
-	CommentID       string     `json:"commentId"`
+	CommentID       int        `json:"commentId"`
 	TargetType      TargetType `json:"targetType" validate:"required,oneof=workout meal"`
-	TargetID        string     `json:"targetId" validate:"required"`
-	AuthorID        string     `json:"authorId" validate:"required"`
+	TargetID        int        `json:"targetId" validate:"required"`
+	AuthorID        int        `json:"authorId" validate:"required"`
 	AuthorRole      AuthorRole `json:"authorRole" validate:"required,oneof=trainer athlete"`
 	Content         string     `json:"content" validate:"required,min=1,max=2000"`
-	ParentCommentID *string    `json:"parentCommentId,omitempty"`
+	ParentCommentID *int       `json:"parentCommentId,omitempty"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	EditedAt        *time.Time `json:"editedAt,omitempty"`
 }
 
 // NewComment creates a new comment
-func NewComment(targetType TargetType, targetID, authorID string, authorRole AuthorRole, content string, parentCommentID *string) *Comment {
+func NewComment(targetType TargetType, targetID, authorID int, authorRole AuthorRole, content string, parentCommentID *int) *Comment {
 	now := time.Now()
 	return &Comment{
 		Type:            "comment",
-		CommentID:       uuid.New().String(),
+		CommentID:       0,
 		TargetType:      targetType,
 		TargetID:        targetID,
 		AuthorID:        authorID,
@@ -58,5 +56,5 @@ func (c *Comment) Edit(newContent string) {
 
 // IsReply checks if this comment is a reply to another comment
 func (c *Comment) IsReply() bool {
-	return c.ParentCommentID != nil && *c.ParentCommentID != ""
+	return c.ParentCommentID != nil && *c.ParentCommentID != 0
 }

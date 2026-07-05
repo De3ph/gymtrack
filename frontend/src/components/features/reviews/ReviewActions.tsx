@@ -12,8 +12,8 @@ import { useTranslations } from "next-intl"
 
 interface ReviewActionsProps {
   review: TrainerReview
-  trainerId: string
-  currentUserId: string
+  trainerId: string | number
+  currentUserId: string | number
   onReviewUpdated?: () => void
 }
 

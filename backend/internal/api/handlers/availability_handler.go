@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
@@ -36,7 +37,13 @@ func (h *AvailabilityHandler) GetMyAvailability(c *gin.Context) {
 		return
 	}
 
-	slots, err := h.service.GetAvailability(c.Request.Context(), userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	slots, err := h.service.GetAvailability(c.Request.Context(), userIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -70,7 +77,13 @@ func (h *AvailabilityHandler) SetMyAvailability(c *gin.Context) {
 		return
 	}
 
-	err := h.service.SetAvailability(c.Request.Context(), userID.(string), slots)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.service.SetAvailability(c.Request.Context(), userIDInt, slots)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -90,7 +103,12 @@ func (h *AvailabilityHandler) SetMyAvailability(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /trainers/{id}/availability [get]
 func (h *AvailabilityHandler) GetTrainerAvailability(c *gin.Context) {
-	trainerID := c.Param("id")
+	trainerIDStr := c.Param("id")
+	trainerID, err := strconv.Atoi(trainerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		return
+	}
 
 	slots, err := h.service.GetAvailability(c.Request.Context(), trainerID)
 	if err != nil {
@@ -115,9 +133,14 @@ func (h *AvailabilityHandler) GetTrainerAvailability(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /trainers/availability/{slotId} [delete]
 func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
-	slotID := c.Param("slotId")
+	slotIDStr := c.Param("slotId")
+	slotID, err := strconv.Atoi(slotIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid slot id"})
+		return
+	}
 
-	err := h.service.DeleteSlot(c.Request.Context(), slotID)
+	err = h.service.DeleteSlot(c.Request.Context(), slotID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type RelationshipStatus string
@@ -16,20 +14,20 @@ const (
 
 type Relationship struct {
 	Type           string             `json:"type"` // Always "relationship"
-	RelationshipID string             `json:"relationshipId"`
-	TrainerID      string             `json:"trainerId" validate:"required"`
-	AthleteID      string             `json:"athleteId" validate:"required"`
+	RelationshipID int                `json:"relationshipId"`
+	TrainerID      int                `json:"trainerId" validate:"required"`
+	AthleteID      int                `json:"athleteId" validate:"required"`
 	Status         RelationshipStatus `json:"status" validate:"required,oneof=pending active terminated"`
 	CreatedAt      time.Time          `json:"createdAt"`
 	UpdatedAt      time.Time          `json:"updatedAt"`
 }
 
 // NewRelationship creates a new trainer-athlete relationship
-func NewRelationship(trainerID, athleteID string) *Relationship {
+func NewRelationship(trainerID, athleteID int) *Relationship {
 	now := time.Now()
 	return &Relationship{
 		Type:           "relationship",
-		RelationshipID: uuid.New().String(),
+		RelationshipID: 0,
 		TrainerID:      trainerID,
 		AthleteID:      athleteID,
 		Status:         RelationshipStatusPending,

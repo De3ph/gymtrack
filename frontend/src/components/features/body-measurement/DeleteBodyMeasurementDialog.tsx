@@ -33,7 +33,7 @@ export function DeleteBodyMeasurementDialog({
   const t = useTranslations("body_measurement.delete");
 
   const { mutate: deleteMeasurement, isPending } = useMutation({
-    mutationFn: async (id: string) => bodyMeasurementApi.delete(id),
+    mutationFn: async (id: number) => bodyMeasurementApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["body-measurements"] });
       queryClient.invalidateQueries({ queryKey: ["latest-body-measurement"] });

@@ -4,7 +4,7 @@ import { User, Workout, Meal } from '@/types'
 // Mock data
 const mockUsers: User[] = [
   {
-    userId: 'user-1',
+    userId: 1,
     username: 'testathlete',
     email: 'athlete@test.com',
     role: 'athlete',
@@ -19,7 +19,7 @@ const mockUsers: User[] = [
     updatedAt: new Date().toISOString()
   },
   {
-    userId: 'user-2',
+    userId: 2,
     username: 'testtrainer',
     email: 'trainer@test.com',
     role: 'trainer',
@@ -35,12 +35,12 @@ const mockUsers: User[] = [
 
 const mockWorkouts: Workout[] = [
   {
-    workoutId: 'workout-1',
-    athleteId: 'user-1',
+    workoutId: 1,
+    athleteId: 1,
     date: new Date().toISOString(),
     exercises: [
       {
-        exerciseId: 'ex-1',
+        exerciseId: 1,
         name: 'Bench Press',
         sets: [
           { weight: 80, weightUnit: 'kg', reps: 12 },
@@ -57,8 +57,8 @@ const mockWorkouts: Workout[] = [
 
 const mockMeals: Meal[] = [
   {
-    mealId: 'meal-1',
-    athleteId: 'user-1',
+    mealId: 1,
+    athleteId: 1,
     date: new Date().toISOString(),
     mealType: 'breakfast',
     items: [
@@ -86,7 +86,7 @@ export const handlers = [
     // Mock successful registration
     return HttpResponse.json({
       user: {
-        userId: 'new-user',
+        userId: 3,
         email: body.email,
         role: body.role,
         profile: body.profile
@@ -137,7 +137,7 @@ export const handlers = [
   http.post('/api/workouts', async ({ request }) => {
     const body = await request.json() as any
     const newWorkout: Workout = {
-      workoutId: 'new-workout',
+      workoutId: 3,
       ...body,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -146,7 +146,7 @@ export const handlers = [
   }),
 
   http.get('/api/workouts/:id', ({ params }) => {
-    const workout = mockWorkouts.find(w => w.workoutId === params.id)
+    const workout = mockWorkouts.find(w => w.workoutId === Number(params.id))
     if (!workout) {
       return HttpResponse.json(
         { error: 'Workout not found' },
@@ -158,7 +158,7 @@ export const handlers = [
 
   http.put('/api/workouts/:id', async ({ params, request }) => {
     const body = await request.json() as any
-    const workout = mockWorkouts.find(w => w.workoutId === params.id)
+    const workout = mockWorkouts.find(w => w.workoutId === Number(params.id))
     if (!workout) {
       return HttpResponse.json(
         { error: 'Workout not found' },
@@ -173,7 +173,7 @@ export const handlers = [
   }),
 
   http.delete('/api/workouts/:id', ({ params }) => {
-    const workout = mockWorkouts.find(w => w.workoutId === params.id)
+    const workout = mockWorkouts.find(w => w.workoutId === Number(params.id))
     if (!workout) {
       return HttpResponse.json(
         { error: 'Workout not found' },
@@ -191,7 +191,7 @@ export const handlers = [
   http.post('/api/meals', async ({ request }) => {
     const body = await request.json() as any
     const newMeal: Meal = {
-      mealId: 'new-meal',
+      mealId: 3,
       ...body,
       createdAt: new Date().toISOString()
     }
@@ -199,7 +199,7 @@ export const handlers = [
   }),
 
   http.get('/api/meals/:id', ({ params }) => {
-    const meal = mockMeals.find(m => m.mealId === params.id)
+    const meal = mockMeals.find(m => m.mealId === Number(params.id))
     if (!meal) {
       return HttpResponse.json(
         { error: 'Meal not found' },
@@ -211,7 +211,7 @@ export const handlers = [
 
   http.put('/api/meals/:id', async ({ params, request }) => {
     const body = await request.json() as any
-    const meal = mockMeals.find(m => m.mealId === params.id)
+    const meal = mockMeals.find(m => m.mealId === Number(params.id))
     if (!meal) {
       return HttpResponse.json(
         { error: 'Meal not found' },
@@ -225,7 +225,7 @@ export const handlers = [
   }),
 
   http.delete('/api/meals/:id', ({ params }) => {
-    const meal = mockMeals.find(m => m.mealId === params.id)
+    const meal = mockMeals.find(m => m.mealId === Number(params.id))
     if (!meal) {
       return HttpResponse.json(
         { error: 'Meal not found' },
@@ -247,9 +247,9 @@ export const handlers = [
     const body = await request.json() as any
     if (body.code === 'ABC12345') {
       return HttpResponse.json({
-        relationshipId: 'rel-1',
-        trainerId: 'user-2',
-        athleteId: 'user-1',
+        relationshipId: 1,
+        trainerId: 2,
+        athleteId: 1,
         status: 'active',
         createdAt: new Date().toISOString()
       })

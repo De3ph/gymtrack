@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func NewTestUser(id, email string, role models.UserRole) *models.User {
+func NewTestUser(id int, email string, role models.UserRole) *models.User {
 	return &models.User{
 		UserID: id,
 		Email:  email,
@@ -24,7 +24,7 @@ func NewTestUser(id, email string, role models.UserRole) *models.User {
 	}
 }
 
-func NewTestRelationship(relationshipID, trainerID, athleteID string, status models.RelationshipStatus) *models.Relationship {
+func NewTestRelationship(relationshipID, trainerID, athleteID int, status models.RelationshipStatus) *models.Relationship {
 	return &models.Relationship{
 		RelationshipID: relationshipID,
 		TrainerID:      trainerID,
@@ -35,7 +35,7 @@ func NewTestRelationship(relationshipID, trainerID, athleteID string, status mod
 	}
 }
 
-func NewTestInvitation(invitationID, trainerID, code, status string) *models.Invitation {
+func NewTestInvitation(invitationID, trainerID int, code, status string) *models.Invitation {
 	return &models.Invitation{
 		Type:         "invitation",
 		InvitationID: invitationID,
@@ -60,7 +60,7 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
+func (m *MockUserRepository) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -96,7 +96,7 @@ func (m *MockRelationshipRepository) Create(ctx context.Context, relationship *m
 	return args.Error(0)
 }
 
-func (m *MockRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error) {
+func (m *MockRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
 	args := m.Called(ctx, athleteID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -104,7 +104,7 @@ func (m *MockRelationshipRepository) GetByAthleteID(ctx context.Context, athlete
 	return args.Get(0).(*models.Relationship), args.Error(1)
 }
 
-func (m *MockRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error) {
+func (m *MockRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error) {
 	args := m.Called(ctx, athleteID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -112,12 +112,12 @@ func (m *MockRelationshipRepository) GetPendingByAthleteID(ctx context.Context, 
 	return args.Get(0).([]*models.Relationship), args.Error(1)
 }
 
-func (m *MockRelationshipRepository) Delete(ctx context.Context, relationshipID string) error {
+func (m *MockRelationshipRepository) Delete(ctx context.Context, relationshipID int) error {
 	args := m.Called(ctx, relationshipID)
 	return args.Error(0)
 }
 
-func (m *MockRelationshipRepository) GetByID(ctx context.Context, relationshipID string) (*models.Relationship, error) {
+func (m *MockRelationshipRepository) GetByID(ctx context.Context, relationshipID int) (*models.Relationship, error) {
 	args := m.Called(ctx, relationshipID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -125,7 +125,7 @@ func (m *MockRelationshipRepository) GetByID(ctx context.Context, relationshipID
 	return args.Get(0).(*models.Relationship), args.Error(1)
 }
 
-func (m *MockRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error) {
+func (m *MockRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
 	args := m.Called(ctx, trainerID)
 	return args.Get(0).([]*models.Relationship), args.Error(1)
 }
@@ -135,7 +135,7 @@ func (m *MockRelationshipRepository) Update(ctx context.Context, relationship *m
 	return args.Error(0)
 }
 
-func (m *MockRelationshipRepository) HasActiveRelationship(ctx context.Context, trainerID, athleteID string) (bool, error) {
+func (m *MockRelationshipRepository) HasActiveRelationship(ctx context.Context, trainerID int, athleteID int) (bool, error) {
 	args := m.Called(ctx, trainerID, athleteID)
 	return args.Bool(0), args.Error(1)
 }
@@ -150,7 +150,7 @@ func (m *MockCoachingRequestRepository) Create(ctx context.Context, request *mod
 	return args.Error(0)
 }
 
-func (m *MockCoachingRequestRepository) GetByID(ctx context.Context, requestID string) (*models.CoachingRequest, error) {
+func (m *MockCoachingRequestRepository) GetByID(ctx context.Context, requestID int) (*models.CoachingRequest, error) {
 	args := m.Called(ctx, requestID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -158,7 +158,7 @@ func (m *MockCoachingRequestRepository) GetByID(ctx context.Context, requestID s
 	return args.Get(0).(*models.CoachingRequest), args.Error(1)
 }
 
-func (m *MockCoachingRequestRepository) GetByAthleteID(ctx context.Context, athleteID string) ([]*models.CoachingRequest, error) {
+func (m *MockCoachingRequestRepository) GetByAthleteID(ctx context.Context, athleteID int) ([]*models.CoachingRequest, error) {
 	args := m.Called(ctx, athleteID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -166,7 +166,7 @@ func (m *MockCoachingRequestRepository) GetByAthleteID(ctx context.Context, athl
 	return args.Get(0).([]*models.CoachingRequest), args.Error(1)
 }
 
-func (m *MockCoachingRequestRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.CoachingRequest, error) {
+func (m *MockCoachingRequestRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
 	args := m.Called(ctx, trainerID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -179,12 +179,12 @@ func (m *MockCoachingRequestRepository) Update(ctx context.Context, request *mod
 	return args.Error(0)
 }
 
-func (m *MockCoachingRequestRepository) Delete(ctx context.Context, requestID string) error {
+func (m *MockCoachingRequestRepository) Delete(ctx context.Context, requestID int) error {
 	args := m.Called(ctx, requestID)
 	return args.Error(0)
 }
 
-func (m *MockCoachingRequestRepository) GetPendingByTrainerID(ctx context.Context, trainerID string) ([]*models.CoachingRequest, error) {
+func (m *MockCoachingRequestRepository) GetPendingByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
 	args := m.Called(ctx, trainerID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -202,7 +202,7 @@ func (m *MockReviewRepository) CreateReview(ctx context.Context, review *models.
 	return args.Error(0)
 }
 
-func (m *MockReviewRepository) GetReviewByID(ctx context.Context, reviewID string) (*models.TrainerReview, error) {
+func (m *MockReviewRepository) GetReviewByID(ctx context.Context, reviewID int) (*models.TrainerReview, error) {
 	args := m.Called(ctx, reviewID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -210,7 +210,7 @@ func (m *MockReviewRepository) GetReviewByID(ctx context.Context, reviewID strin
 	return args.Get(0).(*models.TrainerReview), args.Error(1)
 }
 
-func (m *MockReviewRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.TrainerReview, error) {
+func (m *MockReviewRepository) GetByAthleteID(ctx context.Context, athleteID int) (*models.TrainerReview, error) {
 	args := m.Called(ctx, athleteID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -218,7 +218,7 @@ func (m *MockReviewRepository) GetByAthleteID(ctx context.Context, athleteID str
 	return args.Get(0).(*models.TrainerReview), args.Error(1)
 }
 
-func (m *MockReviewRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerReview, error) {
+func (m *MockReviewRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerReview, error) {
 	args := m.Called(ctx, trainerID)
 	return args.Get(0).([]models.TrainerReview), args.Error(1)
 }
@@ -228,12 +228,12 @@ func (m *MockReviewRepository) UpdateReview(ctx context.Context, review *models.
 	return args.Error(0)
 }
 
-func (m *MockReviewRepository) DeleteReview(ctx context.Context, reviewID string) error {
+func (m *MockReviewRepository) DeleteReview(ctx context.Context, reviewID int) error {
 	args := m.Called(ctx, reviewID)
 	return args.Error(0)
 }
 
-func (m *MockReviewRepository) GetAverageRating(ctx context.Context, trainerID string) (float64, int, error) {
+func (m *MockReviewRepository) GetAverageRating(ctx context.Context, trainerID int) (float64, int, error) {
 	args := m.Called(ctx, trainerID)
 	return args.Get(0).(float64), args.Get(1).(int), args.Error(2)
 }
@@ -250,7 +250,7 @@ func (m *MockTrainerProfileRepository) GetPublicTrainers(ctx context.Context, fi
 	return args.Get(0).([]models.TrainerWithProfile), args.Error(1)
 }
 
-func (m *MockTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID string) (*models.TrainerWithProfile, error) {
+func (m *MockTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error) {
 	args := m.Called(ctx, trainerID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -258,7 +258,7 @@ func (m *MockTrainerProfileRepository) GetTrainerByID(ctx context.Context, train
 	return args.Get(0).(*models.TrainerWithProfile), args.Error(1)
 }
 
-func (m *MockTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID string, profile *models.TrainerProfile) error {
+func (m *MockTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID int, profile *models.TrainerProfile) error {
 	args := m.Called(ctx, trainerID, profile)
 	return args.Error(0)
 }
@@ -416,7 +416,7 @@ type MockAvailabilityRepository struct {
 	mock.Mock
 }
 
-func (m *MockAvailabilityRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerAvailability, error) {
+func (m *MockAvailabilityRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerAvailability, error) {
 	args := m.Called(ctx, trainerID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -424,7 +424,7 @@ func (m *MockAvailabilityRepository) GetByTrainerID(ctx context.Context, trainer
 	return args.Get(0).([]models.TrainerAvailability), args.Error(1)
 }
 
-func (m *MockAvailabilityRepository) GetBySlotID(ctx context.Context, slotID string) (*models.TrainerAvailability, error) {
+func (m *MockAvailabilityRepository) GetBySlotID(ctx context.Context, slotID int) (*models.TrainerAvailability, error) {
 	args := m.Called(ctx, slotID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -437,12 +437,12 @@ func (m *MockAvailabilityRepository) UpsertAvailability(ctx context.Context, slo
 	return args.Error(0)
 }
 
-func (m *MockAvailabilityRepository) DeleteAvailability(ctx context.Context, slotID string) error {
+func (m *MockAvailabilityRepository) DeleteAvailability(ctx context.Context, slotID int) error {
 	args := m.Called(ctx, slotID)
 	return args.Error(0)
 }
 
-func (m *MockAvailabilityRepository) GetAvailableSlots(ctx context.Context, trainerID string, dayOfWeek int) ([]models.TrainerAvailability, error) {
+func (m *MockAvailabilityRepository) GetAvailableSlots(ctx context.Context, trainerID int, dayOfWeek int) ([]models.TrainerAvailability, error) {
 	args := m.Called(ctx, trainerID, dayOfWeek)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -450,7 +450,7 @@ func (m *MockAvailabilityRepository) GetAvailableSlots(ctx context.Context, trai
 	return args.Get(0).([]models.TrainerAvailability), args.Error(1)
 }
 
-func (m *MockAvailabilityRepository) BookSlotAtomic(ctx context.Context, slotID string) error {
+func (m *MockAvailabilityRepository) BookSlotAtomic(ctx context.Context, slotID int) error {
 	args := m.Called(ctx, slotID)
 	return args.Error(0)
 }
@@ -465,7 +465,7 @@ type MockWorkoutRepository struct {
 	mock.Mock
 }
 
-func (m *MockWorkoutRepository) GetByID(id string) (*models.Workout, error) {
+func (m *MockWorkoutRepository) GetByID(id int) (*models.Workout, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -473,7 +473,7 @@ func (m *MockWorkoutRepository) GetByID(id string) (*models.Workout, error) {
 	return args.Get(0).(*models.Workout), args.Error(1)
 }
 
-func (m *MockWorkoutRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Workout, error) {
+func (m *MockWorkoutRepository) GetByAthleteID(athleteID int, limit, offset int) ([]*models.Workout, error) {
 	args := m.Called(athleteID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -481,7 +481,7 @@ func (m *MockWorkoutRepository) GetByAthleteID(athleteID string, limit, offset i
 	return args.Get(0).([]*models.Workout), args.Error(1)
 }
 
-func (m *MockWorkoutRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Workout, error) {
+func (m *MockWorkoutRepository) GetByAthleteDateRange(athleteID int, startDate, endDate time.Time) ([]*models.Workout, error) {
 	args := m.Called(athleteID, startDate, endDate)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -499,7 +499,7 @@ func (m *MockWorkoutRepository) Update(workout *models.Workout) error {
 	return args.Error(0)
 }
 
-func (m *MockWorkoutRepository) Delete(id string) error {
+func (m *MockWorkoutRepository) Delete(id int) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
@@ -514,7 +514,7 @@ func (m *MockMealRepository) Create(meal *models.Meal) error {
 	return args.Error(0)
 }
 
-func (m *MockMealRepository) GetByID(id string) (*models.Meal, error) {
+func (m *MockMealRepository) GetByID(id int) (*models.Meal, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -522,7 +522,7 @@ func (m *MockMealRepository) GetByID(id string) (*models.Meal, error) {
 	return args.Get(0).(*models.Meal), args.Error(1)
 }
 
-func (m *MockMealRepository) GetByAthleteID(athleteID string, limit, offset int) ([]*models.Meal, error) {
+func (m *MockMealRepository) GetByAthleteID(athleteID int, limit, offset int) ([]*models.Meal, error) {
 	args := m.Called(athleteID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -530,7 +530,7 @@ func (m *MockMealRepository) GetByAthleteID(athleteID string, limit, offset int)
 	return args.Get(0).([]*models.Meal), args.Error(1)
 }
 
-func (m *MockMealRepository) GetByAthleteDateRange(athleteID string, startDate, endDate time.Time) ([]*models.Meal, error) {
+func (m *MockMealRepository) GetByAthleteDateRange(athleteID int, startDate, endDate time.Time) ([]*models.Meal, error) {
 	args := m.Called(athleteID, startDate, endDate)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -543,7 +543,7 @@ func (m *MockMealRepository) Update(meal *models.Meal) error {
 	return args.Error(0)
 }
 
-func (m *MockMealRepository) Delete(id string) error {
+func (m *MockMealRepository) Delete(id int) error {
 	args := m.Called(id)
 	return args.Error(0)
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
@@ -14,9 +15,9 @@ import (
 
 // CommentHandler handles HTTP requests for comments.
 type CommentServiceInterface interface {
-	CanCreateComment(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string, parentCommentID *string) error
-	CanAccessComments(ctx context.Context, userID string, userRole models.UserRole, targetType models.TargetType, targetID string) error
-	CanEditOrDeleteComment(ctx context.Context, userID string, commentID string) error
+	CanCreateComment(ctx context.Context, userID int, userRole models.UserRole, targetType models.TargetType, targetID int, parentCommentID *int) error
+	CanAccessComments(ctx context.Context, userID int, userRole models.UserRole, targetType models.TargetType, targetID int) error
+	CanEditOrDeleteComment(ctx context.Context, userID int, commentID int) error
 }
 
 type CommentHandler struct {
@@ -94,7 +95,29 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
-	if err := h.commentSvc.CanCreateComment(c, userID.(string), userRole.(models.UserRole), req.TargetType, req.TargetID, req.ParentCommentID); err != nil {
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	targetIDInt, err := strconv.Atoi(req.TargetID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid target id"})
+		return
+	}
+
+	var parentCommentIDInt *int
+	if req.ParentCommentID != nil && *req.ParentCommentID != "" {
+		id, err := strconv.Atoi(*req.ParentCommentID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parent comment id"})
+			return
+		}
+		parentCommentIDInt = &id
+	}
+
+	if err := h.commentSvc.CanCreateComment(c, userIDInt, userRole.(models.UserRole), req.TargetType, targetIDInt, parentCommentIDInt); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Workout or meal not found"})
 			return
@@ -107,13 +130,13 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
-	if req.ParentCommentID != nil && *req.ParentCommentID != "" {
-		parent, err := h.commentRepo.GetByID(c.Request.Context(), *req.ParentCommentID)
+	if parentCommentIDInt != nil {
+		parent, err := h.commentRepo.GetByID(c.Request.Context(), *parentCommentIDInt)
 		if err != nil || parent == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Parent comment not found"})
 			return
 		}
-		if parent.TargetID != req.TargetID || parent.TargetType != req.TargetType {
+		if parent.TargetID != targetIDInt || parent.TargetType != req.TargetType {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Parent comment does not belong to this target"})
 			return
 		}
@@ -123,7 +146,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	if userRole.(models.UserRole) == models.RoleAthlete {
 		authorRole = models.AuthorRoleAthlete
 	}
-	comment := models.NewComment(req.TargetType, req.TargetID, userID.(string), authorRole, req.Content, req.ParentCommentID)
+	comment := models.NewComment(req.TargetType, targetIDInt, userIDInt, authorRole, req.Content, parentCommentIDInt)
 	if err := h.commentRepo.Create(c.Request.Context(), comment); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create comment", "details": err.Error()})
 		return
@@ -160,9 +183,14 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 	}
 
 	targetTypeStr := c.Query("targetType")
-	targetID := c.Query("targetId")
-	if targetTypeStr == "" || targetID == "" {
+	targetIDStr := c.Query("targetId")
+	if targetTypeStr == "" || targetIDStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "targetType and targetId are required"})
+		return
+	}
+	targetID, err := strconv.Atoi(targetIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid target id"})
 		return
 	}
 	targetType := models.TargetType(targetTypeStr)
@@ -171,7 +199,13 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 		return
 	}
 
-	if err := h.commentSvc.CanAccessComments(c.Request.Context(), userID.(string), userRole.(models.UserRole), targetType, targetID); err != nil {
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	if err := h.commentSvc.CanAccessComments(c.Request.Context(), userIDInt, userRole.(models.UserRole), targetType, targetID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Workout or meal not found"})
 			return
@@ -214,9 +248,20 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
-	commentID := c.Param("id")
+	commentIDStr := c.Param("id")
+	commentID, err := strconv.Atoi(commentIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid comment id"})
+		return
+	}
 
-	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userID.(string), commentID); err != nil {
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userIDInt, commentID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
 			return
@@ -272,9 +317,20 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
-	commentID := c.Param("id")
+	commentIDStr := c.Param("id")
+	commentID, err := strconv.Atoi(commentIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid comment id"})
+		return
+	}
 
-	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userID.(string), commentID); err != nil {
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userIDInt, commentID); err != nil {
 		if err == services.ErrTargetNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
 			return

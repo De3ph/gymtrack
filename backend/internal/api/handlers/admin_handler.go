@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
@@ -21,7 +22,7 @@ func NewAdminHandler(adminService *services.AdminService) *AdminHandler {
 
 // AdminUserListItem is the user object returned in list endpoints.
 type AdminUserListItem struct {
-	UserID    string             `json:"userId"`
+	UserID    int                `json:"userId"`
 	Username  string             `json:"username"`
 	Email     string             `json:"email"`
 	Role      models.UserRole    `json:"role"`
@@ -91,9 +92,10 @@ func (h *AdminHandler) ListAllUsers(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/users/{id} [get]
 func (h *AdminHandler) GetUserDetail(c *gin.Context) {
-	userID := c.Param("id")
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user ID is required"})
+	userIDStr := c.Param("id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
 		return
 	}
 
@@ -172,8 +174,14 @@ func (h *AdminHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	err := h.adminService.ChangePassword(c.Request.Context(), services.ChangePasswordRequest{
-		UserID:      userID.(string),
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.adminService.ChangePassword(c.Request.Context(), services.ChangePasswordRequest{
+		UserID:      userIDInt,
 		OldPassword: req.OldPassword,
 		NewPassword: req.NewPassword,
 	})

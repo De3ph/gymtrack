@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { useTranslations } from "next-intl"
 
 interface CoachingRequestDialogProps {
-  trainerId: string
+  trainerId: string | number
   trainerName: string
   onRequestSent?: () => void
   children: React.ReactNode
@@ -31,7 +31,7 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
 
     try {
       await coachingRequestApi.createCoachingRequest({
-        trainerId,
+        trainerId: Number(trainerId),
         message: message.trim()
       })
       setOpen(false)

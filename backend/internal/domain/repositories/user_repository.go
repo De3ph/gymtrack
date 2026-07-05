@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -16,7 +18,7 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	GetUserByID(ctx context.Context, userID string) (*models.User, error)
+	GetUserByID(ctx context.Context, userID int) (*models.User, error)
 	GetAllUsers(ctx context.Context) ([]*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
 }
@@ -38,7 +40,7 @@ func (r *CouchbaseUserRepository) CreateUser(ctx context.Context, user *models.U
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Insert(user.UserID, user, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Insert(strconv.Itoa(user.UserID), user, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -105,9 +107,9 @@ func (r *CouchbaseUserRepository) GetUserByUsername(ctx context.Context, usernam
 	return &user, nil
 }
 
-func (r *CouchbaseUserRepository) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
+func (r *CouchbaseUserRepository) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	var user models.User
-	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(userID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(strconv.Itoa(userID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -157,7 +159,7 @@ func (r *CouchbaseUserRepository) GetAllUsers(ctx context.Context) ([]*models.Us
 func (r *CouchbaseUserRepository) UpdateUser(ctx context.Context, user *models.User) error {
 	user.UpdatedAt = time.Now()
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(user.UserID, user, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(strconv.Itoa(user.UserID), user, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {

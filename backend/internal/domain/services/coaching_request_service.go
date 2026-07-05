@@ -7,8 +7,6 @@ import (
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
-
-	"github.com/google/uuid"
 )
 
 type CoachingRequestService struct {
@@ -35,7 +33,7 @@ func NewCoachingRequestService(
 	}
 }
 
-func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athleteID string, trainerID string, message string) (*models.CoachingRequest, error) {
+func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athleteID int, trainerID int, message string) (*models.CoachingRequest, error) {
 	// Check if athlete already has an active relationship
 	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
 	if err == nil && activeRelationship != nil {
@@ -65,7 +63,7 @@ func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athl
 
 	// Create the coaching request
 	request := &models.CoachingRequest{
-		RequestID: uuid.New().String(),
+		RequestID: 0,
 		AthleteID: athleteID,
 		TrainerID: trainerID,
 		Message:   message,
@@ -80,7 +78,7 @@ func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athl
 	return request, nil
 }
 
-func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requestID string, trainerID string) (*models.Relationship, error) {
+func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requestID int, trainerID int) (*models.Relationship, error) {
 	// Get the coaching request
 	request, err := s.coachingRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
@@ -106,7 +104,7 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	// Create the relationship
 	now := s.clock.Now()
 	relationship := &models.Relationship{
-		RelationshipID: uuid.New().String(),
+		RelationshipID: 0,
 		TrainerID:      trainerID,
 		AthleteID:      request.AthleteID,
 		Status:         models.RelationshipStatusActive,
@@ -142,7 +140,7 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	return relationship, nil
 }
 
-func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requestID string, trainerID string) error {
+func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requestID int, trainerID int) error {
 	// Get the coaching request
 	request, err := s.coachingRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
@@ -170,7 +168,7 @@ func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requ
 	return nil
 }
 
-func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID string, userRole string) ([]*models.CoachingRequestWithDetails, error) {
+func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, userRole string) ([]*models.CoachingRequestWithDetails, error) {
 	var requests []*models.CoachingRequest
 	var err error
 
@@ -216,7 +214,7 @@ func (s *CoachingRequestService) enrich(ctx context.Context, req *models.Coachin
 	return requestWithDetails
 }
 
-func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Context, trainerID string) ([]*models.CoachingRequestWithDetails, error) {
+func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Context, trainerID int) ([]*models.CoachingRequestWithDetails, error) {
 	requests, err := s.coachingRequestRepo.GetPendingByTrainerID(ctx, trainerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pending coaching requests: %w", err)

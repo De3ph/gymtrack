@@ -5,7 +5,7 @@ export type WeightUnit = "kg" | "lbs";
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
 
 export interface Exercise {
-  exerciseId?: string;
+  exerciseId?: number;
   name: string;
   weight: number;
   weightUnit: WeightUnit;
@@ -15,11 +15,11 @@ export interface Exercise {
 }
 
 export interface Workout {
-  workoutId: string;
-  athleteId: string;
+  workoutId: number;
+  athleteId: number;
   date: string;
   exercises: WorkoutExercise[];
-  planId?: string;
+  planId?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,8 +48,8 @@ export interface FoodItem {
 }
 
 export interface Meal {
-  mealId: string;
-  athleteId: string;
+  mealId: number;
+  athleteId: number;
   date: string;
   mealType: MealType;
   items: FoodItem[];
@@ -75,14 +75,14 @@ export interface UserProfile {
   weight?: number;
   height?: number;
   fitnessGoals?: string;
-  trainerAssignment?: string;
+  trainerAssignment?: number;
   certifications?: string;
   specializations?: string;
-  clientList?: string[];
+  clientList?: number[];
 }
 
 export interface User {
-  userId: string;
+  userId: number;
   username: string;
   email: string;
   role: UserRole;
@@ -119,9 +119,9 @@ export type RelationshipStatus = "pending" | "active" | "terminated";
 
 export interface Relationship {
   type: string;
-  relationshipId: string;
-  trainerId: string;
-  athleteId: string;
+  relationshipId: number;
+  trainerId: number;
+  athleteId: number;
   status: RelationshipStatus;
   createdAt: string;
   updatedAt: string;
@@ -138,22 +138,22 @@ export type CommentAuthorRole = "trainer" | "athlete" | "admin";
 
 export interface Comment {
   type: string;
-  commentId: string;
+  commentId: number;
   targetType: CommentTargetType;
-  targetId: string;
-  authorId: string;
+  targetId: number;
+  authorId: number;
   authorRole: CommentAuthorRole;
   content: string;
-  parentCommentId?: string | null;
+  parentCommentId?: number | null;
   createdAt: string;
   editedAt?: string | null;
 }
 
 export interface CreateCommentRequest {
   targetType: CommentTargetType;
-  targetId: string;
+  targetId: number;
   content: string;
-  parentCommentId?: string | null;
+  parentCommentId?: number | null;
 }
 
 export interface UpdateCommentRequest {
@@ -171,7 +171,7 @@ export interface TrainerProfile {
 }
 
 export interface TrainerWithProfile {
-  userId: string;
+  userId: number;
   email: string;
   role: UserRole;
   profile: UserProfile;
@@ -183,8 +183,8 @@ export interface TrainerWithProfile {
 }
 
 export interface TrainerAvailability {
-  availabilityId: string;
-  trainerId: string;
+  availabilityId: number;
+  trainerId: number;
   dayOfWeek: number;
   startTime: string;
   endTime: string;
@@ -194,9 +194,9 @@ export interface TrainerAvailability {
 }
 
 export interface TrainerReview {
-  reviewId: string;
-  trainerId: string;
-  athleteId: string;
+  reviewId: number;
+  trainerId: number;
+  athleteId: number;
   rating: number;
   comment?: string;
   createdAt: string;
@@ -220,9 +220,9 @@ export interface TrainerSearchResponse {
 export type CoachingRequestStatus = "pending" | "accepted" | "rejected";
 
 export interface CoachingRequest {
-  requestId: string;
-  athleteId: string;
-  trainerId: string;
+  requestId: number;
+  athleteId: number;
+  trainerId: number;
   message: string;
   status: CoachingRequestStatus;
   type: string;
@@ -231,9 +231,9 @@ export interface CoachingRequest {
 }
 
 export interface CoachingRequestWithDetails {
-  requestId: string;
-  athleteId: string;
-  trainerId: string;
+  requestId: number;
+  athleteId: number;
+  trainerId: number;
   message: string;
   status: CoachingRequestStatus;
   type: string;
@@ -260,7 +260,7 @@ export interface Equipment {
 
 // Enhanced exercise types for per-set tracking
 export interface ExerciseSet {
-  setId?: string;
+  setId?: number;
   weight: number;
   weightUnit: WeightUnit;
   reps: number;
@@ -269,7 +269,7 @@ export interface ExerciseSet {
 }
 
 export interface WorkoutExercise {
-  exerciseId: string;
+  exerciseId: number;
   name: string;
   sets: ExerciseSet[];
   notes?: string;
@@ -277,13 +277,13 @@ export interface WorkoutExercise {
 
 // Exercise library types
 export interface ExerciseLibrary {
-  exerciseId: string;
+  exerciseId: number;
   name: string;
   category: string;
   muscleGroupId: number;
   equipmentId: number;
   instructions?: string;
-  createdBy?: string;
+  createdBy?: number;
   createdAt: string;
   muscleGroup?: MuscleGroup; // populated by API
   equipment?: Equipment; // populated by API
@@ -322,7 +322,7 @@ export interface CreateExerciseRequest {
 // ===== WORKOUT PLAN TYPES =====
 
 export interface WorkoutPlanSet {
-  setId?: string;
+  setId?: number;
   weight: number;
   weightUnit: WeightUnit;
   reps: number;
@@ -330,7 +330,7 @@ export interface WorkoutPlanSet {
 }
 
 export interface WorkoutPlanExercise {
-  exerciseId: string;
+  exerciseId: number;
   name: string;
   sets: WorkoutPlanSet[];
   notes?: string;
@@ -338,8 +338,8 @@ export interface WorkoutPlanExercise {
 }
 
 export interface WorkoutPlan {
-  planId: string;
-  trainerId: string;
+  planId: number;
+  trainerId: number;
   name: string;
   description?: string;
   exercises: WorkoutPlanExercise[];
@@ -349,10 +349,10 @@ export interface WorkoutPlan {
 }
 
 export interface WorkoutPlanAssignment {
-  assignmentId: string;
-  planId: string;
-  athleteId: string;
-  trainerId: string;
+  assignmentId: number;
+  planId: number;
+  athleteId: number;
+  trainerId: number;
   status: string;
   createdAt: string;
 }
@@ -370,7 +370,7 @@ export interface UpdateWorkoutPlanRequest {
 }
 
 export interface AssignPlanRequest {
-  athleteIds: string[];
+  athleteIds: number[];
 }
 
 export interface WorkoutPlanListResponse {
@@ -385,8 +385,8 @@ export interface AssignmentListResponse {
 
 // Updated workout types for new structure (for future migration)
 export interface WorkoutWithPerSet {
-  workoutId: string;
-  athleteId: string;
+  workoutId: number;
+  athleteId: number;
   date: string;
   exercises: WorkoutExercise[];
   createdAt: string;
@@ -425,8 +425,8 @@ export type BodyPartKey =
   | "calfRight";
 
 export interface BodyMeasurement {
-  measurementId: string;
-  athleteId: string;
+  measurementId: number;
+  athleteId: number;
   date: string;
   weight: number;
   weightUnit: WeightUnit;

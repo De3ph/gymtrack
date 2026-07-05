@@ -118,7 +118,7 @@ describe('RegisterPage', () => {
 
   it('submits form with valid data and redirects after success', async () => {
     const user = userEvent.setup()
-    vi.mocked(authApi.register).mockResolvedValue({ message: 'Success', userId: 'user-1' })
+    vi.mocked(authApi.register).mockResolvedValue({ message: 'Success', userId: 1 })
     mockLogin.mockResolvedValue(undefined)
 
     render(<RegisterPage />)

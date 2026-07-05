@@ -36,14 +36,14 @@ export const ROUTES = {
 // Dynamic route builders - for routes with parameters
 export const DYNAMIC_ROUTES = {
   // Athlete viewing specific trainer
-  ATHLETE_TRAINER_DETAIL: (id: string) => `/athlete/my-trainer/${id}`,
-  ATHLETE_TRAINERS_DETAIL: (id: string) => `/athlete/trainers/${id}`,
+  ATHLETE_TRAINER_DETAIL: (id: string | number) => `/athlete/my-trainer/${id}`,
+  ATHLETE_TRAINERS_DETAIL: (id: string | number) => `/athlete/trainers/${id}`,
 
   // Trainer viewing specific client
-  TRAINER_CLIENT_DETAIL: (username: string) => `/trainer/client/${username}`,
+  TRAINER_CLIENT_DETAIL: (username: string | number) => `/trainer/client/${username}`,
 
   // Trainer viewing specific workout plan
-  TRAINER_WORKOUT_PLAN_DETAIL: (id: string) => `/trainer/workout-plans/${id}`,
+  TRAINER_WORKOUT_PLAN_DETAIL: (id: string | number) => `/trainer/workout-plans/${id}`,
 } as const;
 
 // Type definitions for route safety
@@ -53,7 +53,7 @@ export type DynamicRouteKey = keyof typeof DYNAMIC_ROUTES;
 // Helper function to build dynamic routes with type safety
 export function buildRoute<T extends DynamicRouteKey>(
   key: T,
-  param: string
+  param: string | number
 ): string {
   return DYNAMIC_ROUTES[key](param);
 }

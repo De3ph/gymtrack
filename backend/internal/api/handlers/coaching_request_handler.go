@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
@@ -20,7 +21,7 @@ func NewCoachingRequestHandler(service *services.CoachingRequestService) *Coachi
 }
 
 type CreateCoachingRequestRequest struct {
-	TrainerID string `json:"trainerId" binding:"required"`
+	TrainerID int    `json:"trainerId" binding:"required"`
 	Message   string `json:"message"`
 }
 
@@ -56,7 +57,13 @@ func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 		return
 	}
 
-	request, err := h.service.CreateCoachingRequest(c.Request.Context(), userID.(string), req.TrainerID, req.Message)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	request, err := h.service.CreateCoachingRequest(c.Request.Context(), userIDInt, req.TrainerID, req.Message)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -84,7 +91,13 @@ func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 
 	userRole, _ := c.Get("userRole")
 
-	requests, err := h.service.GetMyRequests(c.Request.Context(), userID.(string), string(userRole.(models.UserRole)))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	requests, err := h.service.GetMyRequests(c.Request.Context(), userIDInt, string(userRole.(models.UserRole)))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -119,9 +132,20 @@ func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
 		return
 	}
 
-	requestID := c.Param("id")
+	requestIDStr := c.Param("id")
+	requestID, err := strconv.Atoi(requestIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request id"})
+		return
+	}
 
-	relationship, err := h.service.AcceptCoachingRequest(c.Request.Context(), requestID, userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	relationship, err := h.service.AcceptCoachingRequest(c.Request.Context(), requestID, userIDInt)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -159,9 +183,20 @@ func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 		return
 	}
 
-	requestID := c.Param("id")
+	requestIDStr := c.Param("id")
+	requestID, err := strconv.Atoi(requestIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request id"})
+		return
+	}
 
-	err := h.service.RejectCoachingRequest(c.Request.Context(), requestID, userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.service.RejectCoachingRequest(c.Request.Context(), requestID, userIDInt)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -194,7 +229,13 @@ func (h *CoachingRequestHandler) GetPendingRequests(c *gin.Context) {
 		return
 	}
 
-	requests, err := h.service.GetPendingRequestsForTrainer(c.Request.Context(), userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	requests, err := h.service.GetPendingRequestsForTrainer(c.Request.Context(), userIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

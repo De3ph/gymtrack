@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
@@ -20,7 +21,7 @@ func NewUserHandler(userService *services.UserService) *UserHandler {
 }
 
 type UserResponse struct {
-	UserID    string             `json:"userId"`
+	UserID    int                `json:"userId"`
 	Username  string             `json:"username"`
 	Email     string             `json:"email"`
 	Role      models.UserRole    `json:"role"`
@@ -47,7 +48,13 @@ func (h *UserHandler) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.GetUserByID(c.Request.Context(), userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	user, err := h.userService.GetUserByID(c.Request.Context(), userIDInt)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "USER_NOT_FOUND" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -100,7 +107,13 @@ func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.UpdateUserProfile(c.Request.Context(), userID.(string), req.Profile)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	user, err := h.userService.UpdateUserProfile(c.Request.Context(), userIDInt, req.Profile)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "USER_NOT_FOUND" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})

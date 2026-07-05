@@ -27,7 +27,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   const queryClient = useQueryClient();
 
   const { mutate: acceptMutate, isPending: acceptPending } = useMutation({
-    mutationFn: (requestId: string) => coachingRequestApi.acceptRequest(requestId),
+    mutationFn: (requestId: number) => coachingRequestApi.acceptRequest(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
     },
@@ -38,7 +38,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   });
 
   const { mutate: rejectMutate, isPending: rejectPending } = useMutation({
-    mutationFn: (requestId: string) => coachingRequestApi.rejectRequest(requestId),
+    mutationFn: (requestId: number) => coachingRequestApi.rejectRequest(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
     },
@@ -47,11 +47,11 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     },
   });
 
-  const handleAccept = (requestId: string) => {
+  const handleAccept = (requestId: number) => {
     acceptMutate(requestId);
   };
 
-  const handleReject = (requestId: string) => {
+  const handleReject = (requestId: number) => {
     rejectMutate(requestId);
   };
 

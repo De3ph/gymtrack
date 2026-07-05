@@ -36,7 +36,7 @@ export const relationshipApi = {
   },
 
   // Shared endpoints
-  terminateRelationship: async (relationshipId: string) => {
+  terminateRelationship: async (relationshipId: string | number) => {
     return api.delete<TerminateRelationshipResponse>(
       `/relationships/${relationshipId}`
     )

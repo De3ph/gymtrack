@@ -14,7 +14,7 @@ import {
 import { useTranslations } from 'next-intl';
 
 interface TerminateRelationshipDialogProps {
-  clientId: string;
+  clientId: string | number;
   athleteName?: string;
   trigger?: React.ReactNode;
 }

@@ -14,8 +14,8 @@ vi.mock('@/lib/api', () => ({
 
 const mockMeals: Meal[] = [
   {
-    mealId: 'm1',
-    athleteId: 'a1',
+    mealId: 1,
+    athleteId: 1,
     date: new Date().toISOString(),
     mealType: 'breakfast',
     items: [
@@ -28,7 +28,7 @@ const mockMeals: Meal[] = [
 
 const oldMeal: Meal = {
   ...mockMeals[0],
-  mealId: 'm2',
+  mealId: 2,
   createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
   updatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
 }

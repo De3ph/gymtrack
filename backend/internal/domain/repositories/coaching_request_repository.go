@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -15,12 +17,12 @@ import (
 
 type CoachingRequestRepository interface {
 	Create(ctx context.Context, request *models.CoachingRequest) error
-	GetByID(ctx context.Context, requestID string) (*models.CoachingRequest, error)
-	GetByAthleteID(ctx context.Context, athleteID string) ([]*models.CoachingRequest, error)
-	GetByTrainerID(ctx context.Context, trainerID string) ([]*models.CoachingRequest, error)
+	GetByID(ctx context.Context, requestID int) (*models.CoachingRequest, error)
+	GetByAthleteID(ctx context.Context, athleteID int) ([]*models.CoachingRequest, error)
+	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error)
 	Update(ctx context.Context, request *models.CoachingRequest) error
-	Delete(ctx context.Context, requestID string) error
-	GetPendingByTrainerID(ctx context.Context, trainerID string) ([]*models.CoachingRequest, error)
+	Delete(ctx context.Context, requestID int) error
+	GetPendingByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error)
 }
 
 type CouchbaseCoachingRequestRepository struct {
@@ -41,7 +43,7 @@ func (r *CouchbaseCoachingRequestRepository) Create(ctx context.Context, request
 	request.UpdatedAt = time.Now()
 
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.Insert(request.RequestID, request, &gocb.InsertOptions{
+	_, err := collection.Insert(strconv.Itoa(request.RequestID), request, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -51,9 +53,9 @@ func (r *CouchbaseCoachingRequestRepository) Create(ctx context.Context, request
 	return nil
 }
 
-func (r *CouchbaseCoachingRequestRepository) GetByID(ctx context.Context, requestID string) (*models.CoachingRequest, error) {
+func (r *CouchbaseCoachingRequestRepository) GetByID(ctx context.Context, requestID int) (*models.CoachingRequest, error) {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	result, err := collection.Get(requestID, &gocb.GetOptions{
+	result, err := collection.Get(strconv.Itoa(requestID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -72,7 +74,7 @@ func (r *CouchbaseCoachingRequestRepository) GetByID(ctx context.Context, reques
 	return &request, nil
 }
 
-func (r *CouchbaseCoachingRequestRepository) GetByAthleteID(ctx context.Context, athleteID string) ([]*models.CoachingRequest, error) {
+func (r *CouchbaseCoachingRequestRepository) GetByAthleteID(ctx context.Context, athleteID int) ([]*models.CoachingRequest, error) {
 	query := fmt.Sprintf("SELECT req.* FROM `%s`.`%s`.`%s` req WHERE req.type = 'coaching_request' AND req.athleteId = $1 ORDER BY req.createdAt DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -98,7 +100,7 @@ func (r *CouchbaseCoachingRequestRepository) GetByAthleteID(ctx context.Context,
 	return requests, nil
 }
 
-func (r *CouchbaseCoachingRequestRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.CoachingRequest, error) {
+func (r *CouchbaseCoachingRequestRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
 	query := fmt.Sprintf("SELECT req.* FROM `%s`.`%s`.`%s` req WHERE req.type = 'coaching_request' AND req.trainerId = $1 ORDER BY req.createdAt DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -124,7 +126,7 @@ func (r *CouchbaseCoachingRequestRepository) GetByTrainerID(ctx context.Context,
 	return requests, nil
 }
 
-func (r *CouchbaseCoachingRequestRepository) GetPendingByTrainerID(ctx context.Context, trainerID string) ([]*models.CoachingRequest, error) {
+func (r *CouchbaseCoachingRequestRepository) GetPendingByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
 	query := fmt.Sprintf("SELECT req.* FROM `%s`.`%s`.`%s` req WHERE req.type = 'coaching_request' AND req.trainerId = $1 AND req.status = 'pending' ORDER BY req.createdAt DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -154,7 +156,7 @@ func (r *CouchbaseCoachingRequestRepository) Update(ctx context.Context, request
 	request.UpdatedAt = time.Now()
 
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.Replace(request.RequestID, request, &gocb.ReplaceOptions{
+	_, err := collection.Replace(strconv.Itoa(request.RequestID), request, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -167,9 +169,9 @@ func (r *CouchbaseCoachingRequestRepository) Update(ctx context.Context, request
 	return nil
 }
 
-func (r *CouchbaseCoachingRequestRepository) Delete(ctx context.Context, requestID string) error {
+func (r *CouchbaseCoachingRequestRepository) Delete(ctx context.Context, requestID int) error {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.Remove(requestID, &gocb.RemoveOptions{
+	_, err := collection.Remove(strconv.Itoa(requestID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

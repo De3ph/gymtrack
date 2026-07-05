@@ -19,15 +19,15 @@ export const mealApi = {
     })
   },
 
-  getById: async (id: string) => {
+  getById: async (id: string | number) => {
     return api.get<Meal>(`/meals/${id}`)
   },
 
-  update: async (id: string, data: UpdateMealRequest) => {
+  update: async (id: string | number, data: UpdateMealRequest) => {
     return api.put<Meal>(`/meals/${id}`, data)
   },
 
-  delete: async (id: string) => {
+  delete: async (id: string | number) => {
     return api.delete<MessageResponse>(`/meals/${id}`)
   },
 

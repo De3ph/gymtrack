@@ -25,7 +25,7 @@ func NewUserService(userRepo repositories.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
+func (s *UserService) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -39,7 +39,7 @@ func (s *UserService) GetUserByID(ctx context.Context, userID string) (*models.U
 	return user, nil
 }
 
-func (s *UserService) UpdateUserProfile(ctx context.Context, userID string, profile models.UserProfile) (*models.User, error) {
+func (s *UserService) UpdateUserProfile(ctx context.Context, userID int, profile models.UserProfile) (*models.User, error) {
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {

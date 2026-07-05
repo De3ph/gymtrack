@@ -124,7 +124,7 @@ export default function ClientDetailPage() {
           </div>
         </div>
         <TerminateRelationshipDialog
-          clientId={clientDetails.athlete?.userId || ""}
+          clientId={clientDetails.athlete?.userId ?? 0}
           athleteName={clientDetails.athlete?.profile?.name}
           trigger={
             <Button variant="destructive">

@@ -40,7 +40,7 @@ export default function TrainerDetailPage() {
   if (
     error ||
     !trainerData?.activeTrainer ||
-    trainerData.activeTrainer.trainer.userId !== trainerId
+    trainerData.activeTrainer.trainer.userId !== Number(trainerId)
   ) {
     return (
       <div className="container mx-auto px-4 py-8">

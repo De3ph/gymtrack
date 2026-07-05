@@ -84,7 +84,7 @@ export function WorkoutList({
   };
 
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<
-    string | null
+    string | number | null
   >(null)
   const [editingWorkout, setEditingWorkout] = React.useState<Workout | null>(
     null

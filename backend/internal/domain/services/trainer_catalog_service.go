@@ -55,7 +55,7 @@ func (s *TrainerCatalogService) SearchTrainers(ctx context.Context, filters *Tra
 	}
 
 	// Collect trainer IDs for batch rating retrieval
-	trainerIDs := make([]string, len(trainers))
+	trainerIDs := make([]int, len(trainers))
 	for i, trainer := range trainers {
 		trainerIDs[i] = trainer.UserID
 	}
@@ -79,7 +79,7 @@ func (s *TrainerCatalogService) SearchTrainers(ctx context.Context, filters *Tra
 	return trainers, count, nil
 }
 
-func (s *TrainerCatalogService) GetTrainerProfile(ctx context.Context, trainerID string) (*models.TrainerWithProfile, error) {
+func (s *TrainerCatalogService) GetTrainerProfile(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error) {
 	trainer, err := s.profileRepo.GetTrainerByID(ctx, trainerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get trainer: %w", err)
@@ -97,7 +97,7 @@ func (s *TrainerCatalogService) GetTrainerProfile(ctx context.Context, trainerID
 	return trainer, nil
 }
 
-func (s *TrainerCatalogService) UpdateTrainerProfile(ctx context.Context, trainerID string, profile *models.TrainerProfile) error {
+func (s *TrainerCatalogService) UpdateTrainerProfile(ctx context.Context, trainerID int, profile *models.TrainerProfile) error {
 	if err := s.ValidateProfileUpdate(profile); err != nil {
 		return err
 	}

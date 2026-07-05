@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -15,12 +17,12 @@ import (
 
 type BodyMeasurementRepository interface {
 	Create(ctx context.Context, measurement *models.BodyMeasurement) error
-	GetByID(ctx context.Context, measurementID string) (*models.BodyMeasurement, error)
-	GetByAthleteID(ctx context.Context, athleteID string, limit, offset int) ([]*models.BodyMeasurement, error)
-	GetByAthleteDateRange(ctx context.Context, athleteID string, startDate, endDate time.Time) ([]*models.BodyMeasurement, error)
-	GetLatestByAthleteID(ctx context.Context, athleteID string) (*models.BodyMeasurement, error)
+	GetByID(ctx context.Context, measurementID int) (*models.BodyMeasurement, error)
+	GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.BodyMeasurement, error)
+	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.BodyMeasurement, error)
+	GetLatestByAthleteID(ctx context.Context, athleteID int) (*models.BodyMeasurement, error)
 	Update(ctx context.Context, measurement *models.BodyMeasurement) error
-	Delete(ctx context.Context, measurementID string) error
+	Delete(ctx context.Context, measurementID int) error
 }
 
 type CouchbaseBodyMeasurementRepository struct {
@@ -38,7 +40,7 @@ func NewBodyMeasurementRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *C
 // Create inserts a new body measurement into the database
 func (r *CouchbaseBodyMeasurementRepository) Create(ctx context.Context, measurement *models.BodyMeasurement) error {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
-	_, err := collection.Insert(measurement.MeasurementID, measurement, &gocb.InsertOptions{
+	_, err := collection.Insert(strconv.Itoa(measurement.MeasurementID), measurement, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -49,9 +51,9 @@ func (r *CouchbaseBodyMeasurementRepository) Create(ctx context.Context, measure
 }
 
 // GetByID retrieves a body measurement by its ID
-func (r *CouchbaseBodyMeasurementRepository) GetByID(ctx context.Context, measurementID string) (*models.BodyMeasurement, error) {
+func (r *CouchbaseBodyMeasurementRepository) GetByID(ctx context.Context, measurementID int) (*models.BodyMeasurement, error) {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
-	result, err := collection.Get(measurementID, &gocb.GetOptions{
+	result, err := collection.Get(strconv.Itoa(measurementID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -70,7 +72,7 @@ func (r *CouchbaseBodyMeasurementRepository) GetByID(ctx context.Context, measur
 }
 
 // GetByAthleteID retrieves body measurements for a specific athlete with pagination
-func (r *CouchbaseBodyMeasurementRepository) GetByAthleteID(ctx context.Context, athleteID string, limit, offset int) ([]*models.BodyMeasurement, error) {
+func (r *CouchbaseBodyMeasurementRepository) GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.BodyMeasurement, error) {
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'body_measurement' AND m.athleteId = $1 ORDER BY m.date DESC LIMIT $2 OFFSET $3",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
 
@@ -101,7 +103,7 @@ func (r *CouchbaseBodyMeasurementRepository) GetByAthleteID(ctx context.Context,
 }
 
 // GetByAthleteDateRange retrieves body measurements for a specific athlete within a date range
-func (r *CouchbaseBodyMeasurementRepository) GetByAthleteDateRange(ctx context.Context, athleteID string, startDate, endDate time.Time) ([]*models.BodyMeasurement, error) {
+func (r *CouchbaseBodyMeasurementRepository) GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.BodyMeasurement, error) {
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'body_measurement' AND m.athleteId = $1 AND m.date >= $2 AND m.date <= $3 ORDER BY m.date DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
 
@@ -132,7 +134,7 @@ func (r *CouchbaseBodyMeasurementRepository) GetByAthleteDateRange(ctx context.C
 }
 
 // GetLatestByAthleteID returns the most recent body measurement for an athlete (by date).
-func (r *CouchbaseBodyMeasurementRepository) GetLatestByAthleteID(ctx context.Context, athleteID string) (*models.BodyMeasurement, error) {
+func (r *CouchbaseBodyMeasurementRepository) GetLatestByAthleteID(ctx context.Context, athleteID int) (*models.BodyMeasurement, error) {
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'body_measurement' AND m.athleteId = $1 ORDER BY m.date DESC LIMIT 1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionBodyMeasurements)
 
@@ -162,7 +164,7 @@ func (r *CouchbaseBodyMeasurementRepository) Update(ctx context.Context, measure
 	measurement.UpdatedAt = time.Now()
 
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
-	_, err := collection.Replace(measurement.MeasurementID, measurement, &gocb.ReplaceOptions{
+	_, err := collection.Replace(strconv.Itoa(measurement.MeasurementID), measurement, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -176,9 +178,9 @@ func (r *CouchbaseBodyMeasurementRepository) Update(ctx context.Context, measure
 }
 
 // Delete removes a body measurement from the database
-func (r *CouchbaseBodyMeasurementRepository) Delete(ctx context.Context, measurementID string) error {
+func (r *CouchbaseBodyMeasurementRepository) Delete(ctx context.Context, measurementID int) error {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionBodyMeasurements)
-	_, err := collection.Remove(measurementID, &gocb.RemoveOptions{
+	_, err := collection.Remove(strconv.Itoa(measurementID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

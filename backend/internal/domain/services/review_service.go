@@ -26,7 +26,7 @@ func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo
 	}
 }
 
-func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athleteID string, rating int, comment string) (*models.TrainerReview, error) {
+func (s *ReviewService) CreateReview(ctx context.Context, trainerID int, athleteID int, rating int, comment string) (*models.TrainerReview, error) {
 	// Verify active relationship using repository helper
 	hasActiveRelationship, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
 	if err != nil {
@@ -46,15 +46,10 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athl
 		return nil, fmt.Errorf("you have already reviewed this trainer")
 	}
 
-	id, err := generateUUIDSafe(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate review ID: %w", err)
-	}
-
 	now := s.clock.Now()
 	review := &models.TrainerReview{
 		Type:      "review",
-		ReviewID:  id,
+		ReviewID:  0,
 		TrainerID: trainerID,
 		AthleteID: athleteID,
 		Rating:    rating,
@@ -71,7 +66,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID string, athl
 	return review, nil
 }
 
-func (s *ReviewService) UpdateReview(ctx context.Context, reviewID string, athleteID string, rating int, comment string) error {
+func (s *ReviewService) UpdateReview(ctx context.Context, reviewID int, athleteID int, rating int, comment string) error {
 	review, err := s.reviewRepo.GetReviewByID(ctx, reviewID)
 	if err != nil {
 		return fmt.Errorf("failed to get review: %w", err)
@@ -96,7 +91,7 @@ func (s *ReviewService) UpdateReview(ctx context.Context, reviewID string, athle
 	return nil
 }
 
-func (s *ReviewService) DeleteReview(ctx context.Context, reviewID string, userID string) error {
+func (s *ReviewService) DeleteReview(ctx context.Context, reviewID int, userID int) error {
 	review, err := s.reviewRepo.GetReviewByID(ctx, reviewID)
 	if err != nil {
 		return fmt.Errorf("failed to get review: %w", err)
@@ -117,7 +112,7 @@ func (s *ReviewService) DeleteReview(ctx context.Context, reviewID string, userI
 	return nil
 }
 
-func (s *ReviewService) GetTrainerReviews(ctx context.Context, trainerID string) ([]models.TrainerReview, error) {
+func (s *ReviewService) GetTrainerReviews(ctx context.Context, trainerID int) ([]models.TrainerReview, error) {
 	reviews, err := s.reviewRepo.GetByTrainerID(ctx, trainerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get reviews: %w", err)
@@ -125,7 +120,7 @@ func (s *ReviewService) GetTrainerReviews(ctx context.Context, trainerID string)
 	return reviews, nil
 }
 
-func (s *ReviewService) CanReview(ctx context.Context, athleteID string, trainerID string) bool {
+func (s *ReviewService) CanReview(ctx context.Context, athleteID int, trainerID int) bool {
 	hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
 	if err != nil {
 		// Log error but don't fail the boolean check
@@ -134,6 +129,6 @@ func (s *ReviewService) CanReview(ctx context.Context, athleteID string, trainer
 	return hasActive
 }
 
-func (s *ReviewService) CalculateTrainerStats(ctx context.Context, trainerID string) (float64, int, error) {
+func (s *ReviewService) CalculateTrainerStats(ctx context.Context, trainerID int) (float64, int, error) {
 	return s.reviewRepo.GetAverageRating(ctx, trainerID)
 }

@@ -39,7 +39,7 @@ func NewWorkoutPlanService(
 // CreatePlan creates a new workout plan for a trainer
 func (s *WorkoutPlanService) CreatePlan(
 	ctx context.Context,
-	trainerID, name, description string,
+	trainerID int, name, description string,
 	exercises []models.WorkoutPlanExercise,
 ) (*models.WorkoutPlan, error) {
 	if name == "" {
@@ -63,12 +63,12 @@ func (s *WorkoutPlanService) CreatePlan(
 }
 
 // GetPlans returns all plans owned by a trainer
-func (s *WorkoutPlanService) GetPlans(ctx context.Context, trainerID string) ([]*models.WorkoutPlan, error) {
+func (s *WorkoutPlanService) GetPlans(ctx context.Context, trainerID int) ([]*models.WorkoutPlan, error) {
 	return s.planRepo.GetByTrainerID(ctx, trainerID)
 }
 
 // GetPlan returns a single plan with access control
-func (s *WorkoutPlanService) GetPlan(ctx context.Context, planID, requesterID string, requesterRole models.UserRole) (*models.WorkoutPlan, error) {
+func (s *WorkoutPlanService) GetPlan(ctx context.Context, planID, requesterID int, requesterRole models.UserRole) (*models.WorkoutPlan, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -100,7 +100,7 @@ func (s *WorkoutPlanService) GetPlan(ctx context.Context, planID, requesterID st
 // UpdatePlan updates a plan (owner only)
 func (s *WorkoutPlanService) UpdatePlan(
 	ctx context.Context,
-	planID, trainerID, name, description string,
+	planID, trainerID int, name, description string,
 	exercises []models.WorkoutPlanExercise,
 ) (*models.WorkoutPlan, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
@@ -134,7 +134,7 @@ func (s *WorkoutPlanService) UpdatePlan(
 }
 
 // DeletePlan deletes a plan, optionally force-deleting assignments
-func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, trainerID string, force bool) error {
+func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, trainerID int, force bool) error {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -170,8 +170,8 @@ func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, trainerID s
 // AssignPlan assigns a plan to one or more athletes
 func (s *WorkoutPlanService) AssignPlan(
 	ctx context.Context,
-	planID, trainerID string,
-	athleteIDs []string,
+	planID, trainerID int,
+	athleteIDs []int,
 ) ([]*models.WorkoutPlanAssignment, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
@@ -215,7 +215,7 @@ func (s *WorkoutPlanService) AssignPlan(
 }
 
 // GetAssignmentsForPlan returns all assignments for a plan (trainer only)
-func (s *WorkoutPlanService) GetAssignmentsForPlan(ctx context.Context, planID, trainerID string) ([]*models.WorkoutPlanAssignment, error) {
+func (s *WorkoutPlanService) GetAssignmentsForPlan(ctx context.Context, planID, trainerID int) ([]*models.WorkoutPlanAssignment, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -232,7 +232,7 @@ func (s *WorkoutPlanService) GetAssignmentsForPlan(ctx context.Context, planID, 
 }
 
 // GetMyPlans returns all plans assigned to an athlete
-func (s *WorkoutPlanService) GetMyPlans(ctx context.Context, athleteID string) ([]*models.WorkoutPlan, error) {
+func (s *WorkoutPlanService) GetMyPlans(ctx context.Context, athleteID int) ([]*models.WorkoutPlan, error) {
 	assignments, err := s.assignmentRepo.GetByAthleteID(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get assignments: %w", err)
@@ -253,7 +253,7 @@ func (s *WorkoutPlanService) GetMyPlans(ctx context.Context, athleteID string) (
 // StartWorkoutFromPlan creates a logged workout from a plan template
 func (s *WorkoutPlanService) StartWorkoutFromPlan(
 	ctx context.Context,
-	planID, athleteID string,
+	planID, athleteID int,
 ) (*models.Workout, error) {
 	assignment, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, athleteID, planID)
 	if err != nil {
@@ -289,7 +289,7 @@ func (s *WorkoutPlanService) StartWorkoutFromPlan(
 // GetClientPlans returns plans assigned to a client (trainer view)
 func (s *WorkoutPlanService) GetClientPlans(
 	ctx context.Context,
-	trainerID, athleteID string,
+	trainerID, athleteID int,
 ) ([]*models.WorkoutPlan, error) {
 	hasRel, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
 	if err != nil {

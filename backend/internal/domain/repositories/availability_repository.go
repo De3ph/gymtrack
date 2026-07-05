@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -14,12 +16,12 @@ import (
 )
 
 type AvailabilityRepository interface {
-	GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerAvailability, error)
-	GetBySlotID(ctx context.Context, slotID string) (*models.TrainerAvailability, error)
+	GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerAvailability, error)
+	GetBySlotID(ctx context.Context, slotID int) (*models.TrainerAvailability, error)
 	UpsertAvailability(ctx context.Context, slot *models.TrainerAvailability) error
-	DeleteAvailability(ctx context.Context, slotID string) error
-	GetAvailableSlots(ctx context.Context, trainerID string, dayOfWeek int) ([]models.TrainerAvailability, error)
-	BookSlotAtomic(ctx context.Context, slotID string) error
+	DeleteAvailability(ctx context.Context, slotID int) error
+	GetAvailableSlots(ctx context.Context, trainerID int, dayOfWeek int) ([]models.TrainerAvailability, error)
+	BookSlotAtomic(ctx context.Context, slotID int) error
 	CleanupExpiredSlots(ctx context.Context, retentionDays int) error
 }
 
@@ -35,7 +37,7 @@ func NewCouchbaseAvailabilityRepository(cluster *gocb.Cluster, bucket *gocb.Buck
 	}
 }
 
-func (r *CouchbaseAvailabilityRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerAvailability, error) {
+func (r *CouchbaseAvailabilityRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerAvailability, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'availability' AND a.trainerId = $1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -61,10 +63,10 @@ func (r *CouchbaseAvailabilityRepository) GetByTrainerID(ctx context.Context, tr
 	return slots, nil
 }
 
-func (r *CouchbaseAvailabilityRepository) GetBySlotID(ctx context.Context, slotID string) (*models.TrainerAvailability, error) {
+func (r *CouchbaseAvailabilityRepository) GetBySlotID(ctx context.Context, slotID int) (*models.TrainerAvailability, error) {
 	var slot models.TrainerAvailability
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	getResult, err := collection.Get(slotID, &gocb.GetOptions{
+	getResult, err := collection.Get(strconv.Itoa(slotID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -89,7 +91,7 @@ func (r *CouchbaseAvailabilityRepository) UpsertAvailability(ctx context.Context
 		slot.CreatedAt = time.Now()
 	}
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Upsert(slot.AvailabilityID, slot, &gocb.UpsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Upsert(strconv.Itoa(slot.AvailabilityID), slot, &gocb.UpsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -98,9 +100,9 @@ func (r *CouchbaseAvailabilityRepository) UpsertAvailability(ctx context.Context
 	return nil
 }
 
-func (r *CouchbaseAvailabilityRepository) DeleteAvailability(ctx context.Context, slotID string) error {
+func (r *CouchbaseAvailabilityRepository) DeleteAvailability(ctx context.Context, slotID int) error {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.Remove(slotID, &gocb.RemoveOptions{
+	_, err := collection.Remove(strconv.Itoa(slotID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -112,7 +114,7 @@ func (r *CouchbaseAvailabilityRepository) DeleteAvailability(ctx context.Context
 	return nil
 }
 
-func (r *CouchbaseAvailabilityRepository) GetAvailableSlots(ctx context.Context, trainerID string, dayOfWeek int) ([]models.TrainerAvailability, error) {
+func (r *CouchbaseAvailabilityRepository) GetAvailableSlots(ctx context.Context, trainerID int, dayOfWeek int) ([]models.TrainerAvailability, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'availability' AND a.trainerId = $1 AND a.dayOfWeek = $2 AND a.isBooked = false",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -138,9 +140,9 @@ func (r *CouchbaseAvailabilityRepository) GetAvailableSlots(ctx context.Context,
 	return slots, nil
 }
 
-func (r *CouchbaseAvailabilityRepository) BookSlotAtomic(ctx context.Context, slotID string) error {
+func (r *CouchbaseAvailabilityRepository) BookSlotAtomic(ctx context.Context, slotID int) error {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers)
-	_, err := collection.MutateIn(slotID, []gocb.MutateInSpec{
+	_, err := collection.MutateIn(strconv.Itoa(slotID), []gocb.MutateInSpec{
 		gocb.UpsertSpec("isBooked", true, nil),
 		gocb.UpsertSpec("updatedAt", time.Now(), nil),
 	}, &gocb.MutateInOptions{

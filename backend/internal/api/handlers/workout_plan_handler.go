@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
@@ -23,14 +24,14 @@ func NewWorkoutPlanHandler(service *services.WorkoutPlanService, userRepo reposi
 }
 
 type CreatePlanRequest struct {
-	Name        string                     `json:"name" validate:"required"`
-	Description string                     `json:"description"`
+	Name        string                       `json:"name" validate:"required"`
+	Description string                       `json:"description"`
 	Exercises   []models.WorkoutPlanExercise `json:"exercises" validate:"required,min=1,dive"`
 }
 
 type UpdatePlanRequest struct {
-	Name        string                     `json:"name" validate:"required"`
-	Description string                     `json:"description"`
+	Name        string                       `json:"name" validate:"required"`
+	Description string                       `json:"description"`
 	Exercises   []models.WorkoutPlanExercise `json:"exercises" validate:"required,min=1,dive"`
 }
 
@@ -62,7 +63,13 @@ func (h *WorkoutPlanHandler) CreatePlan(c *gin.Context) {
 		return
 	}
 
-	plan, err := h.service.CreatePlan(c.Request.Context(), userID.(string), req.Name, req.Description, req.Exercises)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	plan, err := h.service.CreatePlan(c.Request.Context(), userIDInt, req.Name, req.Description, req.Exercises)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "VALIDATION" {
@@ -87,7 +94,13 @@ func (h *WorkoutPlanHandler) GetPlans(c *gin.Context) {
 		return
 	}
 
-	plans, err := h.service.GetPlans(c.Request.Context(), userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	plans, err := h.service.GetPlans(c.Request.Context(), userIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workout plans", "details": err.Error()})
 		return
@@ -101,11 +114,22 @@ func (h *WorkoutPlanHandler) GetPlans(c *gin.Context) {
 
 // GetPlan handles GET /api/workout-plans/:id
 func (h *WorkoutPlanHandler) GetPlan(c *gin.Context) {
-	planID := c.Param("id")
+	planIDStr := c.Param("id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
-	plan, err := h.service.GetPlan(c.Request.Context(), planID, userID.(string), userRole.(models.UserRole))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	plan, err := h.service.GetPlan(c.Request.Context(), planID, userIDInt, userRole.(models.UserRole))
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -126,7 +150,12 @@ func (h *WorkoutPlanHandler) GetPlan(c *gin.Context) {
 
 // UpdatePlan handles PUT /api/workout-plans/:id
 func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
-	planID := c.Param("id")
+	planIDStr := c.Param("id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
@@ -141,7 +170,13 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 		return
 	}
 
-	plan, err := h.service.UpdatePlan(c.Request.Context(), planID, userID.(string), req.Name, req.Description, req.Exercises)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	plan, err := h.service.UpdatePlan(c.Request.Context(), planID, userIDInt, req.Name, req.Description, req.Exercises)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -166,7 +201,12 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 
 // DeletePlan handles DELETE /api/workout-plans/:id
 func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
-	planID := c.Param("id")
+	planIDStr := c.Param("id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
@@ -177,7 +217,13 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 
 	force := c.Query("force") == "true"
 
-	err := h.service.DeletePlan(c.Request.Context(), planID, userID.(string), force)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.service.DeletePlan(c.Request.Context(), planID, userIDInt, force)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -202,7 +248,12 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 
 // AssignPlan handles POST /api/workout-plans/:id/assign
 func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
-	planID := c.Param("id")
+	planIDStr := c.Param("id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
@@ -217,7 +268,23 @@ func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
 		return
 	}
 
-	assignments, err := h.service.AssignPlan(c.Request.Context(), planID, userID.(string), req.AthleteIDs)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	athleteIDInts := make([]int, len(req.AthleteIDs))
+	for i, idStr := range req.AthleteIDs {
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid athlete id in list"})
+			return
+		}
+		athleteIDInts[i] = id
+	}
+
+	assignments, err := h.service.AssignPlan(c.Request.Context(), planID, userIDInt, athleteIDInts)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -241,7 +308,12 @@ func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
 
 // GetAssignments handles GET /api/workout-plans/:id/assignments
 func (h *WorkoutPlanHandler) GetAssignments(c *gin.Context) {
-	planID := c.Param("id")
+	planIDStr := c.Param("id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
@@ -250,7 +322,13 @@ func (h *WorkoutPlanHandler) GetAssignments(c *gin.Context) {
 		return
 	}
 
-	assignments, err := h.service.GetAssignmentsForPlan(c.Request.Context(), planID, userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	assignments, err := h.service.GetAssignmentsForPlan(c.Request.Context(), planID, userIDInt)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -282,7 +360,13 @@ func (h *WorkoutPlanHandler) GetMyPlans(c *gin.Context) {
 		return
 	}
 
-	plans, err := h.service.GetMyPlans(c.Request.Context(), userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	plans, err := h.service.GetMyPlans(c.Request.Context(), userIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve assigned plans", "details": err.Error()})
 		return
@@ -296,7 +380,12 @@ func (h *WorkoutPlanHandler) GetMyPlans(c *gin.Context) {
 
 // StartWorkoutFromPlan handles POST /api/workout-plans/:id/start
 func (h *WorkoutPlanHandler) StartWorkoutFromPlan(c *gin.Context) {
-	planID := c.Param("id")
+	planIDStr := c.Param("id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
@@ -305,7 +394,13 @@ func (h *WorkoutPlanHandler) StartWorkoutFromPlan(c *gin.Context) {
 		return
 	}
 
-	workout, err := h.service.StartWorkoutFromPlan(c.Request.Context(), planID, userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	workout, err := h.service.StartWorkoutFromPlan(c.Request.Context(), planID, userIDInt)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -345,7 +440,13 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 		return
 	}
 
-	plans, err := h.service.GetClientPlans(c.Request.Context(), trainerID.(string), athlete.UserID)
+	trainerIDInt, err := strconv.Atoi(trainerID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	plans, err := h.service.GetClientPlans(c.Request.Context(), trainerIDInt, athlete.UserID)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
 			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})

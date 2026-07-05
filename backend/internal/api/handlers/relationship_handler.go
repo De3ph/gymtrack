@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
@@ -144,7 +145,13 @@ func (h *RelationshipHandler) GenerateInvitation(c *gin.Context) {
 	}
 
 	// Generate invitation
-	invitation, err := h.invitationService.GenerateInvitation(c.Request.Context(), trainerID.(string))
+	trainerIDInt, err := strconv.Atoi(trainerID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	invitation, err := h.invitationService.GenerateInvitation(c.Request.Context(), trainerIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate invitation", "details": err.Error()})
 		return
@@ -200,7 +207,13 @@ func (h *RelationshipHandler) AcceptInvitation(c *gin.Context) {
 	}
 
 	// Accept invitation
-	relationship, err := h.invitationService.AcceptInvitation(c.Request.Context(), req.Code, athleteID.(string))
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	relationship, err := h.invitationService.AcceptInvitation(c.Request.Context(), req.Code, athleteIDInt)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -239,14 +252,20 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 	}
 
 	// Get pending invitations
-	invitations, err := h.invitationService.GetPendingInvitations(c.Request.Context(), athleteID.(string))
+	athleteIDInt, convErr := strconv.Atoi(athleteID.(string))
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	invitations, err := h.invitationService.GetPendingInvitations(c.Request.Context(), athleteIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve invitations", "details": err.Error()})
 		return
 	}
 
 	// Get active trainer relationship
-	activeRelationship, err := h.relationshipRepo.GetByAthleteID(c.Request.Context(), athleteID.(string))
+	activeRelationship, err := h.relationshipRepo.GetByAthleteID(c.Request.Context(), athleteIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve relationships", "details": err.Error()})
 		return
@@ -301,7 +320,13 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 	}
 
 	// Get all relationships for this trainer
-	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerID.(string))
+	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve clients", "details": err.Error()})
 		return
@@ -378,7 +403,13 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 	}
 
 	// Verify relationship
-	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerID.(string))
+	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify relationship", "details": err.Error()})
 		return
@@ -445,9 +476,20 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to terminate relationship/get athlete/update profile"}
 // @Router /relationships/{id} [delete]
 func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
-	relationshipID := c.Param("id")
+	relationshipIDStr := c.Param("id")
+	relationshipID, err := strconv.Atoi(relationshipIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid relationship id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
+
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
 
 	// Get the relationship
 	relationship, err := h.relationshipRepo.GetByID(c.Request.Context(), relationshipID)
@@ -458,9 +500,9 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 
 	// Check if user is authorized (must be the trainer or athlete in the relationship)
 	isAuthorized := false
-	if userRole == models.RoleTrainer && relationship.TrainerID == userID.(string) {
+	if userRole == models.RoleTrainer && relationship.TrainerID == userIDInt {
 		isAuthorized = true
-	} else if userRole == models.RoleAthlete && relationship.AthleteID == userID.(string) {
+	} else if userRole == models.RoleAthlete && relationship.AthleteID == userIDInt {
 		isAuthorized = true
 	}
 
@@ -482,7 +524,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete", "details": err.Error()})
 		return
 	}
-	athlete.Profile.TrainerAssignment = ""
+	athlete.Profile.TrainerAssignment = 0
 	if err := h.userRepo.UpdateUser(c.Request.Context(), athlete); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update athlete profile", "details": err.Error()})
 		return
@@ -533,7 +575,13 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 	}
 
 	// Verify relationship
-	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerID.(string))
+	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify relationship", "details": err.Error()})
 		return

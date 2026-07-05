@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -15,11 +17,11 @@ import (
 
 type MealRepository interface {
 	Create(ctx context.Context, meal *models.Meal) error
-	GetByID(ctx context.Context, mealID string) (*models.Meal, error)
-	GetByAthleteID(ctx context.Context, athleteID string, limit, offset int) ([]*models.Meal, error)
-	GetByAthleteDateRange(ctx context.Context, athleteID string, startDate, endDate time.Time) ([]*models.Meal, error)
+	GetByID(ctx context.Context, mealID int) (*models.Meal, error)
+	GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.Meal, error)
+	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Meal, error)
 	Update(ctx context.Context, meal *models.Meal) error
-	Delete(ctx context.Context, mealID string) error
+	Delete(ctx context.Context, mealID int) error
 }
 
 type CouchbaseMealRepository struct {
@@ -36,7 +38,7 @@ func NewMealRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseMea
 
 // Create inserts a new meal into the database
 func (r *CouchbaseMealRepository) Create(ctx context.Context, meal *models.Meal) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Insert(meal.MealID, meal, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Insert(strconv.Itoa(meal.MealID), meal, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -47,8 +49,8 @@ func (r *CouchbaseMealRepository) Create(ctx context.Context, meal *models.Meal)
 }
 
 // GetByID retrieves a meal by its ID
-func (r *CouchbaseMealRepository) GetByID(ctx context.Context, mealID string) (*models.Meal, error) {
-	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Get(mealID, &gocb.GetOptions{
+func (r *CouchbaseMealRepository) GetByID(ctx context.Context, mealID int) (*models.Meal, error) {
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Get(strconv.Itoa(mealID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -67,7 +69,7 @@ func (r *CouchbaseMealRepository) GetByID(ctx context.Context, mealID string) (*
 }
 
 // GetByAthleteID retrieves meals for a specific athlete with pagination
-func (r *CouchbaseMealRepository) GetByAthleteID(ctx context.Context, athleteID string, limit, offset int) ([]*models.Meal, error) {
+func (r *CouchbaseMealRepository) GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.Meal, error) {
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'meal' AND m.athleteId = $1 ORDER BY m.date DESC LIMIT $2 OFFSET $3",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionMeals)
 
@@ -98,7 +100,7 @@ func (r *CouchbaseMealRepository) GetByAthleteID(ctx context.Context, athleteID 
 }
 
 // GetByAthleteDateRange retrieves meals for a specific athlete within a date range
-func (r *CouchbaseMealRepository) GetByAthleteDateRange(ctx context.Context, athleteID string, startDate, endDate time.Time) ([]*models.Meal, error) {
+func (r *CouchbaseMealRepository) GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Meal, error) {
 	query := fmt.Sprintf("SELECT m.* FROM `%s`.`%s`.`%s` m WHERE m.type = 'meal' AND m.athleteId = $1 AND m.date >= $2 AND m.date <= $3 ORDER BY m.date DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionMeals)
 
@@ -132,7 +134,7 @@ func (r *CouchbaseMealRepository) GetByAthleteDateRange(ctx context.Context, ath
 func (r *CouchbaseMealRepository) Update(ctx context.Context, meal *models.Meal) error {
 	meal.UpdatedAt = time.Now()
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Replace(meal.MealID, meal, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Replace(strconv.Itoa(meal.MealID), meal, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -143,8 +145,8 @@ func (r *CouchbaseMealRepository) Update(ctx context.Context, meal *models.Meal)
 }
 
 // Delete removes a meal from the database
-func (r *CouchbaseMealRepository) Delete(ctx context.Context, mealID string) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Remove(mealID, &gocb.RemoveOptions{
+func (r *CouchbaseMealRepository) Delete(ctx context.Context, mealID int) error {
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionMeals).Remove(strconv.Itoa(mealID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

@@ -11,7 +11,7 @@ import { CommentForm } from "./CommentForm"
 
 interface CommentThreadProps {
   targetType: "workout" | "meal"
-  targetId: string
+  targetId: string | number
   readOnly?: boolean
   onCommentAdded?: () => void
   enabled?: boolean
@@ -25,7 +25,7 @@ export function CommentThread({
   enabled = true
 }: CommentThreadProps) {
   const t = useTranslations("comment")
-  const [replyingToId, setReplyingToId] = React.useState<string | null>(null)
+  const [replyingToId, setReplyingToId] = React.useState<string | number | null>(null)
 
   const queryKey = ["comments", targetType, targetId]
   const { data, isLoading, error } = useQuery({

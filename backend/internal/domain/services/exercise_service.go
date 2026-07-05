@@ -9,8 +9,8 @@ import (
 )
 
 type ExerciseService interface {
-	CreateExercise(ctx context.Context, name, category string, muscleGroupID, equipmentID int, createdBy string) (*models.Exercise, error)
-	GetExerciseByID(ctx context.Context, exerciseID string) (*models.Exercise, error)
+	CreateExercise(ctx context.Context, name, category string, muscleGroupID, equipmentID int, createdBy int) (*models.Exercise, error)
+	GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error)
 	GetAllExercises(ctx context.Context) ([]models.Exercise, error)
 	GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error)
 	GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error)
@@ -37,7 +37,7 @@ func NewExerciseService(
 	}
 }
 
-func (s *ExerciseServiceImpl) CreateExercise(ctx context.Context, name, category string, muscleGroupID, equipmentID int, createdBy string) (*models.Exercise, error) {
+func (s *ExerciseServiceImpl) CreateExercise(ctx context.Context, name, category string, muscleGroupID, equipmentID int, createdBy int) (*models.Exercise, error) {
 	// Validate muscle group exists
 	_, err := s.muscleGroupRepo.GetMuscleGroupByID(ctx, muscleGroupID)
 	if err != nil {
@@ -59,7 +59,7 @@ func (s *ExerciseServiceImpl) CreateExercise(ctx context.Context, name, category
 	return exercise, nil
 }
 
-func (s *ExerciseServiceImpl) GetExerciseByID(ctx context.Context, exerciseID string) (*models.Exercise, error) {
+func (s *ExerciseServiceImpl) GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error) {
 	exercise, err := s.exerciseRepo.GetExerciseByID(ctx, exerciseID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get exercise: %w", err)

@@ -57,7 +57,7 @@ export interface ApiResponse<T> {
  */
 export interface RegisterResponse {
   message: string;
-  userId: string;
+  userId: number;
 }
 
 export interface LoginResponse {
@@ -71,7 +71,7 @@ export interface LoginResponse {
  * User responses
  */
 export interface UserResponse {
-  userId: string;
+  userId: number;
   username: string;
   email: string;
   role: import('@/types').UserRole;

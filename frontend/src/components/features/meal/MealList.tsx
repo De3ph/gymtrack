@@ -73,7 +73,7 @@ export function MealList({
   const [editingMeal, setEditingMeal] = React.useState<Meal | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<
-    string | null
+    string | number | null
   >(null)
 
   const pageSize = PAGINATION.MEAL_PAGE_SIZE;
@@ -101,7 +101,7 @@ export function MealList({
   })
 
   const { mutate: deleteMeal } = useMutation({
-    mutationFn: (id: string) => mealApi.delete(id),
+    mutationFn: (id: string | number) => mealApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meals"] })
     }

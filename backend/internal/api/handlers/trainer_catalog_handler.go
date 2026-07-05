@@ -89,7 +89,12 @@ func (h *TrainerCatalogHandler) GetTrainers(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error" "{\"error\":\"error message\"}"
 // @Router /trainers/{id} [get]
 func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
-	trainerID := c.Param("id")
+	trainerIDStr := c.Param("id")
+	trainerID, err := strconv.Atoi(trainerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		return
+	}
 
 	trainer, err := h.service.GetTrainerProfile(c.Request.Context(), trainerID)
 	if err != nil {
@@ -129,7 +134,13 @@ func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 		return
 	}
 
-	err := h.service.UpdateTrainerProfile(c.Request.Context(), userID.(string), &profile)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.service.UpdateTrainerProfile(c.Request.Context(), userIDInt, &profile)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -164,7 +175,13 @@ func (h *TrainerCatalogHandler) GetMyProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.service.GetTrainerProfile(c.Request.Context(), userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	profile, err := h.service.GetTrainerProfile(c.Request.Context(), userIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

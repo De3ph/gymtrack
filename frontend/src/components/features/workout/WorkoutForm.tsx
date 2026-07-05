@@ -30,7 +30,7 @@ interface WorkoutFormProps {
 
 // Helper functions
 const createDefaultExercise = (): WorkoutExercise => ({
-  exerciseId: "",
+  exerciseId: 0,
   name: "",
   sets: [
     {
@@ -55,10 +55,10 @@ const combineDateTime = (date: Date, time: string): string => {
 
 const formatExercisesForApi = (exercises: WorkoutExercise[]) => {
   return exercises.map((exercise) => ({
-    exerciseId: exercise.exerciseId,
+    exerciseId: Number(exercise.exerciseId) || 0,
     name: exercise.name,
     sets: exercise.sets.map((set) => ({
-      setId: "", // Backend will generate this
+      setId: set.setId ?? undefined, // Preserve existing ID or let backend generate
       weight: set.weight,
       weightUnit: "kg" as const,
       reps: set.reps,
@@ -91,8 +91,12 @@ export function WorkoutForm({
         ? dayjs(initialWorkout.date).format("HH:mm")
         : dayjs().format("HH:mm"),
       exercises: initialWorkout?.exercises
-        ? initialWorkout.exercises
-        : [createDefaultExercise()],
+        ? initialWorkout.exercises.map((ex) => ({
+            ...ex,
+            exerciseId: String(ex.exerciseId),
+            sets: ex.sets.map((s) => ({ ...s, setId: s.setId ?? undefined })),
+          }))
+        : [{ ...createDefaultExercise(), exerciseId: String(0) }],
     },
     validators: {
       onSubmit: workoutWithPerSetSchema,
@@ -107,7 +111,7 @@ export function WorkoutForm({
   const { mutate: createWorkout, isPending } = useMutation({
     mutationFn: async (data: WorkoutWithPerSetFormData) => {
       const combinedDate = combineDateTime(data.date, data.workoutTime);
-      const exercises = formatExercisesForApi(data.exercises);
+      const exercises = formatExercisesForApi(data.exercises as unknown as WorkoutExercise[]);
 
       return workoutApi.create({
         date: combinedDate,
@@ -238,17 +242,17 @@ export function WorkoutForm({
                         <Field>
                           <ExerciseSelector
                             selectedExerciseId={subField.state.value}
-                            onSelect={(selected) => {
-                              field.setValue((prev) => {
-                                const newExercises = [...prev];
-                                newExercises[index] = {
-                                  ...newExercises[index],
-                                  exerciseId: selected.exerciseId,
-                                  name: selected.name,
-                                };
-                                return newExercises;
-                              });
-                            }}
+                              onSelect={(selected) => {
+                                field.setValue((prev) => {
+                                  const newExercises = [...prev];
+                                  newExercises[index] = {
+                                    ...newExercises[index],
+                                    exerciseId: String(selected.exerciseId),
+                                    name: selected.name,
+                                  };
+                                  return newExercises;
+                                });
+                              }}
                           />
                           <FieldInfo field={subField} />
                         </Field>

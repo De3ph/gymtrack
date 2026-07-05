@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/models"
 
@@ -13,7 +15,7 @@ import (
 
 type ExerciseRepository interface {
 	CreateExercise(ctx context.Context, exercise *models.Exercise) error
-	GetExerciseByID(ctx context.Context, exerciseID string) (*models.Exercise, error)
+	GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error)
 	GetAllExercises(ctx context.Context) ([]models.Exercise, error)
 	GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error)
 	GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error)
@@ -35,7 +37,7 @@ func NewCouchbaseExerciseRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) 
 func (r *CouchbaseExerciseRepository) CreateExercise(ctx context.Context, exercise *models.Exercise) error {
 	exercise.CreatedAt = time.Now()
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises).Insert(exercise.ExerciseID, exercise, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises).Insert(strconv.Itoa(exercise.ExerciseID), exercise, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -44,9 +46,9 @@ func (r *CouchbaseExerciseRepository) CreateExercise(ctx context.Context, exerci
 	return nil
 }
 
-func (r *CouchbaseExerciseRepository) GetExerciseByID(ctx context.Context, exerciseID string) (*models.Exercise, error) {
+func (r *CouchbaseExerciseRepository) GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error) {
 	var exercise models.Exercise
-	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises).Get(exerciseID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionExercises).Get(strconv.Itoa(exerciseID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {

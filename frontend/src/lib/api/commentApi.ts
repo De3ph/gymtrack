@@ -6,7 +6,7 @@ import { Comment } from "@/types"
 export const commentApi = {
   getByTarget: async (
     targetType: "workout" | "meal",
-    targetId: string
+    targetId: string | number
   ) => {
     return api.get<CommentListResponse>("/comments", {
       params: { targetType, targetId }
@@ -17,11 +17,11 @@ export const commentApi = {
     return api.post<Comment>("/comments", data)
   },
 
-  update: async (id: string, data: UpdateCommentRequest) => {
+  update: async (id: string | number, data: UpdateCommentRequest) => {
     return api.put<Comment>(`/comments/${id}`, data)
   },
 
-  delete: async (id: string) => {
+  delete: async (id: string | number) => {
     return api.delete<MessageResponse>(`/comments/${id}`)
   }
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
@@ -70,8 +71,14 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 		return
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	workout, err := h.workoutService.CreateWorkout(c.Request.Context(), services.CreateWorkoutInput{
-		AthleteID: athleteID.(string),
+		AthleteID: athleteIDInt,
 		Date:      req.Date,
 		Exercises: req.Exercises,
 		UserRole:  userRole.(models.UserRole),
@@ -103,13 +110,24 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 // @Failure 403 {object} map[string]interface{} "Access denied"
 // Router: /api/workouts/:id
 func (h *WorkoutHandler) GetWorkout(c *gin.Context) {
-	workoutID := c.Param("id")
+	workoutIDStr := c.Param("id")
+	workoutID, err := strconv.Atoi(workoutIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid workout id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	workout, err := h.workoutService.GetWorkout(c.Request.Context(), services.GetWorkoutInput{
 		WorkoutID:     workoutID,
-		RequesterID:   athleteID.(string),
+		RequesterID:   athleteIDInt,
 		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
@@ -156,8 +174,14 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 		return
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	result, err := h.workoutService.GetWorkouts(c.Request.Context(), services.GetWorkoutsInput{
-		AthleteID: athleteID.(string),
+		AthleteID: athleteIDInt,
 		UserRole:  userRole.(models.UserRole),
 		Limit:     limit,
 		Offset:    offset,
@@ -195,7 +219,12 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Failed to update workout"
 // Router: /api/workouts/:id
 func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
-	workoutID := c.Param("id")
+	workoutIDStr := c.Param("id")
+	workoutID, err := strconv.Atoi(workoutIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid workout id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 
 	var req UpdateWorkoutRequest
@@ -204,9 +233,15 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 		return
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	workout, err := h.workoutService.UpdateWorkout(c.Request.Context(), services.UpdateWorkoutInput{
 		WorkoutID: workoutID,
-		AthleteID: athleteID.(string),
+		AthleteID: athleteIDInt,
 		Date:      req.Date,
 		Exercises: req.Exercises,
 	})
@@ -242,10 +277,21 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Failed to delete workout"
 // Router: /api/workouts/:id
 func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
-	workoutID := c.Param("id")
+	workoutIDStr := c.Param("id")
+	workoutID, err := strconv.Atoi(workoutIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid workout id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 
-	err := h.workoutService.DeleteWorkout(c.Request.Context(), workoutID, athleteID.(string))
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.workoutService.DeleteWorkout(c.Request.Context(), workoutID, athleteIDInt)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -305,8 +351,14 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 		return
 	}
 
+	trainerIDInt, err := strconv.Atoi(trainerID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	result, err := h.workoutService.GetClientWorkouts(c.Request.Context(), services.GetClientWorkoutsInput{
-		TrainerID:    trainerID.(string),
+		TrainerID:    trainerIDInt,
 		ClientID:     athlete.UserID,
 		Limit:        limit,
 		Offset:       offset,

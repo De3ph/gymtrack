@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -16,10 +18,10 @@ import (
 // WorkoutPlanRepository defines data access for workout plans
 type WorkoutPlanRepository interface {
 	Create(ctx context.Context, plan *models.WorkoutPlan) error
-	GetByID(ctx context.Context, planID string) (*models.WorkoutPlan, error)
-	GetByTrainerID(ctx context.Context, trainerID string) ([]*models.WorkoutPlan, error)
+	GetByID(ctx context.Context, planID int) (*models.WorkoutPlan, error)
+	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.WorkoutPlan, error)
 	Update(ctx context.Context, plan *models.WorkoutPlan) error
-	Delete(ctx context.Context, planID string) error
+	Delete(ctx context.Context, planID int) error
 }
 
 // CouchbaseWorkoutPlanRepository implements WorkoutPlanRepository with Couchbase
@@ -38,7 +40,7 @@ func NewWorkoutPlanRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *Couch
 // Create inserts a new workout plan
 func (r *CouchbaseWorkoutPlanRepository) Create(ctx context.Context, plan *models.WorkoutPlan) error {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
-	_, err := collection.Insert(plan.PlanID, plan, &gocb.InsertOptions{
+	_, err := collection.Insert(strconv.Itoa(plan.PlanID), plan, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -48,9 +50,9 @@ func (r *CouchbaseWorkoutPlanRepository) Create(ctx context.Context, plan *model
 }
 
 // GetByID retrieves a workout plan by its ID
-func (r *CouchbaseWorkoutPlanRepository) GetByID(ctx context.Context, planID string) (*models.WorkoutPlan, error) {
+func (r *CouchbaseWorkoutPlanRepository) GetByID(ctx context.Context, planID int) (*models.WorkoutPlan, error) {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
-	result, err := collection.Get(planID, &gocb.GetOptions{
+	result, err := collection.Get(strconv.Itoa(planID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -68,7 +70,7 @@ func (r *CouchbaseWorkoutPlanRepository) GetByID(ctx context.Context, planID str
 }
 
 // GetByTrainerID retrieves all workout plans for a trainer
-func (r *CouchbaseWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.WorkoutPlan, error) {
+func (r *CouchbaseWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.WorkoutPlan, error) {
 	query := fmt.Sprintf("SELECT p.* FROM `%s`.`%s`.`%s` p WHERE p.type = 'workout_plan' AND p.trainerId = $1 ORDER BY p.createdAt DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlans)
 
@@ -103,7 +105,7 @@ func (r *CouchbaseWorkoutPlanRepository) Update(ctx context.Context, plan *model
 	plan.UpdatedAt = time.Now()
 
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
-	_, err := collection.Replace(plan.PlanID, plan, &gocb.ReplaceOptions{
+	_, err := collection.Replace(strconv.Itoa(plan.PlanID), plan, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -116,9 +118,9 @@ func (r *CouchbaseWorkoutPlanRepository) Update(ctx context.Context, plan *model
 }
 
 // Delete removes a workout plan
-func (r *CouchbaseWorkoutPlanRepository) Delete(ctx context.Context, planID string) error {
+func (r *CouchbaseWorkoutPlanRepository) Delete(ctx context.Context, planID int) error {
 	collection := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlans)
-	_, err := collection.Remove(planID, &gocb.RemoveOptions{
+	_, err := collection.Remove(strconv.Itoa(planID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -133,11 +135,11 @@ func (r *CouchbaseWorkoutPlanRepository) Delete(ctx context.Context, planID stri
 // WorkoutPlanAssignmentRepository defines data access for plan assignments
 type WorkoutPlanAssignmentRepository interface {
 	Create(ctx context.Context, assignment *models.WorkoutPlanAssignment) error
-	GetByPlanID(ctx context.Context, planID string) ([]*models.WorkoutPlanAssignment, error)
-	GetByAthleteID(ctx context.Context, athleteID string) ([]*models.WorkoutPlanAssignment, error)
-	GetByAthleteAndPlan(ctx context.Context, athleteID, planID string) (*models.WorkoutPlanAssignment, error)
-	GetByTrainerID(ctx context.Context, trainerID string) ([]*models.WorkoutPlanAssignment, error)
-	DeleteByPlanID(ctx context.Context, planID string) error
+	GetByPlanID(ctx context.Context, planID int) ([]*models.WorkoutPlanAssignment, error)
+	GetByAthleteID(ctx context.Context, athleteID int) ([]*models.WorkoutPlanAssignment, error)
+	GetByAthleteAndPlan(ctx context.Context, athleteID int, planID int) (*models.WorkoutPlanAssignment, error)
+	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.WorkoutPlanAssignment, error)
+	DeleteByPlanID(ctx context.Context, planID int) error
 }
 
 // CouchbaseWorkoutPlanAssignmentRepository implements WorkoutPlanAssignmentRepository
@@ -155,7 +157,7 @@ func NewWorkoutPlanAssignmentRepository(cluster *gocb.Cluster, bucket *gocb.Buck
 
 // Create inserts a new assignment
 func (r *CouchbaseWorkoutPlanAssignmentRepository) Create(ctx context.Context, assignment *models.WorkoutPlanAssignment) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlanAssignments).Insert(assignment.AssignmentID, assignment, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkoutPlanAssignments).Insert(strconv.Itoa(assignment.AssignmentID), assignment, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -165,7 +167,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) Create(ctx context.Context, a
 }
 
 // GetByPlanID retrieves all assignments for a plan
-func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByPlanID(ctx context.Context, planID string) ([]*models.WorkoutPlanAssignment, error) {
+func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByPlanID(ctx context.Context, planID int) ([]*models.WorkoutPlanAssignment, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.planId = $1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
@@ -196,7 +198,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByPlanID(ctx context.Conte
 }
 
 // GetByAthleteID retrieves active assignments for an athlete
-func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteID(ctx context.Context, athleteID string) ([]*models.WorkoutPlanAssignment, error) {
+func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteID(ctx context.Context, athleteID int) ([]*models.WorkoutPlanAssignment, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.athleteId = $1 AND a.status = 'active'",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
@@ -227,7 +229,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteID(ctx context.Co
 }
 
 // GetByAthleteAndPlan retrieves a specific assignment by athlete and plan
-func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteAndPlan(ctx context.Context, athleteID, planID string) (*models.WorkoutPlanAssignment, error) {
+func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteAndPlan(ctx context.Context, athleteID int, planID int) (*models.WorkoutPlanAssignment, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.athleteId = $1 AND a.planId = $2 LIMIT 1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
@@ -257,7 +259,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByAthleteAndPlan(ctx conte
 }
 
 // GetByTrainerID retrieves all assignments for a trainer
-func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.WorkoutPlanAssignment, error) {
+func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.WorkoutPlanAssignment, error) {
 	query := fmt.Sprintf("SELECT a.* FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.trainerId = $1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 
@@ -288,7 +290,7 @@ func (r *CouchbaseWorkoutPlanAssignmentRepository) GetByTrainerID(ctx context.Co
 }
 
 // DeleteByPlanID removes all assignments for a plan (used when force-deleting)
-func (r *CouchbaseWorkoutPlanAssignmentRepository) DeleteByPlanID(ctx context.Context, planID string) error {
+func (r *CouchbaseWorkoutPlanAssignmentRepository) DeleteByPlanID(ctx context.Context, planID int) error {
 	query := fmt.Sprintf("DELETE FROM `%s`.`%s`.`%s` a WHERE a.type = 'workout_plan_assignment' AND a.planId = $1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkoutPlanAssignments)
 

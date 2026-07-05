@@ -33,7 +33,7 @@ func (s *AdminService) GetAllUsers(ctx context.Context) ([]*models.User, error) 
 }
 
 // GetUserByID returns a specific user's details by ID.
-func (s *AdminService) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
+func (s *AdminService) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -107,7 +107,7 @@ func (s *AdminService) GetDashboardStats(ctx context.Context) (*DashboardStats, 
 
 // ChangePasswordRequest holds old + new password for a password change.
 type ChangePasswordRequest struct {
-	UserID      string
+	UserID      int
 	OldPassword string
 	NewPassword string
 }

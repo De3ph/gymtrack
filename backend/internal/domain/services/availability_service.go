@@ -11,7 +11,7 @@ import (
 
 type AvailabilityService struct {
 	availabilityRepo repositories.AvailabilityRepository
-	clock          utils.Clock
+	clock            utils.Clock
 }
 
 func NewAvailabilityService(availabilityRepo repositories.AvailabilityRepository, clock utils.Clock) *AvailabilityService {
@@ -20,19 +20,15 @@ func NewAvailabilityService(availabilityRepo repositories.AvailabilityRepository
 	}
 	return &AvailabilityService{
 		availabilityRepo: availabilityRepo,
-		clock:           clock,
+		clock:            clock,
 	}
 }
 
-func (s *AvailabilityService) SetAvailability(ctx context.Context, trainerID string, slots []models.TrainerAvailability) error {
+func (s *AvailabilityService) SetAvailability(ctx context.Context, trainerID int, slots []models.TrainerAvailability) error {
 	for i := range slots {
 		slots[i].TrainerID = trainerID
-		if slots[i].AvailabilityID == "" {
-			id, err := generateUUIDSafe(ctx)
-			if err != nil {
-				return fmt.Errorf("failed to generate availability UUID: %w", err)
-			}
-			slots[i].AvailabilityID = id
+		if slots[i].AvailabilityID == 0 {
+			slots[i].AvailabilityID = 0
 		}
 		err := s.availabilityRepo.UpsertAvailability(ctx, &slots[i])
 		if err != nil {
@@ -42,7 +38,7 @@ func (s *AvailabilityService) SetAvailability(ctx context.Context, trainerID str
 	return nil
 }
 
-func (s *AvailabilityService) GetAvailability(ctx context.Context, trainerID string) ([]models.TrainerAvailability, error) {
+func (s *AvailabilityService) GetAvailability(ctx context.Context, trainerID int) ([]models.TrainerAvailability, error) {
 	slots, err := s.availabilityRepo.GetByTrainerID(ctx, trainerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get availability: %w", err)
@@ -50,7 +46,7 @@ func (s *AvailabilityService) GetAvailability(ctx context.Context, trainerID str
 	return slots, nil
 }
 
-func (s *AvailabilityService) GetAvailableSlots(ctx context.Context, trainerID string, dayOfWeek int) ([]models.TrainerAvailability, error) {
+func (s *AvailabilityService) GetAvailableSlots(ctx context.Context, trainerID int, dayOfWeek int) ([]models.TrainerAvailability, error) {
 	slots, err := s.availabilityRepo.GetAvailableSlots(ctx, trainerID, dayOfWeek)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get available slots: %w", err)
@@ -58,7 +54,7 @@ func (s *AvailabilityService) GetAvailableSlots(ctx context.Context, trainerID s
 	return slots, nil
 }
 
-func (s *AvailabilityService) BookSlot(ctx context.Context, slotID string) error {
+func (s *AvailabilityService) BookSlot(ctx context.Context, slotID int) error {
 	slot, err := s.availabilityRepo.GetBySlotID(ctx, slotID)
 	if err != nil {
 		return fmt.Errorf("failed to get availability slot: %w", err)
@@ -73,7 +69,7 @@ func (s *AvailabilityService) BookSlot(ctx context.Context, slotID string) error
 	return s.availabilityRepo.BookSlotAtomic(ctx, slotID)
 }
 
-func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID string, olderThanDays int) error {
+func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID int, olderThanDays int) error {
 	slots, err := s.availabilityRepo.GetByTrainerID(ctx, trainerID)
 	if err != nil {
 		return fmt.Errorf("failed to get trainer availability for cleanup: %w", err)
@@ -91,7 +87,7 @@ func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID st
 	return nil
 }
 
-func (s *AvailabilityService) DeleteSlot(ctx context.Context, slotID string) error {
+func (s *AvailabilityService) DeleteSlot(ctx context.Context, slotID int) error {
 	return s.availabilityRepo.DeleteAvailability(ctx, slotID)
 }
 

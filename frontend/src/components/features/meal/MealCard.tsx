@@ -30,9 +30,9 @@ interface MealCardProps {
   readOnly?: boolean;
   canEdit: (meal: Meal) => boolean;
   onEdit: (meal: Meal) => void;
-  onDelete: (mealId: string) => void;
-  expandedCommentsId: string | null;
-  setExpandedCommentsId: (id: string | null) => void;
+  onDelete: (mealId: string | number) => void;
+  expandedCommentsId: string | number | null;
+  setExpandedCommentsId: (id: string | number | null) => void;
 }
 
 const calculateCalorie = (meal: Meal) => {

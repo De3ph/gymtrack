@@ -7,9 +7,9 @@ import "time"
 type TrainerAvailability struct {
 	Type string `json:"type" example:"availability"` // Always "availability"
 	// @Description Unique identifier for the availability slot
-	AvailabilityID string `json:"availabilityId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	AvailabilityID int `json:"availabilityId"`
 	// @Description Trainer user ID
-	TrainerID string `json:"trainerId" example:"550e8400-e29b-41d4-a716-446655440001"`
+	TrainerID int `json:"trainerId"`
 	// @Description Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
 	DayOfWeek int `json:"dayOfWeek" example:"1" minimum:"0" maximum:"6"`
 	// @Description Start time in HH:MM format (24-hour)

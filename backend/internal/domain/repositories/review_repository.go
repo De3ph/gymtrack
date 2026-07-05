@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -13,14 +15,14 @@ import (
 )
 
 type ReviewRepository interface {
-	GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerReview, error)
+	GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerReview, error)
 	CreateReview(ctx context.Context, review *models.TrainerReview) error
 	UpdateReview(ctx context.Context, review *models.TrainerReview) error
-	DeleteReview(ctx context.Context, reviewID string) error
-	GetByAthleteID(ctx context.Context, athleteID string) (*models.TrainerReview, error)
-	GetAverageRating(ctx context.Context, trainerID string) (float64, int, error)
-	GetReviewByID(ctx context.Context, reviewID string) (*models.TrainerReview, error)
-	GetRatingsForTrainers(ctx context.Context, trainerIDs []string) (map[string]struct {
+	DeleteReview(ctx context.Context, reviewID int) error
+	GetByAthleteID(ctx context.Context, athleteID int) (*models.TrainerReview, error)
+	GetAverageRating(ctx context.Context, trainerID int) (float64, int, error)
+	GetReviewByID(ctx context.Context, reviewID int) (*models.TrainerReview, error)
+	GetRatingsForTrainers(ctx context.Context, trainerIDs []int) (map[int]struct {
 		Avg   float64
 		Count int
 	}, error)
@@ -38,7 +40,7 @@ func NewCouchbaseReviewRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *C
 	}
 }
 
-func (r *CouchbaseReviewRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]models.TrainerReview, error) {
+func (r *CouchbaseReviewRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerReview, error) {
 	query := fmt.Sprintf("SELECT rev.* FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.trainerId = $1 ORDER BY rev.createdAt DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -69,7 +71,7 @@ func (r *CouchbaseReviewRepository) CreateReview(ctx context.Context, review *mo
 	review.CreatedAt = time.Now()
 	review.UpdatedAt = time.Now()
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Insert(review.ReviewID, review, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Insert(strconv.Itoa(review.ReviewID), review, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -81,7 +83,7 @@ func (r *CouchbaseReviewRepository) CreateReview(ctx context.Context, review *mo
 func (r *CouchbaseReviewRepository) UpdateReview(ctx context.Context, review *models.TrainerReview) error {
 	review.UpdatedAt = time.Now()
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(review.ReviewID, review, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(strconv.Itoa(review.ReviewID), review, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -90,8 +92,8 @@ func (r *CouchbaseReviewRepository) UpdateReview(ctx context.Context, review *mo
 	return nil
 }
 
-func (r *CouchbaseReviewRepository) DeleteReview(ctx context.Context, reviewID string) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Remove(reviewID, &gocb.RemoveOptions{
+func (r *CouchbaseReviewRepository) DeleteReview(ctx context.Context, reviewID int) error {
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Remove(strconv.Itoa(reviewID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -100,7 +102,7 @@ func (r *CouchbaseReviewRepository) DeleteReview(ctx context.Context, reviewID s
 	return nil
 }
 
-func (r *CouchbaseReviewRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.TrainerReview, error) {
+func (r *CouchbaseReviewRepository) GetByAthleteID(ctx context.Context, athleteID int) (*models.TrainerReview, error) {
 	query := fmt.Sprintf("SELECT rev.* FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.athleteId = $1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -125,7 +127,7 @@ func (r *CouchbaseReviewRepository) GetByAthleteID(ctx context.Context, athleteI
 	return nil, domainerrors.ErrNotFound
 }
 
-func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, trainerID string) (float64, int, error) {
+func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, trainerID int) (float64, int, error) {
 	query := fmt.Sprintf("SELECT AVG(rev.rating) as avgRating, COUNT(rev) as reviewCount FROM `%s`.`%s`.`%s` rev WHERE rev.type = 'review' AND rev.trainerId = $1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers)
 
@@ -154,9 +156,9 @@ func (r *CouchbaseReviewRepository) GetAverageRating(ctx context.Context, traine
 	return res.AvgRating, res.ReviewCount, nil
 }
 
-func (r *CouchbaseReviewRepository) GetReviewByID(ctx context.Context, reviewID string) (*models.TrainerReview, error) {
+func (r *CouchbaseReviewRepository) GetReviewByID(ctx context.Context, reviewID int) (*models.TrainerReview, error) {
 	var review models.TrainerReview
-	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(reviewID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(strconv.Itoa(reviewID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -175,12 +177,12 @@ func (r *CouchbaseReviewRepository) GetReviewByID(ctx context.Context, reviewID 
 }
 
 // GetRatingsForTrainers retrieves average ratings and review counts for multiple trainers in a single query
-func (r *CouchbaseReviewRepository) GetRatingsForTrainers(ctx context.Context, trainerIDs []string) (map[string]struct {
+func (r *CouchbaseReviewRepository) GetRatingsForTrainers(ctx context.Context, trainerIDs []int) (map[int]struct {
 	Avg   float64
 	Count int
 }, error) {
 	if len(trainerIDs) == 0 {
-		return make(map[string]struct {
+		return make(map[int]struct {
 			Avg   float64
 			Count int
 		}), nil
@@ -200,12 +202,12 @@ func (r *CouchbaseReviewRepository) GetRatingsForTrainers(ctx context.Context, t
 	defer rows.Close()
 
 	type result struct {
-		TrainerID   string  `json:"trainerId"`
+		TrainerID   int     `json:"trainerId"`
 		AvgRating   float64 `json:"avgRating"`
 		ReviewCount int     `json:"reviewCount"`
 	}
 
-	ratings := make(map[string]struct {
+	ratings := make(map[int]struct {
 		Avg   float64
 		Count int
 	})

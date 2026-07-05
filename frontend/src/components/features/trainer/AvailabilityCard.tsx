@@ -55,8 +55,8 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
 
   const addTimeSlot = (dayOfWeek: number) => {
     const newSlot: TrainerAvailability = {
-      availabilityId: `new-${dayjs().valueOf()}`,
-      trainerId: "",
+      availabilityId: 0,
+      trainerId: 0,
       dayOfWeek,
       startTime: "09:00",
       endTime: "17:00",

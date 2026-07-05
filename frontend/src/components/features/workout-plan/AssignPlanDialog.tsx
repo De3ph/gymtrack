@@ -18,7 +18,7 @@ import {
 import { useTranslations } from "next-intl";
 
 interface AssignPlanDialogProps {
-  planId: string;
+  planId: string | number;
   trigger: React.ReactNode;
   onSuccess?: () => void;
 }
@@ -30,7 +30,7 @@ export function AssignPlanDialog({
 }: AssignPlanDialogProps) {
   const t = useTranslations('trainer.workout_plans')
   const queryClient = useQueryClient();
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { data: clientsData, isLoading } = useQuery({
     queryKey: ["my-clients"],
@@ -52,7 +52,7 @@ export function AssignPlanDialog({
     },
   });
 
-  const toggleClient = (athleteId: string) => {
+  const toggleClient = (athleteId: number) => {
     setSelectedIds((prev) =>
       prev.includes(athleteId)
         ? prev.filter((id) => id !== athleteId)
@@ -83,12 +83,12 @@ export function AssignPlanDialog({
                 className="flex items-center gap-3"
               >
                 <Checkbox
-                  id={client.athlete.userId}
+                  id={String(client.athlete.userId)}
                   checked={selectedIds.includes(client.athlete.userId)}
                   onCheckedChange={() => toggleClient(client.athlete.userId)}
                 />
                 <Label
-                  htmlFor={client.athlete.userId}
+                  htmlFor={String(client.athlete.userId)}
                   className="cursor-pointer"
                 >
                   {client.athlete.profile?.name || client.athlete.username}

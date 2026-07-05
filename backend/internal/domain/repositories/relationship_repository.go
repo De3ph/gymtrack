@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -15,13 +17,13 @@ import (
 
 type RelationshipRepository interface {
 	Create(ctx context.Context, relationship *models.Relationship) error
-	GetByID(ctx context.Context, relationshipID string) (*models.Relationship, error)
-	GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error)
-	GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error)
-	GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error)
-	HasActiveRelationship(ctx context.Context, trainerID, athleteID string) (bool, error)
+	GetByID(ctx context.Context, relationshipID int) (*models.Relationship, error)
+	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error)
+	GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error)
+	GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error)
+	HasActiveRelationship(ctx context.Context, trainerID int, athleteID int) (bool, error)
 	Update(ctx context.Context, relationship *models.Relationship) error
-	Delete(ctx context.Context, relationshipID string) error
+	Delete(ctx context.Context, relationshipID int) error
 }
 
 type CouchbaseRelationshipRepository struct {
@@ -39,7 +41,7 @@ func NewRelationshipRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *Couc
 // Create inserts a new relationship into the database
 func (r *CouchbaseRelationshipRepository) Create(ctx context.Context, relationship *models.Relationship) error {
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Insert(relationship.RelationshipID, relationship, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Insert(strconv.Itoa(relationship.RelationshipID), relationship, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -50,9 +52,9 @@ func (r *CouchbaseRelationshipRepository) Create(ctx context.Context, relationsh
 }
 
 // GetByID retrieves a relationship by its ID
-func (r *CouchbaseRelationshipRepository) GetByID(ctx context.Context, relationshipID string) (*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetByID(ctx context.Context, relationshipID int) (*models.Relationship, error) {
 
-	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Get(relationshipID, &gocb.GetOptions{
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Get(strconv.Itoa(relationshipID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -71,7 +73,7 @@ func (r *CouchbaseRelationshipRepository) GetByID(ctx context.Context, relations
 }
 
 // GetByTrainerID retrieves all relationships for a trainer
-func (r *CouchbaseRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID string) ([]*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.trainerId = $1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionRelationships)
@@ -103,7 +105,7 @@ func (r *CouchbaseRelationshipRepository) GetByTrainerID(ctx context.Context, tr
 }
 
 // GetByAthleteID retrieves active relationship for an athlete
-func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID string) (*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.athleteId = $1 AND r.status = 'active' LIMIT 1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionRelationships)
@@ -134,7 +136,7 @@ func (r *CouchbaseRelationshipRepository) GetByAthleteID(ctx context.Context, at
 }
 
 // GetPendingByAthleteID retrieves pending invitations for an athlete
-func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID string) ([]*models.Relationship, error) {
+func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error) {
 
 	query := fmt.Sprintf("SELECT r.* FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.athleteId = $1 AND r.status = 'pending'",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionRelationships)
@@ -166,7 +168,7 @@ func (r *CouchbaseRelationshipRepository) GetPendingByAthleteID(ctx context.Cont
 }
 
 // HasActiveRelationship checks if an active relationship exists between a trainer and athlete
-func (r *CouchbaseRelationshipRepository) HasActiveRelationship(ctx context.Context, trainerID, athleteID string) (bool, error) {
+func (r *CouchbaseRelationshipRepository) HasActiveRelationship(ctx context.Context, trainerID int, athleteID int) (bool, error) {
 	query := fmt.Sprintf("SELECT COUNT(r) as count FROM `%s`.`%s`.`%s` r WHERE r.type = 'relationship' AND r.trainerId = $1 AND r.athleteId = $2 AND r.status = 'active' LIMIT 1",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionRelationships)
 
@@ -203,7 +205,7 @@ func (r *CouchbaseRelationshipRepository) Update(ctx context.Context, relationsh
 
 	relationship.UpdatedAt = time.Now()
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Replace(relationship.RelationshipID, relationship, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Replace(strconv.Itoa(relationship.RelationshipID), relationship, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -214,9 +216,9 @@ func (r *CouchbaseRelationshipRepository) Update(ctx context.Context, relationsh
 }
 
 // Delete removes a relationship from the database
-func (r *CouchbaseRelationshipRepository) Delete(ctx context.Context, relationshipID string) error {
+func (r *CouchbaseRelationshipRepository) Delete(ctx context.Context, relationshipID int) error {
 
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Remove(relationshipID, &gocb.RemoveOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionRelationships).Remove(strconv.Itoa(relationshipID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

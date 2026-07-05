@@ -15,12 +15,12 @@ const baseDate = new Date()
 baseDate.setHours(10, 0, 0, 0)
 const mockWorkouts: Workout[] = [
   {
-    workoutId: 'w1',
-    athleteId: 'a1',
+    workoutId: 1,
+    athleteId: 1,
     date: baseDate.toISOString(),
     exercises: [
       {
-        exerciseId: 'squats',
+        exerciseId: 1,
         name: 'Squats',
         sets: [
           { weight: 100, weightUnit: 'kg' as const, reps: 10, restTime: 90, completed: false },

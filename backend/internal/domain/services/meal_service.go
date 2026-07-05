@@ -30,7 +30,7 @@ func NewMealService(mealRepo repositories.MealRepository, relationshipRepo repos
 }
 
 type CreateMealInput struct {
-	AthleteID string
+	AthleteID int
 	Date      time.Time
 	MealType  models.MealType
 	Items     []models.FoodItem
@@ -60,8 +60,8 @@ func (s *MealService) CreateMeal(ctx context.Context, input CreateMealInput) (*m
 }
 
 type GetMealInput struct {
-	MealID        string
-	RequesterID   string
+	MealID        int
+	RequesterID   int
 	RequesterRole models.UserRole
 }
 
@@ -82,7 +82,7 @@ func (s *MealService) GetMeal(ctx context.Context, input GetMealInput) (*models.
 }
 
 type GetMealsInput struct {
-	AthleteID string
+	AthleteID int
 	UserRole  models.UserRole
 	Limit     int
 	Offset    int
@@ -131,8 +131,8 @@ func (s *MealService) GetMeals(ctx context.Context, input GetMealsInput) (*GetMe
 }
 
 type UpdateMealInput struct {
-	MealID    string
-	AthleteID string
+	MealID    int
+	AthleteID int
 	Date      time.Time
 	MealType  models.MealType
 	Items     []models.FoodItem
@@ -170,7 +170,7 @@ func (s *MealService) UpdateMeal(ctx context.Context, input UpdateMealInput) (*m
 	return meal, nil
 }
 
-func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID string) error {
+func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID int) error {
 	meal, err := s.mealRepo.GetByID(ctx, mealID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -195,8 +195,8 @@ func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID string) 
 }
 
 type GetClientMealsInput struct {
-	TrainerID string
-	ClientID  string
+	TrainerID int
+	ClientID  int
 	Limit     int
 	Offset    int
 	StartDate *time.Time

@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type WeightUnit string
@@ -15,35 +13,22 @@ const (
 
 type Workout struct {
 	Type      string            `json:"type"` // Always "workout"
-	WorkoutID string            `json:"workoutId"`
-	AthleteID string            `json:"athleteId" validate:"required"`
+	WorkoutID int               `json:"workoutId"`
+	AthleteID int               `json:"athleteId" validate:"required"`
 	Date      time.Time         `json:"date" validate:"required"`
 	Exercises []WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
-	PlanID    string            `json:"planId,omitempty"` // Set when started from a plan
+	PlanID    int               `json:"planId,omitempty"` // Set when started from a plan
 	CreatedAt time.Time         `json:"createdAt"`
 	UpdatedAt time.Time         `json:"updatedAt"`
 }
 
-// NewWorkout creates a new workout with generated IDs and timestamps
-func NewWorkout(athleteID string, date time.Time, exercises []WorkoutExercise, planID string) *Workout {
+// NewWorkout creates a new workout with timestamps
+func NewWorkout(athleteID int, date time.Time, exercises []WorkoutExercise, planID int) *Workout {
 	now := time.Now()
-	workoutID := uuid.New().String()
-
-	// Generate IDs for workout exercises and sets if not provided
-	for i := range exercises {
-		if exercises[i].ExerciseID == "" {
-			exercises[i].ExerciseID = uuid.New().String()
-		}
-		for j := range exercises[i].Sets {
-			if exercises[i].Sets[j].SetID == "" {
-				exercises[i].Sets[j].SetID = uuid.New().String()
-			}
-		}
-	}
 
 	return &Workout{
 		Type:      "workout",
-		WorkoutID: workoutID,
+		WorkoutID: 0,
 		AthleteID: athleteID,
 		Date:      date,
 		Exercises: exercises,

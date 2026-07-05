@@ -14,15 +14,15 @@ export const workoutApi = {
     })
   },
 
-  getById: async (id: string) => {
+  getById: async (id: string | number) => {
     return api.get<Workout>(`/workouts/${id}`)
   },
 
-  update: async (id: string, data: UpdateWorkoutRequest) => {
+  update: async (id: string | number, data: UpdateWorkoutRequest) => {
     return api.put<Workout>(`/workouts/${id}`, data)
   },
 
-  delete: async (id: string) => {
+  delete: async (id: string | number) => {
     return api.delete<MessageResponse>(`/workouts/${id}`)
   }
 }

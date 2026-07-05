@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
@@ -67,7 +68,12 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 		return
 	}
 
-	trainerID := c.Param("id")
+	trainerIDStr := c.Param("id")
+	trainerID, err := strconv.Atoi(trainerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		return
+	}
 
 	var req CreateReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,7 +81,13 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 		return
 	}
 
-	review, err := h.service.CreateReview(c.Request.Context(), trainerID, userID.(string), req.Rating, req.Comment)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	review, err := h.service.CreateReview(c.Request.Context(), trainerID, userIDInt, req.Rating, req.Comment)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -94,7 +106,12 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Failed to retrieve reviews"
 // @Router /trainers/{id}/reviews [get]
 func (h *ReviewHandler) GetTrainerReviews(c *gin.Context) {
-	trainerID := c.Param("id")
+	trainerIDStr := c.Param("id")
+	trainerID, err := strconv.Atoi(trainerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		return
+	}
 
 	reviews, err := h.service.GetTrainerReviews(c.Request.Context(), trainerID)
 	if err != nil {
@@ -128,7 +145,12 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 		return
 	}
 
-	reviewID := c.Param("id")
+	reviewIDStr := c.Param("id")
+	reviewID, err := strconv.Atoi(reviewIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid review id"})
+		return
+	}
 
 	var req UpdateReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -136,7 +158,13 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 		return
 	}
 
-	err := h.service.UpdateReview(c.Request.Context(), reviewID, userID.(string), req.Rating, req.Comment)
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.service.UpdateReview(c.Request.Context(), reviewID, userIDInt, req.Rating, req.Comment)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -166,9 +194,20 @@ func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 		return
 	}
 
-	reviewID := c.Param("id")
+	reviewIDStr := c.Param("id")
+	reviewID, err := strconv.Atoi(reviewIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid review id"})
+		return
+	}
 
-	err := h.service.DeleteReview(c.Request.Context(), reviewID, userID.(string))
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.service.DeleteReview(c.Request.Context(), reviewID, userIDInt)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -14,8 +16,8 @@ import (
 
 type TrainerProfileRepository interface {
 	GetPublicTrainers(ctx context.Context, filters *TrainerFilters, limit, offset int) ([]models.TrainerWithProfile, error)
-	GetTrainerByID(ctx context.Context, trainerID string) (*models.TrainerWithProfile, error)
-	UpdateTrainerProfile(ctx context.Context, trainerID string, profile *models.TrainerProfile) error
+	GetTrainerByID(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error)
+	UpdateTrainerProfile(ctx context.Context, trainerID int, profile *models.TrainerProfile) error
 	SearchTrainers(ctx context.Context, query string, filters *TrainerFilters, limit, offset int) ([]models.TrainerWithProfile, error)
 	CountTrainers(ctx context.Context, filters *TrainerFilters) (int, error)
 }
@@ -106,9 +108,9 @@ func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Contex
 	return trainers, nil
 }
 
-func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID string) (*models.TrainerWithProfile, error) {
+func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error) {
 	var trainer models.TrainerWithProfile
-	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(trainerID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(strconv.Itoa(trainerID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -136,9 +138,9 @@ func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, 
 	return &trainer, nil
 }
 
-func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID string, profile *models.TrainerProfile) error {
+func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID int, profile *models.TrainerProfile) error {
 	var user models.User
-	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(trainerID, &gocb.GetOptions{
+	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(strconv.Itoa(trainerID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -162,7 +164,7 @@ func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Con
 	user.Profile.IsAvailableForNewClients = profile.IsAvailableForNewClients
 	user.Profile.Languages = profile.Languages
 
-	_, err = r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(trainerID, user, &gocb.ReplaceOptions{
+	_, err = r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(strconv.Itoa(trainerID), user, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {

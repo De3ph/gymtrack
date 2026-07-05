@@ -15,12 +15,12 @@ vi.mock('@/lib/api', () => ({
 
 const mockWorkouts: Workout[] = [
   {
-    workoutId: 'w1',
-    athleteId: 'a1',
+    workoutId: 1,
+    athleteId: 1,
     date: new Date().toISOString(),
     exercises: [
       {
-        exerciseId: 'bench-press',
+        exerciseId: 1,
         name: 'Bench Press',
         sets: [
           { weight: 80, weightUnit: 'kg' as const, reps: 12, restTime: 60, completed: false },

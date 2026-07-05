@@ -15,8 +15,8 @@ const targetDate = dayjs("2024-06-15");
 const mockMealsResponse = {
   meals: [
     {
-      mealId: "m1",
-      athleteId: "a1",
+      mealId: 1,
+      athleteId: 1,
       date: "2024-06-15T08:00:00.000Z",
       mealType: "breakfast" as const,
       items: [
@@ -31,8 +31,8 @@ const mockMealsResponse = {
       updatedAt: "",
     },
     {
-      mealId: "m2",
-      athleteId: "a1",
+      mealId: 2,
+      athleteId: 1,
       date: "2024-06-15T13:00:00.000Z",
       mealType: "lunch" as const,
       items: [

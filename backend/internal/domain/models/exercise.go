@@ -2,18 +2,16 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Exercise struct {
-	ExerciseID    string    `json:"exerciseId"`
+	ExerciseID    int       `json:"exerciseId"`
 	Name          string    `json:"name" validate:"required"`
 	Category      string    `json:"category"` // strength, cardio, flexibility
 	MuscleGroupID int       `json:"muscleGroupId"`
 	EquipmentID   int       `json:"equipmentId"`
 	Instructions  string    `json:"instructions"`
-	CreatedBy     string    `json:"createdBy,omitempty"` // athlete ID for custom exercises
+	CreatedBy     int       `json:"createdBy,omitempty"` // athlete ID for custom exercises
 	CreatedAt     time.Time `json:"createdAt"`
 }
 
@@ -27,19 +25,18 @@ type ExerciseSet struct {
 }
 
 type WorkoutExercise struct {
-	ExerciseID string        `json:"exerciseId" validate:"required"`
+	ExerciseID int           `json:"exerciseId" validate:"required"`
 	Name       string        `json:"name" validate:"required"` // denormalized for convenience
 	Sets       []ExerciseSet `json:"sets" validate:"required,min=1,dive"`
 	Notes      string        `json:"notes,omitempty"`
 }
 
-// NewExercise creates a new exercise with generated ID and timestamp
-func NewExercise(name, category string, muscleGroupID, equipmentID int, createdBy string) *Exercise {
+// NewExercise creates a new exercise with timestamp
+func NewExercise(name, category string, muscleGroupID, equipmentID int, createdBy int) *Exercise {
 	now := time.Now()
-	exerciseID := uuid.New().String()
 
 	return &Exercise{
-		ExerciseID:    exerciseID,
+		ExerciseID:    0,
 		Name:          name,
 		Category:      category,
 		MuscleGroupID: muscleGroupID,
@@ -49,12 +46,9 @@ func NewExercise(name, category string, muscleGroupID, equipmentID int, createdB
 	}
 }
 
-// NewExerciseSet creates a new exercise set with generated ID
+// NewExerciseSet creates a new exercise set
 func NewExerciseSet(weight float64, weightUnit WeightUnit, reps, restTime int) *ExerciseSet {
-	setID := uuid.New().String()
-
 	return &ExerciseSet{
-		SetID:      setID,
 		Weight:     weight,
 		WeightUnit: weightUnit,
 		Reps:       reps,

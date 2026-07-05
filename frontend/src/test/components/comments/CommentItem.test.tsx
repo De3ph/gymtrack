@@ -22,10 +22,10 @@ vi.mock('@/stores/authStore', () => ({
 
 const mockComment: Comment = {
   type: 'comment',
-  commentId: 'c1',
+  commentId: 1,
   targetType: 'workout',
-  targetId: 'w1',
-  authorId: 'u1',
+  targetId: 1,
+  authorId: 1,
   authorRole: 'trainer',
   content: 'Nice job',
   parentCommentId: null,

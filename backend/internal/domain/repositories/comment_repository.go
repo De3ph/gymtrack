@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"strconv"
+
 	"gymtrack-backend/internal/config"
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -14,12 +16,12 @@ import (
 
 type CommentRepository interface {
 	Create(ctx context.Context, comment *models.Comment) error
-	GetByID(ctx context.Context, commentID string) (*models.Comment, error)
-	GetByTarget(ctx context.Context, targetType models.TargetType, targetID string) ([]*models.Comment, error)
-	GetByAuthor(ctx context.Context, authorID string) ([]*models.Comment, error)
-	GetReplies(ctx context.Context, parentCommentID string) ([]*models.Comment, error)
+	GetByID(ctx context.Context, commentID int) (*models.Comment, error)
+	GetByTarget(ctx context.Context, targetType models.TargetType, targetID int) ([]*models.Comment, error)
+	GetByAuthor(ctx context.Context, authorID int) ([]*models.Comment, error)
+	GetReplies(ctx context.Context, parentCommentID int) ([]*models.Comment, error)
 	Update(ctx context.Context, comment *models.Comment) error
-	Delete(ctx context.Context, commentID string) error
+	Delete(ctx context.Context, commentID int) error
 }
 
 type CouchbaseCommentRepository struct {
@@ -36,7 +38,7 @@ func NewCommentRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *Couchbase
 
 // Create inserts a new comment into the database
 func (r *CouchbaseCommentRepository) Create(ctx context.Context, comment *models.Comment) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Insert(comment.CommentID, comment, &gocb.InsertOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Insert(strconv.Itoa(comment.CommentID), comment, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -47,8 +49,8 @@ func (r *CouchbaseCommentRepository) Create(ctx context.Context, comment *models
 }
 
 // GetByID retrieves a comment by its ID
-func (r *CouchbaseCommentRepository) GetByID(ctx context.Context, commentID string) (*models.Comment, error) {
-	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Get(commentID, &gocb.GetOptions{
+func (r *CouchbaseCommentRepository) GetByID(ctx context.Context, commentID int) (*models.Comment, error) {
+	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Get(strconv.Itoa(commentID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -67,7 +69,7 @@ func (r *CouchbaseCommentRepository) GetByID(ctx context.Context, commentID stri
 }
 
 // GetByTarget retrieves comments for a specific workout or meal
-func (r *CouchbaseCommentRepository) GetByTarget(ctx context.Context, targetType models.TargetType, targetID string) ([]*models.Comment, error) {
+func (r *CouchbaseCommentRepository) GetByTarget(ctx context.Context, targetType models.TargetType, targetID int) ([]*models.Comment, error) {
 	query := fmt.Sprintf("SELECT c.* FROM `%s`.`%s`.`%s` c WHERE c.type = 'comment' AND c.targetType = $1 AND c.targetId = $2 ORDER BY c.createdAt ASC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionComments)
 
@@ -98,7 +100,7 @@ func (r *CouchbaseCommentRepository) GetByTarget(ctx context.Context, targetType
 }
 
 // GetByAuthor retrieves comments by a specific author
-func (r *CouchbaseCommentRepository) GetByAuthor(ctx context.Context, authorID string) ([]*models.Comment, error) {
+func (r *CouchbaseCommentRepository) GetByAuthor(ctx context.Context, authorID int) ([]*models.Comment, error) {
 	query := fmt.Sprintf("SELECT c.* FROM `%s`.`%s`.`%s` c WHERE c.type = 'comment' AND c.authorId = $1 ORDER BY c.createdAt DESC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionComments)
 
@@ -129,7 +131,7 @@ func (r *CouchbaseCommentRepository) GetByAuthor(ctx context.Context, authorID s
 }
 
 // GetReplies retrieves replies to a specific comment
-func (r *CouchbaseCommentRepository) GetReplies(ctx context.Context, parentCommentID string) ([]*models.Comment, error) {
+func (r *CouchbaseCommentRepository) GetReplies(ctx context.Context, parentCommentID int) ([]*models.Comment, error) {
 	query := fmt.Sprintf("SELECT c.* FROM `%s`.`%s`.`%s` c WHERE c.type = 'comment' AND c.parentCommentId = $1 ORDER BY c.createdAt ASC",
 		r.bucket.Name(), config.ScopeDefault, config.CollectionComments)
 
@@ -161,7 +163,7 @@ func (r *CouchbaseCommentRepository) GetReplies(ctx context.Context, parentComme
 
 // Update updates an existing comment
 func (r *CouchbaseCommentRepository) Update(ctx context.Context, comment *models.Comment) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Replace(comment.CommentID, comment, &gocb.ReplaceOptions{
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Replace(strconv.Itoa(comment.CommentID), comment, &gocb.ReplaceOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -172,8 +174,8 @@ func (r *CouchbaseCommentRepository) Update(ctx context.Context, comment *models
 }
 
 // Delete removes a comment from the database
-func (r *CouchbaseCommentRepository) Delete(ctx context.Context, commentID string) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Remove(commentID, &gocb.RemoveOptions{
+func (r *CouchbaseCommentRepository) Delete(ctx context.Context, commentID int) error {
+	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionComments).Remove(strconv.Itoa(commentID), &gocb.RemoveOptions{
 		Context: ctx,
 	})
 	if err != nil {

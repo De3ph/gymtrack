@@ -52,7 +52,7 @@ describe('AuthStore', () => {
 
   it('should login successfully and set auth state', async () => {
     const mockUser = {
-      userId: 'user-1',
+      userId: 1,
       username: 'testuser',
       email: 'test@example.com',
       role: 'athlete' as const,
@@ -132,7 +132,7 @@ describe('AuthStore', () => {
 
   it('should initialize auth from session cookie', async () => {
     const mockUser = {
-      userId: 'user-1',
+      userId: 1,
       username: 'testuser',
       email: 'test@example.com',
       role: 'athlete' as const,
@@ -195,7 +195,7 @@ describe('AuthStore', () => {
 
   it('should update user state', () => {
     const mockUser = {
-      userId: 'user-1',
+      userId: 1,
       username: 'testuser',
       email: 'test@example.com',
       role: 'athlete' as const,
@@ -216,7 +216,7 @@ describe('AuthStore', () => {
   it('should handle auth error with 401 status', () => {
     tokenService.setTokens('some-token', 'refresh-token')
     useAuthStore.setState({
-      user: { userId: 'user-1' } as any,
+      user: { userId: 1 } as any,
       token: 'some-token',
       isAuthenticated: true,
       isLoading: false,

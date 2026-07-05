@@ -18,12 +18,12 @@ type UserProfile struct {
 	Weight            int    `json:"weight,omitempty"`
 	Height            int    `json:"height,omitempty"`
 	FitnessGoals      string `json:"fitnessGoals,omitempty"`
-	TrainerAssignment string `json:"trainerAssignment,omitempty"` // Athlete's trainer ID
+	TrainerAssignment int    `json:"trainerAssignment,omitempty"` // Athlete's trainer ID
 
 	// Trainer specific fields
-	Certifications  string   `json:"certifications,omitempty"`
-	Specializations string   `json:"specializations,omitempty"`
-	ClientList      []string `json:"clientList,omitempty"` // List of athlete IDs
+	Certifications  string `json:"certifications,omitempty"`
+	Specializations string `json:"specializations,omitempty"`
+	ClientList      []int  `json:"clientList,omitempty"` // List of athlete IDs
 
 	// Trainer profile fields (stored in UserProfile for simplicity)
 	Bio                      string   `json:"bio,omitempty"`
@@ -37,7 +37,7 @@ type UserProfile struct {
 
 type User struct {
 	Type         string      `json:"type"` // Always "user"
-	UserID       string      `json:"userId"`
+	UserID       int         `json:"userId"`
 	Username     string      `json:"username" validate:"required,min=3,max=30,alphanum"`
 	Email        string      `json:"email" validate:"required,email"`
 	PasswordHash string      `json:"passwordHash"`

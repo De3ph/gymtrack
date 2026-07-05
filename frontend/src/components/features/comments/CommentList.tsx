@@ -10,11 +10,11 @@ import { CommentForm } from "./CommentForm"
 interface CommentListProps {
   comments: Comment[]
   targetType: "workout" | "meal"
-  targetId: string
+  targetId: string | number
   queryKey: (string | number)[]
   readOnly?: boolean
-  replyingToId: string | null
-  onStartReply: (parentCommentId: string) => void
+  replyingToId: string | number | null
+  onStartReply: (parentCommentId: string | number) => void
   onCancelReply: () => void
 }
 
@@ -24,10 +24,10 @@ interface CommentNode {
 }
 
 function buildTree(comments: Comment[]): CommentNode[] {
-  const byParent = new Map<string, Comment[]>()
+  const byParent = new Map<number, Comment[]>()
   for (const c of comments) {
-    const pid = c.parentCommentId ?? ""
-    if (pid === "") continue
+    const pid = c.parentCommentId
+    if (pid == null || pid === 0) continue
     if (!byParent.has(pid)) byParent.set(pid, [])
     byParent.get(pid)!.push(c)
   }
@@ -41,7 +41,7 @@ function buildTree(comments: Comment[]): CommentNode[] {
     return { comment, children }
   }
   const roots = comments
-    .filter((c) => !c.parentCommentId || c.parentCommentId === "")
+    .filter((c) => !c.parentCommentId || c.parentCommentId === 0)
     .sort((a, b) => (dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? -1 : 1))
   return roots.map(node)
 }
@@ -60,11 +60,11 @@ function CommentNodeRow({
 }: {
   node: CommentNode
   targetType: "workout" | "meal"
-  targetId: string
+  targetId: string | number
   queryKey: (string | number)[]
   readOnly: boolean
-  replyingToId: string | null
-  onStartReply: (parentCommentId: string) => void
+  replyingToId: string | number | null
+  onStartReply: (parentCommentId: string | number) => void
   onCancelReply: () => void
   depth: number
   t: ReturnType<typeof useTranslations<"comment">>

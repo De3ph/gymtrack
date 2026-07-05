@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"time"
 
 	"gymtrack-backend/internal/config"
@@ -16,9 +17,9 @@ import (
 )
 
 type InvitationMethod interface {
-	GenerateInvitation(ctx context.Context, trainerID string, athleteID string) (*models.Invitation, error)
+	GenerateInvitation(ctx context.Context, trainerID int, athleteID int) (*models.Invitation, error)
 	ValidateInvitation(ctx context.Context, code string) (*models.Invitation, error)
-	MarkInvitationUsed(ctx context.Context, invitationID string) error
+	MarkInvitationUsed(ctx context.Context, invitationID int) error
 }
 
 type InvitationGetResult interface {
@@ -80,22 +81,17 @@ var generateUUIDSafe = func(ctx context.Context) (string, error) {
 }
 
 // GenerateInvitation creates a new invitation code
-func (c *CodeBasedInvitation) GenerateInvitation(ctx context.Context, trainerID string, athleteID string) (*models.Invitation, error) {
+func (c *CodeBasedInvitation) GenerateInvitation(ctx context.Context, trainerID int, athleteID int) (*models.Invitation, error) {
 
 	code, err := generateRandomCode(ctx, 8)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate invitation code: %w", err)
 	}
 
-	invitationID, err := generateUUIDSafe(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate invitation UUID: %w", err)
-	}
-
 	now := c.clock.Now()
 	invitation := &models.Invitation{
 		Type:         "invitation",
-		InvitationID: invitationID,
+		InvitationID: 0,
 		TrainerID:    trainerID,
 		Code:         code,
 		Status:       "pending",
@@ -103,7 +99,7 @@ func (c *CodeBasedInvitation) GenerateInvitation(ctx context.Context, trainerID 
 		ExpiresAt:    now.Add(7 * 24 * time.Hour),
 	}
 
-	_, err = c.collection.Insert(invitation.InvitationID, invitation, &gocb.InsertOptions{
+	_, err = c.collection.Insert(strconv.Itoa(invitation.InvitationID), invitation, &gocb.InsertOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -155,9 +151,9 @@ func (c *CodeBasedInvitation) ValidateInvitation(ctx context.Context, code strin
 }
 
 // MarkInvitationUsed marks an invitation as used with concurrency safety
-func (c *CodeBasedInvitation) MarkInvitationUsed(ctx context.Context, invitationID string) error {
+func (c *CodeBasedInvitation) MarkInvitationUsed(ctx context.Context, invitationID int) error {
 
-	result, err := c.collection.Get(invitationID, &gocb.GetOptions{
+	result, err := c.collection.Get(strconv.Itoa(invitationID), &gocb.GetOptions{
 		Context: ctx,
 	})
 	if err != nil {
@@ -176,7 +172,7 @@ func (c *CodeBasedInvitation) MarkInvitationUsed(ctx context.Context, invitation
 	invitation.Status = "used"
 	invitation.UsedAt = c.clock.Now()
 
-	_, err = c.collection.Replace(invitationID, invitation, &gocb.ReplaceOptions{
+	_, err = c.collection.Replace(strconv.Itoa(invitationID), invitation, &gocb.ReplaceOptions{
 		Context: ctx,
 		Cas:     result.Cas(),
 	})
@@ -232,12 +228,12 @@ func NewInvitationService(
 }
 
 // GenerateInvitation creates a new invitation for a trainer
-func (s *InvitationService) GenerateInvitation(ctx context.Context, trainerID string) (*models.Invitation, error) {
-	return s.method.GenerateInvitation(ctx, trainerID, "")
+func (s *InvitationService) GenerateInvitation(ctx context.Context, trainerID int) (*models.Invitation, error) {
+	return s.method.GenerateInvitation(ctx, trainerID, 0)
 }
 
 // AcceptInvitation allows an athlete to accept an invitation
-func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, athleteID string) (*models.Relationship, error) {
+func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, athleteID int) (*models.Relationship, error) {
 	// Validate the invitation code
 	invitation, err := s.method.ValidateInvitation(ctx, code)
 	if err != nil {
@@ -282,7 +278,7 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 }
 
 // GetPendingInvitations gets pending invitations for an athlete
-func (s *InvitationService) GetPendingInvitations(ctx context.Context, athleteID string) ([]*models.Relationship, error) {
+func (s *InvitationService) GetPendingInvitations(ctx context.Context, athleteID int) ([]*models.Relationship, error) {
 	relationships, err := s.relationshipRepo.GetPendingByAthleteID(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pending invitations: %w", err)

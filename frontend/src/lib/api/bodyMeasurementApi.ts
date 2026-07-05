@@ -19,21 +19,21 @@ export const bodyMeasurementApi = {
     return api.get<BodyMeasurementListResponse>("/measurements", { params })
   },
 
-  getById: async (id: string) => {
+  getById: async (id: number) => {
     return api.get<BodyMeasurement>(`/measurements/${id}`)
   },
 
-  getLatest: async (athleteId?: string) => {
+  getLatest: async (athleteId?: number) => {
     return api.get<BodyMeasurement>("/measurements/latest", {
       params: athleteId ? { athleteId } : undefined
     })
   },
 
-  update: async (id: string, data: UpdateBodyMeasurementRequest) => {
+  update: async (id: number, data: UpdateBodyMeasurementRequest) => {
     return api.put<BodyMeasurement>(`/measurements/${id}`, data)
   },
 
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     return api.delete<MessageResponse>(`/measurements/${id}`)
   }
 }

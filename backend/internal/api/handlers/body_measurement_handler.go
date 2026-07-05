@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
@@ -33,22 +34,22 @@ type BodyMeasurementPartDTO struct {
 
 // CreateBodyMeasurementRequest is the request body for creating a body measurement entry.
 type CreateBodyMeasurementRequest struct {
-	Date       time.Time                              `json:"date" binding:"required"`
-	Weight     float64                                `json:"weight" binding:"required,gt=0"`
-	WeightUnit models.WeightUnit                      `json:"weightUnit" binding:"required,oneof=kg lbs"`
-	BodyFatPct float64                                `json:"bodyFatPct,omitempty" binding:"gte=0,lte=100"`
-	Parts      map[string]BodyMeasurementPartDTO      `json:"parts,omitempty"`
-	Notes      string                                 `json:"notes,omitempty" binding:"max=500"`
+	Date       time.Time                         `json:"date" binding:"required"`
+	Weight     float64                           `json:"weight" binding:"required,gt=0"`
+	WeightUnit models.WeightUnit                 `json:"weightUnit" binding:"required,oneof=kg lbs"`
+	BodyFatPct float64                           `json:"bodyFatPct,omitempty" binding:"gte=0,lte=100"`
+	Parts      map[string]BodyMeasurementPartDTO `json:"parts,omitempty"`
+	Notes      string                            `json:"notes,omitempty" binding:"max=500"`
 }
 
 // UpdateBodyMeasurementRequest is the request body for updating a body measurement entry.
 type UpdateBodyMeasurementRequest struct {
-	Date       time.Time                              `json:"date" binding:"required"`
-	Weight     float64                                `json:"weight" binding:"required,gt=0"`
-	WeightUnit models.WeightUnit                      `json:"weightUnit" binding:"required,oneof=kg lbs"`
-	BodyFatPct float64                                `json:"bodyFatPct,omitempty" binding:"gte=0,lte=100"`
-	Parts      map[string]BodyMeasurementPartDTO      `json:"parts,omitempty"`
-	Notes      string                                 `json:"notes,omitempty" binding:"max=500"`
+	Date       time.Time                         `json:"date" binding:"required"`
+	Weight     float64                           `json:"weight" binding:"required,gt=0"`
+	WeightUnit models.WeightUnit                 `json:"weightUnit" binding:"required,oneof=kg lbs"`
+	BodyFatPct float64                           `json:"bodyFatPct,omitempty" binding:"gte=0,lte=100"`
+	Parts      map[string]BodyMeasurementPartDTO `json:"parts,omitempty"`
+	Notes      string                            `json:"notes,omitempty" binding:"max=500"`
 }
 
 // CreateBodyMeasurement handles POST /api/measurements
@@ -84,8 +85,14 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 		parts[k] = models.BodyMeasurementPart{Value: v.Value}
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	measurement, err := h.measurementService.CreateBodyMeasurement(c.Request.Context(), services.CreateBodyMeasurementInput{
-		AthleteID:  athleteID.(string),
+		AthleteID:  athleteIDInt,
 		Date:       req.Date,
 		Weight:     req.Weight,
 		WeightUnit: req.WeightUnit,
@@ -121,14 +128,25 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 // @Failure 404 {object} map[string]interface{} "Body measurement not found"
 // @Router /measurements/{id} [get]
 func (h *BodyMeasurementHandler) GetBodyMeasurement(c *gin.Context) {
-	measurementID := c.Param("id")
+	measurementIDStr := c.Param("id")
+	measurementID, err := strconv.Atoi(measurementIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid measurement id"})
+		return
+	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	measurement, err := h.measurementService.GetBodyMeasurement(c.Request.Context(), services.GetBodyMeasurementInput{
-		MeasurementID:  measurementID,
-		RequesterID:    userID.(string),
-		RequesterRole:  userRole.(models.UserRole),
+		MeasurementID: measurementID,
+		RequesterID:   userIDInt,
+		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
@@ -172,8 +190,14 @@ func (h *BodyMeasurementHandler) GetBodyMeasurements(c *gin.Context) {
 		return
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	result, err := h.measurementService.GetBodyMeasurements(c.Request.Context(), services.GetBodyMeasurementsInput{
-		AthleteID: athleteID.(string),
+		AthleteID: athleteIDInt,
 		UserRole:  userRole.(models.UserRole),
 		Limit:     limit,
 		Offset:    offset,
@@ -209,14 +233,28 @@ func (h *BodyMeasurementHandler) GetLatestBodyMeasurement(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
-	athleteID := c.Query("athleteId")
-	if athleteID == "" {
-		athleteID = userID.(string)
+	athleteIDStr := c.Query("athleteId")
+	var athleteID int
+	if athleteIDStr != "" {
+		var err error
+		athleteID, err = strconv.Atoi(athleteIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid athlete id"})
+			return
+		}
+	} else {
+		athleteID, _ = strconv.Atoi(userID.(string))
+	}
+
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
 	}
 
 	measurement, err := h.measurementService.GetLatestBodyMeasurement(c.Request.Context(), services.GetLatestBodyMeasurementInput{
 		AthleteID:     athleteID,
-		RequesterID:   userID.(string),
+		RequesterID:   userIDInt,
 		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
@@ -250,7 +288,12 @@ func (h *BodyMeasurementHandler) GetLatestBodyMeasurement(c *gin.Context) {
 // @Failure 404 {object} map[string]interface{} "Body measurement not found"
 // @Router /measurements/{id} [put]
 func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
-	measurementID := c.Param("id")
+	measurementIDStr := c.Param("id")
+	measurementID, err := strconv.Atoi(measurementIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid measurement id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 
 	var req UpdateBodyMeasurementRequest
@@ -264,9 +307,15 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 		parts[k] = models.BodyMeasurementPart{Value: v.Value}
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	measurement, err := h.measurementService.UpdateBodyMeasurement(c.Request.Context(), services.UpdateBodyMeasurementInput{
 		MeasurementID: measurementID,
-		AthleteID:     athleteID.(string),
+		AthleteID:     athleteIDInt,
 		Date:          req.Date,
 		Weight:        req.Weight,
 		WeightUnit:    req.WeightUnit,
@@ -304,10 +353,21 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 // @Failure 404 {object} map[string]interface{} "Body measurement not found"
 // @Router /measurements/{id} [delete]
 func (h *BodyMeasurementHandler) DeleteBodyMeasurement(c *gin.Context) {
-	measurementID := c.Param("id")
+	measurementIDStr := c.Param("id")
+	measurementID, err := strconv.Atoi(measurementIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid measurement id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 
-	err := h.measurementService.DeleteBodyMeasurement(c.Request.Context(), measurementID, athleteID.(string))
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.measurementService.DeleteBodyMeasurement(c.Request.Context(), measurementID, athleteIDInt)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -360,8 +420,14 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 		return
 	}
 
+	trainerIDInt, err := strconv.Atoi(trainerID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	result, err := h.measurementService.GetClientBodyMeasurements(c.Request.Context(), services.GetClientBodyMeasurementsInput{
-		TrainerID: trainerID.(string),
+		TrainerID: trainerIDInt,
 		ClientID:  athlete.UserID,
 		Limit:     limit,
 		Offset:    offset,

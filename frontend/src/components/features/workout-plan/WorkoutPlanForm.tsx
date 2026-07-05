@@ -20,7 +20,7 @@ interface WorkoutPlanFormProps {
 }
 
 const createDefaultExercise = (): WorkoutPlanExercise => ({
-  exerciseId: "",
+  exerciseId: 0,
   name: "",
   sets: [{ weight: 0, weightUnit: "kg", reps: 10, restTime: 60 }],
   notes: "",
@@ -63,9 +63,9 @@ export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
     },
   });
 
-  const handleExerciseSelect = (selected: { exerciseId: string; name: string }, index: number) => {
+  const handleExerciseSelect = (selected: { exerciseId: string | number; name: string }, index: number) => {
     const newExercises = [...exercises];
-    newExercises[index] = { ...newExercises[index], exerciseId: selected.exerciseId, name: selected.name };
+    newExercises[index] = { ...newExercises[index], exerciseId: Number(selected.exerciseId), name: selected.name };
     setExercises(newExercises);
   };
 

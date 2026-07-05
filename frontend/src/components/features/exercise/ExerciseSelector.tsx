@@ -25,7 +25,7 @@ import { ExerciseLibrary, ExerciseSearchParams } from "@/types";
 
 interface ExerciseSelectorProps {
   onSelect: (exercise: ExerciseLibrary) => void;
-  selectedExerciseId?: string;
+  selectedExerciseId?: string | number;
   disabled?: boolean;
   placeholder?: string;
 }

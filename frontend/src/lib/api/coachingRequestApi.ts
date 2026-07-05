@@ -3,7 +3,7 @@ import { MessageResponse } from "./api-types"
 
 export const coachingRequestApi = {
   createCoachingRequest: async (data: {
-    trainerId: string
+    trainerId: number
     message?: string
   }) => {
     return api.post<import("@/types").CoachingRequest>(
@@ -24,14 +24,14 @@ export const coachingRequestApi = {
     )
   },
 
-  acceptRequest: async (requestId: string) => {
+  acceptRequest: async (requestId: number) => {
     return api.put<{ message: string; relationship: any }>(
       `/coaching-requests/${requestId}/accept`,
       {}
     )
   },
 
-  rejectRequest: async (requestId: string) => {
+  rejectRequest: async (requestId: number) => {
     return api.put<MessageResponse>(
       `/coaching-requests/${requestId}/reject`,
       {}

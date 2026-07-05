@@ -13,14 +13,14 @@ const (
 )
 
 type CoachingRequest struct {
-	RequestID   string              `json:"requestId" cbjson:"requestId"`
-	AthleteID   string              `json:"athleteId" cbjson:"athleteId"`
-	TrainerID   string              `json:"trainerId" cbjson:"trainerId"`
-	Message     string              `json:"message" cbjson:"message"`
-	Status      CoachingRequestStatus `json:"status" cbjson:"status"`
-	Type        string              `json:"type" cbjson:"type"`
-	CreatedAt   time.Time           `json:"createdAt" cbjson:"createdAt"`
-	UpdatedAt   time.Time           `json:"updatedAt" cbjson:"updatedAt"`
+	RequestID int                   `json:"requestId"`
+	AthleteID int                   `json:"athleteId"`
+	TrainerID int                   `json:"trainerId"`
+	Message   string                `json:"message"`
+	Status    CoachingRequestStatus `json:"status"`
+	Type      string                `json:"type"`
+	CreatedAt time.Time             `json:"createdAt"`
+	UpdatedAt time.Time             `json:"updatedAt"`
 }
 
 type CoachingRequestWithDetails struct {

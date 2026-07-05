@@ -97,7 +97,12 @@ func (h *ExerciseHandler) GetAllExercises(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /exercises/{id} [get]
 func (h *ExerciseHandler) GetExerciseByID(c *gin.Context) {
-	exerciseID := c.Param("id")
+	exerciseIDStr := c.Param("id")
+	exerciseID, err := strconv.Atoi(exerciseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exercise id"})
+		return
+	}
 
 	exercise, err := h.exerciseService.GetExerciseByID(c.Request.Context(), exerciseID)
 	if err != nil {
@@ -221,13 +226,19 @@ func (h *ExerciseHandler) CreateExercise(c *gin.Context) {
 		return
 	}
 
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	exercise, err := h.exerciseService.CreateExercise(
 		c.Request.Context(),
 		req.Name,
 		req.Category,
 		req.MuscleGroupID,
 		req.EquipmentID,
-		userID.(string),
+		userIDInt,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 export type DashboardEventKind = "workout" | "meal";
 
 export interface DashboardEvent {
-  id: string;
+  id: string | number;
   kind: DashboardEventKind;
   title: string;
   time: string;

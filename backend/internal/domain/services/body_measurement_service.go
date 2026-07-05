@@ -35,7 +35,7 @@ func NewBodyMeasurementService(
 }
 
 type CreateBodyMeasurementInput struct {
-	AthleteID  string
+	AthleteID  int
 	Date       time.Time
 	Weight     float64
 	WeightUnit models.WeightUnit
@@ -76,8 +76,8 @@ func (s *BodyMeasurementService) CreateBodyMeasurement(ctx context.Context, inpu
 }
 
 type GetBodyMeasurementInput struct {
-	MeasurementID string
-	RequesterID   string
+	MeasurementID int
+	RequesterID   int
 	RequesterRole models.UserRole
 }
 
@@ -108,7 +108,7 @@ func (s *BodyMeasurementService) GetBodyMeasurement(ctx context.Context, input G
 }
 
 type GetBodyMeasurementsInput struct {
-	AthleteID string
+	AthleteID int
 	UserRole  models.UserRole
 	Limit     int
 	Offset    int
@@ -146,8 +146,8 @@ func (s *BodyMeasurementService) GetBodyMeasurements(ctx context.Context, input 
 }
 
 type UpdateBodyMeasurementInput struct {
-	MeasurementID string
-	AthleteID     string
+	MeasurementID int
+	AthleteID     int
 	Date          time.Time
 	Weight        float64
 	WeightUnit    models.WeightUnit
@@ -191,7 +191,7 @@ func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, inpu
 	return measurement, nil
 }
 
-func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, measurementID, athleteID string) error {
+func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, measurementID, athleteID int) error {
 	measurement, err := s.measurementRepo.GetByID(ctx, measurementID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -216,8 +216,8 @@ func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, meas
 }
 
 type GetClientBodyMeasurementsInput struct {
-	TrainerID string
-	ClientID  string
+	TrainerID int
+	ClientID  int
 	Limit     int
 	Offset    int
 	StartDate *time.Time
@@ -252,8 +252,8 @@ func (s *BodyMeasurementService) GetClientBodyMeasurements(ctx context.Context, 
 }
 
 type GetLatestBodyMeasurementInput struct {
-	AthleteID     string
-	RequesterID   string
+	AthleteID     int
+	RequesterID   int
 	RequesterRole models.UserRole
 }
 

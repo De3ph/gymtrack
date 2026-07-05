@@ -30,7 +30,7 @@ func NewWorkoutService(workoutRepo repositories.WorkoutRepository, relationshipR
 }
 
 type CreateWorkoutInput struct {
-	AthleteID string
+	AthleteID int
 	Date      time.Time
 	Exercises []models.WorkoutExercise
 	UserRole  models.UserRole
@@ -45,7 +45,7 @@ func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutI
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	workout := models.NewWorkout(input.AthleteID, input.Date, input.Exercises, "")
+	workout := models.NewWorkout(input.AthleteID, input.Date, input.Exercises, 0)
 
 	if err := s.validator.Struct(workout); err != nil {
 		return nil, fmt.Errorf("workout validation failed: %w", err)
@@ -59,8 +59,8 @@ func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutI
 }
 
 type GetWorkoutInput struct {
-	WorkoutID     string
-	RequesterID   string
+	WorkoutID     int
+	RequesterID   int
 	RequesterRole models.UserRole
 }
 
@@ -81,7 +81,7 @@ func (s *WorkoutService) GetWorkout(ctx context.Context, input GetWorkoutInput) 
 }
 
 type GetWorkoutsInput struct {
-	AthleteID string
+	AthleteID int
 	UserRole  models.UserRole
 	Limit     int
 	Offset    int
@@ -119,8 +119,8 @@ func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput
 }
 
 type UpdateWorkoutInput struct {
-	WorkoutID string
-	AthleteID string
+	WorkoutID int
+	AthleteID int
 	Date      time.Time
 	Exercises []models.WorkoutExercise
 }
@@ -156,7 +156,7 @@ func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutI
 	return workout, nil
 }
 
-func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID string) error {
+func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID int) error {
 	workout, err := s.workoutRepo.GetByID(ctx, workoutID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -181,8 +181,8 @@ func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID
 }
 
 type GetClientWorkoutsInput struct {
-	TrainerID    string
-	ClientID     string
+	TrainerID    int
+	ClientID     int
 	Limit        int
 	Offset       int
 	StartDate    *time.Time

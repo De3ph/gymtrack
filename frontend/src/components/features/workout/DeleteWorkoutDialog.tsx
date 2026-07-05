@@ -33,7 +33,7 @@ export function DeleteWorkoutDialog({
   const t = useTranslations('workout.delete_dialog');
 
   const { mutate: deleteWorkout } = useMutation({
-    mutationFn: (id: string) => workoutApi.delete(id),
+    mutationFn: (id: string | number) => workoutApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["workouts"],

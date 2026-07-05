@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"gymtrack-backend/internal/domain/models"
@@ -78,8 +79,14 @@ func (h *MealHandler) CreateMeal(c *gin.Context) {
 		return
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	meal, err := h.mealService.CreateMeal(c.Request.Context(), services.CreateMealInput{
-		AthleteID: athleteID.(string),
+		AthleteID: athleteIDInt,
 		Date:      req.Date,
 		MealType:  req.MealType,
 		Items:     req.Items,
@@ -110,13 +117,24 @@ func (h *MealHandler) CreateMeal(c *gin.Context) {
 // @Failure 403 {object} map[string]string "Access denied"
 // @Router /meals/{id} [get]
 func (h *MealHandler) GetMeal(c *gin.Context) {
-	mealID := c.Param("id")
+	mealIDStr := c.Param("id")
+	mealID, err := strconv.Atoi(mealIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid meal id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	meal, err := h.mealService.GetMeal(c.Request.Context(), services.GetMealInput{
 		MealID:        mealID,
-		RequesterID:   athleteID.(string),
+		RequesterID:   athleteIDInt,
 		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
@@ -167,8 +185,14 @@ func (h *MealHandler) GetMeals(c *gin.Context) {
 		return
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	result, err := h.mealService.GetMeals(c.Request.Context(), services.GetMealsInput{
-		AthleteID: athleteID.(string),
+		AthleteID: athleteIDInt,
 		UserRole:  userRole.(models.UserRole),
 		Limit:     limit,
 		Offset:    offset,
@@ -207,7 +231,12 @@ func (h *MealHandler) GetMeals(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Failed to update meal"
 // @Router /meals/{id} [put]
 func (h *MealHandler) UpdateMeal(c *gin.Context) {
-	mealID := c.Param("id")
+	mealIDStr := c.Param("id")
+	mealID, err := strconv.Atoi(mealIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid meal id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 
 	var req UpdateMealRequest
@@ -216,9 +245,15 @@ func (h *MealHandler) UpdateMeal(c *gin.Context) {
 		return
 	}
 
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	meal, err := h.mealService.UpdateMeal(c.Request.Context(), services.UpdateMealInput{
 		MealID:    mealID,
-		AthleteID: athleteID.(string),
+		AthleteID: athleteIDInt,
 		Date:      req.Date,
 		MealType:  req.MealType,
 		Items:     req.Items,
@@ -255,10 +290,21 @@ func (h *MealHandler) UpdateMeal(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Failed to delete meal"
 // @Router /meals/{id} [delete]
 func (h *MealHandler) DeleteMeal(c *gin.Context) {
-	mealID := c.Param("id")
+	mealIDStr := c.Param("id")
+	mealID, err := strconv.Atoi(mealIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid meal id"})
+		return
+	}
 	athleteID, _ := c.Get("userID")
 
-	err := h.mealService.DeleteMeal(c.Request.Context(), mealID, athleteID.(string))
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	err = h.mealService.DeleteMeal(c.Request.Context(), mealID, athleteIDInt)
 	if err != nil {
 		if svcErr, ok := err.(*services.ServiceError); ok {
 			if svcErr.Code == "FORBIDDEN" {
@@ -322,8 +368,14 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 		return
 	}
 
+	trainerIDInt, err := strconv.Atoi(trainerID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
 	result, err := h.mealService.GetClientMeals(c.Request.Context(), services.GetClientMealsInput{
-		TrainerID: trainerID.(string),
+		TrainerID: trainerIDInt,
 		ClientID:  athlete.UserID,
 		Limit:     limit,
 		Offset:    offset,

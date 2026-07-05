@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type MealType string
@@ -30,8 +28,8 @@ type FoodItem struct {
 
 type Meal struct {
 	Type      string     `json:"type"` // Always "meal"
-	MealID    string     `json:"mealId"`
-	AthleteID string     `json:"athleteId" validate:"required"`
+	MealID    int        `json:"mealId"`
+	AthleteID int        `json:"athleteId" validate:"required"`
 	Date      time.Time  `json:"date" validate:"required"`
 	MealType  MealType   `json:"mealType" validate:"required,oneof=breakfast lunch dinner snack"`
 	Items     []FoodItem `json:"items" validate:"required,min=1,dive"`
@@ -40,13 +38,12 @@ type Meal struct {
 }
 
 // NewMeal creates a new meal with generated ID and timestamps
-func NewMeal(athleteID string, date time.Time, mealType MealType, items []FoodItem) *Meal {
+func NewMeal(athleteID int, date time.Time, mealType MealType, items []FoodItem) *Meal {
 	now := time.Now()
-	mealID := uuid.New().String()
 
 	return &Meal{
 		Type:      "meal",
-		MealID:    mealID,
+		MealID:    0,
 		AthleteID: athleteID,
 		Date:      date,
 		MealType:  mealType,

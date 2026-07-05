@@ -59,11 +59,11 @@ export function EditWorkoutDialog({
         : dayjs().format("HH:mm"),
       exercises: workout
         ? workout.exercises.map((ex) => ({
-            exerciseId: ex.exerciseId,
+            exerciseId: String(ex.exerciseId),
             name: ex.name,
             notes: ex.notes,
             sets: ex.sets.map((set) => ({
-              setId: set.setId || "",
+              setId: set.setId ?? undefined,
               weight: set.weight,
               weightUnit: set.weightUnit,
               reps: set.reps,
@@ -104,11 +104,11 @@ export function EditWorkoutDialog({
         date: dayjs(workout.date).toDate(),
         workoutTime: dayjs(workout.date).format("HH:mm"),
         exercises: workout.exercises.map((ex) => ({
-          exerciseId: ex.exerciseId,
+          exerciseId: String(ex.exerciseId),
           name: ex.name,
           notes: ex.notes,
           sets: ex.sets.map((set) => ({
-            setId: set.setId || "",
+            setId: set.setId ?? undefined,
             weight: set.weight,
             weightUnit: set.weightUnit,
             reps: set.reps,
@@ -163,13 +163,12 @@ export function EditWorkoutDialog({
       }
 
       // Convert workout exercises to the format expected by the backend API
-      const exercises = validExercises.map((exercise: WorkoutExercise) => {
+      const exercises = validExercises.map((exercise) => {
         return {
-          exerciseId: exercise.exerciseId,
+          exerciseId: Number(exercise.exerciseId),
           name: exercise.name,
           notes: exercise.notes || "",
           sets: exercise.sets.map((set) => ({
-            setId: set.setId || "", // Preserve existing ID or let backend generate
             weight: set.weight,
             weightUnit: set.weightUnit,
             reps: set.reps,
@@ -291,7 +290,7 @@ export function EditWorkoutDialog({
                                   const newExercises = [...prev];
                                   newExercises[index] = {
                                     ...newExercises[index],
-                                    exerciseId: selectedExercise.exerciseId,
+                                    exerciseId: String(selectedExercise.exerciseId),
                                     name: selectedExercise.name,
                                   };
                                   return newExercises;

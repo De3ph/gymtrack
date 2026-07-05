@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
@@ -61,7 +61,7 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model
 
 	// Create new user
 	newUser := &models.User{
-		UserID:       uuid.New().String(),
+		UserID:       0,
 		Username:     req.Username,
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
@@ -107,12 +107,13 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 	}
 
 	// Generate tokens
-	accessToken, err := s.generateToken(user.UserID, user.Role, TokenTypeAccess, time.Hour)
+	userIDStr := strconv.Itoa(user.UserID)
+	accessToken, err := s.generateToken(userIDStr, user.Role, TokenTypeAccess, time.Hour)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	refreshToken, err := s.generateToken(user.UserID, user.Role, TokenTypeRefresh, time.Hour*24*7)
+	refreshToken, err := s.generateToken(userIDStr, user.Role, TokenTypeRefresh, time.Hour*24*7)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}

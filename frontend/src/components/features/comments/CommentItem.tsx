@@ -16,9 +16,9 @@ import { updateCommentSchema } from "@/lib/validations/comment"
 interface CommentItemProps {
   comment: Comment
   targetType: "workout" | "meal"
-  targetId: string
+  targetId: string | number
   isReply?: boolean
-  onReply?: (parentCommentId: string) => void
+  onReply?: (parentCommentId: string | number) => void
   queryKey: (string | number)[]
 }
 
@@ -40,7 +40,7 @@ export function CommentItem({
   const isOwn = user?.userId === comment.authorId
 
   const { mutate: updateComment, isPending: isUpdating } = useMutation({
-    mutationFn: ({ id, content }: { id: string; content: string }) =>
+    mutationFn: ({ id, content }: { id: string | number; content: string }) =>
       commentApi.update(id, { content }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
@@ -49,7 +49,7 @@ export function CommentItem({
   })
 
   const { mutate: deleteComment, isPending: isDeleting } = useMutation({
-    mutationFn: (id: string) => commentApi.delete(id),
+    mutationFn: (id: string | number) => commentApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
     }
