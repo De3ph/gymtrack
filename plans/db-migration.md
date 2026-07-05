@@ -417,7 +417,7 @@ POSTGRES_DSN="postgres://postgres:password@localhost:5432/gymtrack?sslmode=disab
 
 ---
 
-### Task 5: Create internal/testutils/postgres.go
+### Task 5: Create internal/testutils/postgres.go - DONE
 
 **What to do**:
 - Create `backend/internal/testutils/postgres.go` with:
@@ -445,9 +445,9 @@ POSTGRES_DSN="postgres://postgres:password@localhost:5432/gymtrack?sslmode=disab
 - `backend/internal/testutils/` — Existing test utils directory
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/testutils/postgres.go` exists
-- [ ] `SetupTestPostgresDB` returns `(*pgxpool.Pool, func())`
-- [ ] `go build ./internal/testutils/...` passes
+- [x] `backend/internal/testutils/postgres.go` exists
+- [x] `SetupTestPostgresDB` returns `(*pgxpool.Pool, func())`
+- [x] `go build ./internal/testutils/...` passes
 - [ ] Test container starts and terminates cleanly in a sample test
 
 **QA Scenarios**:
