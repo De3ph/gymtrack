@@ -221,7 +221,7 @@ git status --porcelain | wc -l  # should be 0
 
 ---
 
-### Task 1: Add pgx, sqlx, testcontainers to go.mod
+### Task 1: Add pgx, sqlx, testcontainers to go.mod - DONE
 
 **What to do**:
 - Run `cd backend && go get github.com/jackc/pgx/v5 github.com/jackc/pgx/v5/pgxpool github.com/jmoiron/sqlx github.com/testcontainers/testcontainers-go`
@@ -247,10 +247,10 @@ git status --porcelain | wc -l  # should be 0
 - `backend/go.mod` — Target file
 
 **Acceptance Criteria**:
-- [ ] `grep pgx go.mod` shows pgx/v5
-- [ ] `grep sqlx go.mod` shows sqlx
-- [ ] `grep testcontainers go.mod` shows testcontainers-go
-- [ ] `go build ./...` passes
+- [x] `grep pgx go.mod` shows pgx/v5
+- [x] `grep sqlx go.mod` shows sqlx
+- [x] `grep testcontainers go.mod` shows testcontainers-go
+- [x] `go build ./...` passes
 
 **QA Scenarios**:
 ```bash
@@ -293,10 +293,10 @@ go build ./...
 - Blueprint §10: Connection string template
 
 **Acceptance Criteria**:
-- [ ] `docker-compose.yml` exists at repo root
-- [ ] `docker compose up -d` starts PostgreSQL
-- [ ] `docker compose ps` shows healthy status
-- [ ] Can connect with: `docker compose exec db psql -U postgres -d gymtrack -c "SELECT 1"`
+- [x] `docker-compose.yml` exists at repo root
+- [x] `docker compose up -d` starts PostgreSQL
+- [x] `docker compose ps` shows healthy status
+- [x] Can connect with: `docker compose exec db psql -U postgres -d fitness_app -c "SELECT 1"`
 
 **QA Scenarios**:
 ```bash
@@ -320,6 +320,7 @@ docker compose exec db psql -U postgres -d gymtrack -c "SELECT version()"
   - 2 lookup tables (muscle_groups, equipment_definitions)
   - All indexes: GIN on JSONB columns, expression indexes on body_measurements.paths, B-tree on foreign keys
   - All CHECK constraints and foreign keys
+- **All PKs are SERIAL (INTEGER)** — changed from UUID per user decision. All FK columns are INTEGER.
 - Create `backend/migrations/001_initial_schema.down.sql` with `DROP TABLE IF EXISTS` for all tables in reverse dependency order
 - Apply schema to running PostgreSQL: `docker compose exec -T db psql -U postgres -d gymtrack < backend/migrations/001_initial_schema.up.sql`
 - Verify all tables created: `\dt` should show 15 tables
@@ -342,12 +343,12 @@ docker compose exec db psql -U postgres -d gymtrack -c "SELECT version()"
 - `backend/internal/domain/models/` — All model structs for column verification
 
 **Acceptance Criteria**:
-- [ ] `backend/migrations/001_initial_schema.up.sql` exists with 15 CREATE TABLE statements
-- [ ] `backend/migrations/001_initial_schema.down.sql` exists with 15 DROP TABLE statements
-- [ ] Schema applies without errors to running PostgreSQL
-- [ ] `\dt` shows exactly 15 tables
-- [ ] All indexes exist (check with `\di`)
-- [ ] All foreign keys exist (check with `\d+ tablename`)
+- [x] `backend/migrations/001_initial_schema.up.sql` exists with 15 CREATE TABLE statements
+- [x] `backend/migrations/001_initial_schema.down.sql` exists with 15 DROP TABLE statements
+- [x] Schema applies without errors to running PostgreSQL
+- [x] `\dt` shows exactly 15 tables
+- [x] All indexes exist (check with `\di`)
+- [x] All foreign keys exist (check with `\d+ tablename`)
 
 **QA Scenarios**:
 ```bash
@@ -1767,6 +1768,68 @@ go test -v ./internal/repository/postgres/... 2>&1 | grep -c "PASS"
 ```
 
 **Commit**: `test(repo/postgres): add comprehensive unit tests for all repositories`
+
+---
+
+### Task 26: Migrate model ID fields from string → int (SERIAL PK alignment)
+
+**What to do**:
+- Change all domain model ID fields (`ID`, `AthleteID`, `TrainerID`, `CreatedBy`, `AuthorID`, etc.) from `string` → `int` across the entire codebase
+- Files affected (non-exhaustive):
+  - All `backend/internal/domain/models/*.go` — struct field types
+  - All `backend/internal/repository/couchbase/*.go` — method signatures, JSON/CBJSON deserialization
+  - All `backend/internal/repository/postgres/*.go` — method signatures, SQL scanning
+  - All `backend/internal/handler/*.go` — request/response types, URL param parsing
+  - All `backend/internal/handler/interfaces/*.go` — interface method signatures
+  - All `backend/internal/service/*.go` — service layer method signatures
+  - `frontend/src/types/*.ts` — frontend type definitions
+- Update `MarshalToJSONB` / `UnmarshalFromJSONB` helpers in `backend/internal/repository/postgres/helpers.go` — no longer needed if they were UUID-only; remove or generalize
+- Remove `IsUUID` helper if no longer used
+- Update JSON serialization expectations: integer IDs will serialize as numbers in JSON (not quoted strings)
+
+**Must NOT do**:
+- Do NOT change DB column names or SQL column aliases
+- Do NOT change frontend API endpoint paths
+- Do NOT rename struct field names (only change types)
+- Do NOT remove non-id fields
+
+**Recommended Agent Profile**: `unspecified-high` (but should be split into 3-4 parallel sub-agents)
+- Reason: Massive cross-cutting type change across Go backend + TypeScript frontend
+- Skills: `golang-code-style`, `golang-structs-interfaces`, `golang-patterns`, `coding-standards`
+
+**Parallelization**:
+- **Can Run In Parallel**: Decompose into sub-tasks (models, repos, handlers, frontend)
+- **Blocks**: Final verification (F1-F4)
+- **Blocked By**: Tasks 1-3 (schema with SERIAL PKs)
+
+**References**:
+- `backend/internal/domain/models/` — All model structs
+- `backend/internal/repository/` — Both couchbase and postgres repos
+- `backend/internal/handler/` — All handler files
+- `backend/internal/handler/interfaces/` — Interface definitions
+- `frontend/src/types/` — Frontend TypeScript types
+
+**Acceptance Criteria**:
+- [ ] `go build ./...` passes with zero errors
+- [ ] All ID fields across Go models are `int` (not `string`)
+- [ ] All repository method signatures accept/return `int` IDs
+- [ ] All handler methods parse URL params as integers
+- [ ] Frontend type definitions have `number` (not `string`) for ID fields
+- [ ] `go test ./...` passes
+
+**QA Scenarios**:
+```bash
+cd D:/Dev/gymtrack/backend
+go build ./...
+go test ./...
+# Verify no string IDs remain in models
+grep -rn "ID\s*string" internal/domain/models/
+# Should return zero matches
+grep -rn "AthleteID\s*string" internal/domain/models/
+# Should return zero matches
+```
+
+**Commit**: `refactor(models): migrate all ID fields from string to int for SERIAL PKs`
 
 ---
 

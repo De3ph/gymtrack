@@ -1,12 +1,12 @@
 -- Migration 001: Initial PostgreSQL Schema for GymTrack
--- Generated from couchbase_to_postgresql_migration_blueprint.md §3
+-- All domain tables use SERIAL (auto-incrementing INTEGER) primary keys.
 -- Run order: Tables first (respecting FK dependencies), then indexes
 
 -- ============================================================================
 -- 1. USERS & PROFILES (no FK dependencies)
 -- ============================================================================
 CREATE TABLE users (
-    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id SERIAL PRIMARY KEY,
     username VARCHAR(30) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
@@ -21,14 +21,12 @@ CREATE INDEX idx_users_email ON users(email);
 -- ============================================================================
 -- 2. LOOKUP TABLES (no FK dependencies, SERIAL PKs)
 -- ============================================================================
--- Muscle Groups (SERIAL - stable enumeration; int FK from exercises)
 CREATE TABLE muscle_groups (
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     description TEXT
 );
 
--- Equipment (SERIAL - stable enumeration; int FK from exercises)
 CREATE TABLE equipment_definitions (
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
@@ -39,14 +37,14 @@ CREATE TABLE equipment_definitions (
 -- 3. EXERCISES (FK -> users, muscle_groups, equipment_definitions)
 -- ============================================================================
 CREATE TABLE exercises (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
     legacy_id TEXT UNIQUE,
     name VARCHAR(255) NOT NULL,
     category VARCHAR(50) NOT NULL,
     muscle_group_id INTEGER REFERENCES muscle_groups(id),
     equipment_id INTEGER REFERENCES equipment_definitions(id),
     instructions TEXT,
-    created_by UUID REFERENCES users(user_id) ON DELETE SET NULL,
+    created_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX idx_exercises_category ON exercises(category);
@@ -58,9 +56,9 @@ CREATE INDEX idx_exercises_name ON exercises(name);
 -- 4. RELATIONSHIPS (FK -> users x2)
 -- ============================================================================
 CREATE TABLE relationships (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trainer_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    athlete_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    athlete_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL CHECK (status IN ('pending','active','terminated')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -73,9 +71,9 @@ CREATE INDEX idx_relationships_athlete ON relationships(athlete_id, status);
 -- 5. COACHING REQUESTS (FK -> users x2)
 -- ============================================================================
 CREATE TABLE coaching_requests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    athlete_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    trainer_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    athlete_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     message TEXT,
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted','rejected')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -88,9 +86,9 @@ CREATE INDEX idx_coaching_requests_trainer ON coaching_requests(trainer_id, stat
 -- 6. TRAINER REVIEWS (FK -> users x2)
 -- ============================================================================
 CREATE TABLE trainer_reviews (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trainer_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    athlete_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    athlete_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -103,8 +101,8 @@ CREATE INDEX idx_reviews_trainer ON trainer_reviews(trainer_id);
 -- 7. TRAINER AVAILABILITIES (FK -> users)
 -- ============================================================================
 CREATE TABLE trainer_availabilities (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trainer_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     day_of_week INT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
@@ -119,29 +117,29 @@ CREATE INDEX idx_availability_trainer_day ON trainer_availabilities(trainer_id, 
 -- 8. INVITATIONS (FK -> users x2)
 -- ============================================================================
 CREATE TABLE invitations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trainer_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     code VARCHAR(32) NOT NULL UNIQUE,
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','used','expired')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
     used_at TIMESTAMPTZ,
-    athlete_id UUID REFERENCES users(user_id) ON DELETE SET NULL
+    athlete_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL
 );
 CREATE INDEX idx_invitations_code ON invitations(code);
 CREATE INDEX idx_invitations_trainer ON invitations(trainer_id, status);
 
 -- ============================================================================
--- 9. COMMENTS (FK -> users, self-referencing)
+-- 9. COMMENTS (FK -> users, self-referencing; target_id polymorphic)
 -- ============================================================================
 CREATE TABLE comments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
     target_type VARCHAR(10) NOT NULL CHECK (target_type IN ('workout','meal')),
-    target_id UUID NOT NULL,
-    author_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    target_id INTEGER NOT NULL,
+    author_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     author_role VARCHAR(10) NOT NULL CHECK (author_role IN ('trainer','athlete')),
     content TEXT NOT NULL CHECK (LENGTH(content) BETWEEN 1 AND 2000),
-    parent_comment_id UUID REFERENCES comments(id) ON DELETE SET NULL,
+    parent_comment_id INTEGER REFERENCES comments(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     edited_at TIMESTAMPTZ
 );
@@ -153,8 +151,8 @@ CREATE INDEX idx_comments_parent ON comments(parent_comment_id);
 -- 10. WORKOUT PLANS (FK -> users) - must be before workouts
 -- ============================================================================
 CREATE TABLE workout_plans (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trainer_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     exercises JSONB NOT NULL DEFAULT '[]',
@@ -168,10 +166,10 @@ CREATE INDEX idx_workout_plans_exercises_gin ON workout_plans USING GIN (exercis
 -- 11. WORKOUTS (FK -> users, workout_plans)
 -- ============================================================================
 CREATE TABLE workouts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    athlete_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    athlete_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     date DATE NOT NULL,
-    plan_id UUID NULL REFERENCES workout_plans(id) ON DELETE SET NULL,
+    plan_id INTEGER NULL REFERENCES workout_plans(id) ON DELETE SET NULL,
     exercises JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -184,8 +182,8 @@ CREATE INDEX idx_workouts_exercises_gin ON workouts USING GIN (exercises);
 -- 12. MEALS (FK -> users)
 -- ============================================================================
 CREATE TABLE meals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    athlete_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    athlete_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     date DATE NOT NULL,
     meal_type VARCHAR(10) NOT NULL CHECK (meal_type IN ('breakfast','lunch','dinner','snack')),
     items JSONB NOT NULL,
@@ -199,8 +197,8 @@ CREATE INDEX idx_meals_items_gin ON meals USING GIN (items);
 -- 13. BODY MEASUREMENTS (FK -> users, JSONB parts with expression indexes)
 -- ============================================================================
 CREATE TABLE body_measurements (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    athlete_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    athlete_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     date DATE NOT NULL,
     weight DECIMAL(10,2) NOT NULL CHECK (weight >= 0),
     weight_unit VARCHAR(3) NOT NULL CHECK (weight_unit IN ('kg','lbs')),
@@ -232,10 +230,10 @@ CREATE INDEX idx_bm_parts_gin ON body_measurements USING GIN (parts);
 -- 14. WORKOUT PLAN ASSIGNMENTS (FK -> workout_plans, users x2)
 -- ============================================================================
 CREATE TABLE workout_plan_assignments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    plan_id UUID NOT NULL REFERENCES workout_plans(id) ON DELETE CASCADE,
-    athlete_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    trainer_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    plan_id INTEGER NOT NULL REFERENCES workout_plans(id) ON DELETE CASCADE,
+    athlete_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(plan_id, athlete_id)
