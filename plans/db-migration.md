@@ -1,4 +1,4 @@
-﻿# Couchbase → PostgreSQL Migration
+# Couchbase → PostgreSQL Migration
 
 ## TL;DR
 
@@ -27,9 +27,9 @@ Optimize `plans/couchbase_to_postgresql_migration_blueprint.md` for agent execut
 `plans/couchbase_to_postgresql_migration_blueprint.md` (v1.1) — comprehensive design document covering schema, ID strategy, DI wiring, query patterns, and migration pipeline.
 
 ### Key Design Decisions (from blueprint, verified)
-- **All domain tables**: UUID PKs matching existing UUID string fields — no FK type mismatch, no frontend churn
+- **All domain tables**: SERIAL (auto-incrementing INTEGER) PKs — no UUID overhead, page-level perf
 - **Lookup tables** (`muscle_groups`, `equipment_definitions`): SERIAL/INTEGER PKs (seeded int IDs 1-8)
-- **exercises.legacy_id**: For seeded non-UUID IDs ("exercise_Bench Press"); deterministic UUID v5 replacement
+- **exercises.legacy_id**: TEXT column for migration tracing; PK is integer SERIAL
 - **JSONB arrays**: `workouts.exercises`, `meals.items`, `workout_plans.exercises` stay JSONB
 - **body_measurements.parts**: JSONB source of truth with expression indexes on 13 supported paths
 - **DI strategy**: Keep 14 interfaces, swap fx providers, rollback = one-line revert
@@ -60,7 +60,7 @@ Replace Couchbase persistence with PostgreSQL while preserving all repository in
 
 ### Must Have
 - All 14 repository interfaces implemented in `internal/repository/postgres/` with unchanged method signatures
-- Schema matches §3 DDL exactly (UUID PKs, GIN indexes, expression indexes, CHECK constraints, FKs)
+- Schema matches §3 DDL (SERIAL PKs instead of UUID, GIN indexes, expression indexes, CHECK constraints, FKs)
 - Migration handles exercise legacy_id rewrite in JSONB arrays
 - Unit tests for each repository using testcontainers
 - Rollback: one-line change in module.go to restore Couchbase impls
@@ -70,9 +70,8 @@ Replace Couchbase persistence with PostgreSQL while preserving all repository in
 - Do NOT add Couchbase dependencies to Postgres repository files
 - Do NOT add shared types or code-gen between frontend/backend
 - Do NOT modify service layer code
-- Do NOT change frontend API contracts (IDs remain strings)
 - Do NOT modify existing Couchbase repository files (keep for rollback)
-- Do NOT add uuid-ossp extension (gen_random_uuid() is built-in in PG 13+)
+- Do NOT add UUID-related extensions or types (SERIAL PKs — no UUID columns)
 
 ---
 
@@ -110,34 +109,35 @@ Wave 1 (Infrastructure — all parallel, depend on 0):
 ├── 3: Create migrations/ with full schema DDL [quick]
 ├── 4: Create config.ProvidePostgresPool [quick]
 ├── 5: Create internal/testutils/postgres.go [quick]
-└── 6: Create cmd/migrate/main.go scaffold [quick]
+├── 6: Migrate model ID fields string→int [unspecified-high] (NEW — must run before repos)
+└── 7: Create cmd/migrate/main.go scaffold [quick]
 
-Wave 2 (Core repos — all parallel, depend on 1-6):
-├── 7: PostgresUserRepository [unspecified-high]
-├── 8: PostgresRelationshipRepository [unspecified-high]
-├── 9: PostgresCoachingRequestRepository [unspecified-high]
-├── 10: PostgresTrainerReviewRepository [unspecified-high]
-├── 11: PostgresTrainerProfileRepository [unspecified-high]
-└── 12: PostgresCommentRepository [unspecified-high]
+Wave 2 (Core repos — all parallel, depend on 1-7):
+├── 8: PostgresUserRepository [unspecified-high]
+├── 9: PostgresRelationshipRepository [unspecified-high]
+├── 10: PostgresCoachingRequestRepository [unspecified-high]
+├── 11: PostgresTrainerReviewRepository [unspecified-high]
+├── 12: PostgresTrainerProfileRepository [unspecified-high]
+└── 13: PostgresCommentRepository [unspecified-high]
 
-Wave 3 (JSONB repos — all parallel, depend on 1-6):
-├── 13: PostgresWorkoutRepository (exercises JSONB) [deep]
-├── 14: PostgresMealRepository (items JSONB) [deep]
-├── 15: PostgresBodyMeasurementRepository (parts JSONB) [deep]
-├── 16: PostgresWorkoutPlanRepository (exercises JSONB + order) [deep]
-└── 17: PostgresWorkoutPlanAssignmentRepository [unspecified-high]
+Wave 3 (JSONB repos — all parallel, depend on 1-7):
+├── 14: PostgresWorkoutRepository (exercises JSONB) [deep]
+├── 15: PostgresMealRepository (items JSONB) [deep]
+├── 16: PostgresBodyMeasurementRepository (parts JSONB) [deep]
+├── 17: PostgresWorkoutPlanRepository (exercises JSONB + order) [deep]
+└── 18: PostgresWorkoutPlanAssignmentRepository [unspecified-high]
 
 Wave 4 (Exercise + migration — depend on 2, 3):
-├── 18: PostgresExerciseRepository (legacy_id + UUID v5) [deep]
-├── 19: Port seed data (muscle_groups, equipment_definitions) [quick]
-└── 20: Build migration runner load logic + legacyIDMap rewrite [deep]
+├── 19: PostgresExerciseRepository (int PK + legacy_id TEXT) [deep]
+├── 20: Port seed data (muscle_groups, equipment_definitions) [quick]
+└── 21: Build migration runner load logic + exerciseIDMap rewrite [deep]
 
 Wave 5 (DI wiring + cleanup — depend on 4):
-├── 21: Rewrite module.go (swap fx providers) [deep]
-├── 22: Remove Couchbase deps from AppProvider/config [unspecified-high]
-├── 23: Add JSONB query helpers [quick]
-├── 24: Fix CoachingRequest cbjson tags → json [quick]
-└── 25: Write unit tests for all repos [unspecified-high]
+├── 22: Rewrite module.go (swap fx providers) [deep]
+├── 23: Remove Couchbase deps from AppProvider/config [unspecified-high]
+├── 24: Add JSONB query helpers [quick]
+├── 25: Fix CoachingRequest cbjson tags → json [quick]
+└── 26: Write unit tests for all repos [unspecified-high]
 
 Wave FINAL (4 parallel reviews → user okay):
 ├── F1: Plan compliance audit (oracle)
@@ -265,7 +265,7 @@ go build ./...
 
 ---
 
-### Task 2: Create docker-compose.yml for PostgreSQL 16
+### Task 2: Create docker-compose.yml for PostgreSQL 16 - DONE
 
 **What to do**:
 - Create `docker-compose.yml` at repository root (`D:/Dev/gymtrack/docker-compose.yml`)
@@ -311,7 +311,7 @@ docker compose exec db psql -U postgres -d gymtrack -c "SELECT version()"
 
 ---
 
-### Task 3: Create migrations/ with full schema DDL
+### Task 3: Create migrations/ with full schema DDL - DONE
 
 **What to do**:
 - Create `backend/migrations/` directory
@@ -326,7 +326,7 @@ docker compose exec db psql -U postgres -d gymtrack -c "SELECT version()"
 - Verify all tables created: `\dt` should show 15 tables
 
 **Must NOT do**:
-- Do NOT use uuid-ossp extension (gen_random_uuid() is built-in in PG 13+)
+- Do NOT add UUID columns anywhere — all PKs are SERIAL (INTEGER)
 - Do NOT add data seeding SQL (that's Task 19)
 - Do NOT use migration frameworks (golang-migrate, goose) — just raw SQL files
 
@@ -370,7 +370,7 @@ docker compose exec db psql -U postgres -d gymtrack -c "\dt"  # should be empty
 
 ---
 
-### Task 4: Create config.ProvidePostgresPool
+### Task 4: Create config.ProvidePostgresPool - DONE
 
 **What to do**:
 - Create `backend/internal/config/postgres.go` with:
@@ -399,10 +399,10 @@ docker compose exec db psql -U postgres -d gymtrack -c "\dt"  # should be empty
 - `backend/internal/config/couchbase.go` — Existing ProvideCouchbaseConnection pattern
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/config/postgres.go` exists
-- [ ] `ProvidePostgresPool` returns `*pgxpool.Pool`
-- [ ] `go build ./internal/config/...` passes
-- [ ] Can connect to running PostgreSQL: `POSTGRES_DSN=postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable go run -exec "echo connected" ./internal/config/`
+- [x] `backend/internal/config/postgres.go` exists
+- [x] `ProvidePostgresPool` returns `*pgxpool.Pool`
+- [x] `go build ./internal/config/...` passes
+- [x] Can connect to running PostgreSQL: `POSTGRES_DSN=postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable go run -exec "echo connected" ./internal/config/`
 
 **QA Scenarios**:
 ```bash
@@ -464,7 +464,69 @@ ls -la internal/testutils/migrations/
 
 ---
 
-### Task 6: Create cmd/migrate/main.go scaffold
+### Task 6: Migrate model ID fields from string → int (SERIAL PK alignment)
+
+**What to do**:
+- Change all domain model ID fields (`ID`, `AthleteID`, `TrainerID`, `CreatedBy`, `AuthorID`, etc.) from `string` → `int` across the entire codebase
+- Files affected (non-exhaustive):
+  - All `backend/internal/domain/models/*.go` — struct field types
+  - All `backend/internal/repository/couchbase/*.go` — method signatures, JSON/CBJSON deserialization
+  - All `backend/internal/repository/postgres/*.go` — method signatures, SQL scanning
+  - All `backend/internal/handler/*.go` — request/response types, URL param parsing
+  - All `backend/internal/handler/interfaces/*.go` — interface method signatures
+  - All `backend/internal/service/*.go` — service layer method signatures
+  - `frontend/src/types/*.ts` — frontend type definitions
+- Update `MarshalToJSONB` / `UnmarshalFromJSONB` helpers in `backend/internal/repository/postgres/helpers.go` — no longer needed if they were UUID-only; remove or generalize
+- Remove `IsUUID` helper if no longer used
+- Update JSON serialization expectations: integer IDs will serialize as numbers in JSON (not quoted strings)
+
+**Must NOT do**:
+- Do NOT change DB column names or SQL column aliases
+- Do NOT change frontend API endpoint paths
+- Do NOT rename struct field names (only change types)
+- Do NOT remove non-id fields
+
+**Recommended Agent Profile**: `unspecified-high` (but should be split into 3-4 parallel sub-agents)
+- Reason: Massive cross-cutting type change across Go backend + TypeScript frontend
+- Skills: `golang-code-style`, `golang-structs-interfaces`, `golang-patterns`, `coding-standards`
+
+**Parallelization**:
+- **Can Run In Parallel**: Decompose into sub-tasks (models, repos, handlers, frontend)
+- **Blocks**: Tasks 7-27, Final verification (F1-F4) — all downstream code uses model types
+- **Blocked By**: Tasks 1-3 (schema with SERIAL PKs)
+
+**References**:
+- `backend/internal/domain/models/` — All model structs
+- `backend/internal/repository/` — Both couchbase and postgres repos
+- `backend/internal/handler/` — All handler files
+- `backend/internal/handler/interfaces/` — Interface definitions
+- `frontend/src/types/` — Frontend TypeScript types
+
+**Acceptance Criteria**:
+- [ ] `go build ./...` passes with zero errors
+- [ ] All ID fields across Go models are `int` (not `string`)
+- [ ] All repository method signatures accept/return `int` IDs
+- [ ] All handler methods parse URL params as integers
+- [ ] Frontend type definitions have `number` (not `string`) for ID fields
+- [ ] `go test ./...` passes
+
+**QA Scenarios**:
+```bash
+cd D:/Dev/gymtrack/backend
+go build ./...
+go test ./...
+# Verify no string IDs remain in models
+grep -rn "ID\s*string" internal/domain/models/
+# Should return zero matches
+grep -rn "AthleteID\s*string" internal/domain/models/
+# Should return zero matches
+```
+
+**Commit**: `refactor(models): migrate all ID fields from string to int for SERIAL PKs`
+
+---
+
+### Task 7: Create cmd/migrate/main.go scaffold
 
 **What to do**:
 - Create `backend/cmd/migrate/main.go` with CLI scaffold:
@@ -515,7 +577,7 @@ go build ./cmd/migrate/...
 
 ---
 
-### Task 7: Implement PostgresUserRepository
+### Task 8: Implement PostgresUserRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/user.go`
@@ -575,7 +637,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresUserRepository
 
 ---
 
-### Task 8: Implement PostgresRelationshipRepository
+### Task 9: Implement PostgresRelationshipRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/relationship.go`
@@ -637,7 +699,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresRelationshipReposito
 
 ---
 
-### Task 9: Implement PostgresCoachingRequestRepository
+### Task 10: Implement PostgresCoachingRequestRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/coaching_request.go`
@@ -696,7 +758,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepos
 
 ---
 
-### Task 10: Implement PostgresTrainerReviewRepository
+### Task 11: Implement PostgresTrainerReviewRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/trainer_review.go`
@@ -758,7 +820,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerReviewReposit
 
 ---
 
-### Task 11: Implement PostgresTrainerProfileRepository
+### Task 12: Implement PostgresTrainerProfileRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/trainer_profile.go`
@@ -818,7 +880,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerProfileReposi
 
 ---
 
-### Task 12: Implement PostgresCommentRepository
+### Task 13: Implement PostgresCommentRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/comment.go`
@@ -880,7 +942,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCommentRepository
 
 ---
 
-### Task 13: Implement PostgresWorkoutRepository
+### Task 14: Implement PostgresWorkoutRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/workout.go`
@@ -946,7 +1008,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutRepository
 
 ---
 
-### Task 14: Implement PostgresMealRepository
+### Task 15: Implement PostgresMealRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/meal.go`
@@ -1012,7 +1074,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresMealRepository
 
 ---
 
-### Task 15: Implement PostgresBodyMeasurementRepository
+### Task 16: Implement PostgresBodyMeasurementRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/body_measurement.go`
@@ -1079,7 +1141,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
 
 ---
 
-### Task 16: Implement PostgresWorkoutPlanRepository
+### Task 17: Implement PostgresWorkoutPlanRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/workout_plan.go`
@@ -1141,7 +1203,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepositor
 
 ---
 
-### Task 17: Implement PostgresWorkoutPlanAssignmentRepository
+### Task 18: Implement PostgresWorkoutPlanAssignmentRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/workout_plan_assignment.go`
@@ -1201,7 +1263,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 
 ---
 
-### Task 18: Implement PostgresExerciseRepository
+### Task 19: Implement PostgresExerciseRepository
 
 **What to do**:
 - Create `backend/internal/repository/postgres/exercise.go`
@@ -1217,10 +1279,8 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
   Update(ctx context.Context, exercise *models.Exercise) error
   Delete(ctx context.Context, exerciseID string) error
   ```
-- **CRITICAL**: `GetByID` must handle both UUID and legacy_id formats:
-  - If `exerciseID` matches UUID pattern (`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`), query by `id` column
-  - Otherwise, query by `legacy_id` column
-- Use regex: `var uuidRegex = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)`
+- **CRITICAL**: `GetByID` takes `exerciseID int` — queries by integer PK
+- For legacy_id lookups (migration tracing), add a separate `GetByLegacyID(ctx, legacyID string)` if needed
 - `Search` uses `ILIKE` on `name` column: `WHERE name ILIKE $1` (with `%query%` wrapping)
 - `GetByMuscleGroupID` and `GetByEquipmentID` use integer foreign keys
 - Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
@@ -1230,10 +1290,10 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 - Do NOT modify `internal/domain/repositories/exercise_repository.go`
 - Do NOT import `github.com/couchbase/gocb/v2`
 - Do NOT add new methods not in the interface
-- Do NOT convert legacy_id to UUID in the repository (that's migration logic, not repository logic)
+- Do NOT add UUID parsing or generation logic to the repository (IDs are integers)
 
 **Recommended Agent Profile**: `deep`
-- Reason: Dual ID format handling (UUID vs legacy_id), regex validation
+- Reason: Integer PK operations, legacy_id TEXT column handling
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
@@ -1245,8 +1305,8 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 - `backend/internal/domain/repositories/exercise_repository.go` — Interface definition
 - `backend/internal/repository/couchbase/exercise_repository.go` — Couchbase implementation
 - `backend/internal/domain/models/exercise.go` — Exercise struct
-- Blueprint §3.1: exercises table DDL (id UUID, legacy_id TEXT)
-- Blueprint §4: ID mapping strategy (legacy_id for non-UUID exercise IDs)
+- Blueprint §3.1: exercises table DDL (exercise_id SERIAL, legacy_id TEXT)
+- Blueprint §4: ID mapping strategy (legacy_id as migration tracing column)
 
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/exercise.go` exists
@@ -1254,8 +1314,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 - [ ] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/exercise_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresExerciseRepository` passes
-- [ ] Test covers: Create, GetByID (with UUID), GetByID (with legacy_id), GetAll, GetByMuscleGroupID, GetByEquipmentID, Search, Update, Delete
-- [ ] Test verifies UUID regex correctly identifies UUID vs legacy_id format
+- [ ] Test covers: Create, GetByID, GetByLegacyID (if implemented), GetAll, GetByMuscleGroupID, GetByEquipmentID, Search, Update, Delete
 - [ ] Test verifies Search uses ILIKE for case-insensitive matching
 
 **QA Scenarios**:
@@ -1263,15 +1322,13 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 cd D:/Dev/gymtrack/backend
 go build ./internal/repository/postgres/...
 go test -v ./internal/repository/postgres/ -run TestPostgresExerciseRepository
-# Verify UUID regex works
-go test -v ./internal/repository/postgres/ -run TestExerciseIDFormat
 ```
 
 **Commit**: `feat(repo/postgres): implement PostgresExerciseRepository`
 
 ---
 
-### Task 19: Port seed data (muscle_groups, equipment_definitions)
+### Task 20: Port seed data (muscle_groups, equipment_definitions)
 
 **What to do**:
 - Create `backend/internal/repository/postgres/seed.go`
@@ -1337,16 +1394,16 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT COUNT(
 
 ---
 
-### Task 20: Build migration runner load logic + legacyIDMap rewrite
+### Task 21: Build migration runner load logic + exerciseIDMap rewrite
 
 **What to do**:
 - Create `backend/cmd/migrate/runner.go`
 - Implement `RunMigration(ctx context.Context, couchbaseClient *gocb.Cluster, pgPool *pgxpool.Pool) error`
-- **Phase 1: Build legacyIDMap**
+- **Phase 1: Build exerciseIDMap**
   - Query all exercises from Couchbase
-  - For each exercise with non-UUID ID (e.g., "exercise_Bench Press"):
-    - Generate deterministic UUID v5: `uuid.NewSHA1(uuid.NameSpaceURL, []byte("gymtrack-exercise-"+legacyID))`
-    - Store mapping: `legacyIDMap[legacyID] = newUUID`
+  - For each exercise, track the mapping: `exerciseIDMap[oldCouchbaseID] = newSerialID`
+  - After inserting exercises into PostgreSQL, query back the generated SERIAL IDs
+  - Map legacy_id values (TEXT column) to new SERIAL PKs for JSONB rewrite
 - **Phase 2: Migrate in FK-safe order**
   - Migrate users (no dependencies)
   - Migrate relationships (depends on users)
@@ -1356,15 +1413,15 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT COUNT(
   - Migrate comments (depends on users)
   - Migrate muscle_groups (no dependencies)
   - Migrate equipment_definitions (no dependencies)
-  - Migrate exercises (depends on muscle_groups, equipment_definitions, users; use legacyIDMap)
-  - Migrate workouts (depends on users; rewrite exercise IDs in JSONB using legacyIDMap)
+  - Migrate exercises (depends on muscle_groups, equipment_definitions, users; build exerciseIDMap)
+  - Migrate workouts (depends on users; rewrite exercise IDs in JSONB using exerciseIDMap)
   - Migrate meals (depends on users)
   - Migrate body_measurements (depends on users)
-  - Migrate workout_plans (depends on users; rewrite exercise IDs in JSONB using legacyIDMap)
+  - Migrate workout_plans (depends on users; rewrite exercise IDs in JSONB using exerciseIDMap)
   - Migrate workout_plan_assignments (depends on workout_plans, users)
 - **Phase 3: Rewrite JSONB exercise IDs**
-  - For workouts: unmarshal exercises JSONB, replace `exerciseId` values using legacyIDMap, re-marshal
-  - For workout_plans: unmarshal exercises JSONB, replace `exerciseId` values using legacyIDMap, re-marshal
+  - For workouts: unmarshal exercises JSONB, replace `exerciseId` values using exerciseIDMap, re-marshal
+  - For workout_plans: unmarshal exercises JSONB, replace `exerciseId` values using exerciseIDMap, re-marshal
 - **Phase 4: Verify migration**
   - Compare row counts: Couchbase vs PostgreSQL for each collection
   - Log any discrepancies
@@ -1375,12 +1432,12 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT COUNT(
 **Must NOT do**:
 - Do NOT modify existing repository files
 - Do NOT use repository implementations (migration uses direct pgx queries for performance)
-- Do NOT skip the legacyIDMap rewrite (workouts and workout_plans will have broken exercise references)
+- Do NOT skip the exerciseIDMap rewrite (workouts and workout_plans will have broken exercise references)
 - Do NOT migrate in arbitrary order (FK violations will occur)
 - Do NOT use batch inserts without transactions (partial failures will corrupt data)
 
 **Recommended Agent Profile**: `deep`
-- Reason: Complex multi-phase migration, JSONB rewriting, UUID v5 generation, FK ordering
+- Reason: Complex multi-phase migration, JSONB rewriting, SERIAL ID mapping, FK ordering
 - Skills: `golang-patterns`, `golang-error-handling`, `golang-concurrency`
 
 **Parallelization**:
@@ -1392,7 +1449,7 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT COUNT(
 - `backend/cmd/migrate/main.go` — Migration CLI scaffold (Task 6)
 - Blueprint §4: Data migration pipeline
 - Blueprint §4.1: Load order (FK-safe sequence)
-- Blueprint §4.2: legacyIDMap rewrite algorithm
+- Blueprint §4.2: exerciseIDMap rewrite algorithm (SERIAL ID tracking)
 - Blueprint §4.3: JSONB exercise ID rewrite
 
 **Acceptance Criteria**:
@@ -1401,7 +1458,7 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT COUNT(
 - [ ] `go build ./cmd/migrate/...` passes
 - [ ] Unit test file exists: `backend/cmd/migrate/runner_test.go`
 - [ ] `go test ./cmd/migrate/ -run TestRunMigration` passes
-- [ ] Test verifies legacyIDMap correctly maps legacy IDs to UUID v5
+- [ ] Test verifies exerciseIDMap correctly maps old Couchbase IDs to new SERIAL IDs
 - [ ] Test verifies workouts JSONB has rewritten exercise IDs
 - [ ] Test verifies workout_plans JSONB has rewritten exercise IDs
 - [ ] Test verifies FK-safe order (no constraint violations)
@@ -1419,11 +1476,11 @@ go run ./cmd/migrate load --couchbase-url=http://localhost:8091 --couchbase-user
 docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT 'users' as table_name, COUNT(*) FROM users UNION ALL SELECT 'workouts', COUNT(*) FROM workouts UNION ALL SELECT 'exercises', COUNT(*) FROM exercises;"
 ```
 
-**Commit**: `feat(migrate): implement data migration runner with legacyIDMap rewrite`
+**Commit**: `feat(migrate): implement data migration runner with exerciseIDMap rewrite`
 
 ---
 
-### Task 21: Rewrite module.go (swap fx providers)
+### Task 22: Rewrite module.go (swap fx providers)
 
 **What to do**:
 - Edit `backend/internal/app/module.go`
@@ -1506,7 +1563,7 @@ curl -s http://localhost:8080/api/v1/users/test@example.com | jq .user_id
 
 ---
 
-### Task 22: Remove Couchbase deps from AppProvider/config
+### Task 23: Remove Couchbase deps from AppProvider/config
 
 **What to do**:
 - Edit `backend/internal/app/app.go`
@@ -1573,7 +1630,7 @@ ls -la internal/repository/couchbase/ | head -5
 
 ---
 
-### Task 23: Add JSONB query helpers
+### Task 24: Add JSONB query helpers
 
 **What to do**:
 - Create `backend/internal/repository/postgres/helpers.go`
@@ -1585,12 +1642,9 @@ ls -la internal/repository/couchbase/ | head -5
   // UnmarshalFromJSONB converts JSONB []byte to Go struct/slice
   func UnmarshalFromJSONB(data []byte, v interface{}) error
   
-  // IsUUID checks if string matches UUID format
-  func IsUUID(s string) bool
   ```
 - `MarshalToJSONB` uses `json.Marshal()` and returns `[]byte`
 - `UnmarshalFromJSONB` uses `json.Unmarshal()` with pointer receiver
-- `IsUUID` uses regex: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`
 - These helpers are used by repositories for JSONB column handling
 - Add unit tests for each helper function
 
@@ -1610,23 +1664,22 @@ ls -la internal/repository/couchbase/ | head -5
 
 **References**:
 - Blueprint §6: JSONB query patterns
-- `backend/internal/repository/postgres/exercise.go` — Uses IsUUID helper
+- `backend/internal/repository/postgres/exercise.go` — JSONB column handling example
 
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/helpers.go` exists
-- [ ] `MarshalToJSONB`, `UnmarshalFromJSONB`, `IsUUID` functions implemented
+- [ ] `MarshalToJSONB`, `UnmarshalFromJSONB` functions implemented
 - [ ] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/helpers_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestHelpers` passes
 - [ ] Test verifies MarshalToJSONB round-trip (marshal → unmarshal = original)
-- [ ] Test verifies IsUUID correctly identifies UUID vs non-UUID strings
+- [ ] Test verifies MarshalToJSONB round-trip with nil input (edge case)
 
 **QA Scenarios**:
 ```bash
 cd D:/Dev/gymtrack/backend
 go build ./internal/repository/postgres/...
 go test -v ./internal/repository/postgres/ -run TestHelpers
-go test -v ./internal/repository/postgres/ -run TestIsUUID
 go test -v ./internal/repository/postgres/ -run TestMarshalToJSONB
 ```
 
@@ -1634,7 +1687,7 @@ go test -v ./internal/repository/postgres/ -run TestMarshalToJSONB
 
 ---
 
-### Task 24: Fix CoachingRequest cbjson tags → json
+### Task 25: Fix CoachingRequest cbjson tags → json
 
 **What to do**:
 - Edit `backend/internal/domain/models/coaching_request.go`
@@ -1699,8 +1752,7 @@ go build ./...
 
 ---
 
-
-25: Write unit tests for all repos
+### Task 26: Write unit tests for all repos
 
 **What to do**:
 - Create unit test files for all 12 PostgreSQL repositories:
@@ -1771,68 +1823,6 @@ go test -v ./internal/repository/postgres/... 2>&1 | grep -c "PASS"
 
 ---
 
-### Task 26: Migrate model ID fields from string → int (SERIAL PK alignment)
-
-**What to do**:
-- Change all domain model ID fields (`ID`, `AthleteID`, `TrainerID`, `CreatedBy`, `AuthorID`, etc.) from `string` → `int` across the entire codebase
-- Files affected (non-exhaustive):
-  - All `backend/internal/domain/models/*.go` — struct field types
-  - All `backend/internal/repository/couchbase/*.go` — method signatures, JSON/CBJSON deserialization
-  - All `backend/internal/repository/postgres/*.go` — method signatures, SQL scanning
-  - All `backend/internal/handler/*.go` — request/response types, URL param parsing
-  - All `backend/internal/handler/interfaces/*.go` — interface method signatures
-  - All `backend/internal/service/*.go` — service layer method signatures
-  - `frontend/src/types/*.ts` — frontend type definitions
-- Update `MarshalToJSONB` / `UnmarshalFromJSONB` helpers in `backend/internal/repository/postgres/helpers.go` — no longer needed if they were UUID-only; remove or generalize
-- Remove `IsUUID` helper if no longer used
-- Update JSON serialization expectations: integer IDs will serialize as numbers in JSON (not quoted strings)
-
-**Must NOT do**:
-- Do NOT change DB column names or SQL column aliases
-- Do NOT change frontend API endpoint paths
-- Do NOT rename struct field names (only change types)
-- Do NOT remove non-id fields
-
-**Recommended Agent Profile**: `unspecified-high` (but should be split into 3-4 parallel sub-agents)
-- Reason: Massive cross-cutting type change across Go backend + TypeScript frontend
-- Skills: `golang-code-style`, `golang-structs-interfaces`, `golang-patterns`, `coding-standards`
-
-**Parallelization**:
-- **Can Run In Parallel**: Decompose into sub-tasks (models, repos, handlers, frontend)
-- **Blocks**: Final verification (F1-F4)
-- **Blocked By**: Tasks 1-3 (schema with SERIAL PKs)
-
-**References**:
-- `backend/internal/domain/models/` — All model structs
-- `backend/internal/repository/` — Both couchbase and postgres repos
-- `backend/internal/handler/` — All handler files
-- `backend/internal/handler/interfaces/` — Interface definitions
-- `frontend/src/types/` — Frontend TypeScript types
-
-**Acceptance Criteria**:
-- [ ] `go build ./...` passes with zero errors
-- [ ] All ID fields across Go models are `int` (not `string`)
-- [ ] All repository method signatures accept/return `int` IDs
-- [ ] All handler methods parse URL params as integers
-- [ ] Frontend type definitions have `number` (not `string`) for ID fields
-- [ ] `go test ./...` passes
-
-**QA Scenarios**:
-```bash
-cd D:/Dev/gymtrack/backend
-go build ./...
-go test ./...
-# Verify no string IDs remain in models
-grep -rn "ID\s*string" internal/domain/models/
-# Should return zero matches
-grep -rn "AthleteID\s*string" internal/domain/models/
-# Should return zero matches
-```
-
-**Commit**: `refactor(models): migrate all ID fields from string to int for SERIAL PKs`
-
----
-
 ## Final Verification Wave
 
 ### Task F1: Full integration test (end-to-end verification)
@@ -1884,7 +1874,7 @@ grep -rn "AthleteID\s*string" internal/domain/models/
 - [ ] Application starts without errors
 - [ ] Health endpoint returns 200 OK
 - [ ] User lookup works (PostgreSQL query)
-- [ ] Exercise lookup works (both UUID and legacy_id)
+- [ ] Exercise lookup works (by integer ID and legacy_id)
 - [ ] JSONB queries return correct data
 
 **QA Scenarios**:
@@ -2018,8 +2008,8 @@ go vet ./... 2>&1 | grep -i "imported and not used" && echo "FAIL: Unused import
   // backend/internal/repository/postgres/benchmark_test.go
   func BenchmarkUserRepository_GetByID(b *testing.B)
   func BenchmarkWorkoutRepository_GetByAthleteID(b *testing.B)
-  func BenchmarkExerciseRepository_GetByID_UUID(b *testing.B)
-  func BenchmarkExerciseRepository_GetByID_LegacyID(b *testing.B)
+  func BenchmarkExerciseRepository_GetByID(b *testing.B)
+  func BenchmarkExerciseRepository_GetByLegacyID(b *testing.B)
   func BenchmarkJSONBMarshal_WorkoutExercises(b *testing.B)
   func BenchmarkJSONBUnmarshal_WorkoutExercises(b *testing.B)
   ```
@@ -2164,7 +2154,7 @@ grep -i "benchmark" docs/performance.md && echo "PASS: Benchmarks documented" ||
 go doc ./internal/repository/postgres | head -20
 
 # Verify function documentation
-go doc ./internal/repository/postgres.IsUUID
+go doc ./internal/repository/postgres.MarshalToJSONB
 go doc ./internal/repository/postgres.MarshalToJSONB
 ```
 
@@ -2194,9 +2184,9 @@ go doc ./internal/repository/postgres.MarshalToJSONB
 | 15 | `feat(repo): implement PostgresBodyMeasurementRepository (parts JSONB)` | feat |
 | 16 | `feat(repo): implement PostgresWorkoutPlanRepository (exercises JSONB)` | feat |
 | 17 | `feat(repo): implement PostgresWorkoutPlanAssignmentRepository` | feat |
-| 18 | `feat(repo): implement PostgresExerciseRepository (legacy_id + UUID v5)` | feat |
+| 18 | `feat(repo): implement PostgresExerciseRepository (int PK + legacy_id)` | feat |
 | 19 | `feat(seed): port muscle_groups and equipment_definitions seeding` | feat |
-| 20 | `feat(migrate): implement migration runner with legacyIDMap rewrite` | feat |
+| 20 | `feat(migrate): implement migration runner with exerciseIDMap rewrite` | feat |
 | 21 | `refactor(di): swap fx providers from Couchbase to PostgreSQL` | refactor |
 | 22 | `refactor(config): remove Couchbase dependencies from app/config` | refactor |
 | 23 | `feat(repo): add JSONB query helpers` | feat |
@@ -2402,10 +2392,10 @@ func (r *PostgresWorkoutRepository) GetByID(ctx context.Context, workoutID strin
 | Pattern | Implementation |
 |---------|---------------|
 | Error mapping | `errors.Is(err, pgx.ErrNoRows)` → `domainerrors.ErrNotFound` |
-| UUID ↔ string | Direct string binding — pgx handles conversion automatically |
+| ID type | All PKs are SERIAL (int) — use `int` in Go models, `int` in URL params |
 | JSONB write | `json.Marshal(value)` → `[]byte` → bind to JSONB column |
 | JSONB read | Scan into `[]byte` → `json.Unmarshal(data, &value)` |
-| Nullable columns | Use `*string` or `sql.NullString` for nullable text/UUID |
+| Nullable columns | Use `*string` or `sql.NullString` for nullable text; int FKs use zero-value sentinel |
 | Timestamps | PostgreSQL `TIMESTAMPTZ` maps directly to Go `time.Time` |
 | RowsAffected | Check `result.RowsAffected() == 0` for "not found" on UPDATE/DELETE |
 | Multi-row queries | Use `rows, err := pool.Query()` + `defer rows.Close()` + `for rows.Next()` |
@@ -2494,14 +2484,14 @@ if exercisesRaw != nil {
 }
 ```
 
-### 3. UUID ↔ String Type Handling
-**Problem**: PostgreSQL `UUID` type vs Go `string` type.
-**Solution**: pgx v5 handles this automatically. Pass string directly, pgx converts to/from UUID.
+### 3. ID Type Handling (SERIAL → Go int)
+**Problem**: PostgreSQL `SERIAL` PKs map to Go `int`.
+**Solution**: Use `int` for all ID fields. pgx v5 binds Go `int` directly to PostgreSQL `INTEGER`.
 **Example**:
 ```go
-// This works - pgx handles UUID ↔ string conversion
-pool.Exec(ctx, "INSERT INTO users (user_id) VALUES ($1)", user.UserID) // user.UserID is string
-pool.QueryRow(ctx, "SELECT user_id FROM users WHERE user_id = $1", id).Scan(&user.UserID)
+// Go int binds directly to PostgreSQL INTEGER
+pool.Exec(ctx, "INSERT INTO users (username, email) VALUES ($1, $2) RETURNING user_id", user.Username, user.Email).Scan(&user.UserID)
+pool.QueryRow(ctx, "SELECT * FROM users WHERE user_id = $1", id).Scan(&user.UserID, ...)
 ```
 
 ### 4. `ON CONFLICT` for Upserts
@@ -2829,7 +2819,6 @@ go test -v ./internal/repository/postgres/ -run TestJSONB 2>&1 | grep PASS
 ```bash
 # Task 18: Exercise Repository
 go test -v ./internal/repository/postgres/ -run TestPostgresExerciseRepository
-go test -v ./internal/repository/postgres/ -run TestExerciseIDFormat  # UUID regex
 
 # Task 19: Seed Data
 go test -v ./internal/repository/postgres/ -run TestSeedLookupTables
@@ -2862,7 +2851,6 @@ ls -la internal/repository/couchbase/  # Should still exist (rollback)
 
 # Task 23: JSONB Helpers
 go test -v ./internal/repository/postgres/ -run TestHelpers
-go test -v ./internal/repository/postgres/ -run TestIsUUID
 go test -v ./internal/repository/postgres/ -run TestMarshalToJSONB
 
 # Task 24: cbjson Tags
@@ -2962,28 +2950,11 @@ if exercisesRaw != nil {
 }
 ```
 
-#### UUID Format Error
+#### Exercise Lookup Error
 ```bash
-# Check if exercise_id is UUID or legacy format
+# Check exercise exists by PK
 docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack \
-  -c "SELECT id, legacy_id FROM exercises LIMIT 5;"
-
-# Verify UUID regex in exercise repository
-grep -A 2 "uuidRegex" internal/repository/postgres/exercise.go
-
-# Test regex manually
-go run -exec "echo" -tags test <<'EOF'
-package main
-import (
-    "fmt"
-    "regexp"
-)
-func main() {
-    uuidRegex := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
-    fmt.Println(uuidRegex.MatchString("550e8400-e29b-41d4-a716-446655440000")) // true
-    fmt.Println(uuidRegex.MatchString("exercise_BenchPress"))                    // false
-}
-EOF
+  -c "SELECT exercise_id, legacy_id FROM exercises WHERE exercise_id = 1;"
 ```
 
 ### Rollback Procedures

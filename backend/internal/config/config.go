@@ -15,6 +15,7 @@ type Config struct {
 	CouchbasePassword         string
 	CouchbaseBucket           string
 	JWTSecret                 string
+	PostgresDSN               string
 }
 
 func LoadConfig() *Config {
@@ -39,6 +40,7 @@ func LoadConfig() *Config {
 		CouchbasePassword:         getEnv("COUCHBASE_PASSWORD", "password"),
 		CouchbaseBucket:           getEnv("COUCHBASE_BUCKET", "gymtrack"),
 		JWTSecret:                 jwtSecret,
+		PostgresDSN:               getEnv("POSTGRES_DSN", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable"),
 	}
 }
 
