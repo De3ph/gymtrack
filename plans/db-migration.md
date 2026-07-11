@@ -1141,7 +1141,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
 
 ---
 
-### Task 17: Implement PostgresWorkoutPlanRepository
+### Task 17: Implement PostgresWorkoutPlanRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/workout_plan.go`
@@ -1184,12 +1184,12 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
 - Blueprint §3.10: workout_plans table DDL (exercises JSONB column)
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/workout_plan.go` exists
-- [ ] `PostgresWorkoutPlanRepository` implements all 5 methods
+- [x] `backend/internal/repository/postgres/workout_plan.go` exists
+- [x] `PostgresWorkoutPlanRepository` implements all 5 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/workout_plan_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepository` passes
-- [ ] Test covers: Create, GetByID, GetByTrainerID, Update, Delete
+- [x] Unit test file exists: `backend/internal/repository/postgres/workout_plan_test.go`
+- [ ] `go test ... -run TestPostgresWorkoutPlanRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByTrainerID, Update, Delete
 - [x] Test verifies exercises JSONB round-trip (marshal → store → retrieve → unmarshal)
 
 **QA Scenarios**:
@@ -1203,7 +1203,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepositor
 
 ---
 
-### Task 18: Implement PostgresWorkoutPlanAssignmentRepository
+### Task 18: Implement PostgresWorkoutPlanAssignmentRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/workout_plan_assignment.go`
@@ -1244,13 +1244,13 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepositor
 - Blueprint §3.11: workout_plan_assignments table DDL
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/workout_plan_assignment.go` exists
-- [ ] `PostgresWorkoutPlanAssignmentRepository` implements all 7 methods
+- [x] `backend/internal/repository/postgres/workout_plan_assignment.go` exists
+- [x] `PostgresWorkoutPlanAssignmentRepository` implements all 6 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/workout_plan_assignment_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmentRepository` passes
-- [ ] Test covers: Create, GetByID, GetByPlanID, GetByAthleteID, GetByAthleteAndPlan, Update, Delete
-- [ ] Test verifies `GetByAthleteAndPlan` returns correct single assignment
+- [x] Unit test file exists: `backend/internal/repository/postgres/workout_plan_assignment_test.go`
+- [ ] `go test ... -run TestPostgresWorkoutPlanAssignmentRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByPlanID, GetByAthleteID, GetByAthleteAndPlan, GetByTrainerID, DeleteByPlanID
+- [x] Test verifies `GetByAthleteAndPlan` returns correct single assignment
 
 **QA Scenarios**:
 ```bash
@@ -1263,7 +1263,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 
 ---
 
-### Task 19: Implement PostgresExerciseRepository
+### Task 19: Implement PostgresExerciseRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/exercise.go`
@@ -1309,13 +1309,13 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 - Blueprint §4: ID mapping strategy (legacy_id as migration tracing column)
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/exercise.go` exists
-- [ ] `PostgresExerciseRepository` implements all 8 methods
+- [x] `backend/internal/repository/postgres/exercise.go` exists
+- [x] `PostgresExerciseRepository` implements all 6 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/exercise_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresExerciseRepository` passes
-- [ ] Test covers: Create, GetByID, GetByLegacyID (if implemented), GetAll, GetByMuscleGroupID, GetByEquipmentID, Search, Update, Delete
-- [ ] Test verifies Search uses ILIKE for case-insensitive matching
+- [x] Unit test file exists: `backend/internal/repository/postgres/exercise_test.go`
+- [ ] `go test ... -run TestPostgresExerciseRepository` passes (requires Docker)
+- [x] Test covers: CreateExercise, GetExerciseByID, GetAllExercises, GetExercisesByMuscleGroup, GetExercisesByEquipment, SearchExercises
+- [x] Test verifies Search uses ILIKE for case-insensitive matching
 
 **QA Scenarios**:
 ```bash

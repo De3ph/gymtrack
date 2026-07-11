@@ -1,0 +1,157 @@
+package postgres
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	domainerrors "gymtrack-backend/internal/domain/errors"
+	"gymtrack-backend/internal/domain/models"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// PostgresExerciseRepository implements ExerciseRepository using PostgreSQL.
+type PostgresExerciseRepository struct {
+	pool *pgxpool.Pool
+}
+
+// NewPostgresExerciseRepository creates a new PostgreSQL-backed exercise repository.
+func NewPostgresExerciseRepository(pool *pgxpool.Pool) *PostgresExerciseRepository {
+	return &PostgresExerciseRepository{pool: pool}
+}
+
+func (r *PostgresExerciseRepository) CreateExercise(ctx context.Context, ex *models.Exercise) error {
+	ex.CreatedAt = time.Now()
+
+	var createdBy interface{}
+	if ex.CreatedBy != 0 {
+		createdBy = ex.CreatedBy
+	}
+
+	query := `INSERT INTO exercises (name, category, muscle_group_id, equipment_id, instructions, created_by, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`
+	err := r.pool.QueryRow(ctx, query,
+		ex.Name, ex.Category, ex.MuscleGroupID, ex.EquipmentID, ex.Instructions, createdBy, ex.CreatedAt,
+	).Scan(&ex.ExerciseID)
+	if err != nil {
+		return fmt.Errorf("failed to create exercise: %w", err)
+	}
+	return nil
+}
+
+const exCols = `id, name, category, muscle_group_id, equipment_id, instructions, created_by, created_at`
+
+func (r *PostgresExerciseRepository) scanExercise(row pgx.Row) (*models.Exercise, error) {
+	ex := &models.Exercise{}
+	var createdBy *int
+	var instructions *string
+	err := row.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domainerrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to scan exercise: %w", err)
+	}
+	if createdBy != nil {
+		ex.CreatedBy = *createdBy
+	}
+	if instructions != nil {
+		ex.Instructions = *instructions
+	}
+	return ex, nil
+}
+
+func (r *PostgresExerciseRepository) GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error) {
+	ex, err := r.scanExercise(r.pool.QueryRow(ctx, `SELECT `+exCols+` FROM exercises WHERE id = $1`, exerciseID))
+	if errors.Is(err, domainerrors.ErrNotFound) {
+		return nil, nil
+	}
+	return ex, err
+}
+
+func (r *PostgresExerciseRepository) scanExercises(rows pgx.Rows) ([]models.Exercise, error) {
+	var exercises []models.Exercise
+	for rows.Next() {
+		ex := models.Exercise{}
+		var createdBy *int
+		var instructions *string
+		if err := rows.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.CreatedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan exercise row: %w", err)
+		}
+		if createdBy != nil {
+			ex.CreatedBy = *createdBy
+		}
+		if instructions != nil {
+			ex.Instructions = *instructions
+		}
+		exercises = append(exercises, ex)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return exercises, nil
+}
+
+func (r *PostgresExerciseRepository) GetAllExercises(ctx context.Context) ([]models.Exercise, error) {
+	rows, err := r.pool.Query(ctx, `SELECT `+exCols+` FROM exercises ORDER BY name`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query exercises: %w", err)
+	}
+	defer rows.Close()
+	return r.scanExercises(rows)
+}
+
+func (r *PostgresExerciseRepository) GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error) {
+	rows, err := r.pool.Query(ctx, `SELECT `+exCols+` FROM exercises WHERE muscle_group_id = $1 ORDER BY name`, muscleGroupID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query exercises by muscle group: %w", err)
+	}
+	defer rows.Close()
+	return r.scanExercises(rows)
+}
+
+func (r *PostgresExerciseRepository) GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error) {
+	rows, err := r.pool.Query(ctx, `SELECT `+exCols+` FROM exercises WHERE equipment_id = $1 ORDER BY name`, equipmentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query exercises by equipment: %w", err)
+	}
+	defer rows.Close()
+	return r.scanExercises(rows)
+}
+
+func (r *PostgresExerciseRepository) SearchExercises(ctx context.Context, query string, muscleGroupID *int, equipmentID *int) ([]models.Exercise, error) {
+	sql := `SELECT ` + exCols + ` FROM exercises WHERE name ILIKE '%' || $1 || '%'`
+	args := []interface{}{query}
+	argIdx := 2
+
+	if muscleGroupID != nil {
+		sql += fmt.Sprintf(` AND muscle_group_id = $%d`, argIdx)
+		args = append(args, *muscleGroupID)
+		argIdx++
+	}
+	if equipmentID != nil {
+		sql += fmt.Sprintf(` AND equipment_id = $%d`, argIdx)
+		args = append(args, *equipmentID)
+		argIdx++
+	}
+	sql += ` ORDER BY name`
+
+	rows, err := r.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search exercises: %w", err)
+	}
+	defer rows.Close()
+	return r.scanExercises(rows)
+}
+
+// Compile-time interface compliance check.
+var _ interface {
+	CreateExercise(ctx context.Context, exercise *models.Exercise) error
+	GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error)
+	GetAllExercises(ctx context.Context) ([]models.Exercise, error)
+	GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error)
+	GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error)
+	SearchExercises(ctx context.Context, query string, muscleGroupID *int, equipmentID *int) ([]models.Exercise, error)
+} = (*PostgresExerciseRepository)(nil)
