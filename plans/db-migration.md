@@ -1,4 +1,4 @@
-# Couchbase → PostgreSQL Migration
+﻿# Couchbase → PostgreSQL Migration
 
 ## TL;DR
 
@@ -577,7 +577,7 @@ go build ./cmd/migrate/...
 
 ---
 
-### Task 8: Implement PostgresUserRepository
+### Task 8: Implement PostgresUserRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/user.go`
@@ -618,13 +618,13 @@ go build ./cmd/migrate/...
 - Blueprint §3.1: users table DDL
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/user.go` exists
-- [ ] `PostgresUserRepository` implements all 6 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/user_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresUserRepository` passes
-- [ ] Test covers: Create, GetByID, GetUserByEmail, GetUserByUsername, GetAllUsers, UpdateUser
-- [ ] Test verifies JSONB profile round-trip (marshal → store → retrieve → unmarshal)
+- [x] `backend/internal/repository/postgres/user.go` exists
+- [x] `PostgresUserRepository` implements all 6 methods
+- [x] `go build ./internal/repository/postgres/...` passes
+- [x] Unit test file exists: `backend/internal/repository/postgres/user_test.go`
+- [ ] `go test ./internal/repository/postgres/ -run TestPostgresUserRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetUserByEmail, GetUserByUsername, GetAllUsers, UpdateUser
+- [x] Test verifies JSONB profile round-trip (marshal → store → retrieve → unmarshal)
 
 **QA Scenarios**:
 ```bash
@@ -637,7 +637,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresUserRepository
 
 ---
 
-### Task 9: Implement PostgresRelationshipRepository
+### Task 9: Implement PostgresRelationshipRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/relationship.go`
@@ -679,14 +679,14 @@ go test -v ./internal/repository/postgres/ -run TestPostgresUserRepository
 - Blueprint §3.5: relationships table DDL
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/relationship.go` exists
-- [ ] `PostgresRelationshipRepository` implements all 8 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/relationship_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresRelationshipRepository` passes
-- [ ] Test covers: Create, GetByID, GetByTrainerID, GetByAthleteID, GetPendingByAthleteID, HasActiveRelationship, Update, Delete
-- [ ] Test verifies `HasActiveRelationship` returns correct boolean
-- [ ] Test verifies `GetPendingByAthleteID` filters by status
+- [x] `backend/internal/repository/postgres/relationship.go` exists
+- [x] `PostgresRelationshipRepository` implements all 8 methods
+- [x] `go build ./internal/repository/postgres/...` passes
+- [x] Unit test file exists: `backend/internal/repository/postgres/relationship_test.go`
+- [ ] `go test ./internal/repository/postgres/ -run TestPostgresRelationshipRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByTrainerID, GetByAthleteID, GetPendingByAthleteID, HasActiveRelationship, Update, Delete
+- [x] Test verifies `HasActiveRelationship` returns correct boolean
+- [x] Test verifies `GetPendingByAthleteID` filters by status
 
 **QA Scenarios**:
 ```bash
@@ -699,7 +699,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresRelationshipReposito
 
 ---
 
-### Task 10: Implement PostgresCoachingRequestRepository
+### Task 10: Implement PostgresCoachingRequestRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/coaching_request.go`
@@ -739,13 +739,13 @@ go test -v ./internal/repository/postgres/ -run TestPostgresRelationshipReposito
 - Blueprint §3.6: coaching_requests table DDL
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/coaching_request.go` exists
-- [ ] `PostgresCoachingRequestRepository` implements all 7 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/coaching_request_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepository` passes
-- [ ] Test covers: Create, GetByID, GetByAthleteID, GetByTrainerID, GetPendingByTrainerID, Update, Delete
-- [ ] Test verifies `GetPendingByTrainerID` filters by status
+- [x] `backend/internal/repository/postgres/coaching_request.go` exists
+- [x] `PostgresCoachingRequestRepository` implements all 7 methods
+- [x] `go build ./internal/repository/postgres/...` passes
+- [x] Unit test file exists: `backend/internal/repository/postgres/coaching_request_test.go`
+- [ ] `go test ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByAthleteID, GetByTrainerID, GetPendingByTrainerID, Update, Delete
+- [x] Test verifies `GetPendingByTrainerID` filters by status
 
 **QA Scenarios**:
 ```bash
@@ -802,7 +802,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepos
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/trainer_review.go` exists
 - [ ] `PostgresTrainerReviewRepository` implements all 8 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/trainer_review_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresTrainerReviewRepository` passes
 - [ ] Test covers: Create, GetByID, GetByTrainerID, GetByAthleteID, Update, Delete, GetAverageRating, GetRatingsForTrainers
@@ -863,7 +863,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerReviewReposit
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/trainer_profile.go` exists
 - [ ] `PostgresTrainerProfileRepository` implements all 6 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/trainer_profile_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresTrainerProfileRepository` passes
 - [ ] Test covers: Create, GetByUserID, Update, Delete, GetAllTrainers, SearchTrainers
@@ -924,7 +924,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerProfileReposi
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/comment.go` exists
 - [ ] `PostgresCommentRepository` implements all 7 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/comment_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresCommentRepository` passes
 - [ ] Test covers: Create, GetByID, GetByWorkoutID, GetByMealID, GetByAuthorID, Update, Delete
@@ -989,7 +989,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCommentRepository
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/workout.go` exists
 - [ ] `PostgresWorkoutRepository` implements all 6 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/workout_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresWorkoutRepository` passes
 - [ ] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
@@ -1055,7 +1055,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutRepository
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/meal.go` exists
 - [ ] `PostgresMealRepository` implements all 6 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/meal_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresMealRepository` passes
 - [ ] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
@@ -1122,7 +1122,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresMealRepository
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/body_measurement.go` exists
 - [ ] `PostgresBodyMeasurementRepository` implements all 6 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/body_measurement_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepository` passes
 - [ ] Test covers: Create, GetByID, GetByAthleteID, GetLatestByAthleteID, Update, Delete
@@ -1186,7 +1186,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/workout_plan.go` exists
 - [ ] `PostgresWorkoutPlanRepository` implements all 5 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/workout_plan_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepository` passes
 - [ ] Test covers: Create, GetByID, GetByTrainerID, Update, Delete
@@ -1246,7 +1246,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepositor
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/workout_plan_assignment.go` exists
 - [ ] `PostgresWorkoutPlanAssignmentRepository` implements all 7 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/workout_plan_assignment_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmentRepository` passes
 - [ ] Test covers: Create, GetByID, GetByPlanID, GetByAthleteID, GetByAthleteAndPlan, Update, Delete
@@ -1311,7 +1311,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/exercise.go` exists
 - [ ] `PostgresExerciseRepository` implements all 8 methods
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/exercise_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresExerciseRepository` passes
 - [ ] Test covers: Create, GetByID, GetByLegacyID (if implemented), GetAll, GetByMuscleGroupID, GetByEquipmentID, Search, Update, Delete
@@ -1373,7 +1373,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresExerciseRepository
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/seed.go` exists
 - [ ] `SeedLookupTables` function exists and accepts `(ctx, pool)` parameters
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/seed_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestSeedLookupTables` passes
 - [ ] Test verifies muscle_groups has 7 rows with correct IDs and names
@@ -1669,7 +1669,7 @@ ls -la internal/repository/couchbase/ | head -5
 **Acceptance Criteria**:
 - [ ] `backend/internal/repository/postgres/helpers.go` exists
 - [ ] `MarshalToJSONB`, `UnmarshalFromJSONB` functions implemented
-- [ ] `go build ./internal/repository/postgres/...` passes
+- [x] `go build ./internal/repository/postgres/...` passes
 - [ ] Unit test file exists: `backend/internal/repository/postgres/helpers_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestHelpers` passes
 - [ ] Test verifies MarshalToJSONB round-trip (marshal → unmarshal = original)
