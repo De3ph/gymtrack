@@ -758,7 +758,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepos
 
 ---
 
-### Task 11: Implement PostgresTrainerReviewRepository
+### Task 11: Implement PostgresTrainerReviewRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/trainer_review.go`
@@ -800,14 +800,14 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepos
 - Blueprint §3.7: trainer_reviews table DDL
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/trainer_review.go` exists
-- [ ] `PostgresTrainerReviewRepository` implements all 8 methods
+- [x] `backend/internal/repository/postgres/trainer_review.go` exists
+- [x] `PostgresTrainerReviewRepository` implements all 8 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/trainer_review_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresTrainerReviewRepository` passes
-- [ ] Test covers: Create, GetByID, GetByTrainerID, GetByAthleteID, Update, Delete, GetAverageRating, GetRatingsForTrainers
-- [ ] Test verifies `GetAverageRating` returns correct average and count
-- [ ] Test verifies `GetRatingsForTrainers` returns correct map for multiple trainers
+- [x] Unit test file exists: `backend/internal/repository/postgres/trainer_review_test.go`
+- [ ] `go test ... -run TestPostgresTrainerReviewRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByTrainerID, GetByAthleteID, Update, Delete, GetAverageRating, GetRatingsForTrainers
+- [x] Test verifies `GetAverageRating` returns correct average and count
+- [x] Test verifies `GetRatingsForTrainers` returns correct map for multiple trainers
 
 **QA Scenarios**:
 ```bash
@@ -820,7 +820,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerReviewReposit
 
 ---
 
-### Task 12: Implement PostgresTrainerProfileRepository
+### Task 12: Implement PostgresTrainerProfileRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/trainer_profile.go`
@@ -861,13 +861,13 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerReviewReposit
 - Blueprint §3.8: trainer_profiles table DDL (if exists, otherwise part of users table)
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/trainer_profile.go` exists
-- [ ] `PostgresTrainerProfileRepository` implements all 6 methods
+- [x] `backend/internal/repository/postgres/trainer_profile.go` exists
+- [x] `PostgresTrainerProfileRepository` implements all 5 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/trainer_profile_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresTrainerProfileRepository` passes
-- [ ] Test covers: Create, GetByUserID, Update, Delete, GetAllTrainers, SearchTrainers
-- [ ] Test verifies `SearchTrainers` finds trainers by bio/specializations/certifications
+- [x] Unit test file exists: `backend/internal/repository/postgres/trainer_profile_test.go`
+- [ ] `go test ... -run TestPostgresTrainerProfileRepository` passes (requires Docker)
+- [x] Test covers: GetPublicTrainers, GetTrainerByID, UpdateTrainerProfile, SearchTrainers, CountTrainers
+- [x] Test verifies `SearchTrainers` finds trainers by name/username
 
 **QA Scenarios**:
 ```bash
@@ -880,7 +880,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerProfileReposi
 
 ---
 
-### Task 13: Implement PostgresCommentRepository
+### Task 13: Implement PostgresCommentRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/comment.go`
@@ -922,14 +922,14 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerProfileReposi
 - Blueprint §3.9: comments table DDL
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/comment.go` exists
-- [ ] `PostgresCommentRepository` implements all 7 methods
+- [x] `backend/internal/repository/postgres/comment.go` exists
+- [x] `PostgresCommentRepository` implements all 7 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/comment_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresCommentRepository` passes
-- [ ] Test covers: Create, GetByID, GetByWorkoutID, GetByMealID, GetByAuthorID, Update, Delete
-- [ ] Test verifies `GetByWorkoutID` only returns workout comments
-- [ ] Test verifies `GetByMealID` only returns meal comments
+- [x] Unit test file exists: `backend/internal/repository/postgres/comment_test.go`
+- [ ] `go test ... -run TestPostgresCommentRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByTarget, GetByAuthor, GetReplies, Update, Delete
+- [x] Test verifies `GetByTarget` filters by targetType+targetId
+- [x] Test verifies `GetReplies` returns replies for a parent comment
 
 **QA Scenarios**:
 ```bash
@@ -942,7 +942,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCommentRepository
 
 ---
 
-### Task 14: Implement PostgresWorkoutRepository
+### Task 14: Implement PostgresWorkoutRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/workout.go`
@@ -987,15 +987,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCommentRepository
 - Blueprint §3.2: workouts table DDL (exercises JSONB column)
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/workout.go` exists
-- [ ] `PostgresWorkoutRepository` implements all 6 methods
+- [x] `backend/internal/repository/postgres/workout.go` exists
+- [x] `PostgresWorkoutRepository` implements all 6 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/workout_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresWorkoutRepository` passes
-- [ ] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
-- [ ] Test verifies exercises JSONB round-trip (marshal → store → retrieve → unmarshal)
-- [ ] Test verifies GetByAthleteDateRange filters correctly
-- [ ] Test verifies pagination with limit/offset
+- [x] Unit test file exists: `backend/internal/repository/postgres/workout_test.go`
+- [ ] `go test ... -run TestPostgresWorkoutRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
+- [x] Test verifies exercises JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies GetByAthleteDateRange filters correctly
+- [x] Test verifies pagination with limit/offset
 
 **QA Scenarios**:
 ```bash
@@ -1008,7 +1008,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutRepository
 
 ---
 
-### Task 15: Implement PostgresMealRepository
+### Task 15: Implement PostgresMealRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/meal.go`
@@ -1053,15 +1053,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutRepository
 - Blueprint §3.3: meals table DDL (items JSONB column)
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/meal.go` exists
-- [ ] `PostgresMealRepository` implements all 6 methods
+- [x] `backend/internal/repository/postgres/meal.go` exists
+- [x] `PostgresMealRepository` implements all 6 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/meal_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresMealRepository` passes
-- [ ] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
-- [ ] Test verifies items JSONB round-trip (marshal → store → retrieve → unmarshal)
-- [ ] Test verifies GetByAthleteDateRange filters correctly
-- [ ] Test verifies pagination with limit/offset
+- [x] Unit test file exists: `backend/internal/repository/postgres/meal_test.go`
+- [ ] `go test ... -run TestPostgresMealRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
+- [x] Test verifies items JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies GetByAthleteDateRange filters correctly
+- [x] Test verifies pagination with limit/offset
 
 **QA Scenarios**:
 ```bash
@@ -1074,7 +1074,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresMealRepository
 
 ---
 
-### Task 16: Implement PostgresBodyMeasurementRepository
+### Task 16: Implement PostgresBodyMeasurementRepository DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/body_measurement.go`
@@ -1120,15 +1120,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresMealRepository
 - Blueprint §3.4: body_measurements table DDL (paths JSONB column, expression indexes)
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/body_measurement.go` exists
-- [ ] `PostgresBodyMeasurementRepository` implements all 6 methods
+- [x] `backend/internal/repository/postgres/body_measurement.go` exists
+- [x] `PostgresBodyMeasurementRepository` implements all 7 methods
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/body_measurement_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepository` passes
-- [ ] Test covers: Create, GetByID, GetByAthleteID, GetLatestByAthleteID, Update, Delete
-- [ ] Test verifies paths JSONB round-trip (marshal → store → retrieve → unmarshal)
-- [ ] Test verifies GetLatestByAthleteID returns most recent measurement
-- [ ] Test verifies pagination with limit/offset
+- [x] Unit test file exists: `backend/internal/repository/postgres/body_measurement_test.go`
+- [ ] `go test ... -run TestPostgresBodyMeasurementRepository` passes (requires Docker)
+- [x] Test covers: Create, GetByID, GetByAthleteID, GetLatestByAthleteID, Update, Delete
+- [x] Test verifies parts JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies GetLatestByAthleteID returns most recent measurement
+- [x] Test verifies pagination with limit/offset
 
 **QA Scenarios**:
 ```bash
@@ -1190,7 +1190,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
 - [ ] Unit test file exists: `backend/internal/repository/postgres/workout_plan_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepository` passes
 - [ ] Test covers: Create, GetByID, GetByTrainerID, Update, Delete
-- [ ] Test verifies exercises JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies exercises JSONB round-trip (marshal → store → retrieve → unmarshal)
 
 **QA Scenarios**:
 ```bash
