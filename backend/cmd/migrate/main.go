@@ -1,11 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	"gymtrack-backend/internal/config"
+
+	"github.com/couchbase/gocb/v2"
 )
 
 func main() {
@@ -15,7 +21,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Commands:")
 		fmt.Fprintln(os.Stderr, "  export    Export data from Couchbase to JSONL files")
-		fmt.Fprintln(os.Stderr, "  load      Load data from JSONL files into PostgreSQL")
+		fmt.Fprintln(os.Stderr, "  load      Load data from Couchbase into PostgreSQL")
 		fmt.Fprintln(os.Stderr, "  verify    Verify migration integrity between Couchbase and PostgreSQL")
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Options:")
@@ -29,13 +35,11 @@ func main() {
 
 	cmd := os.Args[1]
 
-	// Handle help flags
 	if cmd == "--help" || cmd == "-h" || cmd == "help" {
 		flag.Usage()
 		os.Exit(0)
 	}
 
-	// Graceful shutdown on SIGINT/SIGTERM
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -79,15 +83,50 @@ func cmdExport() {
 
 func cmdLoad() {
 	loadCmd := flag.NewFlagSet("load", flag.ExitOnError)
+	couchbaseURL := loadCmd.String("couchbase-url", "couchbase://localhost", "Couchbase URL")
+	couchbaseUser := loadCmd.String("couchbase-user", "Administrator", "Couchbase username")
+	couchbasePass := loadCmd.String("couchbase-pass", "password", "Couchbase password")
+	couchbaseBucket := loadCmd.String("couchbase-bucket", "gymtrack", "Couchbase bucket name")
 	pgDSN := loadCmd.String("pg-dsn", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable", "PostgreSQL connection string")
-	inputDir := loadCmd.String("input", "migrations/data", "Input directory for JSONL files")
 
 	loadCmd.Parse(os.Args[2:])
 
-	_ = pgDSN
-	_ = inputDir
+	if err := os.Setenv("COUCHBASE_BUCKET", *couchbaseBucket); err != nil {
+		fmt.Fprintf(os.Stderr, "set bucket env: %v\n", err)
+		os.Exit(1)
+	}
 
-	fmt.Println("load: not implemented")
+	cluster, err := gocb.Connect(*couchbaseURL, gocb.ClusterOptions{
+		Authenticator: gocb.PasswordAuthenticator{
+			Username: *couchbaseUser,
+			Password: *couchbasePass,
+		},
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "connect to Couchbase: %v\n", err)
+		os.Exit(1)
+	}
+	defer cluster.Close(nil)
+
+	bucket := cluster.Bucket(*couchbaseBucket)
+	if err := bucket.WaitUntilReady(10*time.Second, nil); err != nil {
+		fmt.Fprintf(os.Stderr, "wait for bucket: %v\n", err)
+		os.Exit(1)
+	}
+
+	pool, err := config.ProvidePostgresPool(&config.PostgresConfig{DSN: *pgDSN})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "connect to PostgreSQL: %v\n", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	ctx := context.Background()
+	if err := RunMigration(ctx, cluster, pool); err != nil {
+		fmt.Fprintf(os.Stderr, "migration failed: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("migration completed")
 }
 
 func cmdVerify() {
