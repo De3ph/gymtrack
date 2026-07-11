@@ -464,7 +464,7 @@ ls -la internal/testutils/migrations/
 
 ---
 
-### Task 6: Migrate model ID fields from string → int (SERIAL PK alignment)
+### Task 6: Migrate model ID fields from string → int (SERIAL PK alignment) DONE
 
 **What to do**:
 - Change all domain model ID fields (`ID`, `AthleteID`, `TrainerID`, `CreatedBy`, `AuthorID`, etc.) from `string` → `int` across the entire codebase
@@ -526,7 +526,7 @@ grep -rn "AthleteID\s*string" internal/domain/models/
 
 ---
 
-### Task 7: Create cmd/migrate/main.go scaffold
+### Task 7: Create cmd/migrate/main.go scaffold DONE
 
 **What to do**:
 - Create `backend/cmd/migrate/main.go` with CLI scaffold:

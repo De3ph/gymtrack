@@ -11,10 +11,14 @@ import (
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s <command> [options]\n\n", os.Args[0])
+		fmt.Fprintln(os.Stderr, "Migrate GymTrack data from Couchbase to PostgreSQL.")
+		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Commands:")
 		fmt.Fprintln(os.Stderr, "  export    Export data from Couchbase to JSONL files")
 		fmt.Fprintln(os.Stderr, "  load      Load data from JSONL files into PostgreSQL")
 		fmt.Fprintln(os.Stderr, "  verify    Verify migration integrity between Couchbase and PostgreSQL")
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "Options:")
 		flag.PrintDefaults()
 	}
 
@@ -24,6 +28,12 @@ func main() {
 	}
 
 	cmd := os.Args[1]
+
+	// Handle help flags
+	if cmd == "--help" || cmd == "-h" || cmd == "help" {
+		flag.Usage()
+		os.Exit(0)
+	}
 
 	// Graceful shutdown on SIGINT/SIGTERM
 	sigCh := make(chan os.Signal, 1)
