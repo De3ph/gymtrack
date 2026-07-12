@@ -1,7 +1,6 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import dynamic from "next/dynamic";
 import { mealApi, workoutApi } from "@/lib/api";
 import { Meal, Workout } from "@/types";
 import dayjs from "dayjs";
@@ -18,6 +18,11 @@ import { useTranslations } from "next-intl";
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardEvent, DashboardEventList } from "./DashboardEventList";
+
+const CalendarGrid = dynamic(
+  () => import("./CalendarGrid").then((m) => m.CalendarGrid),
+  { ssr: false, loading: () => <Skeleton className="h-[350px] w-full rounded-2xl" /> },
+);
 
 interface CombinedTrainingCalendarProps {
   startDate?: string;
@@ -60,6 +65,8 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
 
   const workouts = React.useMemo(() => workoutData?.workouts ?? [], [workoutData]);
   const meals = React.useMemo(() => mealData?.meals ?? [], [mealData]);
+  const workoutDates = React.useMemo(() => workouts.map((w) => dayjs(w.date).toDate()), [workouts]);
+  const mealDates = React.useMemo(() => meals.map((m) => dayjs(m.date).toDate()), [meals]);
   const isLoading = workoutsLoading || mealsLoading;
   const isRefetching = workoutsRefetching || mealsRefetching;
 
@@ -102,21 +109,13 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
       </CardHeader>
       <CardContent className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
         <div className="flex justify-center rounded-2xl bg-muted/30 p-4">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
+          <CalendarGrid
+            selectedDate={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
-            month={viewMonth}
+            viewMonth={viewMonth}
             onMonthChange={setViewMonth}
-            modifiers={{
-              workout: workouts.map((workout) => dayjs(workout.date).toDate()),
-              meal: meals.map((meal) => dayjs(meal.date).toDate()),
-            }}
-            modifiersClassNames={{
-              workout: "font-semibold text-primary after:absolute after:-bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-primary",
-              meal: "font-semibold text-emerald-600 after:absolute after:-bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-emerald-500 dark:text-emerald-400 dark:after:bg-emerald-400",
-            }}
-            className="rounded-xl border bg-background"
+            workoutDates={workoutDates}
+            mealDates={mealDates}
           />
         </div>
         <div className="space-y-4 rounded-2xl bg-muted/30 p-4">

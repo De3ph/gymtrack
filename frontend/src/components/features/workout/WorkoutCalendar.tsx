@@ -1,21 +1,25 @@
 "use client";
 
 import * as React from "react";
-import { Calendar } from "@/components/ui/calendar";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { workoutApi } from "@/lib/api";
 import { WorkoutExercise, ExerciseSet } from "@/types";
-import { Button } from "@/components/ui/button";
+
+const CalendarGrid = dynamic(
+  () => import("./CalendarGrid").then((m) => m.CalendarGrid),
+  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full" /> },
+);
 
 export function WorkoutCalendar() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
@@ -27,7 +31,6 @@ export function WorkoutCalendar() {
 
   const t = useTranslations("workout.calendar");
   const tList = useTranslations("workout.list");
-  const tDate = useTranslations("common.date");
 
   const { data: workoutsData } = useQuery({
     queryKey: ["workouts"],
@@ -49,43 +52,13 @@ export function WorkoutCalendar() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            modifiers={{
-              workout: workoutDays,
-            }}
-            modifiersClassNames={{
-              workout: "font-bold text-primary underline",
-            }}
-            className="rounded-md border"
-            month={currentMonth}
-            onMonthChange={setCurrentMonth}
-          />
-        </CardContent>
-        <CardFooter className="flex flex-wrap gap-2 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => {
-              const today = dayjs().toDate();
-              setSelectedDate(today);
-              setCurrentMonth(
-                new Date(today.getFullYear(), today.getMonth(), 1),
-              );
-            }}
-          >
-            {tDate(`today`)}
-          </Button>
-        </CardFooter>
-      </Card>
+      <CalendarGrid
+        selectedDate={selectedDate}
+        onSelect={setSelectedDate}
+        currentMonth={currentMonth}
+        onMonthChange={setCurrentMonth}
+        workoutDays={workoutDays}
+      />
 
       <Card>
         <CardHeader>

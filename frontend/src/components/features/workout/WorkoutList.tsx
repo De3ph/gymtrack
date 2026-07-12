@@ -31,7 +31,13 @@ import { workoutApi } from "@/lib/api"
 import { EditWorkoutDialog } from "./EditWorkoutDialog"
 import { DeleteWorkoutDialog } from "./DeleteWorkoutDialog"
 import { WorkoutFilterBar } from "./WorkoutFilterBar"
-import { CommentThread } from "@/components/features/comments/CommentThread"
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const CommentThread = dynamic(
+  () => import("@/components/features/comments/CommentThread").then(m => m.CommentThread),
+  { ssr: false, loading: () => <Skeleton className="h-12 w-full" /> }
+);
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types"
 import { useTranslations } from "next-intl"
 import { PAGINATION, TIME_LIMITS, TARGET_TYPES } from "@/lib/constants"

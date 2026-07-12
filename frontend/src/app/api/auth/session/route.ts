@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { encrypt, decrypt, SESSION_COOKIE_NAME, type SessionPayload } from '@/lib/session'
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
@@ -9,7 +10,7 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
  * Used on page load by authStore.initializeAuth() to restore the in-memory token.
  */
 export async function GET() {
-  const cookieStore = await import('next/headers').then((m) => m.cookies())
+  const cookieStore = await cookies()
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
   if (!sessionCookie) {

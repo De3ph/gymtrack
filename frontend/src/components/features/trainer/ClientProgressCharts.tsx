@@ -1,13 +1,28 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { StatCard } from "./StatCard"
 import { type ChartConfig } from "@/components/ui/chart"
+import { Skeleton } from "@/components/ui/skeleton"
 import { WorkoutStats, MealStats } from "@/lib/api/api-types"
-import { WorkoutVolumeChart } from "./progress-charts/WorkoutVolumeChart"
-import { NutritionTrendsChart } from "./progress-charts/NutritionTrendsChart"
-import { MealTypeDistributionChart } from "./progress-charts/MealTypeDistributionChart"
-import { ExerciseBreakdownChart } from "./progress-charts/ExerciseBreakdownChart"
 import { useTranslations } from "next-intl"
+
+const WorkoutVolumeChart = dynamic(
+  () => import("./progress-charts/WorkoutVolumeChart").then(m => m.WorkoutVolumeChart),
+  { ssr: false, loading: () => <Skeleton className="h-[300px]" /> }
+)
+const NutritionTrendsChart = dynamic(
+  () => import("./progress-charts/NutritionTrendsChart").then(m => m.NutritionTrendsChart),
+  { ssr: false, loading: () => <Skeleton className="h-[300px]" /> }
+)
+const MealTypeDistributionChart = dynamic(
+  () => import("./progress-charts/MealTypeDistributionChart").then(m => m.MealTypeDistributionChart),
+  { ssr: false, loading: () => <Skeleton className="h-[250px]" /> }
+)
+const ExerciseBreakdownChart = dynamic(
+  () => import("./progress-charts/ExerciseBreakdownChart").then(m => m.ExerciseBreakdownChart),
+  { ssr: false, loading: () => <Skeleton className="h-[250px]" /> }
+)
 
 interface ClientProgressChartsProps {
   workoutStats: WorkoutStats

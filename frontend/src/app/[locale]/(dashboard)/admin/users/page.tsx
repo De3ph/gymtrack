@@ -19,6 +19,6 @@ export default async function AdminUsersPage() {
 
 async function UsersTableWithData() {
   // Server-side initial data — handed to client via props as React Query seed
-  const initialData = await getAdminUsers({ limit: 500 });
+  const initialData = await getAdminUsers({ limit: 25 });
   return <UsersTableClientWrapper initialData={initialData} />;
 }

@@ -166,3 +166,71 @@ export const getAdminStatsCached = unstable_cache(
   ['admin-stats'],
   { revalidate: 60, tags: ['admin-stats'] },
 )
+
+/**
+ * Server-side fetch for the latest body measurement.
+ * Cross-request cached for 30 s; tagged for mutation invalidation.
+ */
+export const getLatestBodyMeasurementCached = unstable_cache(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async (): Promise<any> => {
+    const session = await verifySession()
+    return serverFetch<Record<string, unknown> | null>(
+      '/body-measurements/latest',
+      session.accessToken,
+    )
+  },
+  ['latest-body-measurement'],
+  { revalidate: 30, tags: ['body-measurements', 'latest-body-measurement'] },
+)
+
+/**
+ * Server-side fetch for the current trainer's profile.
+ * Cross-request cached for 5 min; tagged for mutation invalidation.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getTrainerProfileCached = unstable_cache(
+  async (): Promise<any> => {
+    const session = await verifySession()
+    return serverFetch<Record<string, unknown>>(
+      '/trainer-catalog/my-profile',
+      session.accessToken,
+    )
+  },
+  ['trainer-profile'],
+  { revalidate: 300, tags: ['trainer-profile'] },
+)
+
+/**
+ * Server-side fetch for a single workout plan by ID.
+ * Cross-request cached for 60 s; tagged for mutation invalidation.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getWorkoutPlanCached = unstable_cache(
+  async (planId: string): Promise<any> => {
+    const session = await verifySession()
+    return serverFetch<Record<string, unknown>>(
+      `/workout-plans/${planId}`,
+      session.accessToken,
+    )
+  },
+  ['workout-plan'],
+  { revalidate: 60, tags: ['workout-plans'] },
+)
+
+/**
+ * Server-side fetch for a workout plan's athlete assignments.
+ * Cross-request cached for 60 s; tagged for mutation invalidation.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getWorkoutPlanAssignmentsCached = unstable_cache(
+  async (planId: string): Promise<any> => {
+    const session = await verifySession()
+    return serverFetch<Record<string, unknown>>(
+      `/workout-plans/${planId}/assignments`,
+      session.accessToken,
+    )
+  },
+  ['workout-plan-assignments'],
+  { revalidate: 60, tags: ['workout-plans'] },
+)

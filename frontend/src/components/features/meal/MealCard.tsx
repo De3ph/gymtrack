@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTranslations } from "next-intl"
+import dynamic from "next/dynamic";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,11 +20,16 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Meal } from "@/types";
-import { CommentThread } from "@/components/features/comments/CommentThread";
 import { MealItem } from "./MealItem";
 import { TARGET_TYPES } from "@/lib/constants";
 import { staggerItem } from "@/lib/animations";
+
+const CommentThread = dynamic(
+  () => import("@/components/features/comments/CommentThread").then(m => m.CommentThread),
+  { ssr: false, loading: () => <Skeleton className="h-12 w-full" /> }
+);
 
 interface MealCardProps {
   meal: Meal;

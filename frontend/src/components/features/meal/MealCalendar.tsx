@@ -1,13 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { Calendar } from "@/components/ui/calendar";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { mealApi } from "@/lib/api";
 import { DailyNutritionSummary } from "./DailyNutritionSummary";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl"
+
+const CalendarGrid = dynamic(
+  () => import("./CalendarGrid").then((m) => m.CalendarGrid),
+  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full" /> },
+);
 
 export function MealCalendar() {
   const t = useTranslations("meal.calendar")
@@ -72,25 +78,11 @@ export function MealCalendar() {
       {selectedDate && <DailyNutritionSummary date={dayjs(selectedDate)} />}
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("title")}</CardTitle>
-          </CardHeader>
-          <CardContent className='flex justify-center'>
-            <Calendar
-              mode='single'
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              modifiers={{
-                meal: mealDays.map((d) => dayjs(d).toDate())
-              }}
-              modifiersClassNames={{
-                meal: "font-bold text-primary underline"
-              }}
-              className='rounded-md border'
-            />
-          </CardContent>
-        </Card>
+        <CalendarGrid
+          selectedDate={selectedDate}
+          onSelect={setSelectedDate}
+          mealDays={mealDays}
+        />
 
         <Card>
           <CardHeader>

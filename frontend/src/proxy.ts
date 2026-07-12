@@ -27,12 +27,26 @@ function isAdminRoute(pathname: string): boolean {
   return normalized === '/admin' || normalized.startsWith('/admin/')
 }
 
+
+// In-memory decrypt cache to avoid re-decrypt on every navigation (5 s TTL)
+const decryptCache = new Map<string, { payload: any; exp: number }>();
+const DECRYPT_TTL_MS = 5_000;
+
+async function cachedDecrypt(cookie: string): Promise<any> {
+  const hit = decryptCache.get(cookie);
+  if (hit && hit.exp > Date.now()) return hit.payload;
+  const payload = await decrypt(cookie);
+  if (payload) {
+    decryptCache.set(cookie, { payload, exp: Date.now() + DECRYPT_TTL_MS });
+  }
+  return payload;
+}
 export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
   const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value
 
   if (!isPublicRoute(path)) {
-    const payload = sessionCookie ? await decrypt(sessionCookie) : null
+    const payload = sessionCookie ? await cachedDecrypt(sessionCookie) : null
 
     if (!payload?.userId) {
       const loginUrl = new URL('/login', req.nextUrl)
