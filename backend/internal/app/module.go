@@ -35,8 +35,8 @@ var RepositoryModule = fx.Module("repositories",
 		},
 
 		// Couchbase connection (temporary - only for InvitationService)
-		func(cfg *config.Config) (*gocb.Cluster, *gocb.Bucket, error) {
-			return config.ProvideCouchbaseConnection(cfg)
+		func() (*gocb.Cluster, *gocb.Bucket, error) {
+			return config.ProvideCouchbaseConnection()
 		},
 
 		// All 14 repositories swapped to PostgreSQL
@@ -204,17 +204,12 @@ type AppProvider struct {
 	fx.In
 
 	Config      *config.Config
-	Cluster     *gocb.Cluster
-	Bucket      *gocb.Bucket
 	Lifecycle   fx.Lifecycle
 	Router      *gin.Engine
 	AuthService *services.AuthService
 }
 
 func NewApp(p AppProvider) *App {
-	config.GlobalCluster = p.Cluster
-	config.GlobalBucket = p.Bucket
-
 	middleware.InitAuthMiddleware(p.Config, p.AuthService)
 
 	corsConfig := cors.DefaultConfig()

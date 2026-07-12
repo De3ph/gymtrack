@@ -3,19 +3,13 @@ package config
 import (
 	"log"
 	"os"
-	"time"
 
-	"github.com/couchbase/gocb/v2"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	CouchbaseConnectionString string
-	CouchbaseUsername         string
-	CouchbasePassword         string
-	CouchbaseBucket           string
-	JWTSecret                 string
-	PostgresDSN               string
+	JWTSecret   string
+	PostgresDSN string
 }
 
 func LoadConfig() *Config {
@@ -35,12 +29,8 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		CouchbaseConnectionString: getEnv("COUCHBASE_CONNECTION_STRING", "couchbase://localhost"),
-		CouchbaseUsername:         getEnv("COUCHBASE_USERNAME", "Administrator"),
-		CouchbasePassword:         getEnv("COUCHBASE_PASSWORD", "password"),
-		CouchbaseBucket:           getEnv("COUCHBASE_BUCKET", "gymtrack"),
-		JWTSecret:                 jwtSecret,
-		PostgresDSN:               getEnv("POSTGRES_DSN", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable"),
+		JWTSecret:   jwtSecret,
+		PostgresDSN: getEnv("POSTGRES_DSN", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable"),
 	}
 }
 
@@ -49,28 +39,4 @@ func getEnv(key string, defaultValue string) string {
 		return value
 	}
 	return defaultValue
-}
-
-// ProvideCouchbaseConnection provides Couchbase cluster and bucket for fx
-func ProvideCouchbaseConnection(cfg *Config) (cluster *gocb.Cluster, bucket *gocb.Bucket, err error) {
-	cluster, err = gocb.Connect(cfg.CouchbaseConnectionString, gocb.ClusterOptions{
-		Authenticator: gocb.PasswordAuthenticator{
-			Username: cfg.CouchbaseUsername,
-			Password: cfg.CouchbasePassword,
-		},
-	})
-
-	if err != nil {
-		return
-	}
-
-	bucket = cluster.Bucket(cfg.CouchbaseBucket)
-	err = bucket.WaitUntilReady(10*time.Second, nil)
-
-	return
-}
-
-// GetCollection returns a collection from the bucket
-func GetCollection(bucket *gocb.Bucket, collectionName string) *gocb.Collection {
-	return bucket.Scope(ScopeDefault).Collection(collectionName)
 }
