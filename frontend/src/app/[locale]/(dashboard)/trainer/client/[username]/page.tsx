@@ -34,8 +34,9 @@ export default function ClientDetailPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["clientData", username, dateRange, exerciseType, mealType],
     queryFn: async () => {
-      const details = await relationshipApi.getClientDetails(username);
-      const [workoutsResp, mealsResp, measurementsResp, statsResp] = await Promise.all([
+      const [details, workoutsResp, mealsResp, measurementsResp, statsResp] =
+        await Promise.all([
+          relationshipApi.getClientDetails(username),
         trainerClientApi.getClientWorkouts(username, {
           ...(dateRange.start && { startDate: dateRange.start }),
           ...(dateRange.end && { endDate: dateRange.end }),

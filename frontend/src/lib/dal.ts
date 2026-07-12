@@ -20,6 +20,20 @@ async function getSessionPayload() {
 }
 
 /**
+ * Read-only session lookup. Returns null when not authenticated so Server
+ * Components can branch without throwing. Cached per-request via React.cache.
+ */
+export const getSession = cache(async () => {
+  const payload = await getSessionPayload()
+  if (!payload?.userId) return null
+  return {
+    userId: payload.userId,
+    role: payload.role,
+    accessToken: payload.accessToken,
+  }
+})
+
+/**
  * Verify the current user has a session. Redirects to /login if not.
  * Cached for the duration of a single request via React.cache.
  */

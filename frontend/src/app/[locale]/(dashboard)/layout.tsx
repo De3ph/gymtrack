@@ -1,60 +1,13 @@
-"use client";
+import { getSession } from '@/lib/dal';
+import { redirect } from 'next/navigation';
+import { DashboardClientShell } from './DashboardClientShell';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/authStore";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
-import { ROUTES } from "@/lib/routes";
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const {
-    isAuthenticated,
-    isLoading,
-    user,
-    logout,
-    initializeAuth,
-    isInitialized,
-  } = useAuthStore();
-
-  useEffect(() => {
-    // Cheap condition first: only run init once (async-cheap-condition-before-await)
-    if (!isInitialized) {
-      initializeAuth();
-      return;
-    }
-    // After init resolves, redirect if session is missing
-    if (!isLoading && !isAuthenticated) {
-      router.push(ROUTES.LOGIN);
-    }
-  }, [initializeAuth, isInitialized, isLoading, isAuthenticated, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav
-        userRole={user?.role}
-        userName={user?.profile.name}
-        onLogout={logout}
-      />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {children}
-      </main>
-    </div>
-  );
+  const session = await getSession();
+  if (!session) redirect('/login');
+  return <DashboardClientShell>{children}</DashboardClientShell>;
 }
