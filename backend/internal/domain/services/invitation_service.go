@@ -2,206 +2,21 @@ package services
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
-	"strconv"
-	"time"
 
-	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
-
-	"github.com/couchbase/gocb/v2"
 )
 
+// InvitationMethod defines the storage interface for invitation codes.
 type InvitationMethod interface {
 	GenerateInvitation(ctx context.Context, trainerID int, athleteID int) (*models.Invitation, error)
 	ValidateInvitation(ctx context.Context, code string) (*models.Invitation, error)
 	MarkInvitationUsed(ctx context.Context, invitationID int) error
 }
 
-type InvitationGetResult interface {
-	Content(valuePtr interface{}) error
-	Cas() gocb.Cas
-}
-
-type InvitationCollection interface {
-	Insert(id string, value interface{}, opts *gocb.InsertOptions) (*gocb.MutationResult, error)
-	Get(id string, opts *gocb.GetOptions) (InvitationGetResult, error)
-	Replace(id string, value interface{}, opts *gocb.ReplaceOptions) (*gocb.MutationResult, error)
-}
-
-// GocbCollectionAdapter adapts gocb.Collection to InvitationCollection interface
-type GocbCollectionAdapter struct {
-	collection *gocb.Collection
-}
-
-func NewGocbCollectionAdapter(collection *gocb.Collection) InvitationCollection {
-	return &GocbCollectionAdapter{collection: collection}
-}
-
-func (a *GocbCollectionAdapter) Insert(id string, value interface{}, opts *gocb.InsertOptions) (*gocb.MutationResult, error) {
-	return a.collection.Insert(id, value, opts)
-}
-
-func (a *GocbCollectionAdapter) Get(id string, opts *gocb.GetOptions) (InvitationGetResult, error) {
-	return a.collection.Get(id, opts)
-}
-
-func (a *GocbCollectionAdapter) Replace(id string, value interface{}, opts *gocb.ReplaceOptions) (*gocb.MutationResult, error) {
-	return a.collection.Replace(id, value, opts)
-}
-
-// CodeBasedInvitation implements InvitationMethod using unique codes
-type CodeBasedInvitation struct {
-	collection InvitationCollection
-	clock      utils.Clock
-}
-
-// NewCodeBasedInvitation creates a new code-based invitation service
-func NewCodeBasedInvitation(collection InvitationCollection, clock utils.Clock) *CodeBasedInvitation {
-	if clock == nil {
-		clock = utils.RealClock{}
-	}
-	return &CodeBasedInvitation{
-		collection: collection,
-		clock:      clock,
-	}
-}
-
-// generateUUIDSafe generates a UUID with error handling
-var generateUUIDSafe = func(ctx context.Context) (string, error) {
-	b := make([]byte, 16)
-	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("failed to read random bytes: %w", err)
-	}
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:]), nil
-}
-
-// GenerateInvitation creates a new invitation code
-func (c *CodeBasedInvitation) GenerateInvitation(ctx context.Context, trainerID int, athleteID int) (*models.Invitation, error) {
-
-	code, err := generateRandomCode(ctx, 8)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate invitation code: %w", err)
-	}
-
-	now := c.clock.Now()
-	invitation := &models.Invitation{
-		Type:         "invitation",
-		InvitationID: 0,
-		TrainerID:    trainerID,
-		Code:         code,
-		Status:       "pending",
-		CreatedAt:    now,
-		ExpiresAt:    now.Add(7 * 24 * time.Hour),
-	}
-
-	_, err = c.collection.Insert(strconv.Itoa(invitation.InvitationID), invitation, &gocb.InsertOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to save invitation: %w", err)
-	}
-
-	return invitation, nil
-}
-
-// ValidateInvitation checks if an invitation code is valid
-func (c *CodeBasedInvitation) ValidateInvitation(ctx context.Context, code string) (*models.Invitation, error) {
-	if code == "" {
-		return nil, fmt.Errorf("code cannot be empty")
-	}
-
-	// Query to find invitation by code using GlobalCluster
-	query := fmt.Sprintf("SELECT i.* FROM `%s`.`%s`.`%s` i WHERE i.type = 'invitation' AND i.code = $1 LIMIT 1",
-		config.GlobalBucket.Name(), config.ScopeDefault, config.CollectionInvitations)
-
-	result, err := config.GlobalCluster.Query(query, &gocb.QueryOptions{
-		PositionalParameters: []interface{}{code},
-		Context:              ctx,
-		Timeout:              config.DefaultQueryTimeout,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query invitation: %w", err)
-	}
-	defer result.Close()
-
-	var invitation models.Invitation
-	if result.Next() {
-		if err := result.Row(&invitation); err != nil {
-			return nil, fmt.Errorf("failed to decode invitation: %w", err)
-		}
-	} else {
-		return nil, fmt.Errorf("invalid invitation code")
-	}
-
-	// Check if invitation is still valid
-	if invitation.Status != "pending" {
-		return nil, fmt.Errorf("invitation has already been used")
-	}
-
-	if c.clock.Now().After(invitation.ExpiresAt) {
-		return nil, fmt.Errorf("invitation has expired")
-	}
-
-	return &invitation, nil
-}
-
-// MarkInvitationUsed marks an invitation as used with concurrency safety
-func (c *CodeBasedInvitation) MarkInvitationUsed(ctx context.Context, invitationID int) error {
-
-	result, err := c.collection.Get(strconv.Itoa(invitationID), &gocb.GetOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to get invitation: %w", err)
-	}
-
-	var invitation models.Invitation
-	if err := result.Content(&invitation); err != nil {
-		return fmt.Errorf("failed to decode invitation: %w", err)
-	}
-
-	if invitation.Status != "pending" {
-		return fmt.Errorf("invitation already used or not pending")
-	}
-
-	invitation.Status = "used"
-	invitation.UsedAt = c.clock.Now()
-
-	_, err = c.collection.Replace(strconv.Itoa(invitationID), invitation, &gocb.ReplaceOptions{
-		Context: ctx,
-		Cas:     result.Cas(),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to update invitation: %w", err)
-	}
-
-	return nil
-}
-
-// generateRandomCode generates a random hex code of specified length with context timeout
-func generateRandomCode(ctx context.Context, length int) (string, error) {
-	select {
-	case <-ctx.Done():
-		return "", ctx.Err()
-	default:
-	}
-	bytes := make([]byte, length/2)
-	n, err := rand.Read(bytes)
-	if err != nil {
-		return "", fmt.Errorf("failed to read random bytes: %w", err)
-	}
-	if n == 0 {
-		return "", fmt.Errorf("no random bytes read")
-	}
-	return hex.EncodeToString(bytes), nil
-}
-
-// InvitationService manages invitations using an adapter pattern
+// InvitationService manages invitations using an adapter pattern.
 type InvitationService struct {
 	method           InvitationMethod
 	relationshipRepo repositories.RelationshipRepository
@@ -209,7 +24,7 @@ type InvitationService struct {
 	clock            utils.Clock
 }
 
-// NewInvitationService creates a new invitation service
+// NewInvitationService creates a new invitation service.
 func NewInvitationService(
 	method InvitationMethod,
 	relationshipRepo repositories.RelationshipRepository,
@@ -227,12 +42,12 @@ func NewInvitationService(
 	}
 }
 
-// GenerateInvitation creates a new invitation for a trainer
+// GenerateInvitation creates a new invitation for a trainer.
 func (s *InvitationService) GenerateInvitation(ctx context.Context, trainerID int) (*models.Invitation, error) {
 	return s.method.GenerateInvitation(ctx, trainerID, 0)
 }
 
-// AcceptInvitation allows an athlete to accept an invitation
+// AcceptInvitation allows an athlete to accept an invitation.
 func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, athleteID int) (*models.Relationship, error) {
 	// Validate the invitation code
 	invitation, err := s.method.ValidateInvitation(ctx, code)
@@ -277,7 +92,7 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 	return relationship, nil
 }
 
-// GetPendingInvitations gets pending invitations for an athlete
+// GetPendingInvitations gets pending invitations for an athlete.
 func (s *InvitationService) GetPendingInvitations(ctx context.Context, athleteID int) ([]*models.Relationship, error) {
 	relationships, err := s.relationshipRepo.GetPendingByAthleteID(ctx, athleteID)
 	if err != nil {

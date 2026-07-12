@@ -13,7 +13,6 @@ import (
 	"gymtrack-backend/internal/repository/postgres"
 	"gymtrack-backend/internal/utils"
 
-	"github.com/couchbase/gocb/v2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -32,11 +31,6 @@ var RepositoryModule = fx.Module("repositories",
 		// PostgreSQL connection pool
 		func(cfg *config.Config) (*pgxpool.Pool, error) {
 			return config.ProvidePostgresPool(&config.PostgresConfig{DSN: cfg.PostgresDSN})
-		},
-
-		// Couchbase connection (temporary - only for InvitationService)
-		func() (*gocb.Cluster, *gocb.Bucket, error) {
-			return config.ProvideCouchbaseConnection()
 		},
 
 		// All 14 repositories swapped to PostgreSQL
@@ -108,15 +102,12 @@ var RepositoryModule = fx.Module("repositories",
 		services.NewCoachingRequestService,
 		services.NewWorkoutPlanService,
 		func(
-			bucket *gocb.Bucket,
+			pool *pgxpool.Pool,
 			clock utils.Clock,
 			relationshipRepo repositories.RelationshipRepository,
 			userRepo repositories.UserRepository,
 		) *services.InvitationService {
-			method := services.NewCodeBasedInvitation(
-				services.NewGocbCollectionAdapter(config.GetCollection(bucket, config.CollectionInvitations)),
-				clock,
-			)
+			method := postgres.NewPostgresCodeBasedInvitation(pool, clock)
 			return services.NewInvitationService(method, relationshipRepo, userRepo, clock)
 		},
 		services.NewBodyMeasurementService,
@@ -158,14 +149,9 @@ var RepositoryModule = fx.Module("repositories",
 		workoutPlanHandler *handlers.WorkoutPlanHandler,
 		bodyMeasurementHandler *handlers.BodyMeasurementHandler,
 		cfg *config.Config,
-		cluster *gocb.Cluster,
-		bucket *gocb.Bucket,
 		authService *services.AuthService,
 		router *gin.Engine,
 	) {
-		config.GlobalCluster = cluster
-		config.GlobalBucket = bucket
-
 		middleware.InitAuthMiddleware(cfg, authService)
 
 		corsConfig := cors.DefaultConfig()
