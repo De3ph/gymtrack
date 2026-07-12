@@ -25,7 +25,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Dumbbell, User, Users } from "lucide-react";
 import dayjs from "dayjs";
-import { motion, LazyMotion, domAnimation } from "framer-motion";
+import { motion, LazyMotion, domAnimation } from "motion/react";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 
 export function TrainerDashboardContent() {

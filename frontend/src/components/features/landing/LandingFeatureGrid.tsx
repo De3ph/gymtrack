@@ -1,6 +1,6 @@
 import { Apple, Dumbbell, Ruler, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { motion, LazyMotion, domAnimation } from "framer-motion";
+import { motion, LazyMotion, domAnimation } from "motion/react";
 import { landingCard, landingStagger } from "./landing-variants";
 
 const featureKeys = [

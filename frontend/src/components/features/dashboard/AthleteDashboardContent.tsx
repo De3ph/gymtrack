@@ -11,7 +11,7 @@ import { mealApi, relationshipApi, workoutApi } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
-import { motion, LazyMotion, domAnimation } from "framer-motion";
+import { motion, LazyMotion, domAnimation } from "motion/react";
 import { staggerContainer } from "@/lib/animations";
 
 function getWeekRange() {
