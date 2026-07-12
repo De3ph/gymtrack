@@ -80,7 +80,7 @@ func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID in
 		if slot.IsBooked && slot.CreatedAt.Before(cutoff) {
 			err := s.availabilityRepo.DeleteAvailability(ctx, slot.AvailabilityID)
 			if err != nil {
-				return fmt.Errorf("failed to delete expired slot %s: %w", slot.AvailabilityID, err)
+				return fmt.Errorf("failed to delete expired slot %d: %w", slot.AvailabilityID, err)
 			}
 		}
 	}

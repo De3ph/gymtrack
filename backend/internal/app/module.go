@@ -10,11 +10,13 @@ import (
 	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
+	"gymtrack-backend/internal/repository/postgres"
 	"gymtrack-backend/internal/utils"
 
 	"github.com/couchbase/gocb/v2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 	"go.uber.org/fx"
@@ -22,93 +24,71 @@ import (
 
 var RepositoryModule = fx.Module("repositories",
 	fx.Provide(
-		func(cfg *config.Config) (*gocb.Cluster, *gocb.Bucket, error) {
-			return config.ProvideCouchbaseConnection(cfg)
-		},
-
 		config.LoadConfig,
 		func() utils.Clock {
 			return utils.RealClock{}
 		},
 
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.UserRepository {
-			return repositories.NewCouchbaseUserRepository(cluster, bucket)
+		// PostgreSQL connection pool
+		func(cfg *config.Config) (*pgxpool.Pool, error) {
+			return config.ProvidePostgresPool(&config.PostgresConfig{DSN: cfg.PostgresDSN})
 		},
 
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.WorkoutRepository {
-			return repositories.NewWorkoutRepository(cluster, bucket)
+		// Couchbase connection (temporary - only for InvitationService)
+		func(cfg *config.Config) (*gocb.Cluster, *gocb.Bucket, error) {
+			return config.ProvideCouchbaseConnection(cfg)
 		},
 
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.MealRepository {
-			return repositories.NewMealRepository(cluster, bucket)
+		// All 14 repositories swapped to PostgreSQL
+		func(pool *pgxpool.Pool) repositories.UserRepository {
+			return postgres.NewPostgresUserRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.WorkoutRepository {
+			return postgres.NewPostgresWorkoutRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.MealRepository {
+			return postgres.NewPostgresMealRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.RelationshipRepository {
+			return postgres.NewPostgresRelationshipRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.CommentRepository {
+			return postgres.NewPostgresCommentRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.MuscleGroupRepository {
+			return postgres.NewPostgresMuscleGroupRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.EquipmentRepository {
+			return postgres.NewPostgresEquipmentRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.ExerciseRepository {
+			return postgres.NewPostgresExerciseRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.WorkoutPlanRepository {
+			return postgres.NewPostgresWorkoutPlanRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.WorkoutPlanAssignmentRepository {
+			return postgres.NewPostgresWorkoutPlanAssignmentRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.BodyMeasurementRepository {
+			return postgres.NewPostgresBodyMeasurementRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.TrainerProfileRepository {
+			return postgres.NewPostgresTrainerProfileRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.AvailabilityRepository {
+			return postgres.NewPostgresAvailabilityRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.ReviewRepository {
+			return postgres.NewPostgresTrainerReviewRepository(pool)
+		},
+		func(pool *pgxpool.Pool) repositories.CoachingRequestRepository {
+			return postgres.NewPostgresCoachingRequestRepository(pool)
 		},
 
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.RelationshipRepository {
-			return repositories.NewRelationshipRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.CommentRepository {
-			return repositories.NewCommentRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.MuscleGroupRepository {
-			return repositories.NewCouchbaseMuscleGroupRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.EquipmentRepository {
-			return repositories.NewCouchbaseEquipmentRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.ExerciseRepository {
-			return repositories.NewCouchbaseExerciseRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.WorkoutPlanRepository {
-			return repositories.NewWorkoutPlanRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.WorkoutPlanAssignmentRepository {
-			return repositories.NewWorkoutPlanAssignmentRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.BodyMeasurementRepository {
-			return repositories.NewBodyMeasurementRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.TrainerProfileRepository {
-			return repositories.NewCouchbaseTrainerProfileRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.AvailabilityRepository {
-			return repositories.NewCouchbaseAvailabilityRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.ReviewRepository {
-			return repositories.NewCouchbaseReviewRepository(cluster, bucket)
-		},
-
-		func(cluster *gocb.Cluster, bucket *gocb.Bucket) repositories.CoachingRequestRepository {
-			return repositories.NewCoachingRequestRepository(cluster, bucket)
-		},
-
-		repositories.NewCouchbaseUserRepository,
-		repositories.NewWorkoutRepository,
-		repositories.NewMealRepository,
-		repositories.NewRelationshipRepository,
-		repositories.NewCommentRepository,
-		repositories.NewCouchbaseMuscleGroupRepository,
-		repositories.NewCouchbaseEquipmentRepository,
-		repositories.NewCouchbaseExerciseRepository,
-		repositories.NewWorkoutPlanRepository,
-		repositories.NewWorkoutPlanAssignmentRepository,
-		repositories.NewBodyMeasurementRepository,
-		repositories.NewCouchbaseTrainerProfileRepository,
-		repositories.NewCouchbaseAvailabilityRepository,
-		repositories.NewCouchbaseReviewRepository,
-		repositories.NewCoachingRequestRepository,
-
-		func(cfg *config.Config, clock utils.Clock, cluster *gocb.Cluster, bucket *gocb.Bucket) *services.AuthService {
-			return services.NewAuthService(repositories.NewCouchbaseUserRepository(cluster, bucket), cfg.JWTSecret, clock)
+		// Services
+		func(userRepo repositories.UserRepository, cfg *config.Config, clock utils.Clock) *services.AuthService {
+			return services.NewAuthService(userRepo, cfg.JWTSecret, clock)
 		},
 
 		services.NewUserService,
