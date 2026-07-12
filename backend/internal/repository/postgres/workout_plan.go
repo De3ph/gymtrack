@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -29,7 +28,7 @@ func (r *PostgresWorkoutPlanRepository) Create(ctx context.Context, plan *models
 	plan.CreatedAt = now
 	plan.UpdatedAt = now
 
-	exJSON, err := json.Marshal(plan.Exercises)
+	exJSON, err := MarshalToJSONB(plan.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal plan exercises: %w", err)
 	}
@@ -55,10 +54,8 @@ func (r *PostgresWorkoutPlanRepository) scanPlan(row pgx.Row) (*models.WorkoutPl
 		}
 		return nil, fmt.Errorf("failed to scan workout plan: %w", err)
 	}
-	if exRaw != nil {
-		if err := json.Unmarshal(exRaw, &p.Exercises); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal plan exercises: %w", err)
-		}
+	if err := UnmarshalFromJSONB(exRaw, &p.Exercises); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plan exercises: %w", err)
 	}
 	p.Type = "workout_plan"
 	return p, nil
@@ -84,10 +81,8 @@ func (r *PostgresWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trai
 		if err := rows.Scan(&p.PlanID, &p.TrainerID, &p.Name, &p.Description, &exRaw, &p.CreatedAt, &p.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan plan row: %w", err)
 		}
-		if exRaw != nil {
-			if err := json.Unmarshal(exRaw, &p.Exercises); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal plan exercises: %w", err)
-			}
+		if err := UnmarshalFromJSONB(exRaw, &p.Exercises); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal plan exercises: %w", err)
 		}
 		p.Type = "workout_plan"
 		plans = append(plans, p)
@@ -100,7 +95,7 @@ func (r *PostgresWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trai
 
 func (r *PostgresWorkoutPlanRepository) Update(ctx context.Context, plan *models.WorkoutPlan) error {
 	plan.UpdatedAt = time.Now()
-	exJSON, err := json.Marshal(plan.Exercises)
+	exJSON, err := MarshalToJSONB(plan.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal plan exercises: %w", err)
 	}

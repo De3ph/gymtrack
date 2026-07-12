@@ -1,4 +1,4 @@
-# GymTrack Backend — Go + Gin + Couchbase
+# GymTrack Backend — Go + Gin + PostgreSQL
 
 ## Commands (all run from `backend/`)
 
@@ -6,14 +6,15 @@
 |---|---|
 | `go run cmd/server/main.go` | Start server on port 8080 |
 | `go build -o server.exe cmd/server/main.go` | Build binary |
-| `go test ./...` | Run all tests (currently none exist — no `_test.go` files found) |
+| `go test ./...` | Run all tests |
+| `go test ./internal/repository/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
 
 **No hot-reload** — stop and restart after every edit, or use a tool like `air`.
 
 ## Dependencies (Go 1.24, module `gymtrack-backend`)
 
 - **Web**: `github.com/gin-gonic/gin` + `gin-contrib/cors`
-- **DB**: `github.com/couchbase/gocb/v2` (Couchbase)
+- **DB**: `github.com/jackc/pgx/v5` (PostgreSQL)
 - **Auth**: `github.com/golang-jwt/jwt/v5` + `golang.org/x/crypto`
 - **Docs**: `github.com/swaggo/swag` + `gin-swagger` (Swagger UI at `/swagger/*`)
 - **Validation**: `github.com/go-playground/validator/v10`
@@ -29,7 +30,7 @@ internal/
     handlers/              — 14 handlers, thin HTTP layer (parse req → call service → respond)
     middleware/             — auth_middleware.go, admin_middleware.go
     routes/                — 12 route files, grouped by domain
-  config/                  — Config struct, Couchbase connect, collection init, seed data
+  config/                  — Config struct, PostgreSQL connection pool, seed data
   domain/
     errors/                — ErrNotFound, ErrUnauthorized, ErrForbidden, etc.
     models/                — 15 domain structs (Workout, User, Meal, Exercise, etc.)
@@ -39,13 +40,16 @@ internal/
   utils/                   — clock.go (RealClock interface for testable time)
 ```
 
-## Database (Couchbase)
+## Database (PostgreSQL)
 
-- **Bucket**: `gymtrack` (configurable via `COUCHBASE_BUCKET` env var).
-- **Scope**: `_default` (all collections live here).
-- **12 collections**: `users`, `relationships`, `workouts`, `meals`, `comments`, `invitations`, `muscle_groups`, `equipment`, `exercises`, `workout_plans`, `workout_plan_assignments`, `body_measurements`.
-- **Auto-provisioning**: On startup, `config.InitializeCollections()` creates missing collections **and** N1QL indexes. You do not need a pre-setup Couchbase schema beyond the bucket.
-- **Document IDs** follow the pattern `{type}::{uuid}` (e.g., `workout::abc-123`). All documents include a `type` field matching the collection name.
+- **Host**: `localhost` (configurable via `POSTGRES_DSN` and `POSTGRES_TEST_DSN` env vars).
+- **Port**: `5432` (default PostgreSQL port).
+- **Database**: `gymtrack` (default database name).
+- **Schema**: `public` (default schema).
+- **Tables**: `users`, `relationships`, `workouts`, `meals`, `comments`, `invitations`, `exercises`, `equipment`, `muscle_groups`, `coaching_requests`, `trainer_reviews`, `trainer_availabilities`, `workout_plans`, `workout_plan_assignments`, `body_measurements`.
+- **Schema management**: Tables are created via migration scripts. Run `go run ./cmd/migrate` to apply migrations.
+- **Primary keys**: All tables use `id SERIAL PRIMARY KEY`. Foreign keys reference these integer IDs.
+- **JSONB columns**: `workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises` store arrays as JSONB.
 
 ## Configuration
 
@@ -53,11 +57,11 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 
 | Env var | Default | Notes |
 |---|---|---|
-| `COUCHBASE_CONNECTION_STRING` | `couchbase://localhost` | |
-| `COUCHBASE_USERNAME` | `Administrator` | |
-| `COUCHBASE_PASSWORD` | `password` | |
-| `COUCHBASE_BUCKET` | `gymtrack` | |
-| `JWT_SECRET` | **(required)** | Must be ≥32 chars |
+| `POSTGRES_DSN` | (required) | PostgreSQL connection string |
+| `POSTGRES_TEST_DSN` | (required) | PostgreSQL connection string for tests |
+| `JWT_SECRET` | (required) | Must be ≥32 characters |
+
+Legacy Couchbase env vars (`COUCHBASE_*`) are retained for rollback but unused.
 
 `JWT_SECRET` is required and validated at startup — server will crash with `log.Fatal` if missing or too short.
 
@@ -79,6 +83,8 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 
 ## Known gaps
 
-- No test files exist. Backend test patterns should use `testutils` mocks + testify.
-- `utils.clock.go` provides `Clock` interface + `RealClock` — services that use time already accept this via constructor.
-- `SeedAllData()` in `config/seed_data.go` is commented out in `main.go` — uncomment if needed for development.
+- Invitation service still uses Couchbase (not migrated to PostgreSQL).
+- No E2E test suite. Repository-level tests exist but integration with the full HTTP layer is untested.
+- `SeedAllData()` in `config/seed_data.go` is commented out in `main.go` -- uncomment if needed for development.
+- Schema managed via `backend/migrations/001_initial_schema.up.sql` -- no migration tool (e.g., golang-migrate) yet.
+- JSONB columns (`workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises`) are untyped `[]byte` in Go code; no struct deserialization layer.

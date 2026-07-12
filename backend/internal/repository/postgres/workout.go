@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -38,10 +37,8 @@ func scanWorkout(row interface{ Scan(dest ...any) error }, w *models.Workout) er
 	if planID != nil {
 		w.PlanID = *planID
 	}
-	if exercisesRaw != nil {
-		if err := json.Unmarshal(exercisesRaw, &w.Exercises); err != nil {
-			return fmt.Errorf("failed to unmarshal exercises: %w", err)
-		}
+	if err := UnmarshalFromJSONB(exercisesRaw, &w.Exercises); err != nil {
+		return fmt.Errorf("failed to unmarshal exercises: %w", err)
 	}
 	return nil
 }
@@ -51,7 +48,7 @@ func (r *PostgresWorkoutRepository) Create(ctx context.Context, workout *models.
 	workout.CreatedAt = now
 	workout.UpdatedAt = now
 
-	exercisesJSON, err := json.Marshal(workout.Exercises)
+	exercisesJSON, err := MarshalToJSONB(workout.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal exercises: %w", err)
 	}
@@ -141,7 +138,7 @@ func (r *PostgresWorkoutRepository) GetByAthleteDateRange(ctx context.Context, a
 func (r *PostgresWorkoutRepository) Update(ctx context.Context, workout *models.Workout) error {
 	workout.UpdatedAt = time.Now()
 
-	exercisesJSON, err := json.Marshal(workout.Exercises)
+	exercisesJSON, err := MarshalToJSONB(workout.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal exercises: %w", err)
 	}

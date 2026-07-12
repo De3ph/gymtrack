@@ -95,11 +95,11 @@ func SeedExercises(collection *gocb.Collection) error {
 	defer cancel()
 
 	exercises := []struct {
-		name         string
-		category     string
+		name          string
+		category      string
 		muscleGroupID int
-		equipmentID  int
-		instructions string
+		equipmentID   int
+		instructions  string
 	}{
 		// Chest Exercises
 		{"Bench Press", "strength", 1, 1, "Lie on bench, lower bar to chest, press up"},

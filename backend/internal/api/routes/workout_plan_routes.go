@@ -22,8 +22,8 @@ func RegisterWorkoutPlanRoutes(router *gin.RouterGroup, handler *handlers.Workou
 		plans.DELETE("/:id", handler.DeletePlan) // trainer only
 
 		// Assignment
-		plans.POST("/:id/assign", handler.AssignPlan)      // trainer only
-		plans.GET("/:id/assignments", handler.GetAssignments) // trainer only
+		plans.POST("/:id/assign", handler.AssignPlan)          // trainer only
+		plans.GET("/:id/assignments", handler.GetAssignments)  // trainer only
 		plans.POST("/:id/start", handler.StartWorkoutFromPlan) // athlete only
 	}
 

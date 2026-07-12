@@ -19,7 +19,7 @@ func TestPostgresWorkoutPlanAssignmentRepository(t *testing.T) {
 	repo := NewPostgresWorkoutPlanAssignmentRepository(pool)
 	ctx := context.Background()
 
- createUser := func(t *testing.T, username string, role models.UserRole) int {
+	createUser := func(t *testing.T, username string, role models.UserRole) int {
 		t.Helper()
 		var userID int
 		err := pool.QueryRow(ctx,
@@ -30,7 +30,7 @@ func TestPostgresWorkoutPlanAssignmentRepository(t *testing.T) {
 		return userID
 	}
 
- createPlan := func(t *testing.T, trainerID int) int {
+	createPlan := func(t *testing.T, trainerID int) int {
 		t.Helper()
 		var planID int
 		err := pool.QueryRow(ctx,

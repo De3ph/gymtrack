@@ -162,6 +162,9 @@ func TestPostgresWorkoutRepository(t *testing.T) {
 		require.NoError(t, repo.Create(ctx, w))
 		originalUpdatedAt := w.UpdatedAt
 
+		// Ensure time moves forward for UpdatedAt comparison
+		time.Sleep(10 * time.Millisecond)
+
 		w.Exercises[0].Name = "Incline Bench Press"
 		w.Exercises[0].Sets[0].Weight = 90
 		w.Date = time.Date(2024, 10, 2, 0, 0, 0, 0, time.UTC)

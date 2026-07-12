@@ -24,7 +24,7 @@ var migrationSQL string
 //
 // The cleanup function closes the pool and (for testcontainers) terminates the
 // container.
-func SetupTestPostgresDB(t *testing.T) (*pgxpool.Pool, func()) {
+func SetupTestPostgresDB(t testing.TB) (*pgxpool.Pool, func()) {
 	t.Helper()
 
 	ctx := context.Background()

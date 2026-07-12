@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -117,10 +116,8 @@ func (r *PostgresTrainerProfileRepository) GetTrainerByID(ctx context.Context, t
 		return nil, fmt.Errorf("failed to get trainer: %w", err)
 	}
 
-	if profileRaw != nil {
-		if err := json.Unmarshal(profileRaw, &trainer.User.Profile); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
-		}
+	if err := UnmarshalFromJSONB(profileRaw, &trainer.User.Profile); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 	}
 
 	trainer.Type = "user"
@@ -142,10 +139,8 @@ func (r *PostgresTrainerProfileRepository) UpdateTrainerProfile(ctx context.Cont
 	}
 
 	var userProfile models.UserProfile
-	if profileRaw != nil {
-		if err := json.Unmarshal(profileRaw, &userProfile); err != nil {
-			return fmt.Errorf("failed to unmarshal user profile: %w", err)
-		}
+	if err := UnmarshalFromJSONB(profileRaw, &userProfile); err != nil {
+		return fmt.Errorf("failed to unmarshal user profile: %w", err)
 	}
 
 	userProfile.Bio = profile.Bio
@@ -156,7 +151,7 @@ func (r *PostgresTrainerProfileRepository) UpdateTrainerProfile(ctx context.Cont
 	userProfile.Location = profile.Location
 	userProfile.Languages = profile.Languages
 
-	updatedJSON, err := json.Marshal(userProfile)
+	updatedJSON, err := MarshalToJSONB(userProfile)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user profile: %w", err)
 	}
@@ -224,10 +219,8 @@ func (r *PostgresTrainerProfileRepository) scanTrainerRows(rows pgx.Rows) ([]mod
 			return nil, fmt.Errorf("failed to scan trainer row: %w", err)
 		}
 
-		if profileRaw != nil {
-			if err := json.Unmarshal(profileRaw, &trainer.User.Profile); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
-			}
+		if err := UnmarshalFromJSONB(profileRaw, &trainer.User.Profile); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 		}
 
 		trainer.Type = "user"

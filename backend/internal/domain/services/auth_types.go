@@ -48,16 +48,16 @@ type TokenClaims struct {
 
 // Service errors
 var (
-	ErrUserAlreadyExists     = NewServiceError("user with this email already exists", "USER_EXISTS")
-	ErrUsernameAlreadyExists = NewServiceError("username already taken", "USERNAME_EXISTS")
-	ErrInvalidCredentials    = NewServiceError("invalid credentials", "INVALID_CREDENTIALS")
-	ErrInvalidToken          = NewServiceError("invalid token", "INVALID_TOKEN")
-	ErrTokenExpired          = NewServiceError("token expired", "TOKEN_EXPIRED")
-	ErrInvalidTokenType      = NewServiceError("invalid token type", "INVALID_TOKEN_TYPE")
-	ErrUserNotFound          = NewServiceError("user not found", "USER_NOT_FOUND")
-	ErrWorkoutNotFound       = NewServiceError("workout not found", "WORKOUT_NOT_FOUND")
-	ErrMealNotFound          = NewServiceError("meal not found", "MEAL_NOT_FOUND")
-	ErrWorkoutPlanNotFound    = NewServiceError("workout plan not found", "WORKOUT_PLAN_NOT_FOUND")
+	ErrUserAlreadyExists       = NewServiceError("user with this email already exists", "USER_EXISTS")
+	ErrUsernameAlreadyExists   = NewServiceError("username already taken", "USERNAME_EXISTS")
+	ErrInvalidCredentials      = NewServiceError("invalid credentials", "INVALID_CREDENTIALS")
+	ErrInvalidToken            = NewServiceError("invalid token", "INVALID_TOKEN")
+	ErrTokenExpired            = NewServiceError("token expired", "TOKEN_EXPIRED")
+	ErrInvalidTokenType        = NewServiceError("invalid token type", "INVALID_TOKEN_TYPE")
+	ErrUserNotFound            = NewServiceError("user not found", "USER_NOT_FOUND")
+	ErrWorkoutNotFound         = NewServiceError("workout not found", "WORKOUT_NOT_FOUND")
+	ErrMealNotFound            = NewServiceError("meal not found", "MEAL_NOT_FOUND")
+	ErrWorkoutPlanNotFound     = NewServiceError("workout plan not found", "WORKOUT_PLAN_NOT_FOUND")
 	ErrBodyMeasurementNotFound = NewServiceError("body measurement not found", "BODY_MEASUREMENT_NOT_FOUND")
 )
 
