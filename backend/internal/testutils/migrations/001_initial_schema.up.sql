@@ -211,19 +211,20 @@ CREATE TABLE body_measurements (
 CREATE INDEX idx_bm_athlete_date ON body_measurements(athlete_id, date);
 CREATE INDEX idx_bm_athlete_weight ON body_measurements(athlete_id, weight);
 -- Expression indexes for supported body parts
-CREATE INDEX idx_bm_chest   ON body_measurements(athlete_id, ((parts->>'chest')::numeric))   WHERE parts ? 'chest';
-CREATE INDEX idx_bm_waist   ON body_measurements(athlete_id, ((parts->>'waist')::numeric))   WHERE parts ? 'waist';
-CREATE INDEX idx_bm_hips    ON body_measurements(athlete_id, ((parts->>'hips')::numeric))    WHERE parts ? 'hips';
-CREATE INDEX idx_bm_bicep_left  ON body_measurements(athlete_id, ((parts->>'bicepLeft')::numeric))  WHERE parts ? 'bicepLeft';
-CREATE INDEX idx_bm_bicep_right ON body_measurements(athlete_id, ((parts->>'bicepRight')::numeric)) WHERE parts ? 'bicepRight';
-CREATE INDEX idx_bm_forearm_left  ON body_measurements(athlete_id, ((parts->>'forearmLeft')::numeric))  WHERE parts ? 'forearmLeft';
-CREATE INDEX idx_bm_forearm_right ON body_measurements(athlete_id, ((parts->>'forearmRight')::numeric)) WHERE parts ? 'forearmRight';
-CREATE INDEX idx_bm_thigh_left    ON body_measurements(athlete_id, ((parts->>'thighLeft')::numeric))    WHERE parts ? 'thighLeft';
-CREATE INDEX idx_bm_thigh_right   ON body_measurements(athlete_id, ((parts->>'thighRight')::numeric))   WHERE parts ? 'thighRight';
-CREATE INDEX idx_bm_calf_left     ON body_measurements(athlete_id, ((parts->>'calfLeft')::numeric))     WHERE parts ? 'calfLeft';
-CREATE INDEX idx_bm_calf_right    ON body_measurements(athlete_id, ((parts->>'calfRight')::numeric))    WHERE parts ? 'calfRight';
-CREATE INDEX idx_bm_neck          ON body_measurements(athlete_id, ((parts->>'neck')::numeric))          WHERE parts ? 'neck';
-CREATE INDEX idx_bm_shoulder      ON body_measurements(athlete_id, ((parts->>'shoulder')::numeric))      WHERE parts ? 'shoulder';
+-- Parts are stored as {"partName": {"value": <number>}}, so drill into the nested object.
+CREATE INDEX idx_bm_chest   ON body_measurements(athlete_id, ((parts->'chest'->>'value')::numeric))   WHERE parts ? 'chest';
+CREATE INDEX idx_bm_waist   ON body_measurements(athlete_id, ((parts->'waist'->>'value')::numeric))   WHERE parts ? 'waist';
+CREATE INDEX idx_bm_hips    ON body_measurements(athlete_id, ((parts->'hips'->>'value')::numeric))    WHERE parts ? 'hips';
+CREATE INDEX idx_bm_bicep_left  ON body_measurements(athlete_id, ((parts->'bicepLeft'->>'value')::numeric))  WHERE parts ? 'bicepLeft';
+CREATE INDEX idx_bm_bicep_right ON body_measurements(athlete_id, ((parts->'bicepRight'->>'value')::numeric)) WHERE parts ? 'bicepRight';
+CREATE INDEX idx_bm_forearm_left  ON body_measurements(athlete_id, ((parts->'forearmLeft'->>'value')::numeric))  WHERE parts ? 'forearmLeft';
+CREATE INDEX idx_bm_forearm_right ON body_measurements(athlete_id, ((parts->'forearmRight'->>'value')::numeric)) WHERE parts ? 'forearmRight';
+CREATE INDEX idx_bm_thigh_left    ON body_measurements(athlete_id, ((parts->'thighLeft'->>'value')::numeric))    WHERE parts ? 'thighLeft';
+CREATE INDEX idx_bm_thigh_right   ON body_measurements(athlete_id, ((parts->'thighRight'->>'value')::numeric))   WHERE parts ? 'thighRight';
+CREATE INDEX idx_bm_calf_left     ON body_measurements(athlete_id, ((parts->'calfLeft'->>'value')::numeric))     WHERE parts ? 'calfLeft';
+CREATE INDEX idx_bm_calf_right    ON body_measurements(athlete_id, ((parts->'calfRight'->>'value')::numeric))    WHERE parts ? 'calfRight';
+CREATE INDEX idx_bm_neck          ON body_measurements(athlete_id, ((parts->'neck'->>'value')::numeric))          WHERE parts ? 'neck';
+CREATE INDEX idx_bm_shoulder      ON body_measurements(athlete_id, ((parts->'shoulder'->>'value')::numeric))      WHERE parts ? 'shoulder';
 CREATE INDEX idx_bm_parts_gin ON body_measurements USING GIN (parts);
 
 -- ============================================================================

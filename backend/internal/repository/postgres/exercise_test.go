@@ -102,7 +102,7 @@ func TestPostgresExerciseRepository(t *testing.T) {
 	})
 
 	t.Run("CreateExercise_UniqueName", func(t *testing.T) {
-		ex1 := &models.Exercise{Name: "Unique Exercise ABC", Category: "cardio", MuscleGroupID: 6}
+		ex1 := &models.Exercise{Name: "Unique Exercise ABC", Category: "cardio", MuscleGroupID: 1, EquipmentID: 1}
 		require.NoError(t, repo.CreateExercise(ctx, ex1))
 		assert.NotZero(t, ex1.ExerciseID)
 	})

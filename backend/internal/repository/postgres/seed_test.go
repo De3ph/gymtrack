@@ -16,13 +16,31 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func migrationPath() string {
+// seedMigrationPath resolves the migration file relative to this source file.
+func seedMigrationPath() string {
 	_, file, _, _ := runtime.Caller(0)
 	return filepath.Join(filepath.Dir(file), "..", "..", "..", "migrations", "001_initial_schema.up.sql")
 }
 
-func TestSeedLookupTables(t *testing.T) {
+// setupSeedDB returns a pool connected to a fresh PostgreSQL database for
+// testing SeedLookupTables. Uses POSTGRES_TEST_DSN env var if set, otherwise
+// spins up a testcontainers instance.
+func setupSeedDB(t *testing.T) (*pgxpool.Pool, func()) {
+	t.Helper()
 	ctx := context.Background()
+
+	sql, err := os.ReadFile(seedMigrationPath())
+	require.NoError(t, err, "read migration file")
+
+	if dsn := os.Getenv("POSTGRES_TEST_DSN"); dsn != "" {
+		pool, err := pgxpool.New(ctx, dsn)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`)
+		require.NoError(t, err, "reset schema")
+		_, err = pool.Exec(ctx, string(sql))
+		require.NoError(t, err, "apply schema")
+		return pool, func() { pool.Close() }
+	}
 
 	container, err := postgres.Run(ctx,
 		"postgres:16-alpine",
@@ -36,21 +54,28 @@ func TestSeedLookupTables(t *testing.T) {
 		),
 	)
 	require.NoError(t, err, "start postgres container")
-	defer func() { _ = container.Terminate(ctx) }()
 
 	dsn, err := container.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err, "get connection string")
+	require.NoError(t, err)
 
 	pool, err := pgxpool.New(ctx, dsn)
-	require.NoError(t, err, "create pool")
-	defer pool.Close()
-
-	sql, err := os.ReadFile(migrationPath())
-	require.NoError(t, err, "read migration file")
+	require.NoError(t, err)
 	_, err = pool.Exec(ctx, string(sql))
 	require.NoError(t, err, "apply schema")
 
-	err = SeedLookupTables(ctx, pool)
+	cleanup := func() {
+		pool.Close()
+		_ = container.Terminate(ctx)
+	}
+	return pool, cleanup
+}
+
+func TestSeedLookupTables(t *testing.T) {
+	pool, cleanup := setupSeedDB(t)
+	defer cleanup()
+	ctx := context.Background()
+
+	err := SeedLookupTables(ctx, pool)
 	require.NoError(t, err, "seed lookup tables")
 
 	var mgCount int

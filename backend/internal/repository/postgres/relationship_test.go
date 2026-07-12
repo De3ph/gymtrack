@@ -113,8 +113,9 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 	})
 
 	t.Run("Update", func(t *testing.T) {
+		updAthlete := createTestUser(t, "rel_upd", "rel_upd@test.com", models.RoleAthlete)
 		rel := &models.Relationship{
-			TrainerID: trainer.UserID, AthleteID: athlete.UserID,
+			TrainerID: trainer.UserID, AthleteID: updAthlete.UserID,
 			Status: models.RelationshipStatusPending,
 		}
 		require.NoError(t, repo.Create(ctx, rel))
@@ -138,8 +139,9 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
+		delAthlete := createTestUser(t, "rel_del", "rel_del@test.com", models.RoleAthlete)
 		rel := &models.Relationship{
-			TrainerID: trainer.UserID, AthleteID: athlete.UserID,
+			TrainerID: trainer.UserID, AthleteID: delAthlete.UserID,
 			Status: models.RelationshipStatusPending,
 		}
 		require.NoError(t, repo.Create(ctx, rel))

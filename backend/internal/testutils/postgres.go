@@ -3,6 +3,7 @@ package testutils
 import (
 	"context"
 	_ "embed"
+	"os"
 	"testing"
 	"time"
 
@@ -15,13 +16,39 @@ import (
 //go:embed migrations/001_initial_schema.up.sql
 var migrationSQL string
 
-// SetupTestPostgresDB spins up a testcontainers PostgreSQL, applies migrations,
-// seeds lookup tables, and returns a connection pool and cleanup function.
+// SetupTestPostgresDB returns a PostgreSQL connection pool for testing.
+//
+// It tries two strategies in order:
+//  1. POSTGRES_TEST_DSN env var — if set, connects directly (no Docker needed).
+//  2. testcontainers — spins up a postgres:16-alpine container.
+//
+// The cleanup function closes the pool and (for testcontainers) terminates the
+// container.
 func SetupTestPostgresDB(t *testing.T) (*pgxpool.Pool, func()) {
 	t.Helper()
 
 	ctx := context.Background()
 
+	// Strategy 1: direct DSN from env (CI / non-Docker environments).
+	if dsn := os.Getenv("POSTGRES_TEST_DSN"); dsn != "" {
+		pool, err := pgxpool.New(ctx, dsn)
+		if err != nil {
+			t.Fatalf("failed to connect using POSTGRES_TEST_DSN: %v", err)
+		}
+		// Reset schema — drop all tables then re-apply (fresh DB per test run).
+		if _, err := pool.Exec(ctx, `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`); err != nil {
+			pool.Close()
+			t.Fatalf("failed to reset schema via POSTGRES_TEST_DSN: %v", err)
+		}
+		if _, err := pool.Exec(ctx, migrationSQL); err != nil {
+			pool.Close()
+			t.Fatalf("failed to apply schema via POSTGRES_TEST_DSN: %v", err)
+		}
+		seedLookupTables(ctx, pool)
+		return pool, func() { pool.Close() }
+	}
+
+	// Strategy 2: testcontainers (default, requires Docker).
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:16-alpine",
 		postgres.WithDatabase("testdb"),

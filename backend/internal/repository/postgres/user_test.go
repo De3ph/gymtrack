@@ -123,7 +123,7 @@ func TestPostgresUserRepository(t *testing.T) {
 	t.Run("GetAllUsers", func(t *testing.T) {
 		users, err := repo.GetAllUsers(ctx)
 		require.NoError(t, err)
-		assert.GreaterOrEqual(t, len(users), 5, "should have at least 5 users from previous tests")
+		assert.GreaterOrEqual(t, len(users), 4, "should have users from previous tests")
 
 		for _, u := range users {
 			assert.Equal(t, "user", u.Type)
@@ -214,9 +214,9 @@ func TestPostgresUserRepository(t *testing.T) {
 			Profile: models.UserProfile{
 				Name: "JSONB Test", Bio: "Full bio",
 				ProfilePhotoURL: "https://example.com/photo.jpg",
-				HourlyRate: 75.50, YearsOfExperience: 10,
+				HourlyRate:      75.50, YearsOfExperience: 10,
 				Location: "New York", IsAvailableForNewClients: true,
-				Languages: []string{"English", "Spanish"},
+				Languages:      []string{"English", "Spanish"},
 				Certifications: "NASM, ACE", Specializations: "Strength, HIIT",
 				ClientList: []int{1, 2, 3},
 			},

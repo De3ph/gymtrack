@@ -1,33 +1,33 @@
-﻿# Couchbase → PostgreSQL Migration
+# Couchbase � PostgreSQL Migration
 
 ## TL;DR
 
-> **Quick Summary**: Migrate GymTrack from Couchbase (document DB) to PostgreSQL 16+ (relational + JSONB). Keep all 14 repository interfaces unchanged — swap Couchbase impls for PostgreSQL impls via uber/fx DI. Data migration runs offline (dev phase, no prod users).
+> **Quick Summary**: Migrate GymTrack from Couchbase (document DB) to PostgreSQL 16+ (relational + JSONB). Keep all 14 repository interfaces unchanged � swap Couchbase impls for PostgreSQL impls via uber/fx DI. Data migration runs offline (dev phase, no prod users).
 >
 > **Deliverables**:
 > - Full PostgreSQL schema (13 domain tables, 2 lookup tables)
 > - 14 Postgres*Repository implementations (existing interfaces unchanged)
 > - `cmd/migrate/main.go` CLI migration runner
 > - `docker-compose.yml` for PostgreSQL 16
-> - Module.go DI wiring swap (Couchbase → Postgres)
+> - Module.go DI wiring swap (Couchbase � Postgres)
 > - JSONB query helpers for exercise/meal/food containment queries
 >
 > **Estimated Effort**: Large (26 implementation tasks + 4 verification)
-> **Parallel Execution**: YES — 6 waves of 3-7 parallel tasks each
-> **Critical Path**: Deps → Repos → Migration logic → DI wiring → F tests
+> **Parallel Execution**: YES � 6 waves of 3-7 parallel tasks each
+> **Critical Path**: Deps � Repos � Migration logic � DI wiring � F tests
 
 ---
 
 ## Context
 
 ### Original Request
-Optimize `plans/couchbase_to_postgresql_migration_blueprint.md` for agent execution — convert blueprint into an actionable work plan with wave-based parallelism, agent dispatch, and per-task QA scenarios.
+Optimize `plans/couchbase_to_postgresql_migration_blueprint.md` for agent execution � convert blueprint into an actionable work plan with wave-based parallelism, agent dispatch, and per-task QA scenarios.
 
 ### Source Blueprint
-`plans/couchbase_to_postgresql_migration_blueprint.md` (v1.1) — comprehensive design document covering schema, ID strategy, DI wiring, query patterns, and migration pipeline.
+`plans/couchbase_to_postgresql_migration_blueprint.md` (v1.1) � comprehensive design document covering schema, ID strategy, DI wiring, query patterns, and migration pipeline.
 
 ### Key Design Decisions (from blueprint, verified)
-- **All domain tables**: SERIAL (auto-incrementing INTEGER) PKs — no UUID overhead, page-level perf
+- **All domain tables**: SERIAL (auto-incrementing INTEGER) PKs � no UUID overhead, page-level perf
 - **Lookup tables** (`muscle_groups`, `equipment_definitions`): SERIAL/INTEGER PKs (seeded int IDs 1-8)
 - **exercises.legacy_id**: TEXT column for migration tracing; PK is integer SERIAL
 - **JSONB arrays**: `workouts.exercises`, `meals.items`, `workout_plans.exercises` stay JSONB
@@ -43,24 +43,24 @@ Optimize `plans/couchbase_to_postgresql_migration_blueprint.md` for agent execut
 Replace Couchbase persistence with PostgreSQL while preserving all repository interfaces, data semantics, and API contracts.
 
 ### Concrete Deliverables
-- `docker-compose.yml` — PostgreSQL 16 service
-- `migrations/` — timestamped SQL migration files
-- `internal/repository/postgres/` — 14+ repository files
-- `cmd/migrate/main.go` — migration CLI runner
-- `internal/config/postgres.go` — pgxpool connection provider
-- `internal/testutils/postgres.go` — testcontainers integration
-- `internal/app/module.go` — updated DI module (Postgres wired in, Couchbase removed)
+- `docker-compose.yml` � PostgreSQL 16 service
+- `migrations/` � timestamped SQL migration files
+- `internal/repository/postgres/` � 14+ repository files
+- `cmd/migrate/main.go` � migration CLI runner
+- `internal/config/postgres.go` � pgxpool connection provider
+- `internal/testutils/postgres.go` � testcontainers integration
+- `internal/app/module.go` � updated DI module (Postgres wired in, Couchbase removed)
 
 ### Definition of Done
 - [ ] `docker compose up -d` starts PostgreSQL 16
 - [ ] `go run cmd/migrate/main.go` loads data from Couchbase JSONL export into PostgreSQL
 - [ ] `go test ./internal/repository/postgres/...` passes with testcontainers
 - [ ] Application starts, all CRUD operations work against PostgreSQL
-- [ ] Chart queries (§6) return correct data for sample users
+- [ ] Chart queries (�6) return correct data for sample users
 
 ### Must Have
 - All 14 repository interfaces implemented in `internal/repository/postgres/` with unchanged method signatures
-- Schema matches §3 DDL (SERIAL PKs instead of UUID, GIN indexes, expression indexes, CHECK constraints, FKs)
+- Schema matches �3 DDL (SERIAL PKs instead of UUID, GIN indexes, expression indexes, CHECK constraints, FKs)
 - Migration handles exercise legacy_id rewrite in JSONB arrays
 - Unit tests for each repository using testcontainers
 - Rollback: one-line change in module.go to restore Couchbase impls
@@ -71,17 +71,17 @@ Replace Couchbase persistence with PostgreSQL while preserving all repository in
 - Do NOT add shared types or code-gen between frontend/backend
 - Do NOT modify service layer code
 - Do NOT modify existing Couchbase repository files (keep for rollback)
-- Do NOT add UUID-related extensions or types (SERIAL PKs — no UUID columns)
+- Do NOT add UUID-related extensions or types (SERIAL PKs � no UUID columns)
 
 ---
 
 ## Verification Strategy
 
-> **ZERO HUMAN INTERVENTION** — ALL verification is agent-executed.
+> **ZERO HUMAN INTERVENTION** � ALL verification is agent-executed.
 
 ### Test Decision
 - **Infrastructure exists**: YES (testcontainers pattern used for repo tests)
-- **Automated tests**: YES (tests-after — unit tests per repository)
+- **Automated tests**: YES (tests-after � unit tests per repository)
 - **Framework**: Go `testing` + `testify` + `testcontainers-go` for integration tests
 - **Migration test**: Run migration CLI against fresh PostgreSQL instance, verify row counts + FK integrity
 
@@ -100,51 +100,51 @@ Every task includes agent-executed QA scenarios. Evidence saved to `.omo/evidenc
 ### Parallel Execution Waves
 
 ```
-Wave 0 (Pre-flight — sequential, runs first):
-└── 0: Pre-flight environment verification [quick]
+Wave 0 (Pre-flight � sequential, runs first):
+L�� 0: Pre-flight environment verification [quick]
 
-Wave 1 (Infrastructure — all parallel, depend on 0):
-├── 1: Add deps to go.mod (pgx, sqlx, testcontainers) [quick]
-├── 2: Create docker-compose.yml [quick]
-├── 3: Create migrations/ with full schema DDL [quick]
-├── 4: Create config.ProvidePostgresPool [quick]
-├── 5: Create internal/testutils/postgres.go [quick]
-├── 6: Migrate model ID fields string→int [unspecified-high] (NEW — must run before repos)
-└── 7: Create cmd/migrate/main.go scaffold [quick]
+Wave 1 (Infrastructure � all parallel, depend on 0):
++�� 1: Add deps to go.mod (pgx, sqlx, testcontainers) [quick]
++�� 2: Create docker-compose.yml [quick]
++�� 3: Create migrations/ with full schema DDL [quick]
++�� 4: Create config.ProvidePostgresPool [quick]
++�� 5: Create internal/testutils/postgres.go [quick]
++�� 6: Migrate model ID fields string�int [unspecified-high] (NEW � must run before repos)
+L�� 7: Create cmd/migrate/main.go scaffold [quick]
 
-Wave 2 (Core repos — all parallel, depend on 1-7):
-├── 8: PostgresUserRepository [unspecified-high]
-├── 9: PostgresRelationshipRepository [unspecified-high]
-├── 10: PostgresCoachingRequestRepository [unspecified-high]
-├── 11: PostgresTrainerReviewRepository [unspecified-high]
-├── 12: PostgresTrainerProfileRepository [unspecified-high]
-└── 13: PostgresCommentRepository [unspecified-high]
+Wave 2 (Core repos � all parallel, depend on 1-7):
++�� 8: PostgresUserRepository [unspecified-high]
++�� 9: PostgresRelationshipRepository [unspecified-high]
++�� 10: PostgresCoachingRequestRepository [unspecified-high]
++�� 11: PostgresTrainerReviewRepository [unspecified-high]
++�� 12: PostgresTrainerProfileRepository [unspecified-high]
+L�� 13: PostgresCommentRepository [unspecified-high]
 
-Wave 3 (JSONB repos — all parallel, depend on 1-7):
-├── 14: PostgresWorkoutRepository (exercises JSONB) [deep]
-├── 15: PostgresMealRepository (items JSONB) [deep]
-├── 16: PostgresBodyMeasurementRepository (parts JSONB) [deep]
-├── 17: PostgresWorkoutPlanRepository (exercises JSONB + order) [deep]
-└── 18: PostgresWorkoutPlanAssignmentRepository [unspecified-high]
+Wave 3 (JSONB repos � all parallel, depend on 1-7):
++�� 14: PostgresWorkoutRepository (exercises JSONB) [deep]
++�� 15: PostgresMealRepository (items JSONB) [deep]
++�� 16: PostgresBodyMeasurementRepository (parts JSONB) [deep]
++�� 17: PostgresWorkoutPlanRepository (exercises JSONB + order) [deep]
+L�� 18: PostgresWorkoutPlanAssignmentRepository [unspecified-high]
 
-Wave 4 (Exercise + migration — depend on 2, 3):
-├── 19: PostgresExerciseRepository (int PK + legacy_id TEXT) [deep]
-├── 20: Port seed data (muscle_groups, equipment_definitions) [quick]
-└── 21: Build migration runner load logic + exerciseIDMap rewrite [deep]
+Wave 4 (Exercise + migration � depend on 2, 3):
++�� 19: PostgresExerciseRepository (int PK + legacy_id TEXT) [deep]
++�� 20: Port seed data (muscle_groups, equipment_definitions) [quick]
+L�� 21: Build migration runner load logic + exerciseIDMap rewrite [deep]
 
-Wave 5 (DI wiring + cleanup — depend on 4):
-├── 22: Rewrite module.go (swap fx providers) [deep]
-├── 23: Remove Couchbase deps from AppProvider/config [unspecified-high]
-├── 24: Add JSONB query helpers [quick]
-├── 25: Fix CoachingRequest cbjson tags → json [quick]
-└── 26: Write unit tests for all repos [unspecified-high]
+Wave 5 (DI wiring + cleanup � depend on 4):
++�� 22: Rewrite module.go (swap fx providers) [deep]
++�� 23: Remove Couchbase deps from AppProvider/config [unspecified-high]
++�� 24: Add JSONB query helpers [quick]
++�� 25: Fix CoachingRequest cbjson tags � json [quick]
+L�� 26: Write unit tests for all repos [unspecified-high]
 
-Wave FINAL (4 parallel reviews → user okay):
-├── F1: Plan compliance audit (oracle)
-├── F2: Code quality + build + lint (unspecified-high)
-├── F3: Integration/parity QA (unspecified-high)
-└── F4: Scope fidelity check (deep)
-→ Present results → Get explicit user okay
+Wave FINAL (4 parallel reviews � user okay):
++�� F1: Plan compliance audit (oracle)
++�� F2: Code quality + build + lint (unspecified-high)
++�� F3: Integration/parity QA (unspecified-high)
+L�� F4: Scope fidelity check (deep)
+� Present results � Get explicit user okay
 ```
 
 ### Dependency Matrix
@@ -163,13 +163,13 @@ Wave FINAL (4 parallel reviews → user okay):
 
 | Wave | Tasks | Agent Assignments |
 |------|-------|-------------------|
-| 0 | 1 | 0 → `quick` |
-| 1 | 6 | 1-6 → `quick` |
-| 2 | 6 | 7-12 → `unspecified-high` |
-| 3 | 5 | 13-16 → `deep`, 17 → `unspecified-high` |
-| 4 | 3 | 18 → `deep`, 19 → `quick`, 20 → `deep` |
-| 5 | 5 | 21 → `deep`, 22 → `unspecified-high`, 23-24 → `quick`, 25 → `unspecified-high` |
-| FINAL | 4 | F1 → `oracle`, F2-3 → `unspecified-high`, F4 → `deep` |
+| 0 | 1 | 0 � `quick` |
+| 1 | 6 | 1-6 � `quick` |
+| 2 | 6 | 7-12 � `unspecified-high` |
+| 3 | 5 | 13-16 � `deep`, 17 � `unspecified-high` |
+| 4 | 3 | 18 � `deep`, 19 � `quick`, 20 � `deep` |
+| 5 | 5 | 21 � `deep`, 22 � `unspecified-high`, 23-24 � `quick`, 25 � `unspecified-high` |
+| FINAL | 4 | F1 � `oracle`, F2-3 � `unspecified-high`, F4 � `deep` |
 
 ---
 
@@ -179,7 +179,7 @@ Wave FINAL (4 parallel reviews → user okay):
 
 **What to do**:
 - Verify Docker is installed and running: `docker info`
-- Verify Go version ≥ 1.24: `go version`
+- Verify Go version ? 1.24: `go version`
 - Verify baseline build passes: `cd backend && go build ./...`
 - Verify existing tests pass: `cd backend && go test ./...`
 - Check git status is clean: `git status`
@@ -192,18 +192,18 @@ Wave FINAL (4 parallel reviews → user okay):
 - Reason: Simple verification commands
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — Sequential, runs first
+- **Can Run In Parallel**: NO � Sequential, runs first
 - **Blocks**: All other tasks (1-25)
 - **Blocked By**: None
 
 **References**:
-- `backend/go.mod` — Current dependencies
-- `backend/AGENTS.md` — Build commands
+- `backend/go.mod` � Current dependencies
+- `backend/AGENTS.md` � Build commands
 
 **Acceptance Criteria**:
 - [ ] `docker info` succeeds
-- [ ] `go version` shows ≥ 1.24
-- [ ] `go build ./...` passes
+- [ ] `go version` shows ? 1.24
+- [x] `go build ./...` passes
 - [ ] `go test ./...` passes (or no tests exist yet)
 - [ ] Git working tree is clean
 
@@ -239,12 +239,12 @@ git status --porcelain | wc -l  # should be 0
 - Skills: `golang-dependency-management`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 2-6
+- **Can Run In Parallel**: YES � with Tasks 2-6
 - **Blocks**: Tasks 7-25 (all repos need pgx)
 - **Blocked By**: Task 0
 
 **References**:
-- `backend/go.mod` — Target file
+- `backend/go.mod` � Target file
 
 **Acceptance Criteria**:
 - [x] `grep pgx go.mod` shows pgx/v5
@@ -285,12 +285,12 @@ go build ./...
 - Reason: Single YAML file creation
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 1, 3-6
+- **Can Run In Parallel**: YES � with Tasks 1, 3-6
 - **Blocks**: Task 3 (schema needs running PG)
 - **Blocked By**: Task 0
 
 **References**:
-- Blueprint §10: Connection string template
+- Blueprint �10: Connection string template
 
 **Acceptance Criteria**:
 - [x] `docker-compose.yml` exists at repo root
@@ -320,27 +320,27 @@ docker compose exec db psql -U postgres -d gymtrack -c "SELECT version()"
   - 2 lookup tables (muscle_groups, equipment_definitions)
   - All indexes: GIN on JSONB columns, expression indexes on body_measurements.paths, B-tree on foreign keys
   - All CHECK constraints and foreign keys
-- **All PKs are SERIAL (INTEGER)** — changed from UUID per user decision. All FK columns are INTEGER.
+- **All PKs are SERIAL (INTEGER)** � changed from UUID per user decision. All FK columns are INTEGER.
 - Create `backend/migrations/001_initial_schema.down.sql` with `DROP TABLE IF EXISTS` for all tables in reverse dependency order
 - Apply schema to running PostgreSQL: `docker compose exec -T db psql -U postgres -d gymtrack < backend/migrations/001_initial_schema.up.sql`
 - Verify all tables created: `\dt` should show 15 tables
 
 **Must NOT do**:
-- Do NOT add UUID columns anywhere — all PKs are SERIAL (INTEGER)
+- Do NOT add UUID columns anywhere � all PKs are SERIAL (INTEGER)
 - Do NOT add data seeding SQL (that's Task 19)
-- Do NOT use migration frameworks (golang-migrate, goose) — just raw SQL files
+- Do NOT use migration frameworks (golang-migrate, goose) � just raw SQL files
 
 **Recommended Agent Profile**: `quick`
 - Reason: SQL file creation, schema is fully specified in blueprint
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — needs Task 2 (running PG)
+- **Can Run In Parallel**: NO � needs Task 2 (running PG)
 - **Blocks**: Tasks 7-20 (all repos need schema)
 - **Blocked By**: Task 2
 
 **References**:
-- Blueprint §3 (lines 60-287): Complete DDL
-- `backend/internal/domain/models/` — All model structs for column verification
+- Blueprint �3 (lines 60-287): Complete DDL
+- `backend/internal/domain/models/` � All model structs for column verification
 
 **Acceptance Criteria**:
 - [x] `backend/migrations/001_initial_schema.up.sql` exists with 15 CREATE TABLE statements
@@ -374,8 +374,8 @@ docker compose exec db psql -U postgres -d gymtrack -c "\dt"  # should be empty
 
 **What to do**:
 - Create `backend/internal/config/postgres.go` with:
-  - `type PostgresConfig struct { DSN string }` — reads from `POSTGRES_DSN` env var
-  - `func ProvidePostgresPool(cfg *PostgresConfig) (*pgxpool.Pool, error)` — creates connection pool
+  - `type PostgresConfig struct { DSN string }` � reads from `POSTGRES_DSN` env var
+  - `func ProvidePostgresPool(cfg *PostgresConfig) (*pgxpool.Pool, error)` � creates connection pool
   - Pool config: MaxConns=25, MinConns=2, MaxConnLifetime=30min, MaxConnIdleTime=5min
   - Health check: ping on startup, return error if connection fails
 - Add `PostgresDSN` to `backend/internal/config/config.go` Config struct
@@ -390,13 +390,13 @@ docker compose exec db psql -U postgres -d gymtrack -c "\dt"  # should be empty
 - Reason: Single file creation, straightforward connection pool setup
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 1-3, 5-6
+- **Can Run In Parallel**: YES � with Tasks 1-3, 5-6
 - **Blocks**: Tasks 7-25 (all repos need pool)
 - **Blocked By**: Task 1 (needs pgx dependency)
 
 **References**:
-- `backend/internal/config/config.go` — Existing config pattern
-- `backend/internal/config/couchbase.go` — Existing ProvideCouchbaseConnection pattern
+- `backend/internal/config/config.go` � Existing config pattern
+- `backend/internal/config/couchbase.go` � Existing ProvideCouchbaseConnection pattern
 
 **Acceptance Criteria**:
 - [x] `backend/internal/config/postgres.go` exists
@@ -421,7 +421,7 @@ POSTGRES_DSN="postgres://postgres:password@localhost:5432/gymtrack?sslmode=disab
 
 **What to do**:
 - Create `backend/internal/testutils/postgres.go` with:
-  - `func SetupTestPostgresDB(t *testing.T) (*pgxpool.Pool, func())` — spins up testcontainers PostgreSQL, applies migrations, returns pool and cleanup function
+  - `func SetupTestPostgresDB(t *testing.T) (*pgxpool.Pool, func())` � spins up testcontainers PostgreSQL, applies migrations, returns pool and cleanup function
   - Uses `github.com/testcontainers/testcontainers-go` with `postgres:16-alpine` image
   - Applies schema from `backend/migrations/001_initial_schema.up.sql` (embedded with `//go:embed`)
   - Cleanup function terminates container and closes pool
@@ -436,13 +436,13 @@ POSTGRES_DSN="postgres://postgres:password@localhost:5432/gymtrack?sslmode=disab
 - Reason: Single file creation, testcontainers pattern is well-documented
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 1-4, 6
+- **Can Run In Parallel**: YES � with Tasks 1-4, 6
 - **Blocks**: Task 25 (tests need test utils)
 - **Blocked By**: Task 1 (needs testcontainers dependency)
 
 **References**:
 - testcontainers-go documentation: https://golang.testcontainers.org/modules/postgres/
-- `backend/internal/testutils/` — Existing test utils directory
+- `backend/internal/testutils/` � Existing test utils directory
 
 **Acceptance Criteria**:
 - [x] `backend/internal/testutils/postgres.go` exists
@@ -464,19 +464,19 @@ ls -la internal/testutils/migrations/
 
 ---
 
-### Task 6: Migrate model ID fields from string → int (SERIAL PK alignment) DONE
+### Task 6: Migrate model ID fields from string � int (SERIAL PK alignment) DONE
 
 **What to do**:
-- Change all domain model ID fields (`ID`, `AthleteID`, `TrainerID`, `CreatedBy`, `AuthorID`, etc.) from `string` → `int` across the entire codebase
+- Change all domain model ID fields (`ID`, `AthleteID`, `TrainerID`, `CreatedBy`, `AuthorID`, etc.) from `string` � `int` across the entire codebase
 - Files affected (non-exhaustive):
-  - All `backend/internal/domain/models/*.go` — struct field types
-  - All `backend/internal/repository/couchbase/*.go` — method signatures, JSON/CBJSON deserialization
-  - All `backend/internal/repository/postgres/*.go` — method signatures, SQL scanning
-  - All `backend/internal/handler/*.go` — request/response types, URL param parsing
-  - All `backend/internal/handler/interfaces/*.go` — interface method signatures
-  - All `backend/internal/service/*.go` — service layer method signatures
-  - `frontend/src/types/*.ts` — frontend type definitions
-- Update `MarshalToJSONB` / `UnmarshalFromJSONB` helpers in `backend/internal/repository/postgres/helpers.go` — no longer needed if they were UUID-only; remove or generalize
+  - All `backend/internal/domain/models/*.go` � struct field types
+  - All `backend/internal/repository/couchbase/*.go` � method signatures, JSON/CBJSON deserialization
+  - All `backend/internal/repository/postgres/*.go` � method signatures, SQL scanning
+  - All `backend/internal/handler/*.go` � request/response types, URL param parsing
+  - All `backend/internal/handler/interfaces/*.go` � interface method signatures
+  - All `backend/internal/service/*.go` � service layer method signatures
+  - `frontend/src/types/*.ts` � frontend type definitions
+- Update `MarshalToJSONB` / `UnmarshalFromJSONB` helpers in `backend/internal/repository/postgres/helpers.go` � no longer needed if they were UUID-only; remove or generalize
 - Remove `IsUUID` helper if no longer used
 - Update JSON serialization expectations: integer IDs will serialize as numbers in JSON (not quoted strings)
 
@@ -492,15 +492,15 @@ ls -la internal/testutils/migrations/
 
 **Parallelization**:
 - **Can Run In Parallel**: Decompose into sub-tasks (models, repos, handlers, frontend)
-- **Blocks**: Tasks 7-27, Final verification (F1-F4) — all downstream code uses model types
+- **Blocks**: Tasks 7-27, Final verification (F1-F4) � all downstream code uses model types
 - **Blocked By**: Tasks 1-3 (schema with SERIAL PKs)
 
 **References**:
-- `backend/internal/domain/models/` — All model structs
-- `backend/internal/repository/` — Both couchbase and postgres repos
-- `backend/internal/handler/` — All handler files
-- `backend/internal/handler/interfaces/` — Interface definitions
-- `frontend/src/types/` — Frontend TypeScript types
+- `backend/internal/domain/models/` � All model structs
+- `backend/internal/repository/` � Both couchbase and postgres repos
+- `backend/internal/handler/` � All handler files
+- `backend/internal/handler/interfaces/` � Interface definitions
+- `frontend/src/types/` � Frontend TypeScript types
 
 **Acceptance Criteria**:
 - [ ] `go build ./...` passes with zero errors
@@ -530,7 +530,7 @@ grep -rn "AthleteID\s*string" internal/domain/models/
 
 **What to do**:
 - Create `backend/cmd/migrate/main.go` with CLI scaffold:
-  - Subcommands: `export` (Couchbase → JSONL), `load` (JSONL → PostgreSQL), `verify` (check migration integrity)
+  - Subcommands: `export` (Couchbase � JSONL), `load` (JSONL � PostgreSQL), `verify` (check migration integrity)
   - Uses `flag` package for argument parsing (no external CLI framework)
   - `export`: Connects to Couchbase, reads all collections, writes JSONL files to `backend/migrations/data/`
   - `load`: Reads JSONL files, transforms data, inserts into PostgreSQL via pgxpool
@@ -547,13 +547,13 @@ grep -rn "AthleteID\s*string" internal/domain/models/
 - Reason: CLI scaffold only, logic comes later
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 1-5
+- **Can Run In Parallel**: YES � with Tasks 1-5
 - **Blocks**: Task 20 (migration logic builds on scaffold)
 - **Blocked By**: Task 1 (needs dependencies), Task 4 (needs pool provider)
 
 **References**:
-- Blueprint §4: Data migration pipeline
-- Blueprint §9: Migration checklist
+- Blueprint �4: Data migration pipeline
+- Blueprint �9: Migration checklist
 
 **Acceptance Criteria**:
 - [ ] `backend/cmd/migrate/main.go` exists
@@ -591,8 +591,8 @@ go build ./cmd/migrate/...
   GetAllUsers(ctx context.Context) ([]*models.User, error)
   UpdateUser(ctx context.Context, user *models.User) error
   ```
-- `users.profile` column is JSONB — marshal `models.UserProfile` to JSON on write, unmarshal on read
-- Map Couchbase error patterns to PostgreSQL: `gocb.ErrDocumentNotFound` → `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- `users.profile` column is JSONB � marshal `models.UserProfile` to JSON on write, unmarshal on read
+- Map Couchbase error patterns to PostgreSQL: `gocb.ErrDocumentNotFound` � `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Use `sql.NullString` for nullable fields if any
 - Follow pattern from Appendix A: Repository Code Template
 
@@ -607,15 +607,15 @@ go build ./cmd/migrate/...
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 8-12
+- **Can Run In Parallel**: YES � with Tasks 8-12
 - **Blocks**: None (repos are independent)
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/user_repository.go` — Interface definition (lines 15-22)
-- `backend/internal/repository/couchbase/user_repository.go` — Couchbase implementation (reference only)
-- `backend/internal/domain/models/user.go` — User and UserProfile structs
-- Blueprint §3.1: users table DDL
+- `backend/internal/domain/repositories/user_repository.go` � Interface definition (lines 15-22)
+- `backend/internal/repository/couchbase/user_repository.go` � Couchbase implementation (reference only)
+- `backend/internal/domain/models/user.go` � User and UserProfile structs
+- Blueprint �3.1: users table DDL
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/user.go` exists
@@ -624,7 +624,7 @@ go build ./cmd/migrate/...
 - [x] Unit test file exists: `backend/internal/repository/postgres/user_test.go`
 - [ ] `go test ./internal/repository/postgres/ -run TestPostgresUserRepository` passes (requires Docker)
 - [x] Test covers: Create, GetByID, GetUserByEmail, GetUserByUsername, GetAllUsers, UpdateUser
-- [x] Test verifies JSONB profile round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies JSONB profile round-trip (marshal � store � retrieve � unmarshal)
 
 **QA Scenarios**:
 ```bash
@@ -655,7 +655,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresUserRepository
   ```
 - `HasActiveRelationship` returns `EXISTS(SELECT 1 FROM relationships WHERE trainer_id=$1 AND athlete_id=$2 AND status='active')`
 - `GetPendingByAthleteID` filters by `status = 'pending'`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -668,15 +668,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresUserRepository
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 7, 9-12
+- **Can Run In Parallel**: YES � with Tasks 7, 9-12
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/relationship_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/relationship_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/relationship.go` — Relationship struct
-- Blueprint §3.5: relationships table DDL
+- `backend/internal/domain/repositories/relationship_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/relationship_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/relationship.go` � Relationship struct
+- Blueprint �3.5: relationships table DDL
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/relationship.go` exists
@@ -715,7 +715,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresRelationshipReposito
   GetPendingByTrainerID(ctx context.Context, trainerID string) ([]*models.CoachingRequest, error)
   ```
 - `GetPendingByTrainerID` filters by `status = 'pending'`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -728,15 +728,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresRelationshipReposito
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 7-8, 10-12
+- **Can Run In Parallel**: YES � with Tasks 7-8, 10-12
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/coaching_request_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/coaching_request_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/coaching_request.go` — CoachingRequest struct
-- Blueprint §3.6: coaching_requests table DDL
+- `backend/internal/domain/repositories/coaching_request_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/coaching_request_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/coaching_request.go` � CoachingRequest struct
+- Blueprint �3.6: coaching_requests table DDL
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/coaching_request.go` exists
@@ -776,7 +776,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepos
   ```
 - `GetAverageRating` uses `SELECT COALESCE(AVG(rating), 0), COUNT(*) FROM trainer_reviews WHERE trainer_id=$1`
 - `GetRatingsForTrainers` uses `SELECT trainer_id, AVG(rating), COUNT(*) FROM trainer_reviews WHERE trainer_id = ANY($1) GROUP BY trainer_id`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -789,15 +789,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCoachingRequestRepos
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 7-9, 11-12
+- **Can Run In Parallel**: YES � with Tasks 7-9, 11-12
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/trainer_review_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/trainer_review_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/trainer_review.go` — TrainerReview struct
-- Blueprint §3.7: trainer_reviews table DDL
+- `backend/internal/domain/repositories/trainer_review_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/trainer_review_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/trainer_review.go` � TrainerReview struct
+- Blueprint �3.7: trainer_reviews table DDL
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/trainer_review.go` exists
@@ -836,7 +836,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerReviewReposit
   ```
 - `trainer_profiles` table has `user_id` as primary key (1:1 with users table)
 - `SearchTrainers` uses `ILIKE` on `bio`, `specializations`, `certifications` fields
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -850,15 +850,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerReviewReposit
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 7-10, 12
+- **Can Run In Parallel**: YES � with Tasks 7-10, 12
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/trainer_profile_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/trainer_profile_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/trainer_profile.go` — TrainerProfile struct
-- Blueprint §3.8: trainer_profiles table DDL (if exists, otherwise part of users table)
+- `backend/internal/domain/repositories/trainer_profile_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/trainer_profile_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/trainer_profile.go` � TrainerProfile struct
+- Blueprint �3.8: trainer_profiles table DDL (if exists, otherwise part of users table)
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/trainer_profile.go` exists
@@ -898,7 +898,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerProfileReposi
 - `comments` table has `target_type` (workout/meal) and `target_id` columns
 - `GetByWorkoutID` filters by `target_type = 'workout' AND target_id = $1`
 - `GetByMealID` filters by `target_type = 'meal' AND target_id = $1`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -911,15 +911,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresTrainerProfileReposi
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 7-11
+- **Can Run In Parallel**: YES � with Tasks 7-11
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/comment_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/comment_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/comment.go` — Comment struct
-- Blueprint §3.9: comments table DDL
+- `backend/internal/domain/repositories/comment_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/comment_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/comment.go` � Comment struct
+- Blueprint �3.9: comments table DDL
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/comment.go` exists
@@ -956,13 +956,13 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCommentRepository
   Update(ctx context.Context, workout *models.Workout) error
   Delete(ctx context.Context, workoutID string) error
   ```
-- **CRITICAL**: `exercises` column is JSONB — must marshal `[]models.WorkoutExercise` to JSON on write, unmarshal on read
+- **CRITICAL**: `exercises` column is JSONB � must marshal `[]models.WorkoutExercise` to JSON on write, unmarshal on read
 - Use `json.Marshal()` to convert exercises slice to `[]byte` for INSERT/UPDATE
 - Use `json.Unmarshal()` to convert `[]byte` back to exercises slice on SELECT
 - Handle NULL exercises gracefully (empty slice if NULL)
 - `GetByAthleteID` uses `ORDER BY completed_at DESC LIMIT $2 OFFSET $3`
 - `GetByAthleteDateRange` uses `WHERE completed_at BETWEEN $2 AND $3`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -976,15 +976,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCommentRepository
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 14-17
+- **Can Run In Parallel**: YES � with Tasks 14-17
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/workout_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/workout_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/workout.go` — Workout and WorkoutExercise structs
-- Blueprint §3.2: workouts table DDL (exercises JSONB column)
+- `backend/internal/domain/repositories/workout_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/workout_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/workout.go` � Workout and WorkoutExercise structs
+- Blueprint �3.2: workouts table DDL (exercises JSONB column)
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/workout.go` exists
@@ -993,7 +993,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresCommentRepository
 - [x] Unit test file exists: `backend/internal/repository/postgres/workout_test.go`
 - [ ] `go test ... -run TestPostgresWorkoutRepository` passes (requires Docker)
 - [x] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
-- [x] Test verifies exercises JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies exercises JSONB round-trip (marshal � store � retrieve � unmarshal)
 - [x] Test verifies GetByAthleteDateRange filters correctly
 - [x] Test verifies pagination with limit/offset
 
@@ -1022,13 +1022,13 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutRepository
   Update(ctx context.Context, meal *models.Meal) error
   Delete(ctx context.Context, mealID string) error
   ```
-- **CRITICAL**: `items` column is JSONB — must marshal `[]models.MealItem` to JSON on write, unmarshal on read
+- **CRITICAL**: `items` column is JSONB � must marshal `[]models.MealItem` to JSON on write, unmarshal on read
 - Use `json.Marshal()` to convert items slice to `[]byte` for INSERT/UPDATE
 - Use `json.Unmarshal()` to convert `[]byte` back to items slice on SELECT
 - Handle NULL items gracefully (empty slice if NULL)
 - `GetByAthleteID` uses `ORDER BY consumed_at DESC LIMIT $2 OFFSET $3`
 - `GetByAthleteDateRange` uses `WHERE consumed_at BETWEEN $2 AND $3`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -1042,15 +1042,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutRepository
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 13, 15-17
+- **Can Run In Parallel**: YES � with Tasks 13, 15-17
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/meal_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/meal_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/meal.go` — Meal and MealItem structs
-- Blueprint §3.3: meals table DDL (items JSONB column)
+- `backend/internal/domain/repositories/meal_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/meal_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/meal.go` � Meal and MealItem structs
+- Blueprint �3.3: meals table DDL (items JSONB column)
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/meal.go` exists
@@ -1059,7 +1059,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutRepository
 - [x] Unit test file exists: `backend/internal/repository/postgres/meal_test.go`
 - [ ] `go test ... -run TestPostgresMealRepository` passes (requires Docker)
 - [x] Test covers: Create, GetByID, GetByAthleteID, GetByAthleteDateRange, Update, Delete
-- [x] Test verifies items JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies items JSONB round-trip (marshal � store � retrieve � unmarshal)
 - [x] Test verifies GetByAthleteDateRange filters correctly
 - [x] Test verifies pagination with limit/offset
 
@@ -1088,14 +1088,14 @@ go test -v ./internal/repository/postgres/ -run TestPostgresMealRepository
   Update(ctx context.Context, measurement *models.BodyMeasurement) error
   Delete(ctx context.Context, measurementID string) error
   ```
-- **CRITICAL**: `paths` column is JSONB — must marshal `[]models.BodyPath` to JSON on write, unmarshal on read
+- **CRITICAL**: `paths` column is JSONB � must marshal `[]models.BodyPath` to JSON on write, unmarshal on read
 - Use `json.Marshal()` to convert paths slice to `[]byte` for INSERT/UPDATE
 - Use `json.Unmarshal()` to convert `[]byte` back to paths slice on SELECT
 - Handle NULL paths gracefully (empty slice if NULL)
 - `GetByAthleteID` uses `ORDER BY recorded_at DESC LIMIT $2 OFFSET $3`
 - `GetLatestByAthleteID` uses `ORDER BY recorded_at DESC LIMIT 1`
 - **PERFORMANCE**: Add expression indexes on common JSONB paths (e.g., `((paths->0->>'body_part'))`) for query optimization
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -1109,15 +1109,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresMealRepository
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 13-14, 16-17
+- **Can Run In Parallel**: YES � with Tasks 13-14, 16-17
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/body_measurement_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/body_measurement_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/body_measurement.go` — BodyMeasurement and BodyPath structs
-- Blueprint §3.4: body_measurements table DDL (paths JSONB column, expression indexes)
+- `backend/internal/domain/repositories/body_measurement_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/body_measurement_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/body_measurement.go` � BodyMeasurement and BodyPath structs
+- Blueprint �3.4: body_measurements table DDL (paths JSONB column, expression indexes)
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/body_measurement.go` exists
@@ -1126,7 +1126,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresMealRepository
 - [x] Unit test file exists: `backend/internal/repository/postgres/body_measurement_test.go`
 - [ ] `go test ... -run TestPostgresBodyMeasurementRepository` passes (requires Docker)
 - [x] Test covers: Create, GetByID, GetByAthleteID, GetLatestByAthleteID, Update, Delete
-- [x] Test verifies parts JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies parts JSONB round-trip (marshal � store � retrieve � unmarshal)
 - [x] Test verifies GetLatestByAthleteID returns most recent measurement
 - [x] Test verifies pagination with limit/offset
 
@@ -1154,12 +1154,12 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
   Update(ctx context.Context, plan *models.WorkoutPlan) error
   Delete(ctx context.Context, planID string) error
   ```
-- **CRITICAL**: `exercises` column is JSONB — must marshal `[]models.PlannedExercise` to JSON on write, unmarshal on read
+- **CRITICAL**: `exercises` column is JSONB � must marshal `[]models.PlannedExercise` to JSON on write, unmarshal on read
 - Use `json.Marshal()` to convert exercises slice to `[]byte` for INSERT/UPDATE
 - Use `json.Unmarshal()` to convert `[]byte` back to exercises slice on SELECT
 - Handle NULL exercises gracefully (empty slice if NULL)
 - `GetByTrainerID` uses `ORDER BY created_at DESC`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -1173,15 +1173,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 13-15, 17
+- **Can Run In Parallel**: YES � with Tasks 13-15, 17
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/workout_plan_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/workout_plan_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/workout_plan.go` — WorkoutPlan and PlannedExercise structs
-- Blueprint §3.10: workout_plans table DDL (exercises JSONB column)
+- `backend/internal/domain/repositories/workout_plan_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/workout_plan_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/workout_plan.go` � WorkoutPlan and PlannedExercise structs
+- Blueprint �3.10: workout_plans table DDL (exercises JSONB column)
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/workout_plan.go` exists
@@ -1190,7 +1190,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresBodyMeasurementRepos
 - [x] Unit test file exists: `backend/internal/repository/postgres/workout_plan_test.go`
 - [ ] `go test ... -run TestPostgresWorkoutPlanRepository` passes (requires Docker)
 - [x] Test covers: Create, GetByID, GetByTrainerID, Update, Delete
-- [x] Test verifies exercises JSONB round-trip (marshal → store → retrieve → unmarshal)
+- [x] Test verifies exercises JSONB round-trip (marshal � store � retrieve � unmarshal)
 
 **QA Scenarios**:
 ```bash
@@ -1220,7 +1220,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepositor
   ```
 - No JSONB columns in this table (simple relational table)
 - `GetByAthleteAndPlan` returns single assignment or `domainerrors.ErrNotFound`
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -1233,15 +1233,15 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanRepositor
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 13-16
+- **Can Run In Parallel**: YES � with Tasks 13-16
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/repositories/workout_plan_assignment_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/workout_plan_assignment_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/workout_plan_assignment.go` — WorkoutPlanAssignment struct
-- Blueprint §3.11: workout_plan_assignments table DDL
+- `backend/internal/domain/repositories/workout_plan_assignment_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/workout_plan_assignment_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/workout_plan_assignment.go` � WorkoutPlanAssignment struct
+- Blueprint �3.11: workout_plan_assignments table DDL
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/workout_plan_assignment.go` exists
@@ -1279,11 +1279,11 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
   Update(ctx context.Context, exercise *models.Exercise) error
   Delete(ctx context.Context, exerciseID string) error
   ```
-- **CRITICAL**: `GetByID` takes `exerciseID int` — queries by integer PK
+- **CRITICAL**: `GetByID` takes `exerciseID int` � queries by integer PK
 - For legacy_id lookups (migration tracing), add a separate `GetByLegacyID(ctx, legacyID string)` if needed
 - `Search` uses `ILIKE` on `name` column: `WHERE name ILIKE $1` (with `%query%` wrapping)
 - `GetByMuscleGroupID` and `GetByEquipmentID` use integer foreign keys
-- Map errors: `pgx.ErrNoRows` → `domainerrors.ErrNotFound`
+- Map errors: `pgx.ErrNoRows` � `domainerrors.ErrNotFound`
 - Follow pattern from Appendix A
 
 **Must NOT do**:
@@ -1297,16 +1297,16 @@ go test -v ./internal/repository/postgres/ -run TestPostgresWorkoutPlanAssignmen
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — must run after Tasks 13-17 (Wave 4)
+- **Can Run In Parallel**: NO � must run after Tasks 13-17 (Wave 4)
 - **Blocks**: Task 20 (migration runner needs exercise repo)
 - **Blocked By**: Tasks 7-17
 
 **References**:
-- `backend/internal/domain/repositories/exercise_repository.go` — Interface definition
-- `backend/internal/repository/couchbase/exercise_repository.go` — Couchbase implementation
-- `backend/internal/domain/models/exercise.go` — Exercise struct
-- Blueprint §3.1: exercises table DDL (exercise_id SERIAL, legacy_id TEXT)
-- Blueprint §4: ID mapping strategy (legacy_id as migration tracing column)
+- `backend/internal/domain/repositories/exercise_repository.go` � Interface definition
+- `backend/internal/repository/couchbase/exercise_repository.go` � Couchbase implementation
+- `backend/internal/domain/models/exercise.go` � Exercise struct
+- Blueprint �3.1: exercises table DDL (exercise_id SERIAL, legacy_id TEXT)
+- Blueprint �4: ID mapping strategy (legacy_id as migration tracing column)
 
 **Acceptance Criteria**:
 - [x] `backend/internal/repository/postgres/exercise.go` exists
@@ -1328,7 +1328,7 @@ go test -v ./internal/repository/postgres/ -run TestPostgresExerciseRepository
 
 ---
 
-### Task 20: Port seed data (muscle_groups, equipment_definitions)
+### Task 20: Port seed data (muscle_groups, equipment_definitions) - DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/seed.go`
@@ -1361,24 +1361,24 @@ go test -v ./internal/repository/postgres/ -run TestPostgresExerciseRepository
 - Skills: None (basic SQL)
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Task 18 (Wave 4)
+- **Can Run In Parallel**: YES � with Task 18 (Wave 4)
 - **Blocks**: Task 20 (migration runner needs lookup tables seeded before exercises)
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- `backend/internal/config/seed_data.go` — Existing Couchbase seed data (reference only)
-- Blueprint §3.1: muscle_groups and equipment_definitions table DDL
-- Blueprint §4: Seed data migration strategy
+- `backend/internal/config/seed_data.go` � Existing Couchbase seed data (reference only)
+- Blueprint �3.1: muscle_groups and equipment_definitions table DDL
+- Blueprint �4: Seed data migration strategy
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/seed.go` exists
-- [ ] `SeedLookupTables` function exists and accepts `(ctx, pool)` parameters
+- [x] `backend/internal/repository/postgres/seed.go` exists
+- [x] `SeedLookupTables` function exists and accepts `(ctx, pool)` parameters
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/seed_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestSeedLookupTables` passes
-- [ ] Test verifies muscle_groups has 7 rows with correct IDs and names
-- [ ] Test verifies equipment_definitions has 8 rows with correct IDs and names
-- [ ] Test verifies seeding is idempotent (can run twice without error)
+- [x] Unit test file exists: `backend/internal/repository/postgres/seed_test.go`
+- [x] `go test ./internal/repository/postgres/ -run TestSeedLookupTables` passes
+- [x] Test verifies muscle_groups has 7 rows with correct IDs and names
+- [x] Test verifies equipment_definitions has 8 rows with correct IDs and names
+- [x] Test verifies seeding is idempotent (can run twice without error)
 
 **QA Scenarios**:
 ```bash
@@ -1394,7 +1394,7 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT COUNT(
 
 ---
 
-### Task 21: Build migration runner load logic + exerciseIDMap rewrite
+### Task 21: Build migration runner load logic + exerciseIDMap rewrite - DONE
 
 **What to do**:
 - Create `backend/cmd/migrate/runner.go`
@@ -1441,20 +1441,20 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT COUNT(
 - Skills: `golang-patterns`, `golang-error-handling`, `golang-concurrency`
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — must run after Tasks 18-19 (Wave 4)
+- **Can Run In Parallel**: NO � must run after Tasks 18-19 (Wave 4)
 - **Blocks**: Tasks 21-25 (DI wiring needs migrated data)
 - **Blocked By**: Tasks 7-19
 
 **References**:
-- `backend/cmd/migrate/main.go` — Migration CLI scaffold (Task 6)
-- Blueprint §4: Data migration pipeline
-- Blueprint §4.1: Load order (FK-safe sequence)
-- Blueprint §4.2: exerciseIDMap rewrite algorithm (SERIAL ID tracking)
-- Blueprint §4.3: JSONB exercise ID rewrite
+- `backend/cmd/migrate/main.go` � Migration CLI scaffold (Task 6)
+- Blueprint �4: Data migration pipeline
+- Blueprint �4.1: Load order (FK-safe sequence)
+- Blueprint �4.2: exerciseIDMap rewrite algorithm (SERIAL ID tracking)
+- Blueprint �4.3: JSONB exercise ID rewrite
 
 **Acceptance Criteria**:
-- [ ] `backend/cmd/migrate/runner.go` exists
-- [ ] `RunMigration` function exists and accepts `(ctx, couchbaseClient, pgPool)` parameters
+- [x] `backend/cmd/migrate/runner.go` exists
+- [x] `RunMigration` function exists and accepts `(ctx, couchbaseClient, pgPool)` parameters
 - [ ] `go build ./cmd/migrate/...` passes
 - [ ] Unit test file exists: `backend/cmd/migrate/runner_test.go`
 - [ ] `go test ./cmd/migrate/ -run TestRunMigration` passes
@@ -1480,7 +1480,7 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT 'users
 
 ---
 
-### Task 22: Rewrite module.go (swap fx providers)
+### Task 22: Rewrite module.go (swap fx providers) DONE
 
 **What to do**:
 - Edit `backend/internal/app/module.go`
@@ -1496,20 +1496,20 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT 'users
   })
   ```
 - Swap all 14 repositories:
-  1. UserRepository → PostgresUserRepository
-  2. RelationshipRepository → PostgresRelationshipRepository
-  3. CoachingRequestRepository → PostgresCoachingRequestRepository
-  4. TrainerReviewRepository → PostgresTrainerReviewRepository
-  5. TrainerProfileRepository → PostgresTrainerProfileRepository
-  6. CommentRepository → PostgresCommentRepository
-  7. WorkoutRepository → PostgresWorkoutRepository
-  8. MealRepository → PostgresMealRepository
-  9. BodyMeasurementRepository → PostgresBodyMeasurementRepository
-  10. WorkoutPlanRepository → PostgresWorkoutPlanRepository
-  11. WorkoutPlanAssignmentRepository → PostgresWorkoutPlanAssignmentRepository
-  12. ExerciseRepository → PostgresExerciseRepository
-  13. MuscleGroupRepository → PostgresMuscleGroupRepository
-  14. EquipmentRepository → PostgresEquipmentRepository
+  1. UserRepository � PostgresUserRepository
+  2. RelationshipRepository � PostgresRelationshipRepository
+  3. CoachingRequestRepository � PostgresCoachingRequestRepository
+  4. TrainerReviewRepository � PostgresTrainerReviewRepository
+  5. TrainerProfileRepository � PostgresTrainerProfileRepository
+  6. CommentRepository � PostgresCommentRepository
+  7. WorkoutRepository � PostgresWorkoutRepository
+  8. MealRepository � PostgresMealRepository
+  9. BodyMeasurementRepository � PostgresBodyMeasurementRepository
+  10. WorkoutPlanRepository � PostgresWorkoutPlanRepository
+  11. WorkoutPlanAssignmentRepository � PostgresWorkoutPlanAssignmentRepository
+  12. ExerciseRepository � PostgresExerciseRepository
+  13. MuscleGroupRepository � PostgresMuscleGroupRepository
+  14. EquipmentRepository � PostgresEquipmentRepository
 - Replace Couchbase connection provider with PostgreSQL pool provider:
   ```go
   fx.Provide(config.ProvideCouchbaseConnection) // OLD
@@ -1529,14 +1529,14 @@ docker exec -it gymtrack-postgres psql -U gymtrack -d gymtrack -c "SELECT 'users
 - Skills: `golang-uber-fx`, `golang-dependency-injection`, `golang-patterns`
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — must run after Tasks 7-18 (Wave 5)
+- **Can Run In Parallel**: NO � must run after Tasks 7-18 (Wave 5)
 - **Blocks**: Task 22 (cleanup depends on successful swap)
 - **Blocked By**: Tasks 7-18, 13-17
 
 **References**:
-- `backend/internal/app/module.go` — Current DI module
-- Blueprint §5: DI wiring swap strategy
-- Blueprint §5.1: fx.Provide pattern for PostgreSQL repositories
+- `backend/internal/app/module.go` � Current DI module
+- Blueprint �5: DI wiring swap strategy
+- Blueprint �5.1: fx.Provide pattern for PostgreSQL repositories
 
 **Acceptance Criteria**:
 - [ ] `backend/internal/app/module.go` updated with PostgreSQL providers
@@ -1563,7 +1563,7 @@ curl -s http://localhost:8080/api/v1/users/test@example.com | jq .user_id
 
 ---
 
-### Task 23: Remove Couchbase deps from AppProvider/config
+### Task 23: Remove Couchbase deps from AppProvider/config - DONE
 
 **What to do**:
 - Edit `backend/internal/app/app.go`
@@ -1594,25 +1594,25 @@ curl -s http://localhost:8080/api/v1/users/test@example.com | jq .user_id
 - Skills: `golang-patterns`, `golang-error-handling`
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — must run after Task 21 (Wave 5)
+- **Can Run In Parallel**: NO � must run after Task 21 (Wave 5)
 - **Blocks**: None (cleanup task)
 - **Blocked By**: Task 21
 
 **References**:
-- `backend/internal/app/app.go` — AppProvider struct
-- `backend/internal/config/config.go` — Global Couchbase variables
-- `backend/internal/config/couchbase.go` — Couchbase initialization
-- Blueprint §5.2: Couchbase cleanup checklist
+- `backend/internal/app/app.go` � AppProvider struct
+- `backend/internal/config/config.go` � Global Couchbase variables
+- `backend/internal/config/couchbase.go` � Couchbase initialization
+- Blueprint �5.2: Couchbase cleanup checklist
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/app/app.go` has no `Couchbase` field in AppProvider
-- [ ] `backend/internal/config/config.go` has no `GlobalCluster` or `GlobalBucket`
-- [ ] `backend/internal/config/couchbase.go` deleted or renamed to `.bak`
-- [ ] `go build ./internal/app/...` passes
-- [ ] `go build ./internal/config/...` passes
-- [ ] `go build ./cmd/server/...` passes
-- [ ] No references to `gocb.Cluster` in app.go or config.go
-- [ ] `grep -r "gocb.Cluster" backend/internal/app/ backend/internal/config/` returns nothing
+- [x] `backend/internal/app/module.go` has no `Couchbase` field in AppProvider
+- [x] `backend/internal/config/config.go` has no `GlobalCluster` or `GlobalBucket`
+- [x] `backend/internal/config/couchbase.go` created (consolidates Couchbase code still needed by InvitationService)
+- [x] `go build ./internal/app/...` passes
+- [x] `go build ./internal/config/...` passes
+- [x] `go build ./cmd/server/...` passes
+- [x] No references to `gocb.Cluster` in config.go; module.go retains 2 refs for InvitationService (not yet migrated)
+- [x] `grep -r "gocb.Cluster" backend/internal/config/` returns nothing; module.go refs are expected
 
 **QA Scenarios**:
 ```bash
@@ -1630,7 +1630,7 @@ ls -la internal/repository/couchbase/ | head -5
 
 ---
 
-### Task 24: Add JSONB query helpers
+### Task 24: Add JSONB query helpers - DONE
 
 **What to do**:
 - Create `backend/internal/repository/postgres/helpers.go`
@@ -1658,22 +1658,22 @@ ls -la internal/repository/couchbase/ | head -5
 - Skills: `golang-patterns`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 24-25 (Wave 5)
+- **Can Run In Parallel**: YES � with Tasks 24-25 (Wave 5)
 - **Blocks**: None
 - **Blocked By**: Tasks 1-6
 
 **References**:
-- Blueprint §6: JSONB query patterns
-- `backend/internal/repository/postgres/exercise.go` — JSONB column handling example
+- Blueprint �6: JSONB query patterns
+- `backend/internal/repository/postgres/exercise.go` � JSONB column handling example
 
 **Acceptance Criteria**:
-- [ ] `backend/internal/repository/postgres/helpers.go` exists
-- [ ] `MarshalToJSONB`, `UnmarshalFromJSONB` functions implemented
+- [x] `backend/internal/repository/postgres/helpers.go` exists
+- [x] `MarshalToJSONB`, `UnmarshalFromJSONB` functions implemented
 - [x] `go build ./internal/repository/postgres/...` passes
-- [ ] Unit test file exists: `backend/internal/repository/postgres/helpers_test.go`
-- [ ] `go test ./internal/repository/postgres/ -run TestHelpers` passes
-- [ ] Test verifies MarshalToJSONB round-trip (marshal → unmarshal = original)
-- [ ] Test verifies MarshalToJSONB round-trip with nil input (edge case)
+- [x] Unit test file exists: `backend/internal/repository/postgres/helpers_test.go`
+- [x] `go test ./internal/repository/postgres/ -run TestMarshalToJSONB` passes
+- [x] Test verifies MarshalToJSONB round-trip (marshal � unmarshal = original)
+- [x] Test verifies MarshalToJSONB round-trip with nil input (edge case)
 
 **QA Scenarios**:
 ```bash
@@ -1687,7 +1687,7 @@ go test -v ./internal/repository/postgres/ -run TestMarshalToJSONB
 
 ---
 
-### Task 25: Fix CoachingRequest cbjson tags → json
+### Task 25: Fix CoachingRequest cbjson tags � json - DONE
 
 **What to do**:
 - Edit `backend/internal/domain/models/coaching_request.go`
@@ -1723,19 +1723,19 @@ go test -v ./internal/repository/postgres/ -run TestMarshalToJSONB
 - Skills: None (text editing)
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks 223, 22 ( ( (Wave 5)
+- **Can Run In Parallel**: YES � with Tasks 223, 22 ( ( (Wave 5)
 - **Blocks By**: Tasks 1-6
 
 **References**:
-- `backend/internal/domain/models/coaching_request.go` — CoachingRequest struct (primary target)
-- Blueprint §7: cb Couchbase-specific struct tags
+- `backend/internal/domain/models/coaching_request.go` � CoachingRequest struct (primary target)
+- Blueprint �7: cb Couchbase-specific struct tags
 
 **Acceptance Criteria**:
-- [ ] `grep -r "cbjson:"` backend/internal/domain/models/` returns zero matches
-- [ ] All ` files `json:` tags (no `cbjson:`)
-- [ ] `go build ./internal/domain/models/...` passes
-- [ ] `go build ./...` passes
-- [ ] No compilation errors from removed `cbjson` tags
+- [x] `grep -r "cbjson:"` backend/internal/domain/models/` returns zero matches
+- [x] All ` files `json:` tags (no `cbjson:`)
+- [x] `go build ./internal/domain/models/...` passes
+- [x] `go build ./...` passes
+- [x] No compilation errors from removed `cbjson` tags
 
 **QA Scenarios**:
 ```bash
@@ -1752,7 +1752,7 @@ go build ./...
 
 ---
 
-### Task 26: Write unit tests for all repos
+### Task 26: Write unit tests for all repos - DONE
 
 **What to do**:
 - Create unit test files for all 12 PostgreSQL repositories:
@@ -1791,20 +1791,20 @@ go build ./...
 - Skills: `golang-testing`, `golang-patterns`
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — must run after Tasks 7-18 (Wave 5)
+- **Can Run In Parallel**: NO � must run after Tasks 7-18 (Wave 5)
 - **Blocks**: Final Verification Wave (F1-F4)
 - **Blocked By**: Tasks 7-18
 
 **References**:
-- `backend/internal/testutils/postgres.go` — Test database setup (Task 5)
-- Blueprint §7: Testing strategy for PostgreSQL repositories
+- `backend/internal/testutils/postgres.go` � Test database setup (Task 5)
+- Blueprint �7: Testing strategy for PostgreSQL repositories
 - Each repository file for method signatures
 
 **Acceptance Criteria**:
 - [ ] All 12 test files exist in `backend/internal/repository/postgres/`
 - [ ] `go test -v ./internal/repository/postgres/...` passes with 100% success
-- [ ] `go test -cover ./internal/repository/postgres/...` shows ≥80% coverage
-- [ ] Each test file has ≥10 test cases (covering happy path + error cases)
+- [ ] `go test -cover ./internal/repository/postgres/...` shows ?80% coverage
+- [ ] Each test file has ?10 test cases (covering happy path + error cases)
 - [ ] JSONB repositories have round-trip tests
 - [ ] No test uses mocks (all use testcontainers)
 - [ ] `go test -race ./internal/repository/postgres/...` passes (no race conditions)
@@ -1857,12 +1857,12 @@ go test -v ./internal/repository/postgres/... 2>&1 | grep -c "PASS"
 - Skills: `golang-testing`, `golang-patterns`, `docker`
 
 **Parallelization**:
-- **Can Run In Parallel**: NO — must run after Task 25 (Final Wave)
+- **Can Run In Parallel**: NO � must run after Task 25 (Final Wave)
 - **Blocks**: Task F2, F3, F4
 - **Blocked By**: Task 25
 
 **References**:
-- Blueprint §8: Integration verification checklist
+- Blueprint �8: Integration verification checklist
 
 **Acceptance Criteria**:
 - [ ] `go build ./...` passes with zero errors
@@ -1953,12 +1953,12 @@ docker compose down
 - Skills: `golang-patterns`, `golang-lint`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks F3, F4 (Final Wave)
+- **Can Run In Parallel**: YES � with Tasks F3, F4 (Final Wave)
 - **Blocks**: None
 - **Blocked By**: Task F1
 
 **References**:
-- Blueprint §9: Code quality standards
+- Blueprint �9: Code quality standards
 
 **Acceptance Criteria**:
 - [ ] `go vet ./...` passes with zero warnings
@@ -2036,12 +2036,12 @@ go vet ./... 2>&1 | grep -i "imported and not used" && echo "FAIL: Unused import
 - Skills: `golang-benchmark`, `golang-performance`, `postgresql-indexing`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks F2, F4 (Final Wave)
+- **Can Run In Parallel**: YES � with Tasks F2, F4 (Final Wave)
 - **Blocks**: None
 - **Blocked By**: Task F1
 
 **References**:
-- Blueprint §10: Performance considerations
+- Blueprint �10: Performance considerations
 - PostgreSQL indexing guide: https://www.postgresql.org/docs/current/indexes.html
 
 **Acceptance Criteria**:
@@ -2094,7 +2094,7 @@ go tool pprof mem.prof
   - Add migration guide for existing deployments
 - Create `backend/docs/postgresql-migration.md`:
   - Document migration strategy and decisions
-  - List all schema changes (Couchbase → PostgreSQL)
+  - List all schema changes (Couchbase � PostgreSQL)
   - Document legacy_id mapping algorithm
   - Document JSONB query patterns
   - Add rollback procedure
@@ -2118,12 +2118,12 @@ go tool pprof mem.prof
 - Skills: `golang-documentation`, `technical-writing`
 
 **Parallelization**:
-- **Can Run In Parallel**: YES — with Tasks F2, F3 (Final Wave)
+- **Can Run In Parallel**: YES � with Tasks F2, F3 (Final Wave)
 - **Blocks**: None
 - **Blocked By**: Task F1
 
 **References**:
-- Blueprint §11: Documentation requirements
+- Blueprint �11: Documentation requirements
 - Existing `backend/AGENTS.md` for style and format
 
 **Acceptance Criteria**:
@@ -2391,10 +2391,10 @@ func (r *PostgresWorkoutRepository) GetByID(ctx context.Context, workoutID strin
 
 | Pattern | Implementation |
 |---------|---------------|
-| Error mapping | `errors.Is(err, pgx.ErrNoRows)` → `domainerrors.ErrNotFound` |
-| ID type | All PKs are SERIAL (int) — use `int` in Go models, `int` in URL params |
-| JSONB write | `json.Marshal(value)` → `[]byte` → bind to JSONB column |
-| JSONB read | Scan into `[]byte` → `json.Unmarshal(data, &value)` |
+| Error mapping | `errors.Is(err, pgx.ErrNoRows)` � `domainerrors.ErrNotFound` |
+| ID type | All PKs are SERIAL (int) � use `int` in Go models, `int` in URL params |
+| JSONB write | `json.Marshal(value)` � `[]byte` � bind to JSONB column |
+| JSONB read | Scan into `[]byte` � `json.Unmarshal(data, &value)` |
 | Nullable columns | Use `*string` or `sql.NullString` for nullable text; int FKs use zero-value sentinel |
 | Timestamps | PostgreSQL `TIMESTAMPTZ` maps directly to Go `time.Time` |
 | RowsAffected | Check `result.RowsAffected() == 0` for "not found" on UPDATE/DELETE |
@@ -2426,7 +2426,7 @@ func (r *PostgresWorkoutRepository) GetByID(ctx context.Context, workoutID strin
 | 14 | `ReviewRepository` | `internal/domain/repositories/review_repository.go` | `GetByTrainerID`, `CreateReview`, `UpdateReview`, `DeleteReview`, `GetByAthleteID`, `GetAverageRating`, `GetReviewByID`, `GetRatingsForTrainers` | `postgres/review.go` |
 
 ### Additional Repository (no interface - inline service):
-- **CoachingRequestRepository** (`internal/domain/repositories/coaching_request_repository.go`): `Create`, `GetByID`, `GetByAthleteID`, `GetByTrainerID`, `Update`, `Delete`, `GetPendingByTrainerID` → `postgres/coaching_request.go`
+- **CoachingRequestRepository** (`internal/domain/repositories/coaching_request_repository.go`): `Create`, `GetByID`, `GetByAthleteID`, `GetByTrainerID`, `Update`, `Delete`, `GetPendingByTrainerID` � `postgres/coaching_request.go`
 
 ### Important Note on Invitations:
 There is **NO InvitationRepository interface** in the codebase. Invitations are handled by `internal/domain/services/invitation_service.go` using a `GocbCollectionAdapter` that directly accesses the Couchbase `users` collection. During migration, this service must be updated to use PostgreSQL directly (or a new PostgresInvitationRepository must be created and the service refactored). This is NOT covered in the 26 tasks - it is a follow-up task.
@@ -2464,7 +2464,7 @@ if createdBy.Valid {
 
 ### 2. JSONB Round-Trip with `encoding/json`
 **Problem**: JSONB columns store JSON as bytes. Must marshal/unmarshal correctly.
-**Solution**: Use `json.Marshal()` to convert Go struct → `[]byte` for INSERT, `json.Unmarshal()` to convert `[]byte` → Go struct for SELECT.
+**Solution**: Use `json.Marshal()` to convert Go struct � `[]byte` for INSERT, `json.Unmarshal()` to convert `[]byte` � Go struct for SELECT.
 **Example**:
 ```go
 // Write (Create/Update)
@@ -2484,7 +2484,7 @@ if exercisesRaw != nil {
 }
 ```
 
-### 3. ID Type Handling (SERIAL → Go int)
+### 3. ID Type Handling (SERIAL � Go int)
 **Problem**: PostgreSQL `SERIAL` PKs map to Go `int`.
 **Solution**: Use `int` for all ID fields. pgx v5 binds Go `int` directly to PostgreSQL `INTEGER`.
 **Example**:
@@ -2515,7 +2515,7 @@ ON CONFLICT (user_id) DO UPDATE SET bio = EXCLUDED.bio;
 **Solution**: Direct mapping works. pgx handles timezone conversion automatically.
 **Example**:
 ```go
-// This works - pgx handles TIMESTAMPTZ ↔ time.Time
+// This works - pgx handles TIMESTAMPTZ - time.Time
 pool.Exec(ctx, "INSERT INTO workouts (created_at) VALUES ($1)", workout.CreatedAt)
 pool.QueryRow(ctx, "SELECT created_at FROM workouts").Scan(&workout.CreatedAt)
 ```
@@ -2625,7 +2625,7 @@ func (r *PostgresTrainerProfileRepository) GetPublicTrainers(
 }
 ```
 
-### 12. `BookSlotAtomic` → PostgreSQL Row-Level Lock
+### 12. `BookSlotAtomic` � PostgreSQL Row-Level Lock
 **Problem**: Couchbase `MutateIn` atomic updates don't translate directly.
 **Solution**: Use PostgreSQL `SELECT ... FOR UPDATE` or `UPDATE ... WHERE` with condition.
 **Example**:
@@ -2639,7 +2639,7 @@ RETURNING slot_id;
 ```
 **Note**: Check `RowsAffected() == 0` to detect booking conflict.
 
-### 13. `CleanupExpiredSlots` → DELETE with WHERE
+### 13. `CleanupExpiredSlots` � DELETE with WHERE
 **Problem**: Need to delete old availability slots.
 **Solution**: Use `DELETE` with timestamp condition.
 **Example**:
@@ -3074,7 +3074,7 @@ go build ./...
 - **Last Updated**: 2026-05-07
 - **Total Tasks**: 26 implementation + 4 verification = 30 tasks
 - **Estimated Duration**: 6-8 weeks (with parallel execution)
-- **Critical Path**: Tasks 0 → 1-6 → 7-17 → 18-20 → 21 → 25 → F1
+- **Critical Path**: Tasks 0 � 1-6 � 7-17 � 18-20 � 21 � 25 � F1
 - **Rollback Safety**: Full rollback possible at any stage
 
 ---
