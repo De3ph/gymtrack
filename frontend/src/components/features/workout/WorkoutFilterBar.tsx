@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import dayjs from "dayjs";
 import { Filter, X } from "lucide-react";
 
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { DATE_FORMATS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import type { WorkoutFilter } from "./WorkoutList";
+import { useDeferredFilter } from "@/lib/hooks/use-deferred-filter";
 
 interface WorkoutFilterBarProps {
   filter: WorkoutFilter;
@@ -22,29 +22,13 @@ export function WorkoutFilterBar({
   onChange
 }: WorkoutFilterBarProps) {
   const t = useTranslations("workout.filter");
-  const [pending, setPending] = React.useState<WorkoutFilter>(filter);
-
-  React.useEffect(() => {
-    setPending(filter);
-  }, [filter]);
-
-  const hasPendingChanges =
-    pending.startDate !== filter.startDate ||
-    pending.endDate !== filter.endDate;
+  const { pending, setPending, isDirty, apply, clear } =
+    useDeferredFilter<WorkoutFilter>(filter, onChange);
 
   const hasActiveValues = !!(
-    filter.startDate ||
-    filter.endDate ||
-    pending.startDate ||
-    pending.endDate
+    filter.startDate || filter.endDate ||
+    pending.startDate || pending.endDate
   );
-
-  const handleApply = () => onChange(pending);
-
-  const handleClear = () => {
-    setPending(EMPTY_FILTER);
-    onChange(EMPTY_FILTER);
-  };
 
   return (
     <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 p-3 rounded-md border bg-card">
@@ -110,7 +94,7 @@ export function WorkoutFilterBar({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={handleClear}
+            onClick={() => clear(EMPTY_FILTER)}
           >
             <X className="mr-1 h-4 w-4" />
             {t("clear")}
@@ -119,8 +103,8 @@ export function WorkoutFilterBar({
         <Button
           type="button"
           size="sm"
-          disabled={!hasPendingChanges}
-          onClick={handleApply}
+          disabled={!isDirty}
+          onClick={apply}
         >
           {t("apply")}
         </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import dayjs from "dayjs";
 import {
   Edit2,
@@ -48,7 +49,7 @@ const calculateCalorie = (meal: Meal) => {
   );
 }
 
-export function MealCard({
+export const MealCard = memo(function MealCardImpl({
   meal,
   readOnly = false,
   canEdit,
@@ -145,4 +146,4 @@ export function MealCard({
       </Card>
     </motion.div>
   )
-}
+})

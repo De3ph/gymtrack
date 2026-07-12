@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import dayjs from "dayjs";
 import {
   Edit2,
@@ -46,7 +47,7 @@ const isEditableWithinWindow = (m: BodyMeasurement): boolean => {
   return dayjs().diff(createdAt, "hour") < TIME_LIMITS.EDIT_WINDOW_HOURS;
 };
 
-export function BodyMeasurementListItem({
+export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl({
   measurement,
   previous,
   readOnly = false,
@@ -145,4 +146,4 @@ export function BodyMeasurementListItem({
       </CardContent>
     </Card>
   );
-}
+})

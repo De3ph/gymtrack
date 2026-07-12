@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ExerciseSet } from "@/types";
 
@@ -38,8 +38,10 @@ export function ExerciseSetInput({
     }));
   });
 
-  // Sync external value changes into internal state, preserving IDs by index
-  useMemo(() => {
+  // Sync external value changes into internal state, preserving IDs by index.
+  // The functional setState returns `prev` when nothing changed, so no cascading renders.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
     const newVal = value ?? [];
     setSetsWithIds((prev) => {
       const updated = newVal.map((set, i) => {
@@ -58,6 +60,7 @@ export function ExerciseSetInput({
       return changed ? updated : prev;
     });
   }, [value]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const addSet = () => {
     const prevSet = setsWithIds[setsWithIds.length - 1];

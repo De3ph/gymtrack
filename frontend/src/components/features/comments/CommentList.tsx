@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback, memo } from "react";
 import { useTranslations } from "next-intl"
 import { Comment } from "@/types"
 import dayjs from "dayjs"
@@ -46,7 +46,7 @@ function buildTree(comments: Comment[]): CommentNode[] {
   return roots.map(node)
 }
 
-function CommentNodeRow({
+const CommentNodeRow = memo(function CommentNodeRow({
   node,
   targetType,
   targetId,
@@ -109,7 +109,7 @@ function CommentNodeRow({
       ))}
     </div>
   )
-}
+})
 
 export function CommentList({
   comments,
@@ -123,6 +123,16 @@ export function CommentList({
 }: CommentListProps) {
   const t = useTranslations("comment")
   const tree = useMemo(() => buildTree(comments), [comments])
+
+  // Stabilise callbacks so memoised CommentNodeRow children don't re-render
+  const stableOnStartReply = useCallback(
+    (parentCommentId: string | number) => onStartReply(parentCommentId),
+    [onStartReply],
+  )
+  const stableOnCancelReply = useCallback(
+    () => onCancelReply(),
+    [onCancelReply],
+  )
 
   if (tree.length === 0) {
     return (
@@ -143,8 +153,8 @@ export function CommentList({
           queryKey={queryKey}
           readOnly={readOnly}
           replyingToId={replyingToId}
-          onStartReply={onStartReply}
-          onCancelReply={onCancelReply}
+          onStartReply={stableOnStartReply}
+          onCancelReply={stableOnCancelReply}
           depth={0}
           t={t}
         />

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,7 +21,7 @@ interface ClientCardProps {
   onViewClient: (clientId: string) => void;
 }
 
-export function ClientCard({ client, onViewClient }: ClientCardProps) {
+export const ClientCard = memo(function ClientCardImpl({ client, onViewClient }: ClientCardProps) {
   const t = useTranslations("trainer.clients")
   const tCommon = useTranslations("common.actions")
 
@@ -65,4 +66,4 @@ export function ClientCard({ client, onViewClient }: ClientCardProps) {
       </Card>
     </motion.div>
   )
-}
+})

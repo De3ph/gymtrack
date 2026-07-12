@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { WorkoutPlan } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ interface WorkoutPlanCardProps {
   onStart?: (plan: WorkoutPlan) => void;
 }
 
-export function WorkoutPlanCard({
+export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
   plan,
   role,
   onEdit,
@@ -90,4 +91,4 @@ export function WorkoutPlanCard({
       </CardContent>
     </Card>
   );
-}
+})

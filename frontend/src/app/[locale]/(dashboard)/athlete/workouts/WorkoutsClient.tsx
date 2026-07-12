@@ -27,7 +27,7 @@ export function WorkoutsClient({ initialWorkout, planId }: WorkoutsClientProps) 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState(planId ? "log" : "log");
+  const [activeTab, setActiveTab] = useState("log");
   const t = useTranslations("athlete.workouts");
 
 

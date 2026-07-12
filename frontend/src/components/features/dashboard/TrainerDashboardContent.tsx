@@ -25,9 +25,42 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Dumbbell, User, Users } from "lucide-react";
 import dayjs from "dayjs";
+import { useMemo } from "react";
 import { motion, LazyMotion, domAnimation } from "motion/react";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 
+/** Extracted from inline map to avoid recreating on every render. */
+function ClientRow({
+  client,
+  viewLabel,
+  onNavigate,
+}: {
+  client: { athlete: { username: string; profile: { name?: string; fitnessGoals?: string } }; relationship: { relationshipId: string | number } };
+  viewLabel: string;
+  onNavigate: (username: string) => void;
+}) {
+  return (
+    <motion.div key={client.relationship.relationshipId} variants={staggerItem}>
+      <button
+        type="button"
+        onClick={() => onNavigate(client.athlete.username)}
+        className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:bg-muted/60"
+      >
+        <span className="min-w-0">
+          <span className="block truncate font-semibold text-foreground">
+            {client.athlete.profile.name || ""}
+          </span>
+          <span className="block truncate text-sm text-muted-foreground">
+            {client.athlete.profile.fitnessGoals || ""}
+          </span>
+        </span>
+        <span className="shrink-0 text-sm font-medium text-primary">
+          {viewLabel}
+        </span>
+      </button>
+    </motion.div>
+  );
+}
 export function TrainerDashboardContent() {
   const router = useRouter();
   const t = useTranslations("dashboard");
@@ -40,9 +73,15 @@ export function TrainerDashboardContent() {
   });
 
   const clients = clientData?.clients ?? [];
-  const todayFocusClients = clients
+  const todayFocusClients = useMemo(() => clients
     .filter((client) => client.relationship.status === "active")
-    .sort((a, b) => dayjs(b.relationship.createdAt).valueOf() - dayjs(a.relationship.createdAt).valueOf());
+    .sort((a, b) => dayjs(b.relationship.createdAt).valueOf() - dayjs(a.relationship.createdAt).valueOf()),
+  [clients],
+);
+
+  const handleViewClient = (username: string) => {
+    router.push(`/trainer/client/${username}`);
+  };
 
   return (
     <DashboardShell
@@ -90,21 +129,12 @@ export function TrainerDashboardContent() {
         {todayFocusClients.length > 0 ? (
           <div className="grid gap-3">
             {todayFocusClients.slice(0, 3).map((client) => (
-              <motion.div key={client.relationship.relationshipId} variants={staggerItem}>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/trainer/client/${client.athlete.username}`)}
-                  className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:bg-muted/60"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate font-semibold text-foreground">{client.athlete.profile.name || tTrainer("unknown_athlete")}</span>
-                    <span className="block truncate text-sm text-muted-foreground">
-                      {client.athlete.profile.fitnessGoals || tTrainer("no_goal")}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-sm font-medium text-primary">{tCommon("view")}</span>
-                </button>
-              </motion.div>
+              <ClientRow
+                key={client.relationship.relationshipId}
+                client={client}
+                viewLabel={tCommon("view")}
+                onNavigate={handleViewClient}
+              />
             ))}
           </div>
         ) : (

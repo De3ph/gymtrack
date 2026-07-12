@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { WorkoutPlanSet } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,10 @@ export function PlanSetInput({
     }));
   });
 
-  useMemo(() => {
+  // Sync external value changes into internal state.
+  // The functional setState returns `prev` when nothing changed, so no cascading renders.
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  useEffect(() => {
     const currentIds = new Set(setsWithIds.map(s => s.id));
     const newSets = (value || []).map((set, index) => {
       const existingSet = setsWithIds.find(s =>
@@ -51,6 +54,7 @@ export function PlanSetInput({
     });
     setSetsWithIds(newSets);
   }, [value]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const addSet = () => {
     const newSet: PlanSetWithId = {

@@ -16,8 +16,8 @@ import { useAuthStore } from "@/stores/authStore";
 import { Loader2, UserPlus, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query"; // useEffect removed as data fetching handled by TanStack Query
+import { useState, useEffect, useDeferredValue, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ROUTES, buildRoute } from "@/lib/routes";
 import { motion } from "motion/react";
 import { staggerContainer } from "@/lib/animations";
@@ -26,9 +26,9 @@ export default function TrainerClientsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState("");
+  const deferredSearch = useDeferredValue(searchTerm);
   const t = useTranslations("trainer.clients");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   // Fetch clients using TanStack Query
   const { data, isLoading, error } = useQuery({
@@ -46,19 +46,17 @@ export default function TrainerClientsPage() {
     }
   }, [user, router]);
 
-  const filteredClients = clients.filter(
-    (client) =>
-      client.athlete?.profile?.name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      client.athlete?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredClients = useMemo(
+    () =>
+      clients.filter(
+        (client) =>
+          client.athlete?.profile?.name
+            ?.toLowerCase()
+            .includes(deferredSearch.toLowerCase()) ||
+          client.athlete?.email?.toLowerCase().includes(deferredSearch.toLowerCase()),
+      ),
+    [clients, deferredSearch],
   );
-
-  const handleSearch = (term: string) => {
-    startTransition(() => {
-      setSearchTerm(term);
-    });
-  };
 
   const handleViewClient = (clientId: string) => {
     router.push(buildRoute("TRAINER_CLIENT_DETAIL", clientId));
@@ -99,7 +97,7 @@ export default function TrainerClientsPage() {
             type="text"
             placeholder={t("search_placeholder")}
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>

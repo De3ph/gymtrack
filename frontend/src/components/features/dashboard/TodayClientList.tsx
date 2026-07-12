@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -72,7 +73,7 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
   );
 }
 
-function TodayClientRow({
+const TodayClientRow = memo(function TodayClientRow({
   client,
   onViewClient,
   tCommon,
@@ -104,7 +105,7 @@ function TodayClientRow({
       </div>
     </motion.div>
   );
-}
+})
 
 function initials(name: string) {
   return name
