@@ -60,36 +60,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: async () => {
-    try {
-      // 1. Remove HttpOnly session cookie
-      await fetch(SESSION_API, { method: 'DELETE' })
-    } catch (error) {
-      console.error('Session delete call failed:', error)
-    }
-
-    // 2. Best-effort backend logout to invalidate refresh token
-    try {
-      await authApi.logout()
-    } catch {
-      // Non-critical; the session cookie is already gone
-    }
-
-    // 3. Clear in-memory tokens
+  logout: () => {
+    // 1. Clear in-memory tokens and state — keep isLoading: true to prevent
+    //    the dashboard auth guard from redirecting before navigation completes.
     tokenService.remove()
     set({
       user: null,
       token: null,
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true,
       isInitialized: false,
     })
 
-    // 4. Redirect to login with a full page reload so middleware picks up
-    //    the cleared session cookie and the auth store re-initialises cleanly.
-    if (typeof window !== 'undefined') {
-      window.location.href = ROUTES.LOGIN
-    }
+    // 2. Fire-and-forget cleanup (don't await — let them finish in the background)
+    fetch(SESSION_API, { method: 'DELETE' }).catch(() => {})
+    authApi.logout().catch(() => {})
   },
 
   setUser: (user: User) => {

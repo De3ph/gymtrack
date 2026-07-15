@@ -8,6 +8,7 @@ import { http, HttpResponse } from 'msw'
 vi.mock('@/lib/api', () => ({
   authApi: {
     login: vi.fn(),
+    logout: vi.fn().mockResolvedValue({ message: 'Logged out' }),
   },
   userApi: {
     getCurrentUser: vi.fn(),
@@ -118,7 +119,7 @@ describe('AuthStore', () => {
     })
 
     const { logout } = useAuthStore.getState()
-    await logout()
+    logout()
 
     // In-memory tokens cleared
     expect(tokenService.getAccessToken()).toBeNull()
@@ -127,7 +128,7 @@ describe('AuthStore', () => {
     expect(state.user).toBeNull()
     expect(state.token).toBeNull()
     expect(state.isAuthenticated).toBe(false)
-    expect(state.isLoading).toBe(false)
+    expect(state.isLoading).toBe(true)
   })
 
   it('should initialize auth from session cookie', async () => {
