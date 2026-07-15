@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { getAdminUsers, verifyAdmin } from "@/lib/dal";
+import type { AdminUserListResponse } from "@/lib/api/adminApi";
 import { UsersTableSkeleton } from "./_components/UsersTableSkeleton";
 import { UsersTableClientWrapper } from "./_components/UsersTableClientWrapper";
+import { DataError } from "@/components/features/DataError";
 
 /**
  * RSC shell: server-side role gate + initial data fetch +
@@ -18,7 +20,19 @@ export default async function AdminUsersPage() {
 }
 
 async function UsersTableWithData() {
-  // Server-side initial data — handed to client via props as React Query seed
-  const initialData = await getAdminUsers({ limit: 25 });
+  let initialData: AdminUserListResponse;
+  try {
+    // Server-side initial data — handed to client via props as React Query seed
+    initialData = await getAdminUsers({ limit: 25 });
+  } catch (err) {
+    return (
+      <DataError
+        title="Failed to load users"
+        message={
+          err instanceof Error ? err.message : "An unexpected error occurred"
+        }
+      />
+    );
+  }
   return <UsersTableClientWrapper initialData={initialData} />;
 }

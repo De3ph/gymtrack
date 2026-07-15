@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAdminUserDetail, verifyAdmin } from "@/lib/dal";
 import { UserDetailClient } from "./_components/UserDetailClient";
 import { UserDetailSkeleton } from "./_components/UserDetailSkeleton";
+import { DataError } from "@/components/features/DataError";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,8 +28,20 @@ async function UserDetailFetcher({ userId }: { userId: string }) {
   let detail;
   try {
     detail = await getAdminUserDetail(userId);
-  } catch {
-    notFound();
+  } catch (err) {
+    // 404 from the backend → show not-found page
+    if (err instanceof Error && err.message.includes("404")) {
+      notFound();
+    }
+    // Everything else → show a user-friendly error
+    return (
+      <DataError
+        title="Failed to load user details"
+        message={
+          err instanceof Error ? err.message : "An unexpected error occurred"
+        }
+      />
+    );
   }
   return <UserDetailClient detail={detail} />;
 }

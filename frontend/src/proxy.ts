@@ -1,4 +1,4 @@
-import createMiddleware from 'next-intl/middleware';
+﻿import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
 import { decrypt, updateSession, SESSION_COOKIE_NAME } from './lib/session';
@@ -81,5 +81,5 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: '/((?!api|trpc|_next|_vercel|.*\\..*).*)'
+  matcher: '/((?!api|trpc|_next|_vercel|monitoring|.*\\..*).*)'
 };

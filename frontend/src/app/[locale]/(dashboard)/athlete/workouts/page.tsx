@@ -2,6 +2,7 @@ import { getWorkoutPlanCached } from "@/lib/dal";
 import { WorkoutPlan } from "@/types";
 import { Workout, WorkoutExercise } from "@/types";
 import { WorkoutsClient } from "./WorkoutsClient";
+import { DataError } from "@/components/features/DataError";
 
 function buildWorkoutFromPlan(plan: WorkoutPlan): Workout {
   const exercises: WorkoutExercise[] = plan.exercises.map((pe) => ({
@@ -37,9 +38,22 @@ export default async function WorkoutsPage({
   const { planId } = await searchParams;
   let initialWorkout: Workout | undefined;
   if (planId) {
-    const plan = await getWorkoutPlanCached(planId);
-    if (plan) {
-      initialWorkout = buildWorkoutFromPlan(plan as WorkoutPlan);
+    try {
+      const plan = await getWorkoutPlanCached(planId);
+      if (plan) {
+        initialWorkout = buildWorkoutFromPlan(plan as WorkoutPlan);
+      }
+    } catch (err) {
+      return (
+        <DataError
+          title="Failed to load workout plan"
+          message={
+            err instanceof Error
+              ? err.message
+              : "An unexpected error occurred"
+          }
+        />
+      );
     }
   }
   return <WorkoutsClient initialWorkout={initialWorkout} planId={planId || null} />;
