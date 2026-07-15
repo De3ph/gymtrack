@@ -16,6 +16,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 	"go.uber.org/fx"
@@ -131,6 +133,16 @@ var RepositoryModule = fx.Module("repositories",
 		func() *gin.Engine {
 			return gin.Default()
 		},
+
+		func() *prometheus.Registry {
+			reg := prometheus.NewRegistry()
+			reg.MustRegister(
+				collectors.NewGoCollector(),
+				collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+				collectors.NewBuildInfoCollector(),
+			)
+			return reg
+		},
 	),
 
 	fx.Invoke(func(
@@ -151,6 +163,7 @@ var RepositoryModule = fx.Module("repositories",
 		cfg *config.Config,
 		authService *services.AuthService,
 		router *gin.Engine,
+		registry *prometheus.Registry,
 	) {
 		middleware.InitAuthMiddleware(cfg, authService)
 
@@ -161,6 +174,12 @@ var RepositoryModule = fx.Module("repositories",
 		corsConfig.AllowCredentials = true
 
 		router.Use(cors.New(corsConfig))
+
+		// Prometheus metrics
+		middleware.InitMetricsMiddleware(registry)
+		router.Use(middleware.MetricsMiddleware())
+		routes.RegisterMetricsRoutes(router, registry)
+
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 		apiGroup := router.Group("/api")
