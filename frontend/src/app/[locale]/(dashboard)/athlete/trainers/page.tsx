@@ -29,7 +29,7 @@ export default function TrainerCatalogPage() {
     minRating: 0,
     availableForNewClients: false,
   })
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
   const t = useTranslations("athlete.trainers")
   const tCommon = useTranslations("common")
 

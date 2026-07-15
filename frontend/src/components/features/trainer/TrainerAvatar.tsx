@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import { useState } from "react"
-import { cn } from "@/lib/utils"
+import Image from "next/image";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface TrainerAvatarProps {
-  name: string
-  photoUrl?: string
-  rating?: number
-  isAvailable?: boolean
-  size?: number
+  name: string;
+  photoUrl?: string;
+  rating?: number;
+  isAvailable?: boolean;
+  size?: number;
 }
 
 export function TrainerAvatar({
@@ -19,20 +19,20 @@ export function TrainerAvatar({
   isAvailable = false,
   size = 96,
 }: TrainerAvatarProps) {
-  const [hasError, setHasError] = useState(false)
+  const [hasError, setHasError] = useState(false);
 
   const initials = name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
     .slice(0, 2)
-    .toUpperCase()
+    .toUpperCase();
 
-  const r = 46
-  const circ = 2 * Math.PI * r
-  const normalizedRating = Math.min(Math.max(rating, 0), 5)
-  const strokeDashoffset = circ * (1 - normalizedRating / 5)
-  const avatarSize = size - 12
+  const r = 46;
+  const circ = 2 * Math.PI * r;
+  const normalizedRating = Math.min(Math.max(rating, 0), 5);
+  const strokeDashoffset = circ * (1 - normalizedRating / 5);
+  const avatarSize = size - 12;
 
   return (
     <div
@@ -74,7 +74,7 @@ export function TrainerAvatar({
       <div
         className={cn(
           "relative overflow-hidden rounded-full bg-stone-200",
-          !photoUrl || hasError ? "flex items-center justify-center" : ""
+          !photoUrl || hasError ? "flex items-center justify-center" : "",
         )}
         style={{ width: avatarSize, height: avatarSize }}
       >
@@ -95,5 +95,5 @@ export function TrainerAvatar({
         )}
       </div>
     </div>
-  )
+  );
 }
