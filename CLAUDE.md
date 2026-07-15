@@ -36,7 +36,7 @@ Use AGENTS.md, ARCHITECTURE.md, CODE_STYLE.md, PHASES.MD and context-map.md to u
 - **ESLint**: Extends `eslint-config-next` and React plugin; runs with `pnpm lint`.
 - **Playwright**: Config in `playwright.config.ts` for E2E tests.
 - **Vitest**: Config in `vitest.config.ts` includes `test` field.
-- **Backend**: Go 1.24+ with Gin framework, Couchbase database, Swagger documentation at `/swagger/*`.
+- **Backend**: Go 1.24+ with Gin framework, PostgreSQL database, Swagger documentation at `/swagger/*`.
 
 ## Cursor / Copilot Rules
 - No specific `.cursor` or `.github/copilot-instructions.md` files detected.
@@ -44,4 +44,4 @@ Use AGENTS.md, ARCHITECTURE.md, CODE_STYLE.md, PHASES.MD and context-map.md to u
 ## README Highlights
 - See `context-map.md` for comprehensive project documentation including architecture, API endpoints, and data flow.
 - Backend runs on port 8080, frontend on port 3000.
-- Backend uses Couchbase with collections: users, workouts, meals, relationships, comments, invitations, exercises, equipment, muscle_groups, coaching_requests.
+- Backend uses PostgreSQL with tables: users, workouts, meals, relationships, comments, invitations, exercises, equipment, muscle_groups, coaching_requests, trainer_reviews, trainer_availabilities, workout_plans, workout_plan_assignments, body_measurements.

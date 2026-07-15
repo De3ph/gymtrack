@@ -19,7 +19,7 @@ GymTrack is a full-stack fitness tracking platform connecting personal trainers 
 | **Package Manager** | pnpm |
 | **Backend Language** | Go 1.24 |
 | **Backend Framework** | Gin v1.11 |
-| **Database** | Couchbase Server (gocb/v2) |
+| **Database** | PostgreSQL 16+ (pgx/v5) |
 | **Auth** | JWT (golang-jwt/v5) |
 | **Validation** | go-playground/validator/v10 |
 | **API Docs** | Swagger (swaggo/gin-swagger) |
@@ -36,15 +36,15 @@ gymtrack/
 │   │   │   ├── handlers/       # HTTP handlers (12 files)
 │   │   │   ├── middleware/     # JWT auth middleware
 │   │   │   └── routes/         # Route definitions (8 files)
-│   │   ├── config/             # Env loading, Couchbase connection, collection setup
+│   │   ├── config/             # Env loading, PostgreSQL connection
 │   │   └── domain/
 │   │       ├── models/         # Data structures (10 files)
-│   │       ├── repositories/   # Couchbase data access (9 files)
+│   │       ├── repositories/   # PostgreSQL data access (14 files)
 │   │       └── services/       # Business logic (7 files)
 │   ├── docs/                   # Swagger-generated docs
 │   ├── tests/                  # Integration tests
 │   ├── go.mod
-│   └── .env                    # Couchbase + JWT config
+│   └── .env                    # PostgreSQL + JWT config
 │
 ├── frontend/                   # Next.js App Router
 │   ├── src/
@@ -94,9 +94,9 @@ gymtrack/
 
 | Component | Responsibility | Key Files |
 |---|---|---|
-| **Config** | Env loading, Couchbase connection, collection/index creation | `internal/config/` |
+| **Config** | Env loading, PostgreSQL connection pool | `internal/config/` |
 | **Models** | Domain structs with JSON tags and validator annotations | `internal/domain/models/` |
-| **Repositories** | Couchbase CRUD operations per entity | `internal/domain/repositories/` |
+| **Repositories** | PostgreSQL CRUD operations per entity | `internal/domain/repositories/` |
 | **Services** | Business logic, cross-entity operations | `internal/domain/services/` |
 | **Handlers** | HTTP request/response, validation, service delegation | `internal/api/handlers/` |
 | **Middleware** | JWT parsing, role extraction, request context | `internal/api/middleware/` |
@@ -126,7 +126,7 @@ User Action
         → JWT Middleware validates token, sets userID/userRole in context
           → Handler validates input with go-playground/validator
             → Service executes business logic
-              → Repository performs Couchbase N1QL/doc operations
+              → Repository performs PostgreSQL SQL operations
                 → Response flows back up the chain
 ```
 
@@ -139,24 +139,33 @@ User Action
 5. Subsequent API calls include `Authorization: Bearer <accessToken>` header
 6. On 401, `authStore.handleAuthError()` clears tokens and redirects to `/login`
 
-### Couchbase Data Model
+### PostgreSQL Data Model
 
-Documents are organized into collections within the `_default` scope of the `gymtrack` bucket:
+Data is organized into tables within the `public` schema of the `gymtrack` database.
 
-| Collection | Purpose | Key Indexes |
-|---|---|---|
-| `users` | User accounts + trainer profiles | email, role |
-| `relationships` | Trainer-athlete links | trainerId, athleteId, status |
-| `workouts` | Workout entries | athleteId, date, composite |
-| `meals` | Meal entries | athleteId, date, mealType |
-| `comments` | Threaded comments | targetId+targetType, authorId, parentCommentId |
-| `invitations` | Trainer invite codes | code, trainerId, status |
+| Table | Purpose | Key Columns |
+|-------|---------|-------------|
+| `users` | User accounts + trainer profiles | id (serial PK), email, role |
+| `relationships` | Trainer-athlete links | id (serial PK), trainer_id, athlete_id, status |
+| `workouts` | Workout entries | id (serial PK), athlete_id, date, exercises (JSONB) |
+| `meals` | Meal entries | id (serial PK), athlete_id, date, items (JSONB) |
+| `comments` | Threaded comments | id (serial PK), target_id, target_type, author_id, parent_comment_id |
+| `invitations` | Trainer invite codes | id (serial PK), code, trainer_id, status |
+| `exercises` | Exercise catalog | id (serial PK), name, muscle_group_id, equipment_id |
+| `equipment` | Equipment definitions | id (serial PK), name |
+| `muscle_groups` | Muscle group definitions | id (serial PK), name |
+| `coaching_requests` | Coaching requests | id (serial PK), athlete_id, trainer_id, status, message |
+| `trainer_reviews` | Trainer reviews | id (serial PK), trainer_id, athlete_id, rating, comment |
+| `trainer_availabilities` | Trainer availability | id (serial PK), trainer_id, day_of_week, start_time, end_time |
+| `workout_plans` | Workout plans | id (serial PK), trainer_id, name, exercises (JSONB) |
+| `workout_plan_assignments` | Workout plan assignments | id (serial PK), plan_id, athlete_id, start_date, end_date |
+| `body_measurements` | Body measurements | id (serial PK), athlete_id, date, parts (JSONB) |
 
 ## External Integrations
 
 | Integration | Purpose | Config |
 |---|---|---|
-| **Couchbase Server** | Primary data store (document database) | `COUCHBASE_CONNECTION_STRING`, `COUCHBASE_USERNAME`, `COUCHBASE_PASSWORD` |
+| **PostgreSQL** | Primary data store (relational database) | `POSTGRES_DSN` |
 | **Swagger UI** | API documentation at `/swagger/*any` | Auto-generated via swaggo |
 
 ## Configuration
@@ -165,10 +174,8 @@ Documents are organized into collections within the `_default` scope of the `gym
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `COUCHBASE_CONNECTION_STRING` | No | `couchbase://localhost` | Couchbase cluster address |
-| `COUCHBASE_USERNAME` | No | `Administrator` | DB username |
-| `COUCHBASE_PASSWORD` | No | `password` | DB password |
-| `COUCHBASE_BUCKET` | No | `gymtrack` | Bucket name |
+| `POSTGRES_DSN` | No | `postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable` | PostgreSQL connection string |
+| `JWT_SECRET` | **Yes** | — | Must be ≥32 characters |
 | `JWT_SECRET` | **Yes** | — | Must be ≥32 characters |
 
 ### Frontend

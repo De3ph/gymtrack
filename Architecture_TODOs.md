@@ -1,0 +1,6 @@
+- [ ] Sentry integration for frontend
+- [ ] Grafana integration for backend
+- [ ] pgAudit
+- [ ] pg_stat_statements
+- [ ] pg_partman
+- [ ]

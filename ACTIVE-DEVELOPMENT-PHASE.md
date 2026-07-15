@@ -48,13 +48,13 @@ Currently, the workout and meal logging is quite basic.
     - [x] rest time
 
 
-## Phase 5: UI Polishments
+## Phase 5: UI Polishments - DONE
 
 - [x] Considiring migrate to Base UI from Radix UI based system (shadcn/ui)
-- [ ] Add loading states and spinners
-- [ ] Decide on a consistent color scheme and design
+- [x] Add loading states and spinners
+- [x] Decide on a consistent color scheme and design
 - [x] Add theme toggle (light/dark)
-- [ ] Replacing custom components with shadcn/ui components
+- [x] Replacing custom components with shadcn/ui components
 
 ## Phase 6: i18n support for frontend - DONE
 

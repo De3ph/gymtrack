@@ -16,6 +16,15 @@
       "command": ["npx", "-y", "next-devtools-mcp@latest"],
       "enabled": true,
       "environment": {}
+    },
+    "sentry": {
+      "type": "remote",
+      "url": "https://mcp.sentry.dev/mcp",
+      "oauth": {}
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"]
     }
   }
 }

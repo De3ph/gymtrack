@@ -20,3 +20,4 @@
 - [x] toplam öğün toplam antrenmanı sil, günlük ortalama besin değeri ve haftalık antrenman sayısı yeterli.
 - [x] kilo gelişim takibi ve vücut ilk ölçüm son ölçüm grafikleri eklenmesi lazım
 - [ ] iletişim metodu
+-
