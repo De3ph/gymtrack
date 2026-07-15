@@ -66,16 +66,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await fetch(SESSION_API, { method: 'DELETE' })
     } catch (error) {
       console.error('Session delete call failed:', error)
-    } finally {
-      // 2. Clear in-memory tokens
-      tokenService.remove()
-      set({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false,
-        isInitialized: false,
-      })
+    }
+
+    // 2. Best-effort backend logout to invalidate refresh token
+    try {
+      await authApi.logout()
+    } catch {
+      // Non-critical; the session cookie is already gone
+    }
+
+    // 3. Clear in-memory tokens
+    tokenService.remove()
+    set({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      isInitialized: false,
+    })
+
+    // 4. Redirect to login with a full page reload so middleware picks up
+    //    the cleared session cookie and the auth store re-initialises cleanly.
+    if (typeof window !== 'undefined') {
+      window.location.href = ROUTES.LOGIN
     }
   },
 

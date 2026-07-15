@@ -7,18 +7,17 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-muted to-secondary px-4">
+    <div className="relative flex min-h-screen">
       <div className="fixed right-4 top-4 z-50 flex items-center gap-1">
         <ThemeToggle />
         <LocaleToggle />
       </div>
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-foreground">
-            GymTrack
-          </h1>
-        </div>
-        {children}
+      <div className="relative flex w-full flex-col items-center justify-center overflow-auto bg-background px-6 py-12 lg:px-16">
+        <div className="absolute left-0 top-0 h-1 w-full bg-primary lg:left-0 lg:top-0 lg:h-full lg:w-1" />
+        <div className="w-full max-w-md">{children}</div>
+        <p className="mt-12 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground/40">
+          GymTrack
+        </p>
       </div>
     </div>
   );

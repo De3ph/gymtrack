@@ -130,3 +130,29 @@
         @apply font-sans;
     }
 }
+
+@keyframes auth-grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -5%); }
+  20% { transform: translate(-10%, 5%); }
+  30% { transform: translate(5%, -10%); }
+  40% { transform: translate(-5%, 15%); }
+  50% { transform: translate(-10%, 5%); }
+  60% { transform: translate(15%, 0); }
+  70% { transform: translate(0, 10%); }
+  80% { transform: translate(-15%, 0); }
+  90% { transform: translate(10%, 5%); }
+}
+
+@keyframes auth-accent-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.animate-auth-grain {
+  animation: auth-grain 8s steps(10) infinite;
+}
+
+.animate-accent-pulse {
+  animation: auth-accent-pulse 3s ease-in-out infinite;
+}

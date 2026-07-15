@@ -175,10 +175,13 @@ export const getLatestBodyMeasurementCached = unstable_cache(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (): Promise<any> => {
     const session = await verifySession()
-    return serverFetch<Record<string, unknown> | null>(
-      '/body-measurements/latest',
+    const result = await serverFetch<Record<string, unknown> | null>(
+      '/measurements/latest',
       session.accessToken,
     )
+    // serverFetch returns {} for 204 No Content responses; treat empty as null
+    if (result && Object.keys(result).length === 0) return null
+    return result
   },
   ['latest-body-measurement'],
   { revalidate: 30, tags: ['body-measurements', 'latest-body-measurement'] },

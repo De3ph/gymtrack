@@ -687,9 +687,8 @@
       },
       "tabs": {
         "overview": "Overview",
-      "workouts": "Workouts",
-      "meals": "Meals",
-      "measurements": "Measurements",
+        "workouts": "Workouts",
+        "meals": "Meals",
         "measurements": "Measurements",
         "progress_charts": "Progress Charts",
         "workout_history": "Workout History",
@@ -861,6 +860,10 @@
     "loading": "Loading profile...",
     "not_found": "User not found",
     "update_error": "Failed to update profile",
+    "profile_saved": "Profile saved successfully",
+    "member_since": "Member since",
+    "personal_info": "Personal Information",
+    "trainer": "Trainer",
     "fields": {
       "email": "Email",
       "role": "Role",
@@ -1030,7 +1033,7 @@
       "search": "Search",
       "no_trainers": "No trainers found",
       "view_profile": "View Profile",
-      "loading": "Loading...",
+      "loading": "Looking for coaches…",
       "specialization_placeholder": "e.g., Weight Loss",
       "location_placeholder": "e.g., New York",
       "filter_help": "Try adjusting your filters.",
@@ -1054,7 +1057,15 @@
         "availability_title": "Availability",
         "no_availability": "No availability set",
         "request_coaching": "Request Coaching"
-      }
+      },
+      "eyebrow": "FIND YOUR COACH",
+      "headline": "Pick the coach who fits your goals.",
+      "subhead": "Browse rated trainers, then send a request.",
+      "per_hour": "/hr",
+      "years_exp": "y",
+      "open_only": "Open only",
+      "empty_title": "No trainers match",
+      "empty_desc": "Loosen a filter or clear search to see more coaches."
     },
     "workout_plans": {
       "title": "My Workout Plans",

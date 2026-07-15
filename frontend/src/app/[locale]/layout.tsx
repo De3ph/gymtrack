@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { Inter } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
 import "../globals.css";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
 export const metadata: Metadata = {
   title: "GymTrack - Fitness Tracking for Trainers & Athletes",
@@ -27,7 +28,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={cn("font-sans", inter.variable)} suppressHydrationWarning>
+    <html lang={locale} className={cn("font-sans", inter.variable, geistMono.variable)} suppressHydrationWarning>
       <body className="antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>

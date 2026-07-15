@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
+import { motion } from "motion/react";
 import { type LoginFormData } from "@/lib/validations/auth";
 import { useAuthStore } from "@/stores/authStore";
 import { ROUTES } from "@/lib/routes";
@@ -12,6 +13,23 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { Spinner } from "@/components/ui/spinner";
+
+const stagger = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.12 },
+  },
+};
+
+const fadeSlideUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,116 +62,182 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="rounded-lg bg-card p-8 shadow-xl">
-      <h2 className="mb-6 text-2xl font-semibold text-card-foreground">
-        {t("title")}
-      </h2>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={stagger}
+      className="w-full"
+    >
+      {/* Red accent bar */}
+      <motion.div variants={fadeSlideUp} className="mb-8 h-1 w-12 bg-primary" />
 
+      {/* Title */}
+      <motion.div variants={fadeSlideUp} className="mb-10">
+        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+          Account
+        </p>
+        <h2 className="mt-2 text-3xl font-black leading-none tracking-tight text-foreground">
+          {t("title")}
+        </h2>
+      </motion.div>
+
+      {/* Error */}
       {error && (
-        <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="mb-8 border-l-2 border-destructive bg-destructive/5 px-4 py-3"
+        >
+          <p className="text-sm font-medium text-destructive">{error}</p>
+        </motion.div>
       )}
 
-      <form
+      {/* Form */}
+      <motion.form
+        variants={stagger}
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
         }}
-        className="space-y-4"
+        className="space-y-7"
       >
-        <form.Field
-          name="identifier"
-          validators={{
-            onChange: ({ value }) => {
-              if (!value || value.trim().length === 0) {
-                return t("email.error.required");
-              }
-              // Check if it's a valid email
-              if (/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
+        <motion.div variants={fadeSlideUp}>
+          <form.Field
+            name="identifier"
+            validators={{
+              onChange: ({ value }) => {
+                if (!value || value.trim().length === 0) {
+                  return t("email.error.required");
+                }
+                // Check if it's a valid email
+                if (/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
+                  return undefined;
+                }
+                // Check if it's a valid username format (3-30 alphanumeric)
+                if (/^[a-zA-Z0-9]{3,30}$/.test(value)) {
+                  return undefined;
+                }
+                return t("email.error.invalid");
+              },
+            }}
+          >
+            {(field) => (
+              <Field>
+                <FieldLabel
+                  htmlFor="identifier"
+                  className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground"
+                >
+                  {t("email.label")}
+                </FieldLabel>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  type="text"
+                  id="identifier"
+                 
+                  placeholder={t("email.placeholder")}
+                  className="block w-full border-0 border-b-2 border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                />
+                <FieldInfo field={field} />
+              </Field>
+            )}
+          </form.Field>
+        </motion.div>
+
+        <motion.div variants={fadeSlideUp}>
+          <form.Field
+            name="password"
+            validators={{
+              onChange: ({ value }) => {
+                if (!value || value.length === 0) {
+                  return t("password.error.required");
+                }
+                if (value.length < 8) {
+                  return t("password.error.min_length");
+                }
                 return undefined;
-              }
-              // Check if it's a valid username format (3-30 alphanumeric)
-              if (/^[a-zA-Z0-9]{3,30}$/.test(value)) {
-                return undefined;
-              }
-              return t("email.error.invalid");
-            },
-          }}
-        >
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="identifier">{t("email.label")}</FieldLabel>
-              <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                type="text"
-                id="identifier"
-                placeholder={t("email.placeholder")}
-                className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
-              />
-              <FieldInfo field={field} />
-            </Field>
-          )}
-        </form.Field>
+              },
+            }}
+          >
+            {(field) => (
+              <Field>
+                <FieldLabel
+                  htmlFor="password"
+                  className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground"
+                >
+                  {t("password.label")}
+                </FieldLabel>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  type="password"
+                  id="password"
+                 
+                  placeholder={t("password.placeholder")}
+                  className="block w-full border-0 border-b-2 border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                />
+                <FieldInfo field={field} />
+              </Field>
+            )}
+          </form.Field>
+        </motion.div>
 
-        <form.Field
-          name="password"
-          validators={{
-            onChange: ({ value }) => {
-              if (!value || value.length === 0) {
-                return t("password.error.required");
-              }
-              if (value.length < 8) {
-                return t("password.error.min_length");
-              }
-              return undefined;
-            },
-          }}
-        >
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="password">{t("password.label")}</FieldLabel>
-              <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                type="password"
-                id="password"
-                placeholder={t("password.placeholder")}
-                className="mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring"
-              />
-              <FieldInfo field={field} />
-            </Field>
-          )}
-        </form.Field>
+        {/* Forgot password */}
+        <motion.div variants={fadeSlideUp} className="pt-1 text-right">
+          <a
+            href="#"
+            className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t("forgot_password")}
+          </a>
+        </motion.div>
 
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? (
-            <>
-              <Spinner className="mr-2" />
-              {t("submitting")}
-            </>
-          ) : (
-            t("submit")
-          )}
-        </Button>
-      </form>
+        {/* Submit */}
+        <motion.div variants={fadeSlideUp} className="pt-2">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="group relative w-full overflow-hidden border-0 bg-primary px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-primary-foreground shadow-none transition-all duration-300 hover:tracking-[0.25em] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              {isLoading ? (
+                <>
+                  <Spinner className="size-4" />
+                  {t("submitting")}
+                </>
+              ) : (
+                <>
+                  {t("submit")}
+                  <span className="transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-2">
+                    &rarr;
+                  </span>
+                </>
+              )}
+            </span>
+            <span className="absolute inset-0 origin-left scale-x-0 bg-primary-foreground/10 transition-transform duration-300 group-hover:scale-x-100" />
+          </Button>
+        </motion.div>
+      </motion.form>
 
-      <p className="mt-4 text-center text-sm text-muted-foreground">
-        {t("no_account")}{" "}
-        <a
-          href={ROUTES.REGISTER}
-          className="font-medium text-primary hover:text-primary/80"
-        >
-          {t("sign_up")}
-        </a>
-      </p>
-    </div>
+      {/* Sign up link */}
+      <motion.div
+        variants={fadeSlideUp}
+        className="mt-12 flex items-center gap-2"
+      >
+        <span className="h-px flex-1 bg-border" />
+        <p className="text-xs text-muted-foreground">
+          {t("no_account")}{" "}
+          <a
+            href={ROUTES.REGISTER}
+            className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-all hover:decoration-primary"
+          >
+            {t("sign_up")}
+          </a>
+        </p>
+        <span className="h-px flex-1 bg-border" />
+      </motion.div>
+    </motion.div>
   );
 }

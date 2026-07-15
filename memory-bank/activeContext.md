@@ -25,5 +25,14 @@ Completed Phase 4 (Re-render hygiene) of the Vercel React Best Practices remedia
 - `CoachingRequestsList.tsx`: Extract inline Card into memo'd `CoachingRequestRow`
 - `WorkoutCard.tsx` line 100 formatting (minor)
 
+## Bug Fixes
+
+### Logout Redirect Fix
+- **Problem**: `authStore.logout()` cleared the session cookie and in-memory tokens but never redirected the user to the login page. After logout, the user remained on the dashboard with an empty/blank state.
+- **Fix** (`frontend/src/stores/authStore.ts`):
+  1. Removed the wrapping `finally` block — the session cookie delete is now independent from token cleanup.
+  2. Added best-effort backend logout call (`authApi.logout()`) to invalidate the refresh token server-side.
+  3. **Added redirect**: `window.location.href = ROUTES.LOGIN` — a hard redirect (full page reload) so the middleware (`proxy.ts`) detects the cleared session cookie and the auth store re-initialises cleanly.
+
 ## Next Steps
 Proceed to Phase 5 (Misc cleanups & ESLint) when ready.

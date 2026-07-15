@@ -12,12 +12,11 @@
 - [x] after loggin workout, it redirects to the list tab, but it not invalidate query
 - [x] editing workout not works
 - [x] add validations in log meal and workout forms
-- [ ] improve main page of athletes.
-  - [ ] add common calendar to track workouts and meals
-  - [ ] add trainers info if exists
+- [x] improve main page of athletes.
+  - [x] add common calendar to track workouts and meals
+  - [x] add trainers info if exists
 - [ ] add sum of nutritions for a day
 - [ ] antrenör sayfasını düzenle
 - [x] toplam öğün toplam antrenmanı sil, günlük ortalama besin değeri ve haftalık antrenman sayısı yeterli.
 - [x] kilo gelişim takibi ve vücut ilk ölçüm son ölçüm grafikleri eklenmesi lazım
 - [ ] iletişim metodu
--

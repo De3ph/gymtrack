@@ -6,11 +6,7 @@ import { LandingClient } from './LandingClient';
 export default async function Home() {
   const session = await getSession();
   if (session) {
-    redirect(
-      session.role === 'trainer'
-        ? ROUTES.TRAINER_CLIENTS
-        : ROUTES.ATHLETE_WORKOUTS
-    );
+    redirect(ROUTES.DASHBOARD);
   }
   return <LandingClient />;
 }
