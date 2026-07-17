@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FieldError, FieldLabel } from "@/components/ui/field";
 import { bodyMeasurementApi } from "@/lib/api";
+import { combineDateTime } from "@/lib/utils/datetime";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { BODY_PARTS, DATE_FORMATS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
@@ -25,16 +26,6 @@ interface BodyMeasurementFormProps {
   onSuccess?: () => void;
   onClear?: () => void;
 }
-
-const combineDateTime = (date: Date, time: string): string => {
-  const [hours, minutes] = time.split(":").map(Number);
-  return dayjs(date)
-    .hour(hours)
-    .minute(minutes)
-    .second(0)
-    .millisecond(0)
-    .toISOString();
-};
 
 const buildEmptyParts = (): Record<string, BodyMeasurementPart> => ({});
 

@@ -19,6 +19,7 @@ import {
   createWorkoutWithPerSetSchema,
   WorkoutWithPerSetFormData,
 } from "@/lib/validations/workout";
+import { combineDateTime } from "@/lib/utils/datetime";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 
@@ -42,16 +43,6 @@ const createDefaultExercise = (): WorkoutExercise => ({
     } as ExerciseSet,
   ],
 });
-
-const combineDateTime = (date: Date, time: string): string => {
-  const [hours, minutes] = time.split(":").map(Number);
-  return dayjs(date)
-    .hour(hours)
-    .minute(minutes)
-    .second(0)
-    .millisecond(0)
-    .toISOString();
-};
 
 const formatExercisesForApi = (exercises: WorkoutExercise[]) => {
   return exercises.map((exercise) => ({
