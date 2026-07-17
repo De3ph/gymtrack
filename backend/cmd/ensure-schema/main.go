@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"gymtrack-backend/internal/repository/postgres"
+	"gymtrack-backend/internal/infrastructure/persistence/postgres"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

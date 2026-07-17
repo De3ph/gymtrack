@@ -8,6 +8,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -106,12 +107,11 @@ func (r *PostgresBodyMeasurementRepository) GetByAthleteDateRange(ctx context.Co
 }
 
 func (r *PostgresBodyMeasurementRepository) GetLatestByAthleteID(ctx context.Context, athleteID int) (*models.BodyMeasurement, error) {
+	// scanOne translates pgx.ErrNoRows to domainerrors.ErrNotFound. Callers must check
+	// for ErrNotFound to distinguish "not found" from success (no recent measurement
+	// is a normal, expected state, but the repo signals it via the error contract).
 	query := `SELECT ` + bmCols + ` FROM body_measurements WHERE athlete_id = $1 ORDER BY date DESC LIMIT 1`
-	m, err := r.scanOne(r.pool.QueryRow(ctx, query, athleteID))
-	if errors.Is(err, domainerrors.ErrNotFound) {
-		return nil, nil
-	}
-	return m, err
+	return r.scanOne(r.pool.QueryRow(ctx, query, athleteID))
 }
 
 func (r *PostgresBodyMeasurementRepository) Update(ctx context.Context, m *models.BodyMeasurement) error {
@@ -181,12 +181,4 @@ func (r *PostgresBodyMeasurementRepository) scanRows(rows pgx.Rows) ([]*models.B
 }
 
 // Compile-time interface compliance check.
-var _ interface {
-	Create(ctx context.Context, measurement *models.BodyMeasurement) error
-	GetByID(ctx context.Context, measurementID int) (*models.BodyMeasurement, error)
-	GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.BodyMeasurement, error)
-	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.BodyMeasurement, error)
-	GetLatestByAthleteID(ctx context.Context, athleteID int) (*models.BodyMeasurement, error)
-	Update(ctx context.Context, measurement *models.BodyMeasurement) error
-	Delete(ctx context.Context, measurementID int) error
-} = (*PostgresBodyMeasurementRepository)(nil)
+var _ repositories.BodyMeasurementRepository = (*PostgresBodyMeasurementRepository)(nil)

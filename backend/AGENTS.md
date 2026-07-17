@@ -7,7 +7,7 @@
 | `go run cmd/server/main.go` | Start server on port 8080 |
 | `go build -o server.exe cmd/server/main.go` | Build binary |
 | `go test ./...` | Run all tests |
-| `go test ./internal/repository/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
+| `go test ./internal/infrastructure/persistence/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
 
 **No hot-reload** — stop and restart after every edit, or use a tool like `air`.
 
@@ -36,6 +36,10 @@ internal/
     models/                — 15 domain structs (Workout, User, Meal, Exercise, etc.)
     repositories/          — 14 interfaces defining data access contracts
     services/              — 15 service implementations with business logic
+  infrastructure/
+    persistence/
+      postgres/            — 15 repository implementations (PostgreSQL)
+      repository.go        — RepositoryFactory creating all repositories
   testutils/               — Mock helpers (mocks.go, testutils.go)
   utils/                   — clock.go (RealClock interface for testable time)
 ```
@@ -77,6 +81,7 @@ Legacy Couchbase env vars (`COUCHBASE_*`) are retained for rollback but unused.
 
 - **Handler → Service → Repository**: Handlers parse requests and return responses. Services contain business logic. Repositories do data access. No business logic in handlers.
 - **Constructor injection**: Services receive repository interfaces; handlers receive service interfaces. All wiring is explicit in `main.go`.
+- **Repository Factory**: Use `persistence.RepositoryFactory` to create all repositories from a single `pgxpool.Pool`. The factory is provided via uber/fx and individual repositories are extracted via accessor methods.
 - **DTO layer**: Currently handlers parse raw JSON into domain models directly (no separate DTO package) — but the convention is to use request/response types in handler files. Model after `body_measurement_handler.go` or `workout_handler.go`.
 - **Error handling**: Domain errors in `internal/domain/errors/` are `var` sentinel errors. Handlers do `errors.Is(err, domainerrors.ErrNotFound)` type switching (see `workout_handler.go` pattern).
 - **Testable time**: Use `utils.RealClock` (implements `Clock` interface) everywhere instead of `time.Now()`. Pass it via constructor.

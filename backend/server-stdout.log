@@ -1,0 +1,106 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /metrics                  --> gymtrack-backend/internal/api/routes.RegisterMetricsRoutes.WrapH.func1 (5 handlers)
+[GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (5 handlers)
+[GIN-debug] POST   /api/auth/register        --> gymtrack-backend/internal/api/handlers.(*AuthHandler).Register-fm (5 handlers)
+[GIN-debug] POST   /api/auth/login           --> gymtrack-backend/internal/api/handlers.(*AuthHandler).Login-fm (5 handlers)
+[GIN-debug] POST   /api/auth/refresh         --> gymtrack-backend/internal/api/handlers.(*AuthHandler).RefreshToken-fm (5 handlers)
+[GIN-debug] POST   /api/auth/logout          --> gymtrack-backend/internal/api/handlers.(*AuthHandler).Logout-fm (5 handlers)
+[GIN-debug] GET    /api/users/me             --> gymtrack-backend/internal/api/handlers.(*UserHandler).GetCurrentUser-fm (6 handlers)
+[GIN-debug] PUT    /api/users/me             --> gymtrack-backend/internal/api/handlers.(*UserHandler).UpdateCurrentUser-fm (6 handlers)
+[GIN-debug] GET    /api/admin/stats          --> gymtrack-backend/internal/api/handlers.(*AdminHandler).GetDashboardStats-fm (7 handlers)
+[GIN-debug] GET    /api/admin/users          --> gymtrack-backend/internal/api/handlers.(*AdminHandler).ListAllUsers-fm (7 handlers)
+[GIN-debug] GET    /api/admin/users/:id      --> gymtrack-backend/internal/api/handlers.(*AdminHandler).GetUserDetail-fm (7 handlers)
+[GIN-debug] PUT    /api/admin/profile/password --> gymtrack-backend/internal/api/handlers.(*AdminHandler).ChangePassword-fm (7 handlers)
+[GIN-debug] POST   /api/workouts             --> gymtrack-backend/internal/api/handlers.(*WorkoutHandler).CreateWorkout-fm (6 handlers)
+[GIN-debug] GET    /api/workouts             --> gymtrack-backend/internal/api/handlers.(*WorkoutHandler).GetWorkouts-fm (6 handlers)
+[GIN-debug] GET    /api/workouts/:id         --> gymtrack-backend/internal/api/handlers.(*WorkoutHandler).GetWorkout-fm (6 handlers)
+[GIN-debug] PUT    /api/workouts/:id         --> gymtrack-backend/internal/api/handlers.(*WorkoutHandler).UpdateWorkout-fm (6 handlers)
+[GIN-debug] DELETE /api/workouts/:id         --> gymtrack-backend/internal/api/handlers.(*WorkoutHandler).DeleteWorkout-fm (6 handlers)
+[GIN-debug] GET    /api/clients/:username/workouts --> gymtrack-backend/internal/api/handlers.(*WorkoutHandler).GetClientWorkouts-fm (6 handlers)
+[GIN-debug] POST   /api/measurements         --> gymtrack-backend/internal/api/handlers.(*BodyMeasurementHandler).CreateBodyMeasurement-fm (6 handlers)
+[GIN-debug] GET    /api/measurements         --> gymtrack-backend/internal/api/handlers.(*BodyMeasurementHandler).GetBodyMeasurements-fm (6 handlers)
+[GIN-debug] GET    /api/measurements/latest  --> gymtrack-backend/internal/api/handlers.(*BodyMeasurementHandler).GetLatestBodyMeasurement-fm (6 handlers)
+[GIN-debug] GET    /api/measurements/:id     --> gymtrack-backend/internal/api/handlers.(*BodyMeasurementHandler).GetBodyMeasurement-fm (6 handlers)
+[GIN-debug] PUT    /api/measurements/:id     --> gymtrack-backend/internal/api/handlers.(*BodyMeasurementHandler).UpdateBodyMeasurement-fm (6 handlers)
+[GIN-debug] DELETE /api/measurements/:id     --> gymtrack-backend/internal/api/handlers.(*BodyMeasurementHandler).DeleteBodyMeasurement-fm (6 handlers)
+[GIN-debug] GET    /api/clients/:username/measurements --> gymtrack-backend/internal/api/handlers.(*BodyMeasurementHandler).GetClientBodyMeasurements-fm (6 handlers)
+[GIN-debug] POST   /api/meals                --> gymtrack-backend/internal/api/handlers.(*MealHandler).CreateMeal-fm (6 handlers)
+[GIN-debug] GET    /api/meals                --> gymtrack-backend/internal/api/handlers.(*MealHandler).GetMeals-fm (6 handlers)
+[GIN-debug] GET    /api/meals/:id            --> gymtrack-backend/internal/api/handlers.(*MealHandler).GetMeal-fm (6 handlers)
+[GIN-debug] PUT    /api/meals/:id            --> gymtrack-backend/internal/api/handlers.(*MealHandler).UpdateMeal-fm (6 handlers)
+[GIN-debug] DELETE /api/meals/:id            --> gymtrack-backend/internal/api/handlers.(*MealHandler).DeleteMeal-fm (6 handlers)
+[GIN-debug] GET    /api/clients/:username/meals --> gymtrack-backend/internal/api/handlers.(*MealHandler).GetClientMeals-fm (6 handlers)
+[GIN-debug] POST   /api/relationships/invite --> gymtrack-backend/internal/api/handlers.(*RelationshipHandler).GenerateInvitation-fm (6 handlers)
+[GIN-debug] GET    /api/relationships/my-clients --> gymtrack-backend/internal/api/handlers.(*RelationshipHandler).GetMyClients-fm (6 handlers)
+[GIN-debug] GET    /api/relationships/client/:username --> gymtrack-backend/internal/api/handlers.(*RelationshipHandler).GetClientDetails-fm (6 handlers)
+[GIN-debug] GET    /api/relationships/client/:username/stats --> gymtrack-backend/internal/api/handlers.(*RelationshipHandler).GetClientStats-fm (6 handlers)
+[GIN-debug] POST   /api/relationships/accept --> gymtrack-backend/internal/api/handlers.(*RelationshipHandler).AcceptInvitation-fm (6 handlers)
+[GIN-debug] GET    /api/relationships/my-trainer --> gymtrack-backend/internal/api/handlers.(*RelationshipHandler).GetMyTrainer-fm (6 handlers)
+[GIN-debug] DELETE /api/relationships/:id    --> gymtrack-backend/internal/api/handlers.(*RelationshipHandler).TerminateRelationship-fm (6 handlers)
+[GIN-debug] POST   /api/comments             --> gymtrack-backend/internal/api/handlers.(*CommentHandler).CreateComment-fm (6 handlers)
+[GIN-debug] GET    /api/comments             --> gymtrack-backend/internal/api/handlers.(*CommentHandler).GetComments-fm (6 handlers)
+[GIN-debug] PUT    /api/comments/:id         --> gymtrack-backend/internal/api/handlers.(*CommentHandler).UpdateComment-fm (6 handlers)
+[GIN-debug] DELETE /api/comments/:id         --> gymtrack-backend/internal/api/handlers.(*CommentHandler).DeleteComment-fm (6 handlers)
+[GIN-debug] GET    /api/muscle-groups        --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).GetAllMuscleGroups-fm (5 handlers)
+[GIN-debug] GET    /api/equipment            --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).GetAllEquipment-fm (5 handlers)
+[GIN-debug] GET    /api/exercises            --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).GetAllExercises-fm (5 handlers)
+[GIN-debug] GET    /api/exercises/:id        --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).GetExerciseByID-fm (5 handlers)
+[GIN-debug] GET    /api/exercises/muscle-group/:id --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).GetExercisesByMuscleGroup-fm (5 handlers)
+[GIN-debug] GET    /api/exercises/equipment/:id --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).GetExercisesByEquipment-fm (5 handlers)
+[GIN-debug] GET    /api/exercises/search     --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).SearchExercises-fm (5 handlers)
+[GIN-debug] POST   /api/exercises            --> gymtrack-backend/internal/api/handlers.(*ExerciseHandler).CreateExercise-fm (6 handlers)
+[GIN-debug] GET    /api/trainers             --> gymtrack-backend/internal/api/handlers.(*TrainerCatalogHandler).GetTrainers-fm (5 handlers)
+[GIN-debug] GET    /api/trainers/:id         --> gymtrack-backend/internal/api/handlers.(*TrainerCatalogHandler).GetTrainerByID-fm (5 handlers)
+[GIN-debug] GET    /api/trainers/:id/availability --> gymtrack-backend/internal/api/handlers.(*AvailabilityHandler).GetTrainerAvailability-fm (5 handlers)
+[GIN-debug] GET    /api/trainers/:id/reviews --> gymtrack-backend/internal/api/handlers.(*ReviewHandler).GetTrainerReviews-fm (5 handlers)
+[GIN-debug] PUT    /api/trainers/me/profile  --> gymtrack-backend/internal/api/handlers.(*TrainerCatalogHandler).UpdateMyProfile-fm (6 handlers)
+[GIN-debug] GET    /api/trainers/me/profile  --> gymtrack-backend/internal/api/handlers.(*TrainerCatalogHandler).GetMyProfile-fm (6 handlers)
+[GIN-debug] GET    /api/trainers/me/availability --> gymtrack-backend/internal/api/handlers.(*AvailabilityHandler).GetMyAvailability-fm (6 handlers)
+[GIN-debug] PUT    /api/trainers/me/availability --> gymtrack-backend/internal/api/handlers.(*AvailabilityHandler).SetMyAvailability-fm (6 handlers)
+[GIN-debug] DELETE /api/trainers/me/availability/:slotId --> gymtrack-backend/internal/api/handlers.(*AvailabilityHandler).DeleteSlot-fm (6 handlers)
+[GIN-debug] POST   /api/trainers/:id/reviews --> gymtrack-backend/internal/api/handlers.(*ReviewHandler).CreateReview-fm (6 handlers)
+[GIN-debug] PUT    /api/reviews/:id          --> gymtrack-backend/internal/api/handlers.(*ReviewHandler).UpdateReview-fm (6 handlers)
+[GIN-debug] DELETE /api/reviews/:id          --> gymtrack-backend/internal/api/handlers.(*ReviewHandler).DeleteReview-fm (6 handlers)
+[GIN-debug] POST   /api/coaching-requests    --> gymtrack-backend/internal/api/handlers.(*CoachingRequestHandler).CreateCoachingRequest-fm (6 handlers)
+[GIN-debug] GET    /api/coaching-requests/my --> gymtrack-backend/internal/api/handlers.(*CoachingRequestHandler).GetMyRequests-fm (6 handlers)
+[GIN-debug] GET    /api/coaching-requests/pending --> gymtrack-backend/internal/api/handlers.(*CoachingRequestHandler).GetPendingRequests-fm (6 handlers)
+[GIN-debug] PUT    /api/coaching-requests/:id/accept --> gymtrack-backend/internal/api/handlers.(*CoachingRequestHandler).AcceptCoachingRequest-fm (6 handlers)
+[GIN-debug] PUT    /api/coaching-requests/:id/reject --> gymtrack-backend/internal/api/handlers.(*CoachingRequestHandler).RejectCoachingRequest-fm (6 handlers)
+[GIN-debug] GET    /api/workout-plans/assigned --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).GetMyPlans-fm (6 handlers)
+[GIN-debug] POST   /api/workout-plans        --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).CreatePlan-fm (6 handlers)
+[GIN-debug] GET    /api/workout-plans        --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).GetPlans-fm (6 handlers)
+[GIN-debug] GET    /api/workout-plans/:id    --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).GetPlan-fm (6 handlers)
+[GIN-debug] PUT    /api/workout-plans/:id    --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).UpdatePlan-fm (6 handlers)
+[GIN-debug] DELETE /api/workout-plans/:id    --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).DeletePlan-fm (6 handlers)
+[GIN-debug] POST   /api/workout-plans/:id/assign --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).AssignPlan-fm (6 handlers)
+[GIN-debug] GET    /api/workout-plans/:id/assignments --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).GetAssignments-fm (6 handlers)
+[GIN-debug] POST   /api/workout-plans/:id/start --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).StartWorkoutFromPlan-fm (6 handlers)
+[GIN-debug] GET    /api/clients/:username/workout-plans --> gymtrack-backend/internal/api/handlers.(*WorkoutPlanHandler).GetClientPlans-fm (6 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://github.com/gin-gonic/gin/blob/master/docs/doc.md#dont-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2026/07/15 - 17:52:36 | 200 |      1.3712ms |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:52:53 | 404 |            0s |             ::1 | GET      "/api/trainer-catalog/my-profile"
+[GIN] 2026/07/15 - 17:52:55 | 200 |       523.3µs |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:52:56 | 200 |     14.3331ms |       127.0.0.1 | GET      "/api/users/me"
+[GIN] 2026/07/15 - 17:52:56 | 200 |       563.7µs |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:52:57 | 200 |       734.6µs |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:53:01 | 404 |            0s |             ::1 | GET      "/api/trainer-catalog/my-profile"
+[GIN] 2026/07/15 - 17:53:07 | 200 |     12.5413ms |       127.0.0.1 | GET      "/api/users/me"
+[GIN] 2026/07/15 - 17:53:16 | 200 |      1.0074ms |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:53:16 | 200 |     12.7568ms |             ::1 | GET      "/api/exercises"
+[GIN] 2026/07/15 - 17:53:16 | 200 |        3.75ms |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:53:17 | 200 |       572.4µs |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:53:18 | 404 |            0s |             ::1 | OPTIONS  "/api/users"
+[GIN] 2026/07/15 - 17:53:18 | 200 |         509µs |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:53:18 | 404 |            0s |       127.0.0.1 | GET      "/api/trainer-catalog/my-profile"
+[GIN] 2026/07/15 - 17:53:18 | 404 |            0s |       127.0.0.1 | GET      "/api/trainer-catalog/my-profile"
+[GIN] 2026/07/15 - 17:53:19 | 200 |       977.6µs |             ::1 | GET      "/metrics"
+[GIN] 2026/07/15 - 17:53:22 | 200 |      2.3436ms |       127.0.0.1 | GET      "/api/users/me"
+[GIN] 2026/07/15 - 17:53:34 | 404 |            0s |             ::1 | GET      "/nonexistent-route-12345"
+[GIN] 2026/07/15 - 17:53:34 | 200 |            0s |             ::1 | GET      "/metrics"

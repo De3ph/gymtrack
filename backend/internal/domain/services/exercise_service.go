@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 )
@@ -62,12 +64,13 @@ func (s *ExerciseServiceImpl) CreateExercise(ctx context.Context, name, category
 func (s *ExerciseServiceImpl) GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error) {
 	exercise, err := s.exerciseRepo.GetExerciseByID(ctx, exerciseID)
 	if err != nil {
+		// Preserve service-layer contract: missing exercise is not an error here,
+		// handlers translate (nil, nil) to HTTP 404.
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get exercise: %w", err)
 	}
-	if exercise == nil {
-		return nil, nil
-	}
-
 	return exercise, nil
 }
 

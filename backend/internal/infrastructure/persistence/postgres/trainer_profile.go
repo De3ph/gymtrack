@@ -99,21 +99,9 @@ func (r *PostgresTrainerProfileRepository) GetPublicTrainers(ctx context.Context
 func (r *PostgresTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error) {
 	query := trainerSelectBase + ` WHERE u.user_id = $1 AND u.role = 'trainer'`
 
-	var trainer models.TrainerWithProfile
-	var profileRaw []byte
-	var avgRating float64
-	var reviewCount int
-
-	err := r.pool.QueryRow(ctx, query, trainerID).Scan(
-		&trainer.UserID, &trainer.Username, &trainer.Email, &trainer.PasswordHash,
-		&trainer.Role, &profileRaw, &trainer.CreatedAt, &trainer.UpdatedAt,
-		&avgRating, &reviewCount,
-	)
+	trainer, profileRaw, err := r.scanTrainerPoolRow(ctx, query, trainerID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("failed to get trainer: %w", err)
+		return nil, err
 	}
 
 	if err := UnmarshalFromJSONB(profileRaw, &trainer.User.Profile); err != nil {
@@ -122,15 +110,50 @@ func (r *PostgresTrainerProfileRepository) GetTrainerByID(ctx context.Context, t
 
 	trainer.Type = "user"
 	trainer.Profile = mapUserProfileToTrainerProfile(trainer.User.Profile)
+
+	return trainer, nil
+}
+
+// scanTrainerPoolRow scans a single trainer row (with profile bytes) from a QueryRow.
+// Translates pgx.ErrNoRows to domainerrors.ErrNotFound to keep the not-found contract
+// consistent with other required getters (e.g. GetByID on coaching_request, workout).
+func (r *PostgresTrainerProfileRepository) scanTrainerPoolRow(ctx context.Context, query string, args ...interface{}) (*models.TrainerWithProfile, []byte, error) {
+	var trainer models.TrainerWithProfile
+	var profileRaw []byte
+	var avgRating float64
+	var reviewCount int
+
+	err := r.pool.QueryRow(ctx, query, args...).Scan(
+		&trainer.UserID, &trainer.Username, &trainer.Email, &trainer.PasswordHash,
+		&trainer.Role, &profileRaw, &trainer.CreatedAt, &trainer.UpdatedAt,
+		&avgRating, &reviewCount,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, domainerrors.ErrNotFound
+		}
+		return nil, nil, fmt.Errorf("failed to get trainer: %w", err)
+	}
 	trainer.AverageRating = avgRating
 	trainer.ReviewCount = reviewCount
-
-	return &trainer, nil
+	return &trainer, profileRaw, nil
 }
 
 func (r *PostgresTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID int, profile *models.TrainerProfile) error {
+	// Wrap the read-modify-write in a transaction with a row-level lock
+	// (SELECT ... FOR UPDATE) so concurrent updates can't clobber each other
+	// (lost-update race). The lock is held until COMMIT/ROLLBACK.
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck // safe to ignore: rollback after commit is a no-op
+
 	var profileRaw []byte
-	err := r.pool.QueryRow(ctx, `SELECT profile FROM users WHERE user_id = $1 AND role = 'trainer'`, trainerID).Scan(&profileRaw)
+	err = tx.QueryRow(ctx,
+		`SELECT profile FROM users WHERE user_id = $1 AND role = 'trainer' FOR UPDATE`,
+		trainerID,
+	).Scan(&profileRaw)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domainerrors.ErrNotFound
@@ -156,15 +179,22 @@ func (r *PostgresTrainerProfileRepository) UpdateTrainerProfile(ctx context.Cont
 		return fmt.Errorf("failed to marshal user profile: %w", err)
 	}
 
-	tag, err := r.pool.Exec(ctx, `UPDATE users SET profile = $1, updated_at = $2 WHERE user_id = $3`,
-		updatedJSON, time.Now(), trainerID)
+	tag, err := tx.Exec(ctx,
+		`UPDATE users SET profile = $1, updated_at = $2 WHERE user_id = $3`,
+		updatedJSON, time.Now(), trainerID,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to update trainer profile: %w", err)
 	}
 	if tag.RowsAffected() == 0 {
+		// The row is locked and was confirmed to exist above, so reaching here
+		// means a concurrent delete raced between the SELECT and UPDATE.
 		return domainerrors.ErrNotFound
 	}
 
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
 	return nil
 }
 
@@ -239,10 +269,4 @@ func (r *PostgresTrainerProfileRepository) scanTrainerRows(rows pgx.Rows) ([]mod
 }
 
 // Compile-time interface compliance check.
-var _ interface {
-	GetPublicTrainers(ctx context.Context, filters *repositories.TrainerFilters, limit, offset int) ([]models.TrainerWithProfile, error)
-	GetTrainerByID(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error)
-	UpdateTrainerProfile(ctx context.Context, trainerID int, profile *models.TrainerProfile) error
-	SearchTrainers(ctx context.Context, query string, filters *repositories.TrainerFilters, limit, offset int) ([]models.TrainerWithProfile, error)
-	CountTrainers(ctx context.Context, filters *repositories.TrainerFilters) (int, error)
-} = (*PostgresTrainerProfileRepository)(nil)
+var _ repositories.TrainerProfileRepository = (*PostgresTrainerProfileRepository)(nil)

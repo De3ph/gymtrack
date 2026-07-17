@@ -2,18 +2,11 @@ package repositories
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
-	"strconv"
-
-	"gymtrack-backend/internal/config"
-	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
-
-	"github.com/couchbase/gocb/v2"
 )
 
+// TrainerProfileRepository defines data access for trainer profiles.
 type TrainerProfileRepository interface {
 	GetPublicTrainers(ctx context.Context, filters *TrainerFilters, limit, offset int) ([]models.TrainerWithProfile, error)
 	GetTrainerByID(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error)
@@ -22,189 +15,10 @@ type TrainerProfileRepository interface {
 	CountTrainers(ctx context.Context, filters *TrainerFilters) (int, error)
 }
 
+// TrainerFilters narrows down trainer search results.
 type TrainerFilters struct {
 	Specialization         string
 	Location               string
 	MinRating              float64
 	AvailableForNewClients *bool
-}
-
-type CouchbaseTrainerProfileRepository struct {
-	cluster *gocb.Cluster
-	bucket  *gocb.Bucket
-}
-
-func NewCouchbaseTrainerProfileRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseTrainerProfileRepository {
-	return &CouchbaseTrainerProfileRepository{
-		cluster: cluster,
-		bucket:  bucket,
-	}
-}
-
-func (r *CouchbaseTrainerProfileRepository) buildQuery(filters *TrainerFilters) (string, []interface{}) {
-	whereClause := "u.type = 'user' AND u.`role` = 'trainer'"
-	params := []interface{}{}
-
-	if filters != nil {
-		if filters.Specialization != "" {
-			whereClause += " AND LOWER(u.profile.specializations) LIKE LOWER($1)"
-			params = append(params, "%"+filters.Specialization+"%")
-		}
-		if filters.Location != "" {
-			whereClause += " AND LOWER(u.profile.location) LIKE LOWER($1)"
-			params = append(params, "%"+filters.Location+"%")
-		}
-		if filters.MinRating > 0 {
-			whereClause += " AND u.profile.averageRating >= $1"
-			params = append(params, filters.MinRating)
-		}
-		if filters.AvailableForNewClients != nil {
-			whereClause += " AND u.profile.isAvailableForNewClients = $1"
-			params = append(params, *filters.AvailableForNewClients)
-		}
-	}
-
-	query := fmt.Sprintf("SELECT u.* FROM `%s`.`%s`.`%s` u WHERE %s",
-		r.bucket.Name(), config.ScopeDefault, config.CollectionUsers, whereClause)
-	return query, params
-}
-
-func (r *CouchbaseTrainerProfileRepository) GetPublicTrainers(ctx context.Context, filters *TrainerFilters, limit, offset int) ([]models.TrainerWithProfile, error) {
-	query, params := r.buildQuery(filters)
-	query += fmt.Sprintf(" ORDER BY u.profile.averageRating DESC NULLS LAST LIMIT %d OFFSET %d", limit, offset)
-
-	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
-		Context:              ctx,
-		PositionalParameters: params,
-		Timeout:              config.DefaultQueryTimeout,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query trainers: %w", err)
-	}
-	defer rows.Close()
-
-	var trainers []models.TrainerWithProfile
-	for rows.Next() {
-		var trainer models.TrainerWithProfile
-		if err := rows.Row(&trainer); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal trainer: %w", err)
-		}
-		trainers = append(trainers, trainer)
-	}
-
-	// Enrich trainers with profile data from UserProfile
-	for i := range trainers {
-		trainers[i].Profile = models.TrainerProfile{
-			Bio:                      trainers[i].User.Profile.Bio,
-			ProfilePhotoURL:          trainers[i].User.Profile.ProfilePhotoURL,
-			HourlyRate:               trainers[i].User.Profile.HourlyRate,
-			YearsOfExperience:        trainers[i].User.Profile.YearsOfExperience,
-			IsAvailableForNewClients: trainers[i].User.Profile.IsAvailableForNewClients,
-			Location:                 trainers[i].User.Profile.Location,
-			Languages:                trainers[i].User.Profile.Languages,
-		}
-	}
-
-	return trainers, nil
-}
-
-func (r *CouchbaseTrainerProfileRepository) GetTrainerByID(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error) {
-	var trainer models.TrainerWithProfile
-	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(strconv.Itoa(trainerID), &gocb.GetOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		if err == gocb.ErrDocumentNotFound {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("failed to get trainer: %w", err)
-	}
-
-	err = getResult.Content(&trainer.User)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal trainer content: %w", err)
-	}
-
-	trainer.Profile = models.TrainerProfile{
-		Bio:                      trainer.User.Profile.Bio,
-		ProfilePhotoURL:          trainer.User.Profile.ProfilePhotoURL,
-		HourlyRate:               trainer.User.Profile.HourlyRate,
-		YearsOfExperience:        trainer.User.Profile.YearsOfExperience,
-		IsAvailableForNewClients: trainer.User.Profile.IsAvailableForNewClients,
-		Location:                 trainer.User.Profile.Location,
-		Languages:                trainer.User.Profile.Languages,
-	}
-
-	return &trainer, nil
-}
-
-func (r *CouchbaseTrainerProfileRepository) UpdateTrainerProfile(ctx context.Context, trainerID int, profile *models.TrainerProfile) error {
-	var user models.User
-	getResult, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Get(strconv.Itoa(trainerID), &gocb.GetOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		if errors.Is(err, gocb.ErrDocumentNotFound) {
-			return domainerrors.ErrNotFound
-		}
-		return fmt.Errorf("failed to get trainer: %w", err)
-	}
-
-	err = getResult.Content(&user)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal user: %w", err)
-	}
-
-	// Update profile fields
-	user.Profile.Bio = profile.Bio
-	user.Profile.ProfilePhotoURL = profile.ProfilePhotoURL
-	user.Profile.HourlyRate = profile.HourlyRate
-	user.Profile.YearsOfExperience = profile.YearsOfExperience
-	user.Profile.Location = profile.Location
-	user.Profile.IsAvailableForNewClients = profile.IsAvailableForNewClients
-	user.Profile.Languages = profile.Languages
-
-	_, err = r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionUsers).Replace(strconv.Itoa(trainerID), user, &gocb.ReplaceOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		if errors.Is(err, gocb.ErrDocumentNotFound) {
-			return domainerrors.ErrNotFound
-		}
-		return fmt.Errorf("failed to update trainer profile: %w", err)
-	}
-
-	return nil
-}
-
-func (r *CouchbaseTrainerProfileRepository) SearchTrainers(ctx context.Context, query string, filters *TrainerFilters, limit, offset int) ([]models.TrainerWithProfile, error) {
-	return r.GetPublicTrainers(ctx, filters, limit, offset)
-}
-
-func (r *CouchbaseTrainerProfileRepository) CountTrainers(ctx context.Context, filters *TrainerFilters) (int, error) {
-	query, params := r.buildQuery(filters)
-	query = fmt.Sprintf("SELECT COUNT(*) as count FROM (%s) AS trainers", query)
-
-	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
-		Context:              ctx,
-		PositionalParameters: params,
-		Timeout:              config.DefaultQueryTimeout,
-	})
-	if err != nil {
-		return 0, fmt.Errorf("failed to count trainers: %w", err)
-	}
-	defer rows.Close()
-
-	var count int
-	for rows.Next() {
-		var row struct {
-			Count int `json:"count"`
-		}
-		if err := rows.Row(&row); err != nil {
-			return 0, fmt.Errorf("failed to unmarshal count: %w", err)
-		}
-		count = row.Count
-	}
-
-	return count, nil
 }

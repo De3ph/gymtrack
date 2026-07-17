@@ -10,12 +10,12 @@ import (
 )
 
 type ReviewService struct {
-	reviewRepo       repositories.ReviewRepository
+	reviewRepo       repositories.TrainerReviewRepository
 	relationshipRepo repositories.RelationshipRepository
 	clock            utils.Clock
 }
 
-func NewReviewService(reviewRepo repositories.ReviewRepository, relationshipRepo repositories.RelationshipRepository, clock utils.Clock) *ReviewService {
+func NewReviewService(reviewRepo repositories.TrainerReviewRepository, relationshipRepo repositories.RelationshipRepository, clock utils.Clock) *ReviewService {
 	if clock == nil {
 		clock = utils.RealClock{}
 	}

@@ -52,7 +52,7 @@ func TestPostgresExerciseRepository(t *testing.T) {
 
 	t.Run("GetExerciseByID_NotFound", func(t *testing.T) {
 		ex, err := repo.GetExerciseByID(ctx, 999999)
-		require.NoError(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 		assert.Nil(t, ex)
 	})
 

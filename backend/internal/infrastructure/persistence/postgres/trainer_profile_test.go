@@ -148,7 +148,7 @@ func TestPostgresTrainerProfileRepository(t *testing.T) {
 
 	t.Run("GetTrainerByID_NotFound", func(t *testing.T) {
 		trainer, err := repo.GetTrainerByID(ctx, 999999)
-		require.NoError(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 		assert.Nil(t, trainer)
 	})
 

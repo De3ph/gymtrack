@@ -85,7 +85,7 @@ func TestPostgresBodyMeasurementRepository(t *testing.T) {
 
 	t.Run("GetLatestByAthleteID_Empty", func(t *testing.T) {
 		fetched, err := repo.GetLatestByAthleteID(ctx, 999999)
-		require.NoError(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 		assert.Nil(t, fetched)
 	})
 

@@ -8,6 +8,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -236,11 +237,4 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 }
 
 // Compile-time check that PostgresUserRepository implements UserRepository.
-var _ interface {
-	CreateUser(ctx context.Context, user *models.User) error
-	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
-	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	GetUserByID(ctx context.Context, userID int) (*models.User, error)
-	GetAllUsers(ctx context.Context) ([]*models.User, error)
-	UpdateUser(ctx context.Context, user *models.User) error
-} = (*PostgresUserRepository)(nil)
+var _ repositories.UserRepository = (*PostgresUserRepository)(nil)

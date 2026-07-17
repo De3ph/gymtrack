@@ -8,6 +8,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -174,11 +175,4 @@ func (r *PostgresWorkoutRepository) Delete(ctx context.Context, workoutID int) e
 }
 
 // Compile-time interface compliance check.
-var _ interface {
-	Create(ctx context.Context, workout *models.Workout) error
-	GetByID(ctx context.Context, workoutID int) (*models.Workout, error)
-	GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.Workout, error)
-	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Workout, error)
-	Update(ctx context.Context, workout *models.Workout) error
-	Delete(ctx context.Context, workoutID int) error
-} = (*PostgresWorkoutRepository)(nil)
+var _ repositories.WorkoutRepository = (*PostgresWorkoutRepository)(nil)

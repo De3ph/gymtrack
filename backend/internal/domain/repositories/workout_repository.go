@@ -2,19 +2,12 @@ package repositories
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"time"
 
-	"strconv"
-
-	"gymtrack-backend/internal/config"
-	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
-
-	"github.com/couchbase/gocb/v2"
 )
 
+// WorkoutRepository defines data access for workouts.
 type WorkoutRepository interface {
 	Create(ctx context.Context, workout *models.Workout) error
 	GetByID(ctx context.Context, workoutID int) (*models.Workout, error)
@@ -22,136 +15,4 @@ type WorkoutRepository interface {
 	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Workout, error)
 	Update(ctx context.Context, workout *models.Workout) error
 	Delete(ctx context.Context, workoutID int) error
-}
-
-type CouchbaseWorkoutRepository struct {
-	cluster *gocb.Cluster
-	bucket  *gocb.Bucket
-}
-
-func NewWorkoutRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseWorkoutRepository {
-	return &CouchbaseWorkoutRepository{
-		cluster: cluster,
-		bucket:  bucket,
-	}
-}
-
-// Create inserts a new workout into the database
-func (r *CouchbaseWorkoutRepository) Create(ctx context.Context, workout *models.Workout) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Insert(strconv.Itoa(workout.WorkoutID), workout, &gocb.InsertOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create workout: %w", err)
-	}
-
-	return nil
-}
-
-// GetByID retrieves a workout by its ID
-func (r *CouchbaseWorkoutRepository) GetByID(ctx context.Context, workoutID int) (*models.Workout, error) {
-	result, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Get(strconv.Itoa(workoutID), &gocb.GetOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		if errors.Is(err, gocb.ErrDocumentNotFound) {
-			return nil, domainerrors.ErrNotFound
-		}
-		return nil, fmt.Errorf("failed to get workout: %w", err)
-	}
-
-	var workout models.Workout
-	if err := result.Content(&workout); err != nil {
-		return nil, fmt.Errorf("failed to decode workout: %w", err)
-	}
-
-	return &workout, nil
-}
-
-// GetByAthleteID retrieves workouts for a specific athlete with pagination
-func (r *CouchbaseWorkoutRepository) GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.Workout, error) {
-	query := fmt.Sprintf("SELECT w.* FROM `%s`.`%s`.`%s` w WHERE w.type = 'workout' AND w.athleteId = $1 ORDER BY w.date DESC LIMIT $2 OFFSET $3",
-		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkouts)
-
-	result, err := r.cluster.Query(query, &gocb.QueryOptions{
-		PositionalParameters: []interface{}{athleteID, limit, offset},
-		Context:              ctx,
-		Timeout:              config.DefaultQueryTimeout,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query workouts: %w", err)
-	}
-	defer result.Close()
-
-	var workouts []*models.Workout
-	for result.Next() {
-		var workout models.Workout
-		if err := result.Row(&workout); err != nil {
-			return nil, fmt.Errorf("failed to decode workout row: %w", err)
-		}
-		workouts = append(workouts, &workout)
-	}
-
-	if err := result.Err(); err != nil {
-		return nil, fmt.Errorf("query iteration error: %w", err)
-	}
-
-	return workouts, nil
-}
-
-// GetByAthleteDateRange retrieves workouts for a specific athlete within a date range
-func (r *CouchbaseWorkoutRepository) GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Workout, error) {
-	query := fmt.Sprintf("SELECT w.* FROM `%s`.`%s`.`%s` w WHERE w.type = 'workout' AND w.athleteId = $1 AND w.date >= $2 AND w.date <= $3 ORDER BY w.date DESC",
-		r.bucket.Name(), config.ScopeDefault, config.CollectionWorkouts)
-
-	result, err := r.cluster.Query(query, &gocb.QueryOptions{
-		PositionalParameters: []interface{}{athleteID, startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)},
-		Context:              ctx,
-		Timeout:              config.DefaultQueryTimeout,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query workouts by date range: %w", err)
-	}
-	defer result.Close()
-
-	var workouts []*models.Workout
-	for result.Next() {
-		var workout models.Workout
-		if err := result.Row(&workout); err != nil {
-			return nil, fmt.Errorf("failed to decode workout row: %w", err)
-		}
-		workouts = append(workouts, &workout)
-	}
-
-	if err := result.Err(); err != nil {
-		return nil, fmt.Errorf("query iteration error: %w", err)
-	}
-
-	return workouts, nil
-}
-
-// Update updates an existing workout
-func (r *CouchbaseWorkoutRepository) Update(ctx context.Context, workout *models.Workout) error {
-	workout.UpdatedAt = time.Now()
-
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Replace(strconv.Itoa(workout.WorkoutID), workout, &gocb.ReplaceOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to update workout: %w", err)
-	}
-
-	return nil
-}
-
-// Delete removes a workout from the database
-func (r *CouchbaseWorkoutRepository) Delete(ctx context.Context, workoutID int) error {
-	_, err := r.bucket.Scope(config.ScopeDefault).Collection(config.CollectionWorkouts).Remove(strconv.Itoa(workoutID), &gocb.RemoveOptions{
-		Context: ctx,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to delete workout: %w", err)
-	}
-
-	return nil
 }

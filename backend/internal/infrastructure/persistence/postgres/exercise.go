@@ -8,6 +8,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -64,11 +65,9 @@ func (r *PostgresExerciseRepository) scanExercise(row pgx.Row) (*models.Exercise
 }
 
 func (r *PostgresExerciseRepository) GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error) {
-	ex, err := r.scanExercise(r.pool.QueryRow(ctx, `SELECT `+exCols+` FROM exercises WHERE id = $1`, exerciseID))
-	if errors.Is(err, domainerrors.ErrNotFound) {
-		return nil, nil
-	}
-	return ex, err
+	// scanExercise translates pgx.ErrNoRows to domainerrors.ErrNotFound (see scanExercise).
+	// Callers must check for ErrNotFound to distinguish "not found" from success.
+	return r.scanExercise(r.pool.QueryRow(ctx, `SELECT `+exCols+` FROM exercises WHERE id = $1`, exerciseID))
 }
 
 func (r *PostgresExerciseRepository) scanExercises(rows pgx.Rows) ([]models.Exercise, error) {
@@ -147,11 +146,4 @@ func (r *PostgresExerciseRepository) SearchExercises(ctx context.Context, query 
 }
 
 // Compile-time interface compliance check.
-var _ interface {
-	CreateExercise(ctx context.Context, exercise *models.Exercise) error
-	GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error)
-	GetAllExercises(ctx context.Context) ([]models.Exercise, error)
-	GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error)
-	GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error)
-	SearchExercises(ctx context.Context, query string, muscleGroupID *int, equipmentID *int) ([]models.Exercise, error)
-} = (*PostgresExerciseRepository)(nil)
+var _ repositories.ExerciseRepository = (*PostgresExerciseRepository)(nil)

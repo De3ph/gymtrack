@@ -2,87 +2,12 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 
-	"gymtrack-backend/internal/config"
-	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
-
-	"github.com/couchbase/gocb/v2"
 )
 
+// EquipmentRepository defines data access for equipment definitions.
 type EquipmentRepository interface {
 	GetAllEquipment(ctx context.Context) ([]models.EquipmentDefinition, error)
 	GetEquipmentByID(ctx context.Context, id int) (*models.EquipmentDefinition, error)
-}
-
-type CouchbaseEquipmentRepository struct {
-	cluster *gocb.Cluster
-	bucket  *gocb.Bucket
-}
-
-func NewCouchbaseEquipmentRepository(cluster *gocb.Cluster, bucket *gocb.Bucket) *CouchbaseEquipmentRepository {
-	return &CouchbaseEquipmentRepository{
-		cluster: cluster,
-		bucket:  bucket,
-	}
-}
-
-func (r *CouchbaseEquipmentRepository) GetAllEquipment(ctx context.Context) ([]models.EquipmentDefinition, error) {
-	query := fmt.Sprintf("SELECT eq.* FROM `%s`.`%s`.`%s` eq WHERE eq.type = 'equipmentDefinition' ORDER BY eq.id",
-		r.bucket.Name(), config.ScopeDefault, config.CollectionEquipment)
-
-	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
-		Context: ctx,
-		Timeout: config.DefaultQueryTimeout,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query equipment: %w", err)
-	}
-	defer rows.Close()
-
-	var equipment []models.EquipmentDefinition
-	for rows.Next() {
-		var eq models.EquipmentDefinition
-		err := rows.Row(&eq)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal equipment: %w", err)
-		}
-		equipment = append(equipment, eq)
-	}
-
-	if rows.Err() != nil {
-		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
-	}
-
-	return equipment, nil
-}
-
-func (r *CouchbaseEquipmentRepository) GetEquipmentByID(ctx context.Context, id int) (*models.EquipmentDefinition, error) {
-	query := fmt.Sprintf("SELECT eq.* FROM `%s`.`%s`.`%s` eq WHERE eq.type = 'equipmentDefinition' AND eq.id = $1",
-		r.bucket.Name(), config.ScopeDefault, config.CollectionEquipment)
-
-	rows, err := r.cluster.Query(query, &gocb.QueryOptions{
-		Context:              ctx,
-		PositionalParameters: []interface{}{id},
-		Timeout:              config.DefaultQueryTimeout,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query equipment by ID: %w", err)
-	}
-	defer rows.Close()
-
-	var eq models.EquipmentDefinition
-	if rows.Next() {
-		err := rows.Row(&eq)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal equipment: %w", err)
-		}
-	} else if rows.Err() != nil {
-		return nil, fmt.Errorf("error during query iteration: %w", rows.Err())
-	} else {
-		return nil, domainerrors.ErrNotFound
-	}
-
-	return &eq, nil
 }

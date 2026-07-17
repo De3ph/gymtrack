@@ -8,6 +8,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -165,12 +166,4 @@ func (r *PostgresCommentRepository) Delete(ctx context.Context, commentID int) e
 }
 
 // Compile-time interface compliance check.
-var _ interface {
-	Create(ctx context.Context, comment *models.Comment) error
-	GetByID(ctx context.Context, commentID int) (*models.Comment, error)
-	GetByTarget(ctx context.Context, targetType models.TargetType, targetID int) ([]*models.Comment, error)
-	GetByAuthor(ctx context.Context, authorID int) ([]*models.Comment, error)
-	GetReplies(ctx context.Context, parentCommentID int) ([]*models.Comment, error)
-	Update(ctx context.Context, comment *models.Comment) error
-	Delete(ctx context.Context, commentID int) error
-} = (*PostgresCommentRepository)(nil)
+var _ repositories.CommentRepository = (*PostgresCommentRepository)(nil)

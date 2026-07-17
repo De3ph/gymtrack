@@ -10,7 +10,8 @@ import (
 	"gymtrack-backend/internal/config"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
-	"gymtrack-backend/internal/repository/postgres"
+	"gymtrack-backend/internal/infrastructure/persistence"
+	"gymtrack-backend/internal/infrastructure/persistence/postgres"
 	"gymtrack-backend/internal/utils"
 
 	"github.com/gin-contrib/cors"
@@ -35,51 +36,54 @@ var RepositoryModule = fx.Module("repositories",
 			return config.ProvidePostgresPool(&config.PostgresConfig{DSN: cfg.PostgresDSN})
 		},
 
-		// All 14 repositories swapped to PostgreSQL
-		func(pool *pgxpool.Pool) repositories.UserRepository {
-			return postgres.NewPostgresUserRepository(pool)
+		// Repository factory - creates all PostgreSQL repositories
+		func(pool *pgxpool.Pool) *persistence.RepositoryFactory {
+			return persistence.NewRepositoryFactory(pool)
 		},
-		func(pool *pgxpool.Pool) repositories.WorkoutRepository {
-			return postgres.NewPostgresWorkoutRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.UserRepository {
+			return factory.UserRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.MealRepository {
-			return postgres.NewPostgresMealRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.WorkoutRepository {
+			return factory.WorkoutRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.RelationshipRepository {
-			return postgres.NewPostgresRelationshipRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.MealRepository {
+			return factory.MealRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.CommentRepository {
-			return postgres.NewPostgresCommentRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.RelationshipRepository {
+			return factory.RelationshipRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.MuscleGroupRepository {
-			return postgres.NewPostgresMuscleGroupRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.CommentRepository {
+			return factory.CommentRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.EquipmentRepository {
-			return postgres.NewPostgresEquipmentRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.MuscleGroupRepository {
+			return factory.MuscleGroupRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.ExerciseRepository {
-			return postgres.NewPostgresExerciseRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.EquipmentRepository {
+			return factory.EquipmentRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.WorkoutPlanRepository {
-			return postgres.NewPostgresWorkoutPlanRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.ExerciseRepository {
+			return factory.ExerciseRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.WorkoutPlanAssignmentRepository {
-			return postgres.NewPostgresWorkoutPlanAssignmentRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.WorkoutPlanRepository {
+			return factory.WorkoutPlanRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.BodyMeasurementRepository {
-			return postgres.NewPostgresBodyMeasurementRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.WorkoutPlanAssignmentRepository {
+			return factory.WorkoutPlanAssignmentRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.TrainerProfileRepository {
-			return postgres.NewPostgresTrainerProfileRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.BodyMeasurementRepository {
+			return factory.BodyMeasurementRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.AvailabilityRepository {
-			return postgres.NewPostgresAvailabilityRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.TrainerProfileRepository {
+			return factory.TrainerProfileRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.ReviewRepository {
-			return postgres.NewPostgresTrainerReviewRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.AvailabilityRepository {
+			return factory.AvailabilityRepository()
 		},
-		func(pool *pgxpool.Pool) repositories.CoachingRequestRepository {
-			return postgres.NewPostgresCoachingRequestRepository(pool)
+		func(factory *persistence.RepositoryFactory) repositories.TrainerReviewRepository {
+			return factory.TrainerReviewRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.CoachingRequestRepository {
+			return factory.CoachingRequestRepository()
 		},
 
 		// Services

@@ -12,10 +12,10 @@ import (
 
 type TrainerCatalogService struct {
 	profileRepo repositories.TrainerProfileRepository
-	reviewRepo  repositories.ReviewRepository
+	reviewRepo  repositories.TrainerReviewRepository
 }
 
-func NewTrainerCatalogService(profileRepo repositories.TrainerProfileRepository, reviewRepo repositories.ReviewRepository) *TrainerCatalogService {
+func NewTrainerCatalogService(profileRepo repositories.TrainerProfileRepository, reviewRepo repositories.TrainerReviewRepository) *TrainerCatalogService {
 	return &TrainerCatalogService{
 		profileRepo: profileRepo,
 		reviewRepo:  reviewRepo,
@@ -82,6 +82,11 @@ func (s *TrainerCatalogService) SearchTrainers(ctx context.Context, filters *Tra
 func (s *TrainerCatalogService) GetTrainerProfile(ctx context.Context, trainerID int) (*models.TrainerWithProfile, error) {
 	trainer, err := s.profileRepo.GetTrainerByID(ctx, trainerID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			// Preserve the service-layer contract: missing trainer is not an error here,
+			// handlers translate (nil, nil) to HTTP 404.
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get trainer: %w", err)
 	}
 	if trainer == nil {

@@ -274,6 +274,11 @@ func (s *BodyMeasurementService) GetLatestBodyMeasurement(ctx context.Context, i
 
 	measurement, err := s.measurementRepo.GetLatestByAthleteID(ctx, input.AthleteID)
 	if err != nil {
+		// Preserve service-layer contract: no recent measurement is not an error here,
+		// the handler translates (nil, nil) to HTTP 204.
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to retrieve latest body measurement: %w", err)
 	}
 	return measurement, nil

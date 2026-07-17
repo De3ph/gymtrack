@@ -8,6 +8,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -166,13 +167,4 @@ func (r *PostgresRelationshipRepository) Delete(ctx context.Context, relationshi
 }
 
 // Compile-time interface compliance check.
-var _ interface {
-	Create(ctx context.Context, relationship *models.Relationship) error
-	GetByID(ctx context.Context, relationshipID int) (*models.Relationship, error)
-	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error)
-	GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error)
-	GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error)
-	HasActiveRelationship(ctx context.Context, trainerID int, athleteID int) (bool, error)
-	Update(ctx context.Context, relationship *models.Relationship) error
-	Delete(ctx context.Context, relationshipID int) error
-} = (*PostgresRelationshipRepository)(nil)
+var _ repositories.RelationshipRepository = (*PostgresRelationshipRepository)(nil)
