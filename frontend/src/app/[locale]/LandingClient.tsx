@@ -5,7 +5,6 @@ import { LandingConsole } from "@/components/features/landing/LandingConsole";
 import { LandingFeatureGrid } from "@/components/features/landing/LandingFeatureGrid";
 import { LandingHeader } from "@/components/features/landing/LandingHeader";
 import { LandingHero } from "@/components/features/landing/LandingHero";
-import { LandingMetrics } from "@/components/features/landing/LandingMetrics";
 import { LandingProof } from "@/components/features/landing/LandingProof";
 import { LandingRolePaths } from "@/components/features/landing/LandingRolePaths";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
@@ -59,7 +58,7 @@ export function LandingClient() {
             </div>
           </div>
 
-          {/* Mobile: hero image below text + CTA, above metrics */}
+          {/* Mobile: hero image below text + CTA, above sections */}
           <div className="mt-8 lg:hidden">
             <ImageWithFallback
               src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80"
@@ -69,17 +68,20 @@ export function LandingClient() {
             />
           </div>
 
-          {/* LandingMetrics full-width below hero section */}
-          <div className="mt-10">
-            <LandingMetrics />
+          <div className="mt-24">
+            <LandingFeatureGrid />
           </div>
 
-          <LandingFeatureGrid />
-          <LandingRolePaths />
-          <LandingProof />
+          <div className="mt-24">
+            <LandingRolePaths />
+          </div>
+
+          <div className="mt-24">
+            <LandingProof />
+          </div>
 
           {/* LandingConsole moved to bottom of page */}
-          <div className="mt-4">
+          <div className="mt-24">
             <LandingConsole />
           </div>
         </motion.main>
