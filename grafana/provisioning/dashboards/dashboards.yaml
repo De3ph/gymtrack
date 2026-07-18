@@ -1,0 +1,10 @@
+# Dashboard provider — tells Grafana to scan the dashboards/ directory for JSON
+# and auto-import them. Without this file, dashboard JSON is ignored entirely.
+apiVersion: 1
+
+providers:
+  - name: GymTrack
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false
