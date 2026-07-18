@@ -44,19 +44,19 @@ export function LandingClient() {
           initial="hidden"
           animate="visible"
         >
-          <div className="grid items-center gap-12 lg:grid-cols-[1fr_0.8fr_1fr] lg:gap-16">
+          {/* Hero section: text + image side by side */}
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
             <LandingHero />
-            {/* Hero image column */}
+            {/* Hero image column — larger grid column */}
             <div className="hidden lg:block">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80"
+                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=80"
                 alt="Modern gym training facility with equipment"
                 aspectRatio="4/3"
                 className="rounded-2xl shadow-lg shadow-black/10"
                 priority
               />
             </div>
-            <LandingConsole />
           </div>
 
           {/* Mobile: hero image below text + CTA, above metrics */}
@@ -77,6 +77,11 @@ export function LandingClient() {
           <LandingFeatureGrid />
           <LandingRolePaths />
           <LandingProof />
+
+          {/* LandingConsole moved to bottom of page */}
+          <div className="mt-4">
+            <LandingConsole />
+          </div>
         </motion.main>
       </div>
     </section>
