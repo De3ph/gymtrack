@@ -72,16 +72,18 @@ export function LandingClient() {
             <LandingFeatureGrid />
           </div>
 
-          <div className="mt-24">
+          {/* Role paths */}
+          <div className="mt-20">
             <LandingRolePaths />
           </div>
 
-          <div className="mt-24">
+          {/* Social proof */}
+          <div className="mt-20">
             <LandingProof />
           </div>
 
-          {/* LandingConsole moved to bottom of page */}
-          <div className="mt-24">
+          {/* LandingConsole at bottom */}
+          <div className="mt-16">
             <LandingConsole />
           </div>
         </motion.main>

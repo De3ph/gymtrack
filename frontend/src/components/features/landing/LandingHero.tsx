@@ -16,7 +16,7 @@ export function LandingHero() {
           {t("eyebrow_badge")}
         </div>
 
-        <h1 className="max-w-5xl text-5xl font-black tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+        <h1 className="max-w-5xl text-5xl font-black leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
           {t("hero.title")}
         </h1>
 
@@ -27,14 +27,14 @@ export function LandingHero() {
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Link
             href={ROUTES.REGISTER}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-[14px] text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {t("sign_up")}
             <ArrowRight className="size-4" />
           </Link>
           <Link
             href={ROUTES.LOGIN}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-6 py-3 text-base font-bold text-foreground shadow-sm transition hover:bg-muted"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-6 py-[14px] text-base font-bold text-foreground shadow-sm transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {t("login")}
           </Link>

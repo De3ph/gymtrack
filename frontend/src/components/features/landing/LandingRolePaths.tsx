@@ -61,7 +61,7 @@ export function LandingRolePaths() {
           </ul>
           <Link
             href={ROUTES.REGISTER}
-            className="mt-8 inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm font-black transition hover:border-primary hover:text-primary"
+            className="mt-8 inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm font-black transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {t("role_paths."+role+".cta")}
             <ArrowRight className="size-4" />
