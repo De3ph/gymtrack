@@ -32,7 +32,7 @@ export function LandingConsole() {
   return (
     <LazyMotion features={domAnimation}>
       <motion.div variants={landingReveal} className="relative">
-      <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-primary/20 via-transparent to-accent/20 blur-2xl" />
+      <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-linear-to-br from-primary/20 via-transparent to-accent/20 blur-2xl" />
       <div className="rounded-[2rem] border border-border bg-card/80 p-4 shadow-2xl shadow-foreground/10 backdrop-blur sm:p-5">
         <div className="grid gap-3">
           <div className="rounded-3xl bg-foreground p-5 text-primary-foreground dark:bg-black dark:text-white sm:p-6">

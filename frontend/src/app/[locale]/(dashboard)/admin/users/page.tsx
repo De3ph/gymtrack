@@ -4,6 +4,7 @@ import type { AdminUserListResponse } from "@/lib/api/adminApi";
 import { UsersTableSkeleton } from "./_components/UsersTableSkeleton";
 import { UsersTableClientWrapper } from "./_components/UsersTableClientWrapper";
 import { DataError } from "@/components/features/DataError";
+import { getTranslations } from "next-intl/server";
 
 /**
  * RSC shell: server-side role gate + initial data fetch +
@@ -20,6 +21,7 @@ export default async function AdminUsersPage() {
 }
 
 async function UsersTableWithData() {
+  const t = await getTranslations("common");
   let initialData: AdminUserListResponse;
   try {
     // Server-side initial data — handed to client via props as React Query seed
@@ -27,9 +29,9 @@ async function UsersTableWithData() {
   } catch (err) {
     return (
       <DataError
-        title="Failed to load users"
+        title={t("errors.failed_load_users")}
         message={
-          err instanceof Error ? err.message : "An unexpected error occurred"
+          err instanceof Error ? err.message : t("errors.unexpected_error")
         }
       />
     );

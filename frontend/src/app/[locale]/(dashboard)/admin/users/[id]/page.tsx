@@ -4,6 +4,7 @@ import { getAdminUserDetail, verifyAdmin } from "@/lib/dal";
 import { UserDetailClient } from "./_components/UserDetailClient";
 import { UserDetailSkeleton } from "./_components/UserDetailSkeleton";
 import { DataError } from "@/components/features/DataError";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -25,6 +26,7 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
 }
 
 async function UserDetailFetcher({ userId }: { userId: string }) {
+  const t = await getTranslations("common");
   let detail;
   try {
     detail = await getAdminUserDetail(userId);
@@ -36,9 +38,9 @@ async function UserDetailFetcher({ userId }: { userId: string }) {
     // Everything else → show a user-friendly error
     return (
       <DataError
-        title="Failed to load user details"
+        title={t("errors.failed_load_user_details")}
         message={
-          err instanceof Error ? err.message : "An unexpected error occurred"
+          err instanceof Error ? err.message : t("errors.unexpected_error")
         }
       />
     );

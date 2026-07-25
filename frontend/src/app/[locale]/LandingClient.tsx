@@ -13,11 +13,22 @@ import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Zap } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect } from "react";
 
 export function LandingClient() {
   const searchParams = useSearchParams();
   const t = useTranslations("dashboard");
   const showAuthError = searchParams.get("error") === "auth_required";
+
+  // Strip the error param from the URL after the alert is shown,
+  // so bookmarks / refresh don't carry stale auth_required state.
+  useEffect(() => {
+    if (showAuthError && typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("error");
+      window.history.replaceState(null, "", url.toString());
+    }
+  }, [showAuthError]);
 
   return (
     <section className="relative isolate min-h-screen overflow-hidden bg-background text-foreground">

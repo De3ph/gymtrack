@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
-import { motion, LazyMotion, domAnimation } from "motion/react";
+import { motion } from "motion/react";
 import { landingCard, landingStagger } from "./landing-variants";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 

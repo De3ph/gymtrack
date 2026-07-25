@@ -3,6 +3,7 @@ import { WorkoutPlan } from "@/types";
 import { Workout, WorkoutExercise } from "@/types";
 import { WorkoutsClient } from "./WorkoutsClient";
 import { DataError } from "@/components/features/DataError";
+import { getTranslations } from "next-intl/server";
 
 function buildWorkoutFromPlan(plan: WorkoutPlan): Workout {
   const exercises: WorkoutExercise[] = plan.exercises.map((pe) => ({
@@ -35,6 +36,7 @@ export default async function WorkoutsPage({
 }: {
   searchParams: Promise<{ planId?: string }>;
 }) {
+  const t = await getTranslations("common");
   const { planId } = await searchParams;
   let initialWorkout: Workout | undefined;
   if (planId) {
@@ -46,11 +48,11 @@ export default async function WorkoutsPage({
     } catch (err) {
       return (
         <DataError
-          title="Failed to load workout plan"
+          title={t("errors.failed_load_workout_plan")}
           message={
             err instanceof Error
               ? err.message
-              : "An unexpected error occurred"
+              : t("errors.unexpected_error")
           }
         />
       );

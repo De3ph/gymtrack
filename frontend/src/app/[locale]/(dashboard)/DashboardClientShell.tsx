@@ -1,31 +1,29 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useAuthStore } from "@/stores/authStore";
+import { useLogout } from "@/lib/hooks/useLogout";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
 import { Button } from "@/components/ui/button";
+import { useCountdown } from "@/lib/hooks/useCountdown";
 
 export function DashboardClientShell({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout, initializeAuth, isInitialized, isLoading, isAuthenticated } =
+  const { user, initializeAuth, isInitialized, isLoading, isAuthenticated } =
     useAuthStore();
-  const [showAuthGate, setShowAuthGate] = useState(false);
-  const [countdown, setCountdown] = useState(2);
+  const { logout } = useLogout();
 
+  const showAuthGate = isInitialized && !isLoading && !isAuthenticated;
+
+  // One-time initialization on mount (initializeAuth is a no-op if already done)
   useEffect(() => {
     if (!isInitialized) {
       initializeAuth();
     }
   }, [initializeAuth, isInitialized]);
-
-  useEffect(() => {
-    if (isInitialized && !isLoading && !isAuthenticated) {
-      setShowAuthGate(true);
-    }
-  }, [isInitialized, isLoading, isAuthenticated]);
 
   // Build locale-aware login URL from the current path
   const loginUrl =
@@ -33,20 +31,10 @@ export function DashboardClientShell({
       ? `/${window.location.pathname.split('/')[1]}/login`
       : '/login';
 
-  useEffect(() => {
-    if (!showAuthGate) return;
+  // Countdown timer — resets to 3 when the auth gate appears, ticks to 0
+  const countdown = useCountdown({ active: showAuthGate, start: 3 });
 
-    setCountdown(2);
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [showAuthGate]);
-
-  // Navigate when countdown reaches 0 — separate from the countdown state updater
+  // Navigate when countdown reaches 0
   const hasRedirected = useRef(false);
   useEffect(() => {
     if (!showAuthGate || countdown > 0 || hasRedirected.current) return;
@@ -58,11 +46,6 @@ export function DashboardClientShell({
     hasRedirected.current = true;
     window.location.href = loginUrl;
   }, [loginUrl]);
-
-  const handleLogout = useCallback(() => {
-    logout();
-    window.location.href = loginUrl;
-  }, [logout, loginUrl]);
 
   if (isLoading) {
     return (
@@ -99,7 +82,7 @@ export function DashboardClientShell({
       <DashboardNav
         userRole={user?.role}
         userName={user?.profile?.name}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {children}

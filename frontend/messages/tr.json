@@ -131,7 +131,14 @@
       "invalid": "Geçersiz giriş.",
       "unauthorized": "Bu işlemi yapmaya yetkiniz yok.",
       "not_found": "İstenen kaynak bulunamadı.",
-      "server_error": "Sunucu hatası. Lütfen daha sonra tekrar deneyin."
+      "server_error": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
+      "failed_load_dashboard_stats": "Panel istatistikleri yüklenemedi",
+      "failed_load_users": "Kullanıcılar yüklenemedi",
+      "failed_load_user_details": "Kullanıcı detayları yüklenemedi",
+      "failed_load_workout_plan": "Antrenman planı yüklenemedi",
+      "failed_load_body_measurements": "Vücut ölçümleri yüklenemedi",
+      "failed_load_trainer_profile": "Antrenör profili yüklenemedi",
+      "unexpected_error": "Beklenmeyen bir hata oluştu"
     },
     "loading": "Yükleniyor...",
     "search": {

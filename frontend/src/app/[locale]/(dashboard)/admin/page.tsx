@@ -4,6 +4,7 @@ import type { AdminDashboardStats } from "@/lib/api/adminApi";
 import { AdminDashboardClient } from "./_components/AdminDashboardClient";
 import { AdminDashboardSkeleton } from "./_components/AdminDashboardSkeleton";
 import { DataError } from "@/components/features/DataError";
+import { getTranslations } from "next-intl/server";
 
 /**
  * RSC shell: server-side role gate + cached data fetch +
@@ -21,6 +22,7 @@ export default async function AdminDashboardPage() {
 }
 
 async function AdminStatsFetcher() {
+  const t = await getTranslations("common");
   let stats: AdminDashboardStats;
   try {
     // unstable_cache: 60s LRU across requests, tagged for invalidation
@@ -28,9 +30,9 @@ async function AdminStatsFetcher() {
   } catch (err) {
     return (
       <DataError
-        title="Failed to load dashboard stats"
+        title={t("errors.failed_load_dashboard_stats")}
         message={
-          err instanceof Error ? err.message : "An unexpected error occurred"
+          err instanceof Error ? err.message : t("errors.unexpected_error")
         }
       />
     );

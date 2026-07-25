@@ -119,7 +119,7 @@ describe('AuthStore', () => {
     })
 
     const { logout } = useAuthStore.getState()
-    logout()
+    await logout()
 
     // In-memory tokens cleared
     expect(tokenService.getAccessToken()).toBeNull()
@@ -128,7 +128,8 @@ describe('AuthStore', () => {
     expect(state.user).toBeNull()
     expect(state.token).toBeNull()
     expect(state.isAuthenticated).toBe(false)
-    expect(state.isLoading).toBe(true)
+    expect(state.isLoading).toBe(false)
+    expect(state.isInitialized).toBe(true)
   })
 
   it('should initialize auth from session cookie', async () => {

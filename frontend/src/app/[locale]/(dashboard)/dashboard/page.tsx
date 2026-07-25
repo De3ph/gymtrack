@@ -3,20 +3,22 @@
 import { AthleteDashboardContent } from "@/components/features/dashboard/AthleteDashboardContent";
 import { TrainerDashboardContent } from "@/components/features/dashboard/TrainerDashboardContent";
 import { Spinner } from "@/components/ui/spinner";
-import { ROUTES } from "@/lib/routes";
 import { useAuthStore } from "@/stores/authStore";
+import { useLogout } from "@/lib/hooks/useLogout";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function RoleDashboardPage() {
-  const router = useRouter();
   const { user, isLoading } = useAuthStore();
+  const { logout } = useLogout();
+
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace(`${ROUTES.HOME}?error=auth_required`);
+      logout();
     }
-  }, [isLoading, router, user]);
+  }, [isLoading, user, logout]);
 
   // Redirect admin users to their dashboard
   useEffect(() => {

@@ -28,9 +28,11 @@ function isAdminRoute(pathname: string): boolean {
 }
 
 
-// In-memory decrypt cache to avoid re-decrypt on every navigation (5 s TTL)
+// In-memory decrypt cache to avoid re-decrypt on every navigation.
+// TTL is kept intentionally short (500 ms) to avoid serving stale auth
+// decisions after logout — the server gate (getSession) is the source of truth.
 const decryptCache = new Map<string, { payload: any; exp: number }>();
-const DECRYPT_TTL_MS = 5_000;
+const DECRYPT_TTL_MS = 500;
 
 async function cachedDecrypt(cookie: string): Promise<any> {
   const hit = decryptCache.get(cookie);

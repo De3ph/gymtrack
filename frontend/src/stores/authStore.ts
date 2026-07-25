@@ -16,7 +16,7 @@ interface AuthState {
   logout: () => Promise<void>
   setUser: (user: User) => void
   initializeAuth: () => Promise<void>
-  handleAuthError: (error: unknown) => void
+  handleAuthError: (error: unknown) => Promise<void>
   refreshAccessToken: () => Promise<boolean>
 }
 
@@ -60,21 +60,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: () => {
-    // 1. Clear in-memory tokens and state — keep isLoading: true to prevent
-    //    the dashboard auth guard from redirecting before navigation completes.
+  logout: async () => {
+    // 1. Invalidate server-side FIRST, while the access token is still in memory
+    //    (api-client reads tokenService for the Authorization header).
+    try {
+      await authApi.logout()
+    } catch { /* best-effort */ }
+
+    // 2. Clear in-memory tokens
     tokenService.remove()
+
+    // 3. Delete the HttpOnly session cookie — AWAIT so the browser actually
+    //    deletes it before the caller navigates away.
+    try {
+      await fetch(SESSION_API, { method: 'DELETE', keepalive: true })
+    } catch { /* best-effort */ }
+
+    // 4. Reset client state — keep isInitialized: true so the auth gate can
+    //    render immediately instead of re-running initializeAuth().
     set({
       user: null,
       token: null,
       isAuthenticated: false,
-      isLoading: true,
-      isInitialized: false,
+      isLoading: false,
+      isInitialized: true,
     })
-
-    // 2. Fire-and-forget cleanup (don't await — let them finish in the background)
-    fetch(SESSION_API, { method: 'DELETE' }).catch(() => {})
-    authApi.logout().catch(() => {})
   },
 
   setUser: (user: User) => {
@@ -172,7 +182,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  handleAuthError: (error: unknown) => {
+  handleAuthError: async (error: unknown) => {
     console.error('Auth error:', error)
 
     if (error instanceof Error) {
@@ -194,8 +204,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isInitialized: true,
         })
 
-        // Clear the session cookie
-        fetch(SESSION_API, { method: 'DELETE' }).catch(() => {})
+        // Clear the session cookie — await so it completes before navigating
+        try {
+          await fetch(SESSION_API, { method: 'DELETE', keepalive: true })
+        } catch { /* best-effort */ }
 
         if (typeof window !== 'undefined') {
           if (window.__TANSTACK_QUERY_CLIENT__) {

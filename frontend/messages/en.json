@@ -129,7 +129,14 @@
       "invalid": "Invalid input.",
       "unauthorized": "You are not authorized to perform this action.",
       "not_found": "The requested resource was not found.",
-      "server_error": "Server error. Please try again later."
+      "server_error": "Server error. Please try again later.",
+      "failed_load_dashboard_stats": "Failed to load dashboard stats",
+      "failed_load_users": "Failed to load users",
+      "failed_load_user_details": "Failed to load user details",
+      "failed_load_workout_plan": "Failed to load workout plan",
+      "failed_load_body_measurements": "Failed to load body measurements",
+      "failed_load_trainer_profile": "Failed to load trainer profile",
+      "unexpected_error": "An unexpected error occurred"
     },
     "loading": "Loading...",
     "search": {

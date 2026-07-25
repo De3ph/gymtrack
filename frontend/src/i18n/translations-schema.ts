@@ -56,6 +56,13 @@ const translationSchema = z.object({
       unauthorized: z.string(),
       not_found: z.string(),
       server_error: z.string(),
+      failed_load_dashboard_stats: z.string(),
+      failed_load_users: z.string(),
+      failed_load_user_details: z.string(),
+      failed_load_workout_plan: z.string(),
+      failed_load_body_measurements: z.string(),
+      failed_load_trainer_profile: z.string(),
+      unexpected_error: z.string(),
     }),
     loading: z.string(),
     search: z.object({
