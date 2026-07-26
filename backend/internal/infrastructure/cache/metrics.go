@@ -65,11 +65,6 @@ func (m *CacheMetrics) RecordMiss() {
 	m.Misses.Inc()
 }
 
-// RecordEviction increments the eviction counter.
-func (m *CacheMetrics) RecordEviction() {
-	m.Evictions.Inc()
-}
-
 // SetSize sets the size gauge to n.
 func (m *CacheMetrics) SetSize(n int) {
 	m.Size.Set(float64(n))

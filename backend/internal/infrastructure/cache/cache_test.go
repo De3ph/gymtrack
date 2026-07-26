@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -117,7 +118,7 @@ func TestCache_Concurrent(t *testing.T) {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			key := "key" + string(rune('0'+id))
+			key := fmt.Sprintf("key%d", id)
 			c.Set(key, simpleModel{ID: id})
 			c.Get(key)
 			c.Set(key, simpleModel{ID: id + 100})

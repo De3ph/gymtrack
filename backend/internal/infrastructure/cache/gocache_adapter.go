@@ -63,12 +63,10 @@ func (c *GoCacheAdapter[T]) Set(key string, value T) {
 	c.inner.SetDefault(key, deepCopy(value))
 }
 
-// SetWithTTL stores a value with a specific TTL.
 func (c *GoCacheAdapter[T]) SetWithTTL(key string, value T, ttl time.Duration) {
 	c.inner.Set(key, deepCopy(value), ttl)
 }
 
-// Invalidate removes a single key from the cache.
 func (c *GoCacheAdapter[T]) Invalidate(key string) {
 	c.inner.Delete(key)
 }
