@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	logger "gymtrack-backend/internal/infrastructure/log"
+
+	"go.uber.org/zap"
 	"os"
 
 	"gymtrack-backend/internal/infrastructure/persistence/postgres"
@@ -257,6 +259,9 @@ CREATE INDEX IF NOT EXISTS idx_wpa_trainer ON workout_plan_assignments(trainer_i
 `
 
 func main() {
+	logger.InitConsole()
+	defer logger.Sync()
+
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
 		dsn = "postgres://postgres:123456@localhost:5432/gymtrack?sslmode=disable"
@@ -266,29 +271,29 @@ func main() {
 
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
-		log.Fatalf("connect: %v", err)
+		zap.L().Fatal("Failed to connect", zap.Error(err))
 	}
 	defer pool.Close()
 
 	// Reset schema for a clean slate
-	log.Println("Dropping public schema...")
+	zap.L().Info("Dropping public schema...")
 	if _, err := pool.Exec(ctx, `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`); err != nil {
-		log.Fatalf("drop schema: %v", err)
+		zap.L().Fatal("Failed to drop schema", zap.Error(err))
 	}
 
 	// Apply migration DDL
-	log.Println("Applying migration DDL...")
+	zap.L().Info("Applying migration DDL...")
 	if _, err := pool.Exec(ctx, migrationSQL); err != nil {
-		log.Fatalf("apply migration: %v", err)
+		zap.L().Fatal("Failed to apply migration", zap.Error(err))
 	}
-	log.Println("Migration applied successfully")
+	zap.L().Info("Migration applied successfully")
 
 	// Seed lookup tables
-	log.Println("Seeding lookup tables...")
+	zap.L().Info("Seeding lookup tables...")
 	if err := postgres.SeedLookupTables(ctx, pool); err != nil {
-		log.Fatalf("seed lookup tables: %v", err)
+		zap.L().Fatal("Failed to seed lookup tables", zap.Error(err))
 	}
-	log.Println("Lookup tables seeded")
+	zap.L().Info("Lookup tables seeded")
 
 	fmt.Println("\n✓ Schema created and seeded successfully")
 	fmt.Println("  Database: gymtrack")

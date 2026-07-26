@@ -1,11 +1,12 @@
 package main
 
 import (
-	"log"
-
 	"gymtrack-backend/internal/app"
+	logger "gymtrack-backend/internal/infrastructure/log"
 
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
+	"go.uber.org/zap"
 )
 
 // @title GymTrack API
@@ -16,9 +17,13 @@ import (
 // @in header
 // @name Authorization
 func main() {
+	logger.Init()
+	defer logger.Sync()
+
 	fx.New(
 		app.RepositoryModule,
+		fx.WithLogger(func() fxevent.Logger { return logger.NewZapLogger() }),
 	).Run()
 
-	log.Println("Cleaning up...")
+	zap.L().Info("Cleaning up...")
 }

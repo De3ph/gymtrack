@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 
@@ -219,13 +219,13 @@ func StartServer(lc fx.Lifecycle, router *gin.Engine) {
 			srv = &http.Server{Addr: ":8080", Handler: router}
 			go func() {
 				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					log.Printf("Server error: %v", err)
+					zap.L().Error("Server error", zap.Error(err))
 				}
 			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			log.Println("Shutting down server...")
+			zap.L().Info("Shutting down server...")
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 			return srv.Shutdown(shutdownCtx)
