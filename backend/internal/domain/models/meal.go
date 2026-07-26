@@ -28,8 +28,8 @@ type FoodItem struct {
 
 type Meal struct {
 	Type      string     `json:"type"` // Always "meal"
-	MealID    int        `json:"mealId"`
-	AthleteID int        `json:"athleteId" validate:"required"`
+	MealID    int        `json:"mealId" example:"1"`
+	AthleteID int        `json:"athleteId" validate:"required" example:"1"`
 	Date      time.Time  `json:"date" validate:"required"`
 	MealType  MealType   `json:"mealType" validate:"required,oneof=breakfast lunch dinner snack"`
 	Items     []FoodItem `json:"items" validate:"required,min=1,dive"`

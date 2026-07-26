@@ -14,9 +14,9 @@ const (
 
 type Relationship struct {
 	Type           string             `json:"type"` // Always "relationship"
-	RelationshipID int                `json:"relationshipId"`
-	TrainerID      int                `json:"trainerId" validate:"required"`
-	AthleteID      int                `json:"athleteId" validate:"required"`
+	RelationshipID int                `json:"relationshipId" example:"1"`
+	TrainerID      int                `json:"trainerId" validate:"required" example:"1"`
+	AthleteID      int                `json:"athleteId" validate:"required" example:"1"`
 	Status         RelationshipStatus `json:"status" validate:"required,oneof=pending active terminated"`
 	CreatedAt      time.Time          `json:"createdAt"`
 	UpdatedAt      time.Time          `json:"updatedAt"`

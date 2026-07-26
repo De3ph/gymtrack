@@ -14,8 +14,8 @@ type BodyMeasurementPart struct {
 // parts are relevant to their goals (chest, waist, hips, biceps, etc.).
 type BodyMeasurement struct {
 	Type          string                         `json:"type"` // Always "body_measurement"
-	MeasurementID int                            `json:"measurementId"`
-	AthleteID     int                            `json:"athleteId" validate:"required"`
+	MeasurementID int                            `json:"measurementId" example:"1"`
+	AthleteID     int                            `json:"athleteId" validate:"required" example:"1"`
 	Date          time.Time                      `json:"date" validate:"required"`
 	Weight        float64                        `json:"weight" validate:"gte=0"`
 	WeightUnit    WeightUnit                     `json:"weightUnit" validate:"required,oneof=kg lbs"`

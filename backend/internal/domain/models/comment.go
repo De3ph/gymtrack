@@ -20,13 +20,13 @@ const (
 
 type Comment struct {
 	Type            string     `json:"type"` // Always "comment"
-	CommentID       int        `json:"commentId"`
+	CommentID       int        `json:"commentId" example:"1"`
 	TargetType      TargetType `json:"targetType" validate:"required,oneof=workout meal"`
-	TargetID        int        `json:"targetId" validate:"required"`
-	AuthorID        int        `json:"authorId" validate:"required"`
+	TargetID        int        `json:"targetId" validate:"required" example:"1"`
+	AuthorID        int        `json:"authorId" validate:"required" example:"1"`
 	AuthorRole      AuthorRole `json:"authorRole" validate:"required,oneof=trainer athlete"`
 	Content         string     `json:"content" validate:"required,min=1,max=2000"`
-	ParentCommentID *int       `json:"parentCommentId,omitempty"`
+	ParentCommentID *int       `json:"parentCommentId,omitempty" example:"1"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	EditedAt        *time.Time `json:"editedAt,omitempty"`
 }

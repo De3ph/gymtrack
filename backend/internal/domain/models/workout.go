@@ -13,11 +13,11 @@ const (
 
 type Workout struct {
 	Type      string            `json:"type"` // Always "workout"
-	WorkoutID int               `json:"workoutId"`
-	AthleteID int               `json:"athleteId" validate:"required"`
+	WorkoutID int               `json:"workoutId" example:"1"`
+	AthleteID int               `json:"athleteId" validate:"required" example:"1"`
 	Date      time.Time         `json:"date" validate:"required"`
 	Exercises []WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
-	PlanID    int               `json:"planId,omitempty"` // Set when started from a plan
+	PlanID    int               `json:"planId,omitempty" example:"1"` // Set when started from a plan
 	CreatedAt time.Time         `json:"createdAt"`
 	UpdatedAt time.Time         `json:"updatedAt"`
 }

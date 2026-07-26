@@ -5,13 +5,13 @@ import (
 )
 
 type Exercise struct {
-	ExerciseID    int       `json:"exerciseId"`
+	ExerciseID    int       `json:"exerciseId" example:"1"`
 	Name          string    `json:"name" validate:"required"`
 	Category      string    `json:"category"` // strength, cardio, flexibility
-	MuscleGroupID int       `json:"muscleGroupId"`
-	EquipmentID   int       `json:"equipmentId"`
+	MuscleGroupID int       `json:"muscleGroupId" example:"1"`
+	EquipmentID   int       `json:"equipmentId" example:"1"`
 	Instructions  string    `json:"instructions"`
-	CreatedBy     int       `json:"createdBy,omitempty"` // athlete ID for custom exercises
+	CreatedBy     int       `json:"createdBy,omitempty" example:"1"` // athlete ID for custom exercises
 	IsVerified    bool      `json:"isVerified"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
@@ -26,7 +26,7 @@ type ExerciseSet struct {
 }
 
 type WorkoutExercise struct {
-	ExerciseID int           `json:"exerciseId" validate:"required"`
+	ExerciseID int           `json:"exerciseId" validate:"required" example:"1"`
 	Name       string        `json:"name" validate:"required"` // denormalized for convenience
 	Sets       []ExerciseSet `json:"sets" validate:"required,min=1,dive"`
 	Notes      string        `json:"notes,omitempty"`

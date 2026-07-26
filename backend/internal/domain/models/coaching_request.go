@@ -13,9 +13,9 @@ const (
 )
 
 type CoachingRequest struct {
-	RequestID int                   `json:"requestId"`
-	AthleteID int                   `json:"athleteId"`
-	TrainerID int                   `json:"trainerId"`
+	RequestID int                   `json:"requestId" example:"1"`
+	AthleteID int                   `json:"athleteId" example:"1"`
+	TrainerID int                   `json:"trainerId" example:"1"`
 	Message   string                `json:"message"`
 	Status    CoachingRequestStatus `json:"status"`
 	Type      string                `json:"type"`

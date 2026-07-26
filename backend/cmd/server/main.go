@@ -5,11 +5,16 @@ import (
 
 	"gymtrack-backend/internal/app"
 
-	_ "github.com/swaggo/files"
-	_ "github.com/swaggo/gin-swagger"
 	"go.uber.org/fx"
 )
 
+// @title GymTrack API
+// @version 1.0
+// @description GymTrack backend API
+// @server http://localhost:8080/api Local development
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	fx.New(
 		app.RepositoryModule,

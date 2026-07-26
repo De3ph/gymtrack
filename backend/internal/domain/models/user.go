@@ -22,11 +22,11 @@ const (
 
 type UserProfile struct {
 	Name              string `json:"name"`
-	Age               int    `json:"age,omitempty"`
-	Weight            int    `json:"weight,omitempty"`
-	Height            int    `json:"height,omitempty"`
+	Age               int    `json:"age,omitempty" example:"25"`
+	Weight            int    `json:"weight,omitempty" example:"70"`
+	Height            int    `json:"height,omitempty" example:"175"`
 	FitnessGoals      string `json:"fitnessGoals,omitempty"`
-	TrainerAssignment int    `json:"trainerAssignment,omitempty"` // Athlete's trainer ID
+	TrainerAssignment int    `json:"trainerAssignment,omitempty" example:"1"` // Athlete's trainer ID
 
 	// Trainer specific fields
 	Certifications  string `json:"certifications,omitempty"`
@@ -37,7 +37,7 @@ type UserProfile struct {
 	Bio                      string   `json:"bio,omitempty"`
 	ProfilePhotoURL          string   `json:"profilePhotoUrl,omitempty"`
 	HourlyRate               float64  `json:"hourlyRate,omitempty"`
-	YearsOfExperience        int      `json:"yearsOfExperience,omitempty"`
+	YearsOfExperience        int      `json:"yearsOfExperience,omitempty" example:"5"`
 	Location                 string   `json:"location,omitempty"`
 	IsAvailableForNewClients bool     `json:"isAvailableForNewClients,omitempty"`
 	Languages                []string `json:"languages,omitempty"`
@@ -45,7 +45,7 @@ type UserProfile struct {
 
 type User struct {
 	Type         string      `json:"type"` // Always "user"
-	UserID       int         `json:"userId"`
+	UserID       int         `json:"userId" example:"1"`
 	Username     string      `json:"username" validate:"required,min=3,max=30,alphanum"`
 	Email        string      `json:"email" validate:"required,email"`
 	PasswordHash string      `json:"passwordHash"`

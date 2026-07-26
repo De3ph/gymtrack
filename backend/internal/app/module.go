@@ -19,8 +19,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 	"go.uber.org/fx"
 )
 
@@ -185,7 +183,7 @@ var RepositoryModule = fx.Module("repositories",
 		router.Use(middleware.MetricsMiddleware())
 		routes.RegisterMetricsRoutes(router, registry)
 
-		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		routes.RegisterSwaggerRoutes(router)
 
 		apiGroup := router.Group("/api")
 		routes.AuthRoutes(apiGroup, authHandler)
@@ -231,7 +229,7 @@ func NewApp(p AppProvider) *App {
 
 	p.Router.Use(cors.New(corsConfig))
 
-	p.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	routes.RegisterSwaggerRoutes(p.Router)
 
 	return &App{Router: p.Router}
 }
