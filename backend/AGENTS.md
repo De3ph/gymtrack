@@ -65,8 +65,6 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 | `POSTGRES_TEST_DSN` | (required) | PostgreSQL connection string for tests |
 | `JWT_SECRET` | (required) | Must be ≥32 characters |
 
-Legacy Couchbase env vars (`COUCHBASE_*`) are retained for rollback but unused.
-
 `JWT_SECRET` is required and validated at startup — server will crash with `log.Fatal` if missing or too short.
 
 ## API structure

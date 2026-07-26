@@ -6,7 +6,7 @@ GymTrack migrated from Couchbase to PostgreSQL using an offline dump-transform-l
 
 There is no dual-write phase. This is a development environment with no production users, so the cutover is instantaneous: swap the DI wiring in `module.go` and restart.
 
-The migration runner lives at `cmd/migrate/runner.go`. It reads from Couchbase collections, builds in-memory ID maps, inserts rows in FK-safe order, rewrites JSONB payloads that reference old UUIDs, and verifies row counts before committing.
+The migration runner previously lived at `cmd/migrate/runner.go` (removed after migration completion). It read from Couchbase collections, built in-memory ID maps, inserted rows in FK-safe order, rewrote JSONB payloads that referenced old UUIDs, and verified row counts before committing.
 
 ## 2. Schema Changes (Couchbase to PostgreSQL)
 
