@@ -1,47 +1,14 @@
 import api from "./api-client";
-import type { UserRole, UserStatus, UserProfile } from "@/types";
+import type {
+  UserRole,
+  UserStatus,
+  AdminUserListItem,
+  AdminUserListResponse,
+  AdminDashboardStats,
+  AdminComment
+} from "@/types";
 
-export interface AdminUserListItem {
-  userId: string;
-  username: string;
-  email: string;
-  role: UserRole;
-  status: UserStatus;
-  profile: UserProfile;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AdminUserListResponse {
-  users: AdminUserListItem[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
-export interface AdminDashboardStats {
-  totalUsers: number;
-  totalTrainers: number;
-  totalAthletes: number;
-  newUsersToday: number;
-  newUsersThisWeek: number;
-  newUsersThisMonth: number;
-  activeUsersToday: number;
-  totalWorkouts: number;
-  totalMeals: number;
-}
-
-export interface AdminComment {
-  commentId: number;
-  targetType: string;
-  targetId: number;
-  authorId: number;
-  authorRole: string;
-  content: string;
-  parentCommentId?: number | null;
-  createdAt: string;
-  editedAt?: string | null;
-}
+export type { AdminUserListItem, AdminUserListResponse, AdminDashboardStats, AdminComment };
 
 export const adminApi = {
   getDashboardStats: async (): Promise<AdminDashboardStats> => {

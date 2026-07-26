@@ -1,7 +1,5 @@
-import { CreateMealRequest, UpdateMealRequest } from "@/types"
+import { CreateMealRequest, UpdateMealRequest, MessageResponse, PaginationParams, MealListResponse, Meal } from "@/types"
 import api from "./api-client"
-import { MessageResponse, PaginationParams, MealListResponse } from "./api-types"
-import { Meal } from "@/types"
 
 type FetchOptions = RequestInit & {
   params?: Record<string, unknown> | PaginationParams

@@ -2,13 +2,9 @@ import {
   BodyMeasurement,
   CreateBodyMeasurementRequest,
   UpdateBodyMeasurementRequest
+, BodyMeasurementListResponse, MessageResponse, PaginationParams
 } from "@/types"
 import api from "./api-client"
-import {
-  BodyMeasurementListResponse,
-  MessageResponse,
-  PaginationParams
-} from "./api-types"
 
 export const bodyMeasurementApi = {
   create: async (data: CreateBodyMeasurementRequest) => {

@@ -4,7 +4,7 @@ import dynamic from "next/dynamic"
 import { StatCard } from "./StatCard"
 import { type ChartConfig } from "@/components/ui/chart"
 import { Skeleton } from "@/components/ui/skeleton"
-import { WorkoutStats, MealStats } from "@/lib/api/api-types"
+import { WorkoutStats, MealStats } from "@/types"
 import { useTranslations } from "next-intl"
 
 const WorkoutVolumeChart = dynamic(

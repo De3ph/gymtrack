@@ -1,7 +1,5 @@
-import { CreateWorkoutRequest, UpdateWorkoutRequest } from "@/types"
+import { CreateWorkoutRequest, UpdateWorkoutRequest, MessageResponse, PaginationParams, WorkoutListResponse, Workout } from "@/types"
 import api from "./api-client"
-import { MessageResponse, PaginationParams, WorkoutListResponse } from "./api-types"
-import { Workout } from "@/types"
 
 export const workoutApi = {
   create: async (data: CreateWorkoutRequest) => {

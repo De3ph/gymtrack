@@ -1,178 +1,44 @@
-export type UserRole = "trainer" | "athlete" | "admin";
+/**
+ * GymTrack Frontend Types
+ *
+ * API model types are auto-generated from the Go backend via openapi-typescript.
+ * This file re-exports them under the names expected by 66+ consumer files,
+ * and defines UI-only types that don't exist in the API spec.
+ */
 
-export type UserStatus = "active" | "suspended" | "banned";
+import type { components } from "./generated";
 
-export type WeightUnit = "kg" | "lbs";
+// ============================================================
+// Re-exported API types (source of truth: backend/docs/swagger.json)
+// ============================================================
 
-export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+// --- Enums ---
+export type UserRole = components["schemas"]["models.UserRole"];
+export type UserStatus = components["schemas"]["models.UserStatus"];
+export type WeightUnit = components["schemas"]["models.WeightUnit"];
+export type MealType = components["schemas"]["models.MealType"];
+export type RelationshipStatus = components["schemas"]["models.RelationshipStatus"];
+export type CommentTargetType = components["schemas"]["models.TargetType"];
+export type CommentAuthorRole = components["schemas"]["models.AuthorRole"];
 
-export interface Exercise {
-  exerciseId?: number;
-  name: string;
-  weight: number;
-  weightUnit: WeightUnit;
-  sets: number;
-  reps: number[];
-  restTime: number; // in seconds
-}
+// --- Domain models ---
+export type Workout = components["schemas"]["models.Workout"];
+export type WorkoutExercise = components["schemas"]["models.WorkoutExercise"];
+export type ExerciseSet = components["schemas"]["models.ExerciseSet"];
+export type Meal = components["schemas"]["models.Meal"];
+export type FoodItem = components["schemas"]["models.FoodItem"];
+export type Macros = components["schemas"]["models.Macros"];
+export type User = components["schemas"]["models.User"];
+export type UserProfile = components["schemas"]["models.UserProfile"];
+export type Relationship = components["schemas"]["models.Relationship"];
+export type Comment = components["schemas"]["models.Comment"];
+export type TrainerProfile = components["schemas"]["models.TrainerProfile"];
+export type TrainerAvailability = components["schemas"]["models.TrainerAvailability"];
+export type TrainerReview = components["schemas"]["models.TrainerReview"];
 
-export interface Workout {
-  workoutId: number;
-  athleteId: number;
-  date: string;
-  exercises: WorkoutExercise[];
-  planId?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateWorkoutRequest {
-  date: string;
-  exercises: WorkoutExercise[];
-}
-
-export interface UpdateWorkoutRequest {
-  date: string;
-  exercises: WorkoutExercise[];
-}
-
-export interface Macros {
-  protein: number;
-  carbs: number;
-  fats: number;
-}
-
-export interface FoodItem {
-  food: string;
-  quantity: string;
-  calories?: number;
-  macros?: Macros;
-}
-
-export interface Meal {
-  mealId: number;
-  athleteId: number;
-  date: string;
-  mealType: MealType;
-  items: FoodItem[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateMealRequest {
-  date: string;
-  mealType: MealType;
-  items: FoodItem[];
-}
-
-export interface UpdateMealRequest {
-  date: string;
-  mealType: MealType;
-  items: FoodItem[];
-}
-
-export interface UserProfile {
-  name: string;
-  age?: number;
-  weight?: number;
-  height?: number;
-  fitnessGoals?: string;
-  trainerAssignment?: number;
-  certifications?: string;
-  specializations?: string;
-  clientList?: number[];
-}
-
-export interface User {
-  userId: number;
-  username: string;
-  email: string;
-  role: UserRole;
-  status?: UserStatus;
-  profile: UserProfile;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-}
-
-export interface LoginRequest {
-  identifier: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  profile: UserProfile;
-}
-
-export interface UpdateProfileRequest {
-  profile: UserProfile;
-}
-
-export type RelationshipStatus = "pending" | "active" | "terminated";
-
-export interface Relationship {
-  type: string;
-  relationshipId: number;
-  trainerId: number;
-  athleteId: number;
-  status: RelationshipStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ClientStats {
-  workoutsThisWeek: number;
-  mealsThisWeek: number;
-}
-
-export type CommentTargetType = "workout" | "meal";
-
-export type CommentAuthorRole = "trainer" | "athlete" | "admin";
-
-export interface Comment {
-  type: string;
-  commentId: number;
-  targetType: CommentTargetType;
-  targetId: number;
-  authorId: number;
-  authorRole: CommentAuthorRole;
-  content: string;
-  parentCommentId?: number | null;
-  createdAt: string;
-  editedAt?: string | null;
-}
-
-export interface CreateCommentRequest {
-  targetType: CommentTargetType;
-  targetId: number;
-  content: string;
-  parentCommentId?: number | null;
-}
-
-export interface UpdateCommentRequest {
-  content: string;
-}
-
-export interface TrainerProfile {
-  bio?: string;
-  profilePhotoUrl?: string;
-  hourlyRate?: number;
-  yearsOfExperience?: number;
-  isAvailableForNewClients?: boolean;
-  location?: string;
-  languages?: string[];
-}
-
+// TrainerWithProfile uses a manual definition because the generated type has a
+// different structure: generated nests trainer fields under `profile`, but the
+// frontend code accesses `trainerProfile` and flattens user fields.
 export interface TrainerWithProfile {
   userId: number;
   email: string;
@@ -185,27 +51,141 @@ export interface TrainerWithProfile {
   reviewCount?: number;
 }
 
-export interface TrainerAvailability {
-  availabilityId: number;
-  trainerId: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isBooked: boolean;
+export type BodyMeasurement = components["schemas"]["models.BodyMeasurement"];
+export type BodyMeasurementPart = components["schemas"]["models.BodyMeasurementPart"];
+
+// Aliases for backend names that differ from frontend convention
+export type MuscleGroup = components["schemas"]["models.MuscleGroupDefinition"];
+export type Equipment = components["schemas"]["models.EquipmentDefinition"];
+
+// --- Request types ---
+export type CreateWorkoutRequest = components["schemas"]["handlers.CreateWorkoutRequest"];
+export type UpdateWorkoutRequest = components["schemas"]["handlers.UpdateWorkoutRequest"];
+export type CreateMealRequest = components["schemas"]["handlers.CreateMealRequest"];
+export type UpdateMealRequest = components["schemas"]["handlers.UpdateMealRequest"];
+export type LoginRequest = components["schemas"]["handlers.LoginRequest"];
+export type RegisterRequest = components["schemas"]["handlers.RegisterRequest"];
+export type UpdateProfileRequest = components["schemas"]["handlers.UpdateProfileRequest"];
+export type CreateCommentRequest = components["schemas"]["handlers.CreateCommentRequest"];
+export type UpdateCommentRequest = components["schemas"]["handlers.UpdateCommentRequest"];
+export type CreateExerciseRequest = components["schemas"]["handlers.CreateExerciseRequest"];
+export type CreateBodyMeasurementRequest = components["schemas"]["handlers.CreateBodyMeasurementRequest"];
+export type UpdateBodyMeasurementRequest = components["schemas"]["handlers.UpdateBodyMeasurementRequest"];
+
+// --- Response / handler types ---
+export type UserResponse = components["schemas"]["handlers.UserResponse"];
+export type ClientStats = components["schemas"]["handlers.ClientStats"];
+export type GetClientDetailsResponse = components["schemas"]["handlers.GetClientDetailsResponse"];
+export type GetClientStatsResponse = components["schemas"]["handlers.GetClientStatsResponse"];
+
+// WorkoutStats and MealStats use manual definitions because the generated types
+// mark all fields as optional, but consumer code (chart components) expects required fields.
+export interface WorkoutStats {
+  totalVolume: number;
+  weeklyVolume: { week: string; volume: number; workouts: number }[];
+  exerciseBreakdown: { name: string; totalSets: number; totalReps: number; maxWeight: number }[];
+  consistency: number;
+}
+
+export interface MealStats {
+  averageCalories: number;
+  averageProtein: number;
+  averageCarbs: number;
+  averageFats: number;
+  weeklyAverages: { week: string; calories: number; protein: number; carbs: number; fats: number }[];
+  mealTypeBreakdown: { mealType: string; count: number }[];
+}
+
+// Ad-hoc response wrappers (not in swagger — used by API client modules)
+export interface RegisterResponse {
+  message: string;
+  userId: number;
+}
+
+export interface LoginResponse {
+  message: string;
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+}
+
+export interface WorkoutListResponse {
+  workouts: Workout[];
+  count: number;
+}
+
+export interface MealListResponse {
+  meals: Meal[];
+  count: number;
+}
+
+export interface ClientListResponse {
+  clients: Relationship[];
+  count: number;
+}
+
+export interface CommentListResponse {
+  comments: Comment[];
+}
+
+export interface BodyMeasurementListResponse {
+  measurements: BodyMeasurement[];
+  count: number;
+}
+
+// --- Admin types ---
+// AdminUserListItem and AdminComment use manual definitions because the
+// generated types have different field types (number | undefined vs string).
+export interface AdminUserListItem {
+  userId: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  profile: UserProfile;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface TrainerReview {
-  reviewId: number;
-  trainerId: number;
-  athleteId: number;
-  rating: number;
-  comment?: string;
+export type AdminUserListResponse = components["schemas"]["handlers.AdminUserListResponse"];
+export type AdminDashboardStats = components["schemas"]["services.DashboardStats"];
+
+export interface AdminComment {
+  commentId: number;
+  targetType: string;
+  targetId: number;
+  authorId: number;
+  authorRole: string;
+  content: string;
+  parentCommentId?: number | null;
   createdAt: string;
-  updatedAt: string;
+  editedAt?: string | null;
 }
 
+// ============================================================
+// UI-only types (not in API spec)
+// ============================================================
+
+/** Flattened exercise type used in workout forms (UI convenience). */
+export interface Exercise {
+  exerciseId?: number;
+  name: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  sets: number;
+  reps: number[];
+  restTime: number; // in seconds
+}
+
+/** Client-side auth state (Zustand store shape). */
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+/** Filters for trainer search/browse UI. */
 export interface TrainerFilters {
   specialization?: string;
   location?: string;
@@ -213,12 +193,15 @@ export interface TrainerFilters {
   availableForNewClients?: boolean;
 }
 
+/** Response shape for trainer search endpoint. */
 export interface TrainerSearchResponse {
   trainers: TrainerWithProfile[];
   total: number;
   limit: number;
   offset: number;
 }
+
+// --- Coaching request types (not yet in swagger) ---
 
 export type CoachingRequestStatus = "pending" | "accepted" | "rejected";
 
@@ -246,39 +229,9 @@ export interface CoachingRequestWithDetails {
   trainer?: User;
 }
 
-// ===== PHASE 4: EXERCISE MANAGEMENT TYPES =====
+// --- Exercise library types (UI-enriched) ---
 
-// Lookup table types
-export interface MuscleGroup {
-  id: number;
-  code: string;
-  description: string;
-}
-
-export interface Equipment {
-  id: number;
-  code: string;
-  description: string;
-}
-
-// Enhanced exercise types for per-set tracking
-export interface ExerciseSet {
-  setId?: number;
-  weight: number;
-  weightUnit: WeightUnit;
-  reps: number;
-  restTime?: number; // seconds
-  completed?: boolean;
-}
-
-export interface WorkoutExercise {
-  exerciseId: number;
-  name: string;
-  sets: ExerciseSet[];
-  notes?: string;
-}
-
-// Exercise library types
+/** Exercise catalog entry with populated relations (UI convenience). */
 export interface ExerciseLibrary {
   exerciseId: number;
   name: string;
@@ -288,11 +241,10 @@ export interface ExerciseLibrary {
   instructions?: string;
   createdBy?: number;
   createdAt: string;
-  muscleGroup?: MuscleGroup; // populated by API
-  equipment?: Equipment; // populated by API
+  muscleGroup?: MuscleGroup;
+  equipment?: Equipment;
 }
 
-// API response types for exercise endpoints
 export interface ExerciseListResponse {
   exercises: ExerciseLibrary[];
   count: number;
@@ -314,15 +266,7 @@ export interface ExerciseSearchParams {
   offset?: number;
 }
 
-export interface CreateExerciseRequest {
-  name: string;
-  category: string;
-  muscleGroupId: number;
-  equipmentId: number;
-  instructions?: string;
-}
-
-// ===== WORKOUT PLAN TYPES =====
+// --- Workout plan types (not yet in swagger) ---
 
 export interface WorkoutPlanSet {
   setId?: number;
@@ -386,7 +330,8 @@ export interface AssignmentListResponse {
   count: number;
 }
 
-// Updated workout types for new structure (for future migration)
+// --- Legacy per-set workout types (for migration) ---
+
 export interface WorkoutWithPerSet {
   workoutId: number;
   athleteId: number;
@@ -406,12 +351,9 @@ export interface UpdateWorkoutWithPerSetRequest {
   exercises: WorkoutExercise[];
 }
 
-// ===== BODY MEASUREMENTS TYPES =====
+// --- Body measurement UI types ---
 
-export interface BodyMeasurementPart {
-  value: number;
-}
-
+/** String union of valid body part keys for measurement forms. */
 export type BodyPartKey =
   | "chest"
   | "waist"
@@ -427,34 +369,73 @@ export type BodyPartKey =
   | "calfLeft"
   | "calfRight";
 
-export interface BodyMeasurement {
-  measurementId: number;
-  athleteId: number;
-  date: string;
-  weight: number;
-  weightUnit: WeightUnit;
-  bodyFatPct?: number;
-  parts?: Record<string, BodyMeasurementPart>;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+// ============================================================
+// Utility types (moved from api-types.ts)
+// ============================================================
+
+export interface PaginationParams {
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  offset?: number;
 }
 
-export interface CreateBodyMeasurementRequest {
-  date: string;
-  weight: number;
-  weightUnit: WeightUnit;
-  bodyFatPct?: number;
-  parts?: Record<string, BodyMeasurementPart>;
-  notes?: string;
+export interface PaginatedResponse<T> {
+  data: T[];
+  count: number;
 }
 
-export interface UpdateBodyMeasurementRequest {
-  date: string;
-  weight: number;
-  weightUnit: WeightUnit;
-  bodyFatPct?: number;
-  parts?: Record<string, BodyMeasurementPart>;
-  notes?: string;
+export interface ApiResponse<T> {
+  data: T;
 }
 
+export interface MessageResponse {
+  message: string;
+}
+
+export interface DateRangeParams {
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface PaginationOnlyParams {
+  limit?: number;
+  offset?: number;
+}
+
+export interface ListParams extends DateRangeParams, PaginationOnlyParams {}
+
+export interface ClientListParams extends ListParams {
+  clientId: string;
+}
+
+export interface ClientWithAthlete {
+  relationship: Relationship;
+  athlete: User;
+}
+
+export interface GenerateInvitationResponse {
+  message: string;
+  invitation: {
+    code: string;
+    expiresAt: string;
+  };
+}
+
+export interface AcceptInvitationResponse {
+  message: string;
+  relationship: Relationship;
+}
+
+export interface GetMyTrainerResponse {
+  pendingInvitations: Relationship[];
+  activeTrainer?: {
+    relationship: Relationship;
+    trainer: User;
+  };
+}
+
+export interface TerminateRelationshipResponse {
+  message: string;
+  relationship: Relationship;
+}

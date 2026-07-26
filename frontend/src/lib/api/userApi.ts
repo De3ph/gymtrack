@@ -1,6 +1,5 @@
-import { UpdateProfileRequest } from "@/types"
+import { UpdateProfileRequest, UserResponse } from "@/types"
 import api from "./api-client"
-import { UserResponse } from "./api-types"
 
 export const userApi = {
   getCurrentUser: async () => {

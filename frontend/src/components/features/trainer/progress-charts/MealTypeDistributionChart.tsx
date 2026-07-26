@@ -14,7 +14,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { MealStats } from "@/lib/api/api-types"
+import { MealStats } from "@/types"
 import { useTranslations } from "next-intl"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]

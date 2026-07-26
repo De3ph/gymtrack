@@ -1202,7 +1202,8 @@
       "comment_placeholder": "Bu antrenörle deneyiminizi paylaşın...",
       "submit": "İnceleme Gönder",
       "submitting": "Gönderiliyor...",
-      "cancel": "İptal"
+      "cancel": "İptal",
+      "error_create": "İnceleme oluşturulamadı"
     },
     "edit": {
       "title": "İncelemenizi Düzenleyin",

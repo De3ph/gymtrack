@@ -1205,7 +1205,8 @@
       "comment_placeholder": "Share your experience with this trainer...",
       "submit": "Submit Review",
       "submitting": "Submitting...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "error_create": "Failed to create review"
     },
     "edit": {
       "title": "Edit Your Review",

@@ -1,6 +1,5 @@
-import { LoginRequest, RegisterRequest } from "@/types";
+import { LoginRequest, RegisterRequest, MessageResponse, RegisterResponse, LoginResponse } from "@/types";
 import api from "./api-client";
-import { MessageResponse, RegisterResponse, LoginResponse } from "./api-types";
 
 export const authApi = {
     register: async (data: RegisterRequest) => {

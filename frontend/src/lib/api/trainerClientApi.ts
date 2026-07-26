@@ -5,7 +5,7 @@ import {
   MealListResponse,
   BodyMeasurementListResponse,
   GetClientStatsResponse
-} from "./api-types"
+} from "@/types"
 
 export const trainerClientApi = {
   getClientWorkouts: async (

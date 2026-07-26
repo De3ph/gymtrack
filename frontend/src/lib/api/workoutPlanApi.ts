@@ -8,8 +8,8 @@ import {
   WorkoutPlanListResponse,
   AssignmentListResponse,
   Workout,
+  MessageResponse,
 } from "@/types";
-import { MessageResponse } from "./api-types";
 
 export const workoutPlanApi = {
   create: (data: CreateWorkoutPlanRequest) =>

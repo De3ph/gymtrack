@@ -1,7 +1,5 @@
-import { CreateCommentRequest, UpdateCommentRequest } from "@/types"
+import { CreateCommentRequest, UpdateCommentRequest, CommentListResponse, MessageResponse, Comment } from "@/types"
 import api from "./api-client"
-import { CommentListResponse, MessageResponse } from "./api-types"
-import { Comment } from "@/types"
 
 export const commentApi = {
   getByTarget: async (

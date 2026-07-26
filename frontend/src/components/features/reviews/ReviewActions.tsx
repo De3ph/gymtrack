@@ -12,12 +12,11 @@ import { useTranslations } from "next-intl"
 
 interface ReviewActionsProps {
   review: TrainerReview
-  trainerId: string | number
   currentUserId: string | number
   onReviewUpdated?: () => void
 }
 
-export function ReviewActions({ review, trainerId, currentUserId, onReviewUpdated }: ReviewActionsProps) {
+export function ReviewActions({ review, currentUserId, onReviewUpdated }: ReviewActionsProps) {
   const tEdit = useTranslations('review.edit')
   const tDelete = useTranslations('review.delete')
   const tCommon = useTranslations('common')

@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ClientWithAthlete } from "@/lib/api/api-types";
+import { ClientWithAthlete } from "@/types";
 import { Eye, Users } from "lucide-react";
 import dayjs from "dayjs";
 import { motion } from "motion/react";

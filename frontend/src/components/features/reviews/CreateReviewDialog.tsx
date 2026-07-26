@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Field } from "@/components/ui/field"
 import { FieldInfo } from "@/components/ui/form-field"
 import { Star } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { toast } from "@/components/ui/toast"
 
 interface CreateReviewDialogProps {
   trainerId: string
@@ -46,8 +46,11 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
       onReviewCreated?.()
     },
     onError: (error) => {
-      // TODO: Show toast notification with error message
       console.error("Failed to create review:", error)
+      toast.add({
+        type: "error",
+        title: t('error_create'),
+      })
     },
   })
 

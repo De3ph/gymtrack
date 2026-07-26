@@ -1,5 +1,5 @@
 import api from "./api-client"
-import { MessageResponse } from "./api-types"
+import { MessageResponse } from "@/types"
 
 export const availabilityApi = {
   getMyAvailability: async () => {

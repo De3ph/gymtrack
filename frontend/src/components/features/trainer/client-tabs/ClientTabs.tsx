@@ -9,7 +9,7 @@ import { MeasurementsTab } from "./MeasurementsTab";
 import { ClientPlansTab } from "@/components/features/workout-plan/ClientPlansTab";
 import { useTranslations } from "next-intl";
 import { Workout, Meal, BodyMeasurement } from "@/types";
-import { WorkoutStats, MealStats } from "@/lib/api/api-types";
+import { WorkoutStats, MealStats } from "@/types";
 
 interface ClientTabsProps {
   activeTab: string;

@@ -1,5 +1,5 @@
 import { tokenService } from "@/lib/token-service"
-import type { PaginationParams } from "./api-types"
+import type { PaginationParams } from "@/types"
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"

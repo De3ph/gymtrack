@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { ClientProgressCharts } from "../ClientProgressCharts";
-import { WorkoutStats, MealStats } from "@/lib/api/api-types";
+import { WorkoutStats, MealStats } from "@/types";
 
 interface ProgressTabProps {
   workoutStats: WorkoutStats | null;

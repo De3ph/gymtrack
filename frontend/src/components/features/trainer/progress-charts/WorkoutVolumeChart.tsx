@@ -16,7 +16,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { WorkoutStats } from "@/lib/api/api-types"
+import { WorkoutStats } from "@/types"
 import { useTranslations } from "next-intl"
 
 interface WorkoutVolumeChartProps {

@@ -5,7 +5,7 @@ import {
   GetClientDetailsResponse,
   GetMyTrainerResponse,
   TerminateRelationshipResponse
-} from "./api-types"
+} from "@/types"
 
 export const relationshipApi = {
   // Trainer endpoints
@@ -15,7 +15,7 @@ export const relationshipApi = {
 
   getMyClients: async () => {
     return api.get<{
-      clients: import("@/lib/api/api-types").ClientWithAthlete[]
+      clients: import("@/types").ClientWithAthlete[]
       count: number
     }>("/relationships/my-clients")
   },
