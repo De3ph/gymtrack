@@ -35,8 +35,8 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 	}
 
 	query := `
-		INSERT INTO users (username, email, password_hash, role, profile, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO users (username, email, password_hash, role, status, profile, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING user_id`
 
 	err = r.pool.QueryRow(ctx, query,
@@ -44,6 +44,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 		user.Email,
 		user.PasswordHash,
 		string(user.Role),
+		string(user.Status),
 		profileJSON,
 		user.CreatedAt,
 		user.UpdatedAt,
@@ -58,7 +59,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 
 func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
 		FROM users
 		WHERE email = $1`
 
@@ -71,6 +72,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
+		&user.Status,
 		&profileRaw,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -92,7 +94,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 
 func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
 		FROM users
 		WHERE LOWER(username) = LOWER($1)`
 
@@ -105,6 +107,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
+		&user.Status,
 		&profileRaw,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -126,7 +129,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 
 func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
 		FROM users
 		WHERE user_id = $1`
 
@@ -139,6 +142,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
+		&user.Status,
 		&profileRaw,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -160,7 +164,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 
 func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC`
 
@@ -181,6 +185,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.Use
 			&user.Email,
 			&user.PasswordHash,
 			&user.Role,
+			&user.Status,
 			&profileRaw,
 			&user.CreatedAt,
 			&user.UpdatedAt,
@@ -213,14 +218,15 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 
 	query := `
 		UPDATE users
-		SET username = $1, email = $2, password_hash = $3, role = $4, profile = $5, updated_at = $6
-		WHERE user_id = $7`
+		SET username = $1, email = $2, password_hash = $3, role = $4, status = $5, profile = $6, updated_at = $7
+		WHERE user_id = $8`
 
 	tag, err := r.pool.Exec(ctx, query,
 		user.Username,
 		user.Email,
 		user.PasswordHash,
 		string(user.Role),
+		string(user.Status),
 		profileJSON,
 		user.UpdatedAt,
 		user.UserID,
@@ -234,6 +240,74 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 	}
 
 	return nil
+}
+
+func (r *PostgresUserRepository) GetAllUsersFiltered(ctx context.Context, role, search string, limit, offset int) ([]*models.User, error) {
+	query := `
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
+		FROM users
+		WHERE ($1 = '' OR role = $1)
+		  AND ($2 = '' OR username ILIKE '%' || $2 || '%' OR email ILIKE '%' || $2 || '%')
+		ORDER BY created_at DESC
+		LIMIT $3 OFFSET $4`
+
+	rows, err := r.pool.Query(ctx, query, role, search, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query filtered users: %w", err)
+	}
+	defer rows.Close()
+
+	return r.scanUserRows(rows)
+}
+
+func (r *PostgresUserRepository) CountUsers(ctx context.Context, role, search string) (int, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM users
+		WHERE ($1 = '' OR role = $1)
+		  AND ($2 = '' OR username ILIKE '%' || $2 || '%' OR email ILIKE '%' || $2 || '%')`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, role, search).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count users: %w", err)
+	}
+	return count, nil
+}
+
+func (r *PostgresUserRepository) scanUserRows(rows pgx.Rows) ([]*models.User, error) {
+	var users []*models.User
+	for rows.Next() {
+		user := &models.User{}
+		var profileRaw []byte
+
+		if err := rows.Scan(
+			&user.UserID,
+			&user.Username,
+			&user.Email,
+			&user.PasswordHash,
+			&user.Role,
+			&user.Status,
+			&profileRaw,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan user row: %w", err)
+		}
+
+		if err := UnmarshalFromJSONB(profileRaw, &user.Profile); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
+		}
+
+		user.Type = "user"
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+
+	return users, nil
 }
 
 // Compile-time check that PostgresUserRepository implements UserRepository.

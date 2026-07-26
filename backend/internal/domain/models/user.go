@@ -12,6 +12,14 @@ const (
 	RoleAdmin   UserRole = "admin"
 )
 
+type UserStatus string
+
+const (
+	UserStatusActive    UserStatus = "active"
+	UserStatusSuspended UserStatus = "suspended"
+	UserStatusBanned    UserStatus = "banned"
+)
+
 type UserProfile struct {
 	Name              string `json:"name"`
 	Age               int    `json:"age,omitempty"`
@@ -42,6 +50,7 @@ type User struct {
 	Email        string      `json:"email" validate:"required,email"`
 	PasswordHash string      `json:"passwordHash"`
 	Role         UserRole    `json:"role" validate:"required,oneof=trainer athlete admin"`
+	Status       UserStatus  `json:"status"`
 	Profile      UserProfile `json:"profile"`
 	CreatedAt    time.Time   `json:"createdAt"`
 	UpdatedAt    time.Time   `json:"updatedAt"`

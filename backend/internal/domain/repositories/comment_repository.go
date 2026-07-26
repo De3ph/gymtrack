@@ -15,4 +15,7 @@ type CommentRepository interface {
 	GetReplies(ctx context.Context, parentCommentID int) ([]*models.Comment, error)
 	Update(ctx context.Context, comment *models.Comment) error
 	Delete(ctx context.Context, commentID int) error
+	GetAllComments(ctx context.Context, targetType string, limit, offset int) ([]*models.Comment, error)
+	CountAllComments(ctx context.Context, targetType string) (int, error)
+
 }

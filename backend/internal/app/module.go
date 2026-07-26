@@ -166,10 +166,11 @@ var RepositoryModule = fx.Module("repositories",
 		bodyMeasurementHandler *handlers.BodyMeasurementHandler,
 		cfg *config.Config,
 		authService *services.AuthService,
+		userRepo repositories.UserRepository,
 		router *gin.Engine,
 		registry *prometheus.Registry,
 	) {
-		middleware.InitAuthMiddleware(cfg, authService)
+		middleware.InitAuthMiddleware(cfg, authService, userRepo)
 
 		corsConfig := cors.DefaultConfig()
 		corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"}
@@ -216,10 +217,11 @@ type AppProvider struct {
 	Lifecycle   fx.Lifecycle
 	Router      *gin.Engine
 	AuthService *services.AuthService
+	UserRepo    repositories.UserRepository
 }
 
 func NewApp(p AppProvider) *App {
-	middleware.InitAuthMiddleware(p.Config, p.AuthService)
+	middleware.InitAuthMiddleware(p.Config, p.AuthService, p.UserRepo)
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"}

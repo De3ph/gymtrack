@@ -14,4 +14,7 @@ type ExerciseRepository interface {
 	GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error)
 	GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error)
 	SearchExercises(ctx context.Context, query string, muscleGroupID *int, equipmentID *int) ([]models.Exercise, error)
+	UpdateExercise(ctx context.Context, exercise *models.Exercise) error
+	DeleteExercise(ctx context.Context, exerciseID int) error
+
 }

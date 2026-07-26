@@ -40,18 +40,27 @@ type AdminUserListResponse struct {
 }
 
 // @Summary List all users (Admin only)
-// @Description Retrieve a list of all registered users. Requires admin role.
+// @Description Retrieve a list of all registered users. Requires admin role. Supports pagination, role filter, and search.
 // @Tags Admin
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} handlers.AdminUserListResponse "List of all users"
+// @Param limit query int false "Page size (default 25)"
+// @Param offset query int false "Page offset"
+// @Param role query string false "Filter by role (trainer, athlete, admin)"
+// @Param search query string false "Search by username or email"
+// @Success 200 {object} handlers.AdminUserListResponse "List of users with pagination"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 403 {object} map[string]interface{} "Forbidden - admin role required"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/users [get]
 func (h *AdminHandler) ListAllUsers(c *gin.Context) {
-	users, err := h.adminService.GetAllUsers(c.Request.Context())
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "25"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	role := c.Query("role")
+	search := c.Query("search")
+
+	users, total, err := h.adminService.GetAllUsersFiltered(c.Request.Context(), role, search, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve users"})
 		return
@@ -72,9 +81,9 @@ func (h *AdminHandler) ListAllUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, AdminUserListResponse{
 		Users:  items,
-		Total:  len(items),
-		Limit:  0,
-		Offset: 0,
+		Total:  total,
+		Limit:  limit,
+		Offset: offset,
 	})
 }
 
@@ -195,4 +204,298 @@ func (h *AdminHandler) ChangePassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
+}
+
+// UpdateRoleRequest is the request body for changing a user's role.
+type UpdateRoleRequest struct {
+	Role string `json:"role" binding:"required,oneof=trainer athlete admin"`
+}
+
+// @Summary Update user role (Admin only)
+// @Description Change a user's role. Admin cannot change own role or demote last admin.
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Param request body handlers.UpdateRoleRequest true "New role"
+// @Success 200 {object} map[string]string "Role updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/users/{id}/role [put]
+func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
+	userIDStr := c.Param("id")
+	targetUserID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	adminIDStr, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in context"})
+		return
+	}
+	adminID, err := strconv.Atoi(adminIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid admin identity"})
+		return
+	}
+
+	var req UpdateRoleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = h.adminService.UpdateUserRole(c.Request.Context(), adminID, targetUserID, models.UserRole(req.Role))
+	if err != nil {
+		if svcErr, ok := err.(*services.ServiceError); ok {
+			switch svcErr.Code {
+			case "USER_NOT_FOUND":
+				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+				return
+			case "SELF_ROLE_CHANGE":
+				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot change your own role"})
+				return
+			case "LAST_ADMIN":
+				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot demote the last admin"})
+				return
+			}
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update role"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Role updated successfully"})
+}
+
+// UpdateStatusRequest is the request body for changing a user's account status.
+type UpdateStatusRequest struct {
+	Status string `json:"status" binding:"required,oneof=active suspended banned"`
+}
+
+// @Summary Update user status (Admin only)
+// @Description Suspend, ban, or reactivate a user account.
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Param request body handlers.UpdateStatusRequest true "New status"
+// @Success 200 {object} map[string]string "Status updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/users/{id}/status [put]
+func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
+	userIDStr := c.Param("id")
+	targetUserID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	var req UpdateStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = h.adminService.UpdateUserStatus(c.Request.Context(), targetUserID, models.UserStatus(req.Status))
+	if err != nil {
+		if svcErr, ok := err.(*services.ServiceError); ok {
+			switch svcErr.Code {
+			case "USER_NOT_FOUND":
+				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+				return
+			case "LAST_ADMIN":
+				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot suspend/ban the last admin"})
+				return
+			}
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update status"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Status updated successfully"})
+}
+
+// AdminCommentListItem is the comment object returned in admin list endpoints.
+type AdminCommentListItem struct {
+	CommentID        int                 `json:"commentId"`
+	TargetType       string              `json:"targetType"`
+	TargetID         int                 `json:"targetId"`
+	AuthorID         int                 `json:"authorId"`
+	AuthorRole       string              `json:"authorRole"`
+	Content          string              `json:"content"`
+	ParentCommentID  *int                `json:"parentCommentId,omitempty"`
+	CreatedAt        string              `json:"createdAt"`
+	EditedAt         *string             `json:"editedAt,omitempty"`
+}
+
+// AdminCommentListResponse wraps a list of comments with pagination metadata.
+type AdminCommentListResponse struct {
+	Comments []AdminCommentListItem `json:"comments"`
+	Total    int                      `json:"total"`
+	Limit    int                      `json:"limit"`
+	Offset   int                      `json:"offset"`
+}
+
+// @Summary List all comments (Admin only)
+// @Description List all comments with pagination and target type filter.
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param limit query int false "Page size (default 25)"
+// @Param offset query int false "Page offset"
+// @Param targetType query string false "Filter by target type (workout, meal)"
+// @Success 200 {object} handlers.AdminCommentListResponse "List of comments"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/comments [get]
+func (h *AdminHandler) ListAllComments(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "25"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	targetType := c.Query("targetType")
+
+	comments, total, err := h.adminService.GetAllComments(c.Request.Context(), targetType, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve comments"})
+		return
+	}
+
+	items := make([]AdminCommentListItem, 0, len(comments))
+	for _, comment := range comments {
+		item := AdminCommentListItem{
+			CommentID:       comment.CommentID,
+			TargetType:      string(comment.TargetType),
+			TargetID:        comment.TargetID,
+			AuthorID:        comment.AuthorID,
+			AuthorRole:      string(comment.AuthorRole),
+			Content:         comment.Content,
+			ParentCommentID: comment.ParentCommentID,
+			CreatedAt:       comment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+		if comment.EditedAt != nil {
+			s := comment.EditedAt.Format("2006-01-02T15:04:05Z07:00")
+			item.EditedAt = &s
+		}
+		items = append(items, item)
+	}
+
+	c.JSON(http.StatusOK, AdminCommentListResponse{
+		Comments: items,
+		Total:    total,
+		Limit:    limit,
+		Offset:   offset,
+	})
+}
+
+// @Summary Delete comment (Admin only)
+// @Description Force-delete any comment without ownership check.
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Comment ID"
+// @Success 200 {object} map[string]string "Comment deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid comment id"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Comment not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/comments/{id} [delete]
+func (h *AdminHandler) DeleteComment(c *gin.Context) {
+	commentIDStr := c.Param("id")
+	commentID, err := strconv.Atoi(commentIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid comment id"})
+		return
+	}
+
+	err = h.adminService.DeleteComment(c.Request.Context(), commentID)
+	if err != nil {
+		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "COMMENT_NOT_FOUND" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "comment not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete comment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted successfully"})
+}
+
+// @Summary Verify exercise (Admin only)
+// @Description Mark an exercise as verified/canonical.
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Exercise ID"
+// @Success 200 {object} map[string]string "Exercise verified successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid exercise id"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Exercise not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/exercises/{id}/verify [put]
+func (h *AdminHandler) VerifyExercise(c *gin.Context) {
+	exerciseIDStr := c.Param("id")
+	exerciseID, err := strconv.Atoi(exerciseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exercise id"})
+		return
+	}
+
+	err = h.adminService.VerifyExercise(c.Request.Context(), exerciseID)
+	if err != nil {
+		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "EXERCISE_NOT_FOUND" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "exercise not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to verify exercise"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Exercise verified successfully"})
+}
+
+// @Summary Delete exercise (Admin only)
+// @Description Force-delete an exercise.
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Exercise ID"
+// @Success 200 {object} map[string]string "Exercise deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid exercise id"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Exercise not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/exercises/{id} [delete]
+func (h *AdminHandler) DeleteExercise(c *gin.Context) {
+	exerciseIDStr := c.Param("id")
+	exerciseID, err := strconv.Atoi(exerciseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exercise id"})
+		return
+	}
+
+	err = h.adminService.DeleteExercise(c.Request.Context(), exerciseID)
+	if err != nil {
+		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "EXERCISE_NOT_FOUND" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "exercise not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete exercise"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Exercise deleted successfully"})
 }

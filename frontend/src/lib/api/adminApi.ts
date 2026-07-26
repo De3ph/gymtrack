@@ -1,11 +1,12 @@
 import api from "./api-client";
-import type { UserRole, UserProfile } from "@/types";
+import type { UserRole, UserStatus, UserProfile } from "@/types";
 
 export interface AdminUserListItem {
   userId: string;
   username: string;
   email: string;
   role: UserRole;
+  status: UserStatus;
   profile: UserProfile;
   createdAt: string;
   updatedAt: string;
@@ -28,6 +29,18 @@ export interface AdminDashboardStats {
   activeUsersToday: number;
   totalWorkouts: number;
   totalMeals: number;
+}
+
+export interface AdminComment {
+  commentId: number;
+  targetType: string;
+  targetId: number;
+  authorId: number;
+  authorRole: string;
+  content: string;
+  parentCommentId?: number | null;
+  createdAt: string;
+  editedAt?: string | null;
 }
 
 export const adminApi = {
@@ -60,5 +73,31 @@ export const adminApi = {
       oldPassword,
       newPassword,
     });
+  },
+
+  updateUserRole: async (
+    userId: string,
+    role: UserRole,
+  ): Promise<{ message: string }> => {
+    return api.put<{ message: string }>(`/admin/users/${userId}/role`, { role });
+  },
+
+  updateUserStatus: async (
+    userId: string,
+    status: UserStatus,
+  ): Promise<{ message: string }> => {
+    return api.put<{ message: string }>(`/admin/users/${userId}/status`, { status });
+  },
+
+  getComments: async (params?: {
+    limit?: number;
+    offset?: number;
+    targetType?: string;
+  }): Promise<{ comments: AdminComment[]; total: number; limit: number; offset: number }> => {
+    return api.get("/admin/comments", { params });
+  },
+
+  deleteComment: async (commentId: number): Promise<{ message: string }> => {
+    return api.delete(`/admin/comments/${commentId}`);
   },
 };

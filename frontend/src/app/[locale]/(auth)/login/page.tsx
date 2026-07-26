@@ -68,10 +68,8 @@ export default function LoginPage() {
       variants={stagger}
       className="w-full"
     >
-      {/* Red accent bar */}
       <motion.div variants={fadeSlideUp} className="mb-8 h-1 w-12 bg-primary" />
 
-      {/* Title */}
       <motion.div variants={fadeSlideUp} className="mb-10">
         <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
           Account
@@ -81,7 +79,6 @@ export default function LoginPage() {
         </h2>
       </motion.div>
 
-      {/* Error */}
       {error && (
         <motion.div
           initial={{ opacity: 0, x: -8 }}
@@ -92,7 +89,6 @@ export default function LoginPage() {
         </motion.div>
       )}
 
-      {/* Form */}
       <motion.form
         variants={stagger}
         onSubmit={(e) => {
@@ -109,11 +105,9 @@ export default function LoginPage() {
                 if (!value || value.trim().length === 0) {
                   return t("email.error.required");
                 }
-                // Check if it's a valid email
                 if (/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
                   return undefined;
                 }
-                // Check if it's a valid username format (3-30 alphanumeric)
                 if (/^[a-zA-Z0-9]{3,30}$/.test(value)) {
                   return undefined;
                 }
@@ -184,7 +178,6 @@ export default function LoginPage() {
           </form.Field>
         </motion.div>
 
-        {/* Forgot password */}
         <motion.div variants={fadeSlideUp} className="pt-1 text-right">
           <a
             href="#"
@@ -194,7 +187,6 @@ export default function LoginPage() {
           </a>
         </motion.div>
 
-        {/* Submit */}
         <motion.div variants={fadeSlideUp} className="pt-2">
           <Button
             type="submit"
@@ -221,7 +213,6 @@ export default function LoginPage() {
         </motion.div>
       </motion.form>
 
-      {/* Sign up link */}
       <motion.div
         variants={fadeSlideUp}
         className="mt-12 flex items-center gap-2"

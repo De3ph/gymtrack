@@ -174,5 +174,15 @@ func (r *PostgresWorkoutRepository) Delete(ctx context.Context, workoutID int) e
 	return nil
 }
 
+
+func (r *PostgresWorkoutRepository) CountAll(ctx context.Context) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM workouts").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count workouts: %w", err)
+	}
+	return count, nil
+}
+
 // Compile-time interface compliance check.
 var _ repositories.WorkoutRepository = (*PostgresWorkoutRepository)(nil)

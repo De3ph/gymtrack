@@ -14,12 +14,20 @@ import (
 )
 
 type AdminService struct {
-	userRepo repositories.UserRepository
+	userRepo    repositories.UserRepository
+	workoutRepo repositories.WorkoutRepository
+	mealRepo    repositories.MealRepository
+	commentRepo repositories.CommentRepository
+	exerciseRepo repositories.ExerciseRepository
 }
 
-func NewAdminService(userRepo repositories.UserRepository) *AdminService {
+func NewAdminService(userRepo repositories.UserRepository, workoutRepo repositories.WorkoutRepository, mealRepo repositories.MealRepository, commentRepo repositories.CommentRepository, exerciseRepo repositories.ExerciseRepository) *AdminService {
 	return &AdminService{
-		userRepo: userRepo,
+		userRepo:    userRepo,
+		workoutRepo: workoutRepo,
+		mealRepo:    mealRepo,
+		commentRepo: commentRepo,
+		exerciseRepo: exerciseRepo,
 	}
 }
 
@@ -30,6 +38,28 @@ func (s *AdminService) GetAllUsers(ctx context.Context) ([]*models.User, error) 
 		return nil, fmt.Errorf("failed to retrieve all users: %w", err)
 	}
 	return users, nil
+}
+
+// GetAllUsersFiltered returns filtered, paginated users with total count.
+func (s *AdminService) GetAllUsersFiltered(ctx context.Context, role, search string, limit, offset int) ([]*models.User, int, error) {
+	if limit <= 0 {
+		limit = 25
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	users, err := s.userRepo.GetAllUsersFiltered(ctx, role, search, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to retrieve filtered users: %w", err)
+	}
+
+	total, err := s.userRepo.CountUsers(ctx, role, search)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count users: %w", err)
+	}
+
+	return users, total, nil
 }
 
 // GetUserByID returns a specific user's details by ID.
@@ -98,9 +128,17 @@ func (s *AdminService) GetDashboardStats(ctx context.Context) (*DashboardStats, 
 		}
 	}
 
-	// Workout and meal totals are best-effort from available data
-	stats.TotalWorkouts = 0 // would need a workout repo aggregate
-	stats.TotalMeals = 0    // would need a meal repo aggregate
+	// Workout and meal totals from DB aggregates
+	totalWorkouts, err := s.workoutRepo.CountAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count workouts: %w", err)
+	}
+	totalMeals, err := s.mealRepo.CountAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count meals: %w", err)
+	}
+	stats.TotalWorkouts = totalWorkouts
+	stats.TotalMeals = totalMeals
 
 	return stats, nil
 }
@@ -145,3 +183,126 @@ func (s *AdminService) ChangePassword(ctx context.Context, req ChangePasswordReq
 
 	return nil
 }
+
+// UpdateUserRole changes a user's role. Cannot change own role or demote last admin.
+func (s *AdminService) UpdateUserRole(ctx context.Context, adminID int, targetUserID int, newRole models.UserRole) error {
+	// Prevent self-demotion
+	if adminID == targetUserID {
+		return NewServiceError("cannot change your own role", "SELF_ROLE_CHANGE")
+	}
+
+	target, err := s.userRepo.GetUserByID(ctx, targetUserID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("failed to retrieve target user: %w", err)
+	}
+
+	// Prevent demoting the last admin
+	if target.Role == models.RoleAdmin && newRole != models.RoleAdmin {
+		adminCount, err := s.userRepo.CountUsers(ctx, "admin", "")
+		if err != nil {
+			return fmt.Errorf("failed to count admins: %w", err)
+		}
+		if adminCount <= 1 {
+			return NewServiceError("cannot demote the last admin", "LAST_ADMIN")
+		}
+	}
+
+	target.Role = newRole
+	target.UpdatedAt = time.Now()
+	return s.userRepo.UpdateUser(ctx, target)
+}
+
+// UpdateUserStatus suspends, bans, or reactivates a user account.
+func (s *AdminService) UpdateUserStatus(ctx context.Context, targetUserID int, status models.UserStatus) error {
+	target, err := s.userRepo.GetUserByID(ctx, targetUserID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("failed to retrieve target user: %w", err)
+	}
+
+	// Prevent banning the last admin
+	if target.Role == models.RoleAdmin && status != models.UserStatusActive {
+		adminCount, err := s.userRepo.CountUsers(ctx, "admin", "")
+		if err != nil {
+			return fmt.Errorf("failed to count admins: %w", err)
+		}
+		if adminCount <= 1 {
+			return NewServiceError("cannot suspend/ban the last admin", "LAST_ADMIN")
+		}
+	}
+
+	target.Status = status
+	target.UpdatedAt = time.Now()
+	return s.userRepo.UpdateUser(ctx, target)
+}
+
+// GetAllComments returns paginated comments for admin moderation.
+func (s *AdminService) GetAllComments(ctx context.Context, targetType string, limit, offset int) ([]*models.Comment, int, error) {
+	if limit <= 0 {
+		limit = 25
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	comments, err := s.commentRepo.GetAllComments(ctx, targetType, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to retrieve comments: %w", err)
+	}
+
+	total, err := s.commentRepo.CountAllComments(ctx, targetType)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count comments: %w", err)
+	}
+
+	for _, c := range comments {
+		c.Type = "comment"
+	}
+
+	return comments, total, nil
+}
+
+// DeleteComment force-deletes any comment by ID (admin bypass).
+func (s *AdminService) DeleteComment(ctx context.Context, commentID int) error {
+	err := s.commentRepo.Delete(ctx, commentID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return NewServiceError("comment not found", "COMMENT_NOT_FOUND")
+		}
+		return fmt.Errorf("failed to delete comment: %w", err)
+	}
+	return nil
+}
+
+// VerifyExercise marks an exercise as verified by admin.
+func (s *AdminService) VerifyExercise(ctx context.Context, exerciseID int) error {
+	exercise, err := s.exerciseRepo.GetExerciseByID(ctx, exerciseID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("failed to get exercise: %w", err)
+	}
+	exercise.IsVerified = true
+	return s.exerciseRepo.UpdateExercise(ctx, exercise)
+}
+
+// DeleteExercise force-deletes an exercise by admin.
+func (s *AdminService) DeleteExercise(ctx context.Context, exerciseID int) error {
+	err := s.exerciseRepo.DeleteExercise(ctx, exerciseID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return NewServiceError("exercise not found", "EXERCISE_NOT_FOUND")
+		}
+		return fmt.Errorf("failed to delete exercise: %w", err)
+	}
+	return nil
+}
+
+
+

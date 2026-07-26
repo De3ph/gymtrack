@@ -25,7 +25,7 @@ export default function RoleDashboardPage() {
     if (!isLoading && user?.role === "admin") {
       router.replace("/admin");
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, router, user?.role]);
 
   if (isLoading || !user) {
     return (

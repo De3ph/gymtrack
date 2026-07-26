@@ -31,6 +31,7 @@ export const ROUTES = {
   ADMIN_DASHBOARD: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_PROFILE: '/admin/profile',
+  ADMIN_MODERATION: '/admin/moderation',
 } as const;
 
 // Dynamic route builders - for routes with parameters

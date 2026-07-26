@@ -76,32 +76,28 @@ export function UsersTableProvider({
 
   // Client-side search filter (only filters the page; server returns full list)
   const filteredUsers = useMemo(() => {
-    let result = users;
+    const now = Date.now();
+    const periods: Record<string, number> = {
+      today: 86_400_000,
+      week: 604_800_000,
+      month: 2_592_000_000,
+    };
+    const cutoff = period !== "all" ? now - periods[period] : 0;
+    const q = search ? search.toLowerCase() : "";
 
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (u) =>
+    return users.filter((u) => {
+      if (search) {
+        const match =
           u.username.toLowerCase().includes(q) ||
           u.email.toLowerCase().includes(q) ||
-          (u.profile?.name ?? "").toLowerCase().includes(q),
-      );
-    }
-
-    if (period !== "all") {
-      const now = Date.now();
-      const periods: Record<string, number> = {
-        today: 86_400_000,
-        week: 604_800_000,
-        month: 2_592_000_000,
-      };
-      const cutoff = now - periods[period];
-      result = result.filter(
-        (u) => new Date(u.createdAt).getTime() >= cutoff,
-      );
-    }
-
-    return result;
+          (u.profile?.name ?? "").toLowerCase().includes(q);
+        if (!match) return false;
+      }
+      if (period !== "all") {
+        if (new Date(u.createdAt).getTime() < cutoff) return false;
+      }
+      return true;
+    });
   }, [users, search, period]);
 
   const table = useReactTable({

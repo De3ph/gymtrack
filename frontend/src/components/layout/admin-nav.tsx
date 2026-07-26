@@ -16,6 +16,9 @@ export function AdminNav() {
       <NavLink href={ROUTES.ADMIN_PROFILE} activeMatch="endsWith">
         {t("profile")}
       </NavLink>
+      <NavLink href={ROUTES.ADMIN_MODERATION} activeMatch="includes">
+        {t("moderation")}
+      </NavLink>
     </>
   );
 }

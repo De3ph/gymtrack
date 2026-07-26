@@ -42,13 +42,13 @@ func (r *PostgresExerciseRepository) CreateExercise(ctx context.Context, ex *mod
 	return nil
 }
 
-const exCols = `id, name, category, muscle_group_id, equipment_id, instructions, created_by, created_at`
+const exCols = `id, name, category, muscle_group_id, equipment_id, instructions, created_by, is_verified, created_at`
 
 func (r *PostgresExerciseRepository) scanExercise(row pgx.Row) (*models.Exercise, error) {
 	ex := &models.Exercise{}
 	var createdBy *int
 	var instructions *string
-	err := row.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.CreatedAt)
+	err := row.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.IsVerified, &ex.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domainerrors.ErrNotFound
@@ -76,7 +76,7 @@ func (r *PostgresExerciseRepository) scanExercises(rows pgx.Rows) ([]models.Exer
 		ex := models.Exercise{}
 		var createdBy *int
 		var instructions *string
-		if err := rows.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.CreatedAt); err != nil {
+		if err := rows.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.IsVerified, &ex.CreatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan exercise row: %w", err)
 		}
 		if createdBy != nil {
@@ -147,3 +147,33 @@ func (r *PostgresExerciseRepository) SearchExercises(ctx context.Context, query 
 
 // Compile-time interface compliance check.
 var _ repositories.ExerciseRepository = (*PostgresExerciseRepository)(nil)
+
+func (r *PostgresExerciseRepository) UpdateExercise(ctx context.Context, exercise *models.Exercise) error {
+	query := `UPDATE exercises SET name=$1, category=$2, muscle_group_id=$3, equipment_id=$4, instructions=$5, is_verified=$6 WHERE id=$7`
+	tag, err := r.pool.Exec(ctx, query,
+		exercise.Name, exercise.Category, exercise.MuscleGroupID, exercise.EquipmentID,
+		exercise.Instructions, exercise.IsVerified, exercise.ExerciseID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update exercise: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *PostgresExerciseRepository) DeleteExercise(ctx context.Context, exerciseID int) error {
+	tag, err := r.pool.Exec(ctx, `DELETE FROM exercises WHERE id = $1`, exerciseID)
+	if err != nil {
+		return fmt.Errorf("failed to delete exercise: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
+var _ repositories.ExerciseRepository = (*PostgresExerciseRepository)(nil)
+
+

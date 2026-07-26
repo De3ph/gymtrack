@@ -106,6 +106,7 @@
     "navigation": {
       "dashboard": "Dashboard",
       "profile": "Profile",
+      "moderation": "Moderation",
       "settings": "Settings",
       "logout": "Logout",
       "workouts": "Workouts",
@@ -552,7 +553,8 @@
     "nav": {
       "dashboard": "Dashboard",
       "users": "Users",
-      "profile": "Profile"
+      "profile": "Profile",
+      "moderation": "Moderation"
     }
   },
   "body_measurement": {

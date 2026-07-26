@@ -1,5 +1,7 @@
 export type UserRole = "trainer" | "athlete" | "admin";
 
+export type UserStatus = "active" | "suspended" | "banned";
+
 export type WeightUnit = "kg" | "lbs";
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
@@ -86,6 +88,7 @@ export interface User {
   username: string;
   email: string;
   role: UserRole;
+  status?: UserStatus;
   profile: UserProfile;
   createdAt: string;
   updatedAt: string;
@@ -454,3 +457,4 @@ export interface UpdateBodyMeasurementRequest {
   parts?: Record<string, BodyMeasurementPart>;
   notes?: string;
 }
+

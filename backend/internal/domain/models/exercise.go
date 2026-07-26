@@ -12,6 +12,7 @@ type Exercise struct {
 	EquipmentID   int       `json:"equipmentId"`
 	Instructions  string    `json:"instructions"`
 	CreatedBy     int       `json:"createdBy,omitempty"` // athlete ID for custom exercises
+	IsVerified    bool      `json:"isVerified"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
 

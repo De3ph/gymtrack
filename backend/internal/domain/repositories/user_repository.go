@@ -14,4 +14,6 @@ type UserRepository interface {
 	GetUserByID(ctx context.Context, userID int) (*models.User, error)
 	GetAllUsers(ctx context.Context) ([]*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
+	GetAllUsersFiltered(ctx context.Context, role string, search string, limit, offset int) ([]*models.User, error)
+	CountUsers(ctx context.Context, role string, search string) (int, error)
 }

@@ -2,22 +2,27 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 
 	"gymtrack-backend/internal/config"
+	"gymtrack-backend/internal/domain/repositories"
+	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
 )
 
 var (
 	appConfig   *config.Config
 	authService *services.AuthService
+	userRepo    repositories.UserRepository
 )
 
-func InitAuthMiddleware(cfg *config.Config, service *services.AuthService) {
+func InitAuthMiddleware(cfg *config.Config, service *services.AuthService, repo repositories.UserRepository) {
 	appConfig = cfg
 	authService = service
+	userRepo = repo
 }
 
 func JWTAuthMiddleware() gin.HandlerFunc {
@@ -52,6 +57,23 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		c.Set("userID", claims.UserID)
 		c.Set("userRole", claims.Role)
+
+		// Check user account status (suspended/banned users blocked)
+		if userRepo != nil {
+			userID, err := strconv.Atoi(claims.UserID)
+			if err == nil {
+				user, err := userRepo.GetUserByID(c.Request.Context(), userID)
+				if err == nil && user != nil && user.Status != "" && user.Status != models.UserStatusActive {
+					c.JSON(http.StatusForbidden, gin.H{
+						"error":  "account is " + string(user.Status),
+						"status": string(user.Status),
+					})
+					c.Abort()
+					return
+				}
+			}
+		}
+
 		c.Next()
 	}
 }

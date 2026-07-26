@@ -133,5 +133,15 @@ func (r *PostgresMealRepository) scanRows(rows pgx.Rows) ([]*models.Meal, error)
 	return meals, nil
 }
 
+func (r *PostgresMealRepository) CountAll(ctx context.Context) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM meals").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count meals: %w", err)
+	}
+	return count, nil
+}
+
+
 // Compile-time interface compliance check.
 var _ repositories.MealRepository = (*PostgresMealRepository)(nil)

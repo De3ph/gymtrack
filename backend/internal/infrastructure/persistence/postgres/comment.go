@@ -165,5 +165,40 @@ func (r *PostgresCommentRepository) Delete(ctx context.Context, commentID int) e
 	return nil
 }
 
+func (r *PostgresCommentRepository) GetAllComments(ctx context.Context, targetType string, limit, offset int) ([]*models.Comment, error) {
+	query := "SELECT " + commentCols + " FROM comments WHERE ($1 = '' OR target_type = $1) ORDER BY created_at DESC LIMIT $2 OFFSET $3"
+
+	rows, err := r.pool.Query(ctx, query, targetType, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all comments: %w", err)
+	}
+	defer rows.Close()
+
+	var comments []*models.Comment
+	for rows.Next() {
+		c := &models.Comment{}
+		if err := scanComment(rows, c); err != nil {
+			return nil, fmt.Errorf("failed to scan comment row: %w", err)
+		}
+		c.Type = "comment"
+		comments = append(comments, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return comments, nil
+}
+
+func (r *PostgresCommentRepository) CountAllComments(ctx context.Context, targetType string) (int, error) {
+	query := "SELECT COUNT(*) FROM comments WHERE ($1 = '' OR target_type = $1)"
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, targetType).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count comments: %w", err)
+	}
+	return count, nil
+}
+
 // Compile-time interface compliance check.
 var _ repositories.CommentRepository = (*PostgresCommentRepository)(nil)

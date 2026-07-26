@@ -154,3 +154,6 @@ func (s *ExerciseServiceImpl) GetAllEquipment(ctx context.Context) ([]models.Equ
 
 	return equipment, nil
 }
+
+
+

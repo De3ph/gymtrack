@@ -3,12 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { relationshipApi } from "@/lib/api";
-import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { RelationshipDetailsCard } from "@/components/features/trainer/RelationshipDetailsCard";
 import { MyTrainerProfile } from "@/components/features/trainer/MyTrainerProfile";
-import type { User } from "@/types";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 

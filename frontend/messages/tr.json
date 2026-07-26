@@ -106,6 +106,7 @@
     "navigation": {
       "dashboard": "Panel",
       "profile": "Profil",
+      "moderation": "Moderasyon",
       "settings": "Ayarlar",
       "logout": "Çıkış Yap",
       "workouts": "Antrenmanlar",
@@ -553,7 +554,8 @@
     "nav": {
       "dashboard": "Panel",
       "users": "Kullanıcılar",
-      "profile": "Profil"
+      "profile": "Profil",
+      "moderation": "Moderasyon"
     }
   },
   "body_measurement": {
