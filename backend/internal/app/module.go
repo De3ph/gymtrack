@@ -8,8 +8,10 @@ import (
 	"gymtrack-backend/internal/api/middleware"
 	"gymtrack-backend/internal/api/routes"
 	"gymtrack-backend/internal/config"
+	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
+	"gymtrack-backend/internal/infrastructure/cache"
 	"gymtrack-backend/internal/infrastructure/persistence"
 	"gymtrack-backend/internal/infrastructure/persistence/postgres"
 	"gymtrack-backend/internal/utils"
@@ -38,50 +40,48 @@ var RepositoryModule = fx.Module("repositories",
 		func(pool *pgxpool.Pool) *persistence.RepositoryFactory {
 			return persistence.NewRepositoryFactory(pool)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.UserRepository {
-			return factory.UserRepository()
+
+		// Cache adapter factories (one per domain, separate metrics per instance)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[*models.User] {
+			return cache.NewUserCache(reg, cfg.CacheEnabled)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.WorkoutRepository {
-			return factory.WorkoutRepository()
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.Exercise] {
+			return cache.NewExerciseCache(reg, cfg.CacheEnabled)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.MealRepository {
-			return factory.MealRepository()
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.MuscleGroupDefinition] {
+			return cache.NewMuscleGroupCache(reg, cfg.CacheEnabled)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.RelationshipRepository {
-			return factory.RelationshipRepository()
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.EquipmentDefinition] {
+			return cache.NewEquipmentCache(reg, cfg.CacheEnabled)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.CommentRepository {
-			return factory.CommentRepository()
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]*models.Relationship] {
+			return cache.NewRelationshipCache(reg, cfg.CacheEnabled)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.MuscleGroupRepository {
-			return factory.MuscleGroupRepository()
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[*models.TrainerWithProfile] {
+			return cache.NewTrainerIDCache(reg, cfg.CacheEnabled)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.EquipmentRepository {
-			return factory.EquipmentRepository()
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.TrainerWithProfile] {
+			return cache.NewTrainerPublicCache(reg, cfg.CacheEnabled)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.ExerciseRepository {
-			return factory.ExerciseRepository()
+
+		// Cached repositories (implement same interfaces, transparent to services)
+		func(factory *persistence.RepositoryFactory, userCache cache.Cache[*models.User]) repositories.UserRepository {
+			return postgres.NewCachedUserRepository(factory.UserRepository(), userCache)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.WorkoutPlanRepository {
-			return factory.WorkoutPlanRepository()
+		func(factory *persistence.RepositoryFactory, exerciseCache cache.Cache[[]models.Exercise]) repositories.ExerciseRepository {
+			return postgres.NewCachedExerciseRepository(factory.ExerciseRepository(), exerciseCache)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.WorkoutPlanAssignmentRepository {
-			return factory.WorkoutPlanAssignmentRepository()
+		func(factory *persistence.RepositoryFactory, muscleGroupCache cache.Cache[[]models.MuscleGroupDefinition]) repositories.MuscleGroupRepository {
+			return postgres.NewCachedMuscleGroupRepository(factory.MuscleGroupRepository(), muscleGroupCache)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.BodyMeasurementRepository {
-			return factory.BodyMeasurementRepository()
+		func(factory *persistence.RepositoryFactory, equipmentCache cache.Cache[[]models.EquipmentDefinition]) repositories.EquipmentRepository {
+			return postgres.NewCachedEquipmentRepository(factory.EquipmentRepository(), equipmentCache)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.TrainerProfileRepository {
-			return factory.TrainerProfileRepository()
+		func(factory *persistence.RepositoryFactory, relationshipCache cache.Cache[[]*models.Relationship]) repositories.RelationshipRepository {
+			return postgres.NewCachedRelationshipRepository(factory.RelationshipRepository(), relationshipCache)
 		},
-		func(factory *persistence.RepositoryFactory) repositories.AvailabilityRepository {
-			return factory.AvailabilityRepository()
-		},
-		func(factory *persistence.RepositoryFactory) repositories.TrainerReviewRepository {
-			return factory.TrainerReviewRepository()
-		},
-		func(factory *persistence.RepositoryFactory) repositories.CoachingRequestRepository {
-			return factory.CoachingRequestRepository()
+		func(factory *persistence.RepositoryFactory, trainerIDCache cache.Cache[*models.TrainerWithProfile], trainerListCache cache.Cache[[]models.TrainerWithProfile]) repositories.TrainerProfileRepository {
+			return postgres.NewCachedTrainerProfileRepository(factory.TrainerProfileRepository(), trainerIDCache, trainerListCache)
 		},
 
 		// Services
@@ -171,7 +171,9 @@ var RepositoryModule = fx.Module("repositories",
 		middleware.InitAuthMiddleware(cfg, authService, userRepo)
 
 		corsConfig := cors.DefaultConfig()
-		corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"}
+		corsConfig.AllowAllOrigins = true // Allow mobile devices + emulators in development
+
+		// corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"} // Replaced by AllowAllOrigins above
 		corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}
 		corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 		corsConfig.AllowCredentials = true
@@ -222,7 +224,9 @@ func NewApp(p AppProvider) *App {
 	middleware.InitAuthMiddleware(p.Config, p.AuthService, p.UserRepo)
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"}
+	corsConfig.AllowAllOrigins = true // Allow mobile devices + emulators in development
+
+	// corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"} // Replaced by AllowAllOrigins above
 	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	corsConfig.AllowCredentials = true

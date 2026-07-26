@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	JWTSecret   string
-	PostgresDSN string
+	JWTSecret    string
+	PostgresDSN  string
+	CacheEnabled bool
 }
 
 func LoadConfig() *Config {
@@ -29,8 +30,9 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		JWTSecret:   jwtSecret,
-		PostgresDSN: getEnv("POSTGRES_DSN", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable"),
+		JWTSecret:    jwtSecret,
+		PostgresDSN:  getEnv("POSTGRES_DSN", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable"),
+		CacheEnabled: getEnv("CACHE_ENABLED", "true") != "false",
 	}
 }
 
