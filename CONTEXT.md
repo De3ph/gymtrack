@@ -89,9 +89,6 @@ backend/
 │   │   ├── postgres.go         # PostgreSQL connection pool provider
 │   │   ├── seed_data.go        # Seed data for exercises/equipment/muscle groups
 │   │   ├── timeout.go          # Context timeout configuration
-│   │   ├── couchbase.go        # Legacy Couchbase config (unused, preserved)
-│   │   ├── collections.go.bak  # Legacy Couchbase collections backup
-│   │   └── db.go.bak           # Legacy Couchbase DB connection backup
 │   ├── domain/
 │   │   ├── models/             # Data structures + factory methods (15 entities)
 │   │   ├── repositories/       # Data access interfaces (14 interfaces)

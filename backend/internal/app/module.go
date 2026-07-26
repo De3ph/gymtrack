@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"log"
+	"net/http"
+	"time"
 
 	"gymtrack-backend/internal/api/handlers"
 	"gymtrack-backend/internal/api/middleware"
@@ -168,7 +170,8 @@ var RepositoryModule = fx.Module("repositories",
 		router *gin.Engine,
 		registry *prometheus.Registry,
 	) {
-		middleware.InitAuthMiddleware(cfg, authService, userRepo)
+		authMw := middleware.JWTAuthMiddleware(cfg, authService, userRepo)
+		metricsMw := middleware.MetricsMiddleware(registry)
 
 		corsConfig := cors.DefaultConfig()
 		corsConfig.AllowAllOrigins = true // Allow mobile devices + emulators in development
@@ -181,72 +184,41 @@ var RepositoryModule = fx.Module("repositories",
 		router.Use(cors.New(corsConfig))
 
 		// Prometheus metrics
-		middleware.InitMetricsMiddleware(registry)
-		router.Use(middleware.MetricsMiddleware())
+		router.Use(metricsMw)
 		routes.RegisterMetricsRoutes(router, registry)
 
 		routes.RegisterSwaggerRoutes(router)
 
 		apiGroup := router.Group("/api")
 		routes.AuthRoutes(apiGroup, authHandler)
-		routes.UserRoutes(apiGroup, userHandler)
-		routes.AdminRoutes(apiGroup, adminHandler)
+		routes.UserRoutes(apiGroup, userHandler, authMw)
+		routes.AdminRoutes(apiGroup, adminHandler, authMw)
 
-		routes.WorkoutRoutes(apiGroup, workoutHandler)
-		routes.MeasurementRoutes(apiGroup, bodyMeasurementHandler)
+		routes.WorkoutRoutes(apiGroup, workoutHandler, authMw)
+		routes.MeasurementRoutes(apiGroup, bodyMeasurementHandler, authMw)
 
-		routes.MealRoutes(apiGroup, mealHandler)
+		routes.MealRoutes(apiGroup, mealHandler, authMw)
 
-		routes.RelationshipRoutes(apiGroup, relationshipHandler)
-		routes.CommentRoutes(apiGroup, commentHandler)
+		routes.RelationshipRoutes(apiGroup, relationshipHandler, authMw)
+		routes.CommentRoutes(apiGroup, commentHandler, authMw)
 
-		routes.RegisterExerciseRoutes(router, exerciseHandler)
+		routes.RegisterExerciseRoutes(router, exerciseHandler, authMw)
 
-		routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler)
-		routes.RegisterCoachingRequestRoutes(router, coachingRequestHandler)
+		routes.RegisterTrainerRoutes(router, trainerCatalogHandler, availabilityHandler, reviewHandler, authMw)
+		routes.RegisterCoachingRequestRoutes(router, coachingRequestHandler, authMw)
 
-		routes.RegisterWorkoutPlanRoutes(apiGroup, workoutPlanHandler)
+		routes.RegisterWorkoutPlanRoutes(apiGroup, workoutPlanHandler, authMw)
 	}),
 	fx.Invoke(StartServer),
 )
 
-type AppProvider struct {
-	fx.In
-
-	Config      *config.Config
-	Lifecycle   fx.Lifecycle
-	Router      *gin.Engine
-	AuthService *services.AuthService
-	UserRepo    repositories.UserRepository
-}
-
-func NewApp(p AppProvider) *App {
-	middleware.InitAuthMiddleware(p.Config, p.AuthService, p.UserRepo)
-
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowAllOrigins = true // Allow mobile devices + emulators in development
-
-	// corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"} // Replaced by AllowAllOrigins above
-	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}
-	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
-	corsConfig.AllowCredentials = true
-
-	p.Router.Use(cors.New(corsConfig))
-
-	routes.RegisterSwaggerRoutes(p.Router)
-
-	return &App{Router: p.Router}
-}
-
-type App struct {
-	Router *gin.Engine
-}
-
 func StartServer(lc fx.Lifecycle, router *gin.Engine) {
+	var srv *http.Server
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			srv = &http.Server{Addr: ":8080", Handler: router}
 			go func() {
-				if err := router.Run(":8080"); err != nil {
+				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					log.Printf("Server error: %v", err)
 				}
 			}()
@@ -254,7 +226,9 @@ func StartServer(lc fx.Lifecycle, router *gin.Engine) {
 		},
 		OnStop: func(ctx context.Context) error {
 			log.Println("Shutting down server...")
-			return nil
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			return srv.Shutdown(shutdownCtx)
 		},
 	})
 }

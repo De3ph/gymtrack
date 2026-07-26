@@ -2,14 +2,13 @@ package routes
 
 import (
 	"gymtrack-backend/internal/api/handlers"
-	"gymtrack-backend/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterWorkoutPlanRoutes(router *gin.RouterGroup, handler *handlers.WorkoutPlanHandler) {
+func RegisterWorkoutPlanRoutes(router *gin.RouterGroup, handler *handlers.WorkoutPlanHandler, authMw gin.HandlerFunc) {
 	plans := router.Group("/workout-plans")
-	plans.Use(middleware.JWTAuthMiddleware())
+	plans.Use(authMw)
 	{
 		// Static routes must be registered before /:id
 		plans.GET("/assigned", handler.GetMyPlans) // athlete only
@@ -29,7 +28,7 @@ func RegisterWorkoutPlanRoutes(router *gin.RouterGroup, handler *handlers.Workou
 
 	// Trainer views client's plans
 	clients := router.Group("/clients")
-	clients.Use(middleware.JWTAuthMiddleware())
+	clients.Use(authMw)
 	{
 		clients.GET("/:username/workout-plans", handler.GetClientPlans) // trainer only
 	}

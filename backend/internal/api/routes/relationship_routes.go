@@ -2,14 +2,13 @@ package routes
 
 import (
 	"gymtrack-backend/internal/api/handlers"
-	"gymtrack-backend/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RelationshipRoutes(router *gin.RouterGroup, handler *handlers.RelationshipHandler) {
+func RelationshipRoutes(router *gin.RouterGroup, handler *handlers.RelationshipHandler, authMw gin.HandlerFunc) {
 	relationships := router.Group("/relationships")
-	relationships.Use(middleware.JWTAuthMiddleware())
+	relationships.Use(authMw)
 	{
 		// Trainer endpoints
 		relationships.POST("/invite", handler.GenerateInvitation)

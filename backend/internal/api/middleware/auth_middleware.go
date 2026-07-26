@@ -13,23 +13,7 @@ import (
 	"gymtrack-backend/internal/domain/services"
 )
 
-var (
-	appConfig   *config.Config
-	authService *services.AuthService
-	userRepo    repositories.UserRepository
-)
-
-func InitAuthMiddleware(cfg *config.Config, service *services.AuthService, repo repositories.UserRepository) {
-	appConfig = cfg
-	authService = service
-	userRepo = repo
-}
-
-func JWTAuthMiddleware() gin.HandlerFunc {
-	if appConfig == nil {
-		panic("Auth middleware not initialized. Call InitAuthMiddleware first.")
-	}
-
+func JWTAuthMiddleware(cfg *config.Config, authService *services.AuthService, userRepo repositories.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {

@@ -2,14 +2,13 @@ package routes
 
 import (
 	"gymtrack-backend/internal/api/handlers"
-	"gymtrack-backend/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func WorkoutRoutes(router *gin.RouterGroup, workoutHandler *handlers.WorkoutHandler) {
+func WorkoutRoutes(router *gin.RouterGroup, workoutHandler *handlers.WorkoutHandler, authMw gin.HandlerFunc) {
 	workouts := router.Group("/workouts")
-	workouts.Use(middleware.JWTAuthMiddleware())
+	workouts.Use(authMw)
 	{
 		workouts.POST("", workoutHandler.CreateWorkout)
 		workouts.GET("", workoutHandler.GetWorkouts)
@@ -20,7 +19,7 @@ func WorkoutRoutes(router *gin.RouterGroup, workoutHandler *handlers.WorkoutHand
 
 	// Trainer client view routes
 	clients := router.Group("/clients")
-	clients.Use(middleware.JWTAuthMiddleware())
+	clients.Use(authMw)
 	{
 		clients.GET("/:username/workouts", workoutHandler.GetClientWorkouts)
 	}

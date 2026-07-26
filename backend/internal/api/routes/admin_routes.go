@@ -2,14 +2,14 @@ package routes
 
 import (
 	"gymtrack-backend/internal/api/handlers"
-	"gymtrack-backend/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
+	"gymtrack-backend/internal/api/middleware"
 )
 
-func AdminRoutes(router *gin.RouterGroup, adminHandler *handlers.AdminHandler) {
+func AdminRoutes(router *gin.RouterGroup, adminHandler *handlers.AdminHandler, authMw gin.HandlerFunc) {
 	admin := router.Group("/admin")
-	admin.Use(middleware.JWTAuthMiddleware())
+	admin.Use(authMw)
 	admin.Use(middleware.AdminOnlyMiddleware())
 	{
 		admin.GET("/stats", adminHandler.GetDashboardStats)

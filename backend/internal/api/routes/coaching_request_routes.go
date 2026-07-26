@@ -2,15 +2,14 @@ package routes
 
 import (
 	"gymtrack-backend/internal/api/handlers"
-	"gymtrack-backend/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterCoachingRequestRoutes(router *gin.Engine, coachingRequestHandler *handlers.CoachingRequestHandler) {
+func RegisterCoachingRequestRoutes(router *gin.Engine, coachingRequestHandler *handlers.CoachingRequestHandler, authMw gin.HandlerFunc) {
 	// Coaching request routes (authenticated)
 	coachingGroup := router.Group("/api/coaching-requests")
-	coachingGroup.Use(middleware.JWTAuthMiddleware())
+	coachingGroup.Use(authMw)
 
 	// Create coaching request (athletes only)
 	coachingGroup.POST("", coachingRequestHandler.CreateCoachingRequest)

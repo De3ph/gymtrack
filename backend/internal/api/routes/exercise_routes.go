@@ -1,13 +1,12 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
-
 	"gymtrack-backend/internal/api/handlers"
-	"gymtrack-backend/internal/api/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
-func RegisterExerciseRoutes(router *gin.Engine, exerciseHandler *handlers.ExerciseHandler) {
+func RegisterExerciseRoutes(router *gin.Engine, exerciseHandler *handlers.ExerciseHandler, authMw gin.HandlerFunc) {
 	// Public routes (no authentication required)
 	publicRoutes := router.Group("/api")
 	{
@@ -22,7 +21,7 @@ func RegisterExerciseRoutes(router *gin.Engine, exerciseHandler *handlers.Exerci
 
 	// Authenticated routes (require JWT)
 	authRoutes := router.Group("/api")
-	authRoutes.Use(middleware.JWTAuthMiddleware())
+	authRoutes.Use(authMw)
 	{
 		authRoutes.POST("/exercises", exerciseHandler.CreateExercise)
 	}
