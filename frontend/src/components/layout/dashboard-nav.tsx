@@ -6,8 +6,8 @@ import { AdminNav } from "./admin-nav";
 import { MobileNav } from "./MobileNav";
 import { ThemeToggle } from "./theme-toggle";
 import { LocaleToggle } from "./locale-toggle";
+import { UserAvatarMenu } from "./user-avatar-menu";
 import { ROUTES } from "@/lib/routes";
-import { useTranslations } from "next-intl";
 
 interface DashboardNavProps {
   userRole?: string;
@@ -20,8 +20,6 @@ export function DashboardNav({
   userName,
   onLogout,
 }: DashboardNavProps) {
-  const tCommon = useTranslations("common.navigation");
-
   return (
     <nav className="bg-card shadow-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,19 +39,12 @@ export function DashboardNav({
               <ThemeToggle />
               <LocaleToggle />
             </div>
-            <div className="hidden lg:flex lg:items-center lg:gap-4">
-              <Link
-                href={userRole === "admin" ? ROUTES.ADMIN_PROFILE : ROUTES.PROFILE}
-                className="text-sm text-foreground hover:underline"
-              >
-                {userName} ({userRole})
-              </Link>
-              <button
-                onClick={onLogout}
-                className="rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
-              >
-                {tCommon("logout")}
-              </button>
+            <div className="hidden lg:block">
+              <UserAvatarMenu
+                userName={userName}
+                userRole={userRole}
+                onLogout={onLogout}
+              />
             </div>
 
             <MobileNav

@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "./theme-toggle";
 import { LocaleToggle } from "./locale-toggle";
 import {
@@ -25,6 +26,14 @@ interface MobileNavProps {
 
 export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
   const tCommon = useTranslations("common.navigation");
+
+  const initials =
+    userName
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "?";
 
   return (
     <Drawer direction="right">
@@ -58,7 +67,12 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
             <ThemeToggle />
             <LocaleToggle />
           </div>
-          <div className="mb-3 text-sm text-muted-foreground">{userName}</div>
+          <div className="mb-3 flex items-center justify-center gap-3">
+            <Avatar>
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-muted-foreground">{userName}</span>
+          </div>
           <DrawerClose asChild>
             <Button onClick={onLogout} variant="secondary" className="w-full">
               {tCommon("logout")}

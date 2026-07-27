@@ -29,6 +29,30 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={cn("font-sans", inter.variable, geistMono.variable)} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var key = "theme";
+                  var stored = localStorage.getItem(key) || "system";
+                  var theme = stored === "system"
+                    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+                    : stored;
+                  if (theme === "dark") {
+                    document.documentElement.classList.add("dark");
+                    document.documentElement.style.colorScheme = "dark";
+                  } else {
+                    document.documentElement.classList.remove("dark");
+                    document.documentElement.style.colorScheme = "light";
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>
