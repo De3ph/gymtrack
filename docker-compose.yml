@@ -1,6 +1,12 @@
 services:
   db:
-    image: postgres:16-alpine
+    # Built from ./postgres/Dockerfile so pgAudit and pg_partman are
+    # available. (pg_stat_statements is bundled in the base image
+    # contrib and only needs preloading + CREATE EXTENSION.)
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    image: gymtrack-postgres:16-ext
     container_name: gymtrack-postgres
     ports:
       - "5432:5432"
@@ -10,12 +16,27 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # Runs CREATE EXTENSION on first init only (pgdata must be empty)
+      - ./postgres/init-extensions.sql:/docker-entrypoint-initdb.d/init-extensions.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
-    command: postgres -c shared_preload_libraries=pg_stat_statements
+    # Preload shared libraries and tune each extension. pg_partman_bgw is
+    # the background worker that auto-maintains partitions; it needs to know
+    # which database(s) to run in via pg_partman_bgw.dbname.
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements,pgaudit,pg_partman_bgw
+      -c pg_stat_statements.max=10000
+      -c pg_stat_statements.track=all
+      -c pgaudit.log=write,ddl,role
+      -c pgaudit.log_parameter=on
+      -c pgaudit.log_relation=on
+      -c pg_partman_bgw.interval=1h
+      -c pg_partman_bgw.role=postgres
+      -c pg_partman_bgw.dbname=fitness_app
 
   pgadmin:
     image: dpage/pgadmin4
