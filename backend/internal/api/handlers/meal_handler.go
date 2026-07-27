@@ -93,8 +93,7 @@ func (h *MealHandler) CreateMeal(c *gin.Context) {
 		UserRole:  userRole.(models.UserRole),
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create meal", "details": err.Error()})
@@ -138,15 +137,8 @@ func (h *MealHandler) GetMeal(c *gin.Context) {
 		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "MEAL_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Meal not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve meal"})
 		return
@@ -177,8 +169,7 @@ func (h *MealHandler) GetMeals(c *gin.Context) {
 
 	limit, offset, startDate, endDate, date, err := services.ParseMealQueryParams(c)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "INVALID_DATE" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse query params"})
@@ -201,8 +192,7 @@ func (h *MealHandler) GetMeals(c *gin.Context) {
 		Date:      date,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve meals", "details": err.Error()})
@@ -259,15 +249,8 @@ func (h *MealHandler) UpdateMeal(c *gin.Context) {
 		Items:     req.Items,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "MEAL_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Meal not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update meal", "details": err.Error()})
 		return
@@ -306,15 +289,8 @@ func (h *MealHandler) DeleteMeal(c *gin.Context) {
 
 	err = h.mealService.DeleteMeal(c.Request.Context(), mealID, athleteIDInt)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "MEAL_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Meal not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete meal", "details": err.Error()})
 		return
@@ -347,8 +323,7 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 
 	limit, offset, startDate, endDate, _, err := services.ParseMealQueryParams(c)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "INVALID_DATE" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse query params"})
@@ -384,8 +359,7 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 		MealType:  mealType,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve meals", "details": err.Error()})

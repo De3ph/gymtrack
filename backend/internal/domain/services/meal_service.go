@@ -101,7 +101,7 @@ func (s *MealService) GetMeals(ctx context.Context, input GetMealsInput) (*GetMe
 		return nil, NewServiceError("Only athletes can list their meals", "FORBIDDEN")
 	}
 
-	var meals []*models.Meal
+	meals := make([]*models.Meal, 0)
 	var err error
 
 	if input.Date != "" {
@@ -222,7 +222,7 @@ func (s *MealService) GetClientMeals(ctx context.Context, input GetClientMealsIn
 		return nil, NewServiceError("You don't have an active relationship with this client", "FORBIDDEN")
 	}
 
-	var meals []*models.Meal
+	meals := make([]*models.Meal, 0)
 
 	if input.StartDate != nil && input.EndDate != nil {
 		meals, err = s.mealRepo.GetByAthleteDateRange(ctx, input.ClientID, *input.StartDate, *input.EndDate)
@@ -235,7 +235,7 @@ func (s *MealService) GetClientMeals(ctx context.Context, input GetClientMealsIn
 	}
 
 	if input.MealType != "" {
-		var filtered []*models.Meal
+		filtered := make([]*models.Meal, 0)
 		for _, m := range meals {
 			if strings.EqualFold(string(m.MealType), input.MealType) {
 				filtered = append(filtered, m)

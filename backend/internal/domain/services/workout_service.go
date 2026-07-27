@@ -99,7 +99,7 @@ func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput
 		return nil, NewServiceError("Only athletes can list their workouts", "FORBIDDEN")
 	}
 
-	var workouts []*models.Workout
+	workouts := make([]*models.Workout, 0)
 	var err error
 
 	if input.StartDate != nil && input.EndDate != nil {
@@ -208,7 +208,7 @@ func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientW
 		return nil, NewServiceError("You don't have an active relationship with this client", "FORBIDDEN")
 	}
 
-	var workouts []*models.Workout
+	workouts := make([]*models.Workout, 0)
 
 	if input.StartDate != nil && input.EndDate != nil {
 		workouts, err = s.workoutRepo.GetByAthleteDateRange(ctx, input.ClientID, *input.StartDate, *input.EndDate)
@@ -221,7 +221,7 @@ func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientW
 	}
 
 	if input.ExerciseType != "" {
-		var filtered []*models.Workout
+		filtered := make([]*models.Workout, 0)
 		for _, w := range workouts {
 			for _, e := range w.Exercises {
 				if containsIgnoreCase(e.Name, input.ExerciseType) {

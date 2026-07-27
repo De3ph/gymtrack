@@ -71,11 +71,8 @@ func (h *WorkoutPlanHandler) CreatePlan(c *gin.Context) {
 
 	plan, err := h.service.CreatePlan(c.Request.Context(), userIDInt, req.Name, req.Description, req.Exercises)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "VALIDATION" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": svcErr.Message})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create workout plan", "details": err.Error()})
 		return
@@ -131,15 +128,8 @@ func (h *WorkoutPlanHandler) GetPlan(c *gin.Context) {
 
 	plan, err := h.service.GetPlan(c.Request.Context(), planID, userIDInt, userRole.(models.UserRole))
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_PLAN_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout plan not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workout plan"})
 		return
@@ -178,19 +168,8 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 
 	plan, err := h.service.UpdatePlan(c.Request.Context(), planID, userIDInt, req.Name, req.Description, req.Exercises)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_PLAN_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout plan not found"})
-				return
-			}
-			if svcErr.Code == "VALIDATION" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": svcErr.Message})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update workout plan", "details": err.Error()})
 		return
@@ -225,19 +204,8 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 
 	err = h.service.DeletePlan(c.Request.Context(), planID, userIDInt, force)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_PLAN_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout plan not found"})
-				return
-			}
-			if svcErr.Code == "HAS_ASSIGNMENTS" {
-				c.JSON(http.StatusConflict, gin.H{"error": svcErr.Message})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete workout plan", "details": err.Error()})
 		return
@@ -286,15 +254,8 @@ func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
 
 	assignments, err := h.service.AssignPlan(c.Request.Context(), planID, userIDInt, athleteIDInts)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_PLAN_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout plan not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign workout plan", "details": err.Error()})
 		return
@@ -330,15 +291,8 @@ func (h *WorkoutPlanHandler) GetAssignments(c *gin.Context) {
 
 	assignments, err := h.service.GetAssignmentsForPlan(c.Request.Context(), planID, userIDInt)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_PLAN_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout plan not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve assignments", "details": err.Error()})
 		return
@@ -402,15 +356,8 @@ func (h *WorkoutPlanHandler) StartWorkoutFromPlan(c *gin.Context) {
 
 	workout, err := h.service.StartWorkoutFromPlan(c.Request.Context(), planID, userIDInt)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_PLAN_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout plan not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start workout from plan", "details": err.Error()})
 		return
@@ -448,8 +395,7 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 
 	plans, err := h.service.GetClientPlans(c.Request.Context(), trainerIDInt, athlete.UserID)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve client plans", "details": err.Error()})

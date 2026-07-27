@@ -114,7 +114,7 @@ func (r *PostgresMealRepository) Delete(ctx context.Context, mealID int) error {
 }
 
 func (r *PostgresMealRepository) scanRows(rows pgx.Rows) ([]*models.Meal, error) {
-	var meals []*models.Meal
+	meals := make([]*models.Meal, 0)
 	for rows.Next() {
 		meal := &models.Meal{}
 		var itemsRaw []byte

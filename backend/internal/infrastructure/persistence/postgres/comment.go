@@ -75,7 +75,7 @@ func (r *PostgresCommentRepository) GetByTarget(ctx context.Context, targetType 
 	}
 	defer rows.Close()
 
-	var comments []*models.Comment
+	comments := make([]*models.Comment, 0)
 	for rows.Next() {
 		c := &models.Comment{}
 		if err := scanComment(rows, c); err != nil {
@@ -99,7 +99,7 @@ func (r *PostgresCommentRepository) GetByAuthor(ctx context.Context, authorID in
 	}
 	defer rows.Close()
 
-	var comments []*models.Comment
+	comments := make([]*models.Comment, 0)
 	for rows.Next() {
 		c := &models.Comment{}
 		if err := scanComment(rows, c); err != nil {
@@ -123,7 +123,7 @@ func (r *PostgresCommentRepository) GetReplies(ctx context.Context, parentCommen
 	}
 	defer rows.Close()
 
-	var comments []*models.Comment
+	comments := make([]*models.Comment, 0)
 	for rows.Next() {
 		c := &models.Comment{}
 		if err := scanComment(rows, c); err != nil {
@@ -174,7 +174,7 @@ func (r *PostgresCommentRepository) GetAllComments(ctx context.Context, targetTy
 	}
 	defer rows.Close()
 
-	var comments []*models.Comment
+	comments := make([]*models.Comment, 0)
 	for rows.Next() {
 		c := &models.Comment{}
 		if err := scanComment(rows, c); err != nil {

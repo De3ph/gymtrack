@@ -29,7 +29,7 @@ func (r *PostgresMuscleGroupRepository) GetAllMuscleGroups(ctx context.Context) 
 	}
 	defer rows.Close()
 
-	var muscleGroups []models.MuscleGroupDefinition
+	muscleGroups := make([]models.MuscleGroupDefinition, 0)
 	for rows.Next() {
 		var mg models.MuscleGroupDefinition
 		if err := rows.Scan(&mg.ID, &mg.Code, &mg.Description); err != nil {

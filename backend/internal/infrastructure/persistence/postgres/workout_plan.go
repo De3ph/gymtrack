@@ -75,7 +75,7 @@ func (r *PostgresWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trai
 	}
 	defer rows.Close()
 
-	var plans []*models.WorkoutPlan
+	plans := make([]*models.WorkoutPlan, 0)
 	for rows.Next() {
 		p := &models.WorkoutPlan{}
 		var exRaw []byte

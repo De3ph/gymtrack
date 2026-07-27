@@ -234,7 +234,7 @@ func (r *PostgresTrainerProfileRepository) CountTrainers(ctx context.Context, fi
 
 // scanTrainerRows scans multiple trainer rows with joined review data.
 func (r *PostgresTrainerProfileRepository) scanTrainerRows(rows pgx.Rows) ([]models.TrainerWithProfile, error) {
-	var trainers []models.TrainerWithProfile
+	trainers := make([]models.TrainerWithProfile, 0)
 	for rows.Next() {
 		var trainer models.TrainerWithProfile
 		var profileRaw []byte

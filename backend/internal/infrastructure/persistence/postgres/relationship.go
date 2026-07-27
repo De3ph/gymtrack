@@ -72,7 +72,7 @@ func (r *PostgresRelationshipRepository) GetByTrainerID(ctx context.Context, tra
 	}
 	defer rows.Close()
 
-	var rels []*models.Relationship
+	rels := make([]*models.Relationship, 0)
 	for rows.Next() {
 		rel := &models.Relationship{}
 		if err := rows.Scan(&rel.RelationshipID, &rel.TrainerID, &rel.AthleteID, &rel.Status, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
@@ -114,7 +114,7 @@ func (r *PostgresRelationshipRepository) GetPendingByAthleteID(ctx context.Conte
 	}
 	defer rows.Close()
 
-	var rels []*models.Relationship
+	rels := make([]*models.Relationship, 0)
 	for rows.Next() {
 		rel := &models.Relationship{}
 		if err := rows.Scan(&rel.RelationshipID, &rel.TrainerID, &rel.AthleteID, &rel.Status, &rel.CreatedAt, &rel.UpdatedAt); err != nil {

@@ -71,7 +71,7 @@ func (r *PostgresExerciseRepository) GetExerciseByID(ctx context.Context, exerci
 }
 
 func (r *PostgresExerciseRepository) scanExercises(rows pgx.Rows) ([]models.Exercise, error) {
-	var exercises []models.Exercise
+	exercises := make([]models.Exercise, 0)
 	for rows.Next() {
 		ex := models.Exercise{}
 		var createdBy *int

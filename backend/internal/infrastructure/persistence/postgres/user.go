@@ -174,7 +174,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.Use
 	}
 	defer rows.Close()
 
-	var users []*models.User
+	users := make([]*models.User, 0)
 	for rows.Next() {
 		user := &models.User{}
 		var profileRaw []byte
@@ -276,7 +276,7 @@ func (r *PostgresUserRepository) CountUsers(ctx context.Context, role, search st
 }
 
 func (r *PostgresUserRepository) scanUserRows(rows pgx.Rows) ([]*models.User, error) {
-	var users []*models.User
+	users := make([]*models.User, 0)
 	for rows.Next() {
 		user := &models.User{}
 		var profileRaw []byte

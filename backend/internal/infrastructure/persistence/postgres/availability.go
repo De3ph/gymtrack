@@ -32,7 +32,7 @@ func (r *PostgresAvailabilityRepository) GetByTrainerID(ctx context.Context, tra
 	}
 	defer rows.Close()
 
-	var slots []models.TrainerAvailability
+	slots := make([]models.TrainerAvailability, 0)
 	for rows.Next() {
 		slot, err := scanAvailability(rows)
 		if err != nil {
@@ -125,7 +125,7 @@ func (r *PostgresAvailabilityRepository) GetAvailableSlots(ctx context.Context, 
 	}
 	defer rows.Close()
 
-	var slots []models.TrainerAvailability
+	slots := make([]models.TrainerAvailability, 0)
 	for rows.Next() {
 		slot, err := scanAvailability(rows)
 		if err != nil {

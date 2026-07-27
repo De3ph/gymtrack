@@ -97,7 +97,7 @@ func (r *PostgresWorkoutRepository) GetByAthleteID(ctx context.Context, athleteI
 	}
 	defer rows.Close()
 
-	var workouts []*models.Workout
+	workouts := make([]*models.Workout, 0)
 	for rows.Next() {
 		w := &models.Workout{}
 		if err := scanWorkout(rows, w); err != nil {
@@ -121,7 +121,7 @@ func (r *PostgresWorkoutRepository) GetByAthleteDateRange(ctx context.Context, a
 	}
 	defer rows.Close()
 
-	var workouts []*models.Workout
+	workouts := make([]*models.Workout, 0)
 	for rows.Next() {
 		w := &models.Workout{}
 		if err := scanWorkout(rows, w); err != nil {

@@ -84,11 +84,8 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 		UserRole:  userRole.(models.UserRole),
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create workout", "details": err.Error()})
 		return
@@ -131,15 +128,8 @@ func (h *WorkoutHandler) GetWorkout(c *gin.Context) {
 		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workout"})
 		return
@@ -189,8 +179,7 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 		EndDate:   endDate,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workouts", "details": err.Error()})
@@ -246,15 +235,8 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 		Exercises: req.Exercises,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update workout", "details": err.Error()})
 		return
@@ -293,15 +275,8 @@ func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
 
 	err = h.workoutService.DeleteWorkout(c.Request.Context(), workoutID, athleteIDInt)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "WORKOUT_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Workout not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete workout", "details": err.Error()})
 		return
@@ -367,8 +342,7 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 		ExerciseType: exerciseType,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workouts", "details": err.Error()})

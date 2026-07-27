@@ -86,6 +86,36 @@ var RepositoryModule = fx.Module("repositories",
 			return postgres.NewCachedTrainerProfileRepository(factory.TrainerProfileRepository(), trainerIDCache, trainerListCache)
 		},
 
+		// Uncached repositories (no caching needed for write-heavy or non-reference data)
+		func(factory *persistence.RepositoryFactory) repositories.WorkoutRepository {
+			return factory.WorkoutRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.MealRepository {
+			return factory.MealRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.CommentRepository {
+			return factory.CommentRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.BodyMeasurementRepository {
+			return factory.BodyMeasurementRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.WorkoutPlanRepository {
+			return factory.WorkoutPlanRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.WorkoutPlanAssignmentRepository {
+			return factory.WorkoutPlanAssignmentRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.AvailabilityRepository {
+			return factory.AvailabilityRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.TrainerReviewRepository {
+			return factory.TrainerReviewRepository()
+		},
+		func(factory *persistence.RepositoryFactory) repositories.CoachingRequestRepository {
+			return factory.CoachingRequestRepository()
+		},
+
+
 		// Services
 		func(userRepo repositories.UserRepository, cfg *config.Config, clock utils.Clock) *services.AuthService {
 			return services.NewAuthService(userRepo, cfg.JWTSecret, clock)

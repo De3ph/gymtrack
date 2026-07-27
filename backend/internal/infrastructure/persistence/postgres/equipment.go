@@ -29,7 +29,7 @@ func (r *PostgresEquipmentRepository) GetAllEquipment(ctx context.Context) ([]mo
 	}
 	defer rows.Close()
 
-	var equipment []models.EquipmentDefinition
+	equipment := make([]models.EquipmentDefinition, 0)
 	for rows.Next() {
 		var eq models.EquipmentDefinition
 		if err := rows.Scan(&eq.ID, &eq.Code, &eq.Description); err != nil {

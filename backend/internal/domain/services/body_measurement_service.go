@@ -126,7 +126,7 @@ func (s *BodyMeasurementService) GetBodyMeasurements(ctx context.Context, input 
 		return nil, NewServiceError("Only athletes can list their body measurements", "FORBIDDEN")
 	}
 
-	var measurements []*models.BodyMeasurement
+	measurements := make([]*models.BodyMeasurement, 0)
 	var err error
 
 	if input.StartDate != nil && input.EndDate != nil {
@@ -234,7 +234,7 @@ func (s *BodyMeasurementService) GetClientBodyMeasurements(ctx context.Context, 
 		return nil, NewServiceError("You don't have an active relationship with this client", "FORBIDDEN")
 	}
 
-	var measurements []*models.BodyMeasurement
+	measurements := make([]*models.BodyMeasurement, 0)
 	if input.StartDate != nil && input.EndDate != nil {
 		measurements, err = s.measurementRepo.GetByAthleteDateRange(ctx, input.ClientID, *input.StartDate, *input.EndDate)
 	} else {

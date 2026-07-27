@@ -118,12 +118,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	}
 
 	if err := h.commentSvc.CanCreateComment(c, userIDInt, userRole.(models.UserRole), req.TargetType, targetIDInt, parentCommentIDInt); err != nil {
-		if err == services.ErrTargetNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Workout or meal not found"})
-			return
-		}
-		if err == services.ErrAccessDenied {
-			c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to comment on this"})
+		if handleCommentServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -206,12 +201,7 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 	}
 
 	if err := h.commentSvc.CanAccessComments(c.Request.Context(), userIDInt, userRole.(models.UserRole), targetType, targetID); err != nil {
-		if err == services.ErrTargetNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Workout or meal not found"})
-			return
-		}
-		if err == services.ErrAccessDenied {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		if handleCommentServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -262,12 +252,7 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 	}
 
 	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userIDInt, commentID); err != nil {
-		if err == services.ErrTargetNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
-			return
-		}
-		if err == services.ErrNotAuthor {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Only the comment author can edit it"})
+		if handleCommentServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -331,12 +316,7 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 	}
 
 	if err := h.commentSvc.CanEditOrDeleteComment(c.Request.Context(), userIDInt, commentID); err != nil {
-		if err == services.ErrTargetNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
-			return
-		}
-		if err == services.ErrNotAuthor {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Only the comment author can delete it"})
+		if handleCommentServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

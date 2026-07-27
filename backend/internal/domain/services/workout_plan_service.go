@@ -185,7 +185,7 @@ func (s *WorkoutPlanService) AssignPlan(
 		return nil, NewServiceError("Access denied", "FORBIDDEN")
 	}
 
-	var created []*models.WorkoutPlanAssignment
+	created := make([]*models.WorkoutPlanAssignment, 0)
 
 	for _, athleteID := range athleteIDs {
 		hasRel, err := s.relationshipRepo.HasActiveRelationship(ctx, trainerID, athleteID)
@@ -238,7 +238,7 @@ func (s *WorkoutPlanService) GetMyPlans(ctx context.Context, athleteID int) ([]*
 		return nil, fmt.Errorf("failed to get assignments: %w", err)
 	}
 
-	var plans []*models.WorkoutPlan
+	plans := make([]*models.WorkoutPlan, 0)
 	for _, a := range assignments {
 		plan, err := s.planRepo.GetByID(ctx, a.PlanID)
 		if err != nil {
@@ -304,7 +304,7 @@ func (s *WorkoutPlanService) GetClientPlans(
 		return nil, fmt.Errorf("failed to get assignments: %w", err)
 	}
 
-	var plans []*models.WorkoutPlan
+	plans := make([]*models.WorkoutPlan, 0)
 	for _, a := range assignments {
 		plan, err := s.planRepo.GetByID(ctx, a.PlanID)
 		if err != nil {

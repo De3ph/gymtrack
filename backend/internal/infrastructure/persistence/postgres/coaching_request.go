@@ -129,7 +129,7 @@ func (r *PostgresCoachingRequestRepository) Delete(ctx context.Context, requestI
 
 // scanRequests is a helper to scan multiple coaching request rows.
 func (r *PostgresCoachingRequestRepository) scanRequests(rows pgx.Rows) ([]*models.CoachingRequest, error) {
-	var requests []*models.CoachingRequest
+	requests := make([]*models.CoachingRequest, 0)
 	for rows.Next() {
 		req := &models.CoachingRequest{}
 		if err := rows.Scan(&req.RequestID, &req.AthleteID, &req.TrainerID, &req.Message, &req.Status, &req.CreatedAt, &req.UpdatedAt); err != nil {

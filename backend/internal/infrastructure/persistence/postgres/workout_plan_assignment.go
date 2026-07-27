@@ -54,7 +54,7 @@ func (r *PostgresWorkoutPlanAssignmentRepository) scanAssignment(row pgx.Row) (*
 }
 
 func (r *PostgresWorkoutPlanAssignmentRepository) scanAssignments(rows pgx.Rows) ([]*models.WorkoutPlanAssignment, error) {
-	var results []*models.WorkoutPlanAssignment
+	results := make([]*models.WorkoutPlanAssignment, 0)
 	for rows.Next() {
 		a := &models.WorkoutPlanAssignment{}
 		if err := rows.Scan(&a.AssignmentID, &a.PlanID, &a.AthleteID, &a.TrainerID, &a.Status, &a.CreatedAt); err != nil {

@@ -169,7 +169,7 @@ func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requ
 }
 
 func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, userRole string) ([]*models.CoachingRequestWithDetails, error) {
-	var requests []*models.CoachingRequest
+	requests := make([]*models.CoachingRequest, 0)
 	var err error
 
 	if userRole == "athlete" {
@@ -185,7 +185,7 @@ func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, 
 	}
 
 	// Enrich with user details
-	var requestsWithDetails []*models.CoachingRequestWithDetails
+	requestsWithDetails := make([]*models.CoachingRequestWithDetails, 0)
 	for _, req := range requests {
 		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
 	}
@@ -221,7 +221,7 @@ func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Contex
 	}
 
 	// Enrich with athlete details
-	var requestsWithDetails []*models.CoachingRequestWithDetails
+	requestsWithDetails := make([]*models.CoachingRequestWithDetails, 0)
 	for _, req := range requests {
 		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
 	}

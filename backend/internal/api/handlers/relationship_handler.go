@@ -333,7 +333,7 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 	}
 
 	// Filter for active relationships only
-	var activeClients []*models.Relationship
+	activeClients := make([]*models.Relationship, 0)
 	for _, rel := range relationships {
 		if rel.IsActive() {
 			activeClients = append(activeClients, rel)
@@ -346,7 +346,7 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 		Athlete      *models.User         `json:"athlete"`
 	}
 
-	var clientsWithAthlete []ClientWithAthlete
+	clientsWithAthlete := make([]ClientWithAthlete, 0)
 	for _, rel := range activeClients {
 		athlete, err := h.userRepo.GetUserByID(c.Request.Context(), rel.AthleteID)
 		if err != nil {
@@ -619,7 +619,7 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 func calculateWorkoutStats(workouts []*models.Workout) *WorkoutStats {
 	var totalVolume float64
 	exerciseMap := make(map[string]*ExerciseStat)
-	var weeklyData []WeeklyVolumePoint
+	weeklyData := make([]WeeklyVolumePoint, 0)
 
 	// Group workouts by week
 	weekMap := make(map[string][]*models.Workout)
@@ -685,7 +685,7 @@ func calculateWorkoutStats(workouts []*models.Workout) *WorkoutStats {
 	}
 
 	// Convert exercise map to slice
-	var exerciseBreakdown []ExerciseStat
+	exerciseBreakdown := make([]ExerciseStat, 0)
 	for _, es := range exerciseMap {
 		exerciseBreakdown = append(exerciseBreakdown, *es)
 	}
@@ -736,7 +736,7 @@ func calculateMealStats(meals []*models.Meal) *MealStats {
 	}
 
 	// Calculate weekly averages
-	var weeklyAverages []WeeklyMealAvg
+	weeklyAverages := make([]WeeklyMealAvg, 0)
 	for week, ws := range weeklyMap {
 		var weekCalories, weekProtein, weekCarbs, weekFats float64
 		mealCountInWeek := float64(len(ws))
@@ -764,7 +764,7 @@ func calculateMealStats(meals []*models.Meal) *MealStats {
 	}
 
 	// Convert meal type map to slice
-	var mealTypeBreakdown []MealTypeStat
+	mealTypeBreakdown := make([]MealTypeStat, 0)
 	for mt, count := range mealTypeMap {
 		mealTypeBreakdown = append(mealTypeBreakdown, MealTypeStat{
 			MealType: string(mt),

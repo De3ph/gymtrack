@@ -102,11 +102,8 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 		UserRole:   userRole.(models.UserRole),
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" || svcErr.Code == "VALIDATION" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create body measurement", "details": err.Error()})
 		return
@@ -149,15 +146,8 @@ func (h *BodyMeasurementHandler) GetBodyMeasurement(c *gin.Context) {
 		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "BODY_MEASUREMENT_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Body measurement not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve body measurement"})
 		return
@@ -205,8 +195,7 @@ func (h *BodyMeasurementHandler) GetBodyMeasurements(c *gin.Context) {
 		EndDate:   endDate,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve body measurements", "details": err.Error()})
@@ -258,8 +247,7 @@ func (h *BodyMeasurementHandler) GetLatestBodyMeasurement(c *gin.Context) {
 		RequesterRole: userRole.(models.UserRole),
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve latest body measurement"})
@@ -324,15 +312,8 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 		Notes:         req.Notes,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" || svcErr.Code == "VALIDATION" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "BODY_MEASUREMENT_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Body measurement not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update body measurement", "details": err.Error()})
 		return
@@ -369,15 +350,8 @@ func (h *BodyMeasurementHandler) DeleteBodyMeasurement(c *gin.Context) {
 
 	err = h.measurementService.DeleteBodyMeasurement(c.Request.Context(), measurementID, athleteIDInt)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			if svcErr.Code == "FORBIDDEN" {
-				c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
-				return
-			}
-			if svcErr.Code == "BODY_MEASUREMENT_NOT_FOUND" {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Body measurement not found"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete body measurement", "details": err.Error()})
 		return
@@ -435,8 +409,7 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 		EndDate:   endDate,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "FORBIDDEN" {
-			c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve client body measurements", "details": err.Error()})

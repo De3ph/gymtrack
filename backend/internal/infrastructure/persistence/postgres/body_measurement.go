@@ -153,7 +153,7 @@ func (r *PostgresBodyMeasurementRepository) Delete(ctx context.Context, id int) 
 }
 
 func (r *PostgresBodyMeasurementRepository) scanRows(rows pgx.Rows) ([]*models.BodyMeasurement, error) {
-	var results []*models.BodyMeasurement
+	results := make([]*models.BodyMeasurement, 0)
 	for rows.Next() {
 		m := &models.BodyMeasurement{}
 		var partsRaw []byte

@@ -110,8 +110,7 @@ func (h *AdminHandler) GetUserDetail(c *gin.Context) {
 
 	user, err := h.adminService.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "USER_NOT_FOUND" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve user"})
@@ -195,8 +194,7 @@ func (h *AdminHandler) ChangePassword(c *gin.Context) {
 		NewPassword: req.NewPassword,
 	})
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "INVALID_PASSWORD" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "current password is incorrect"})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to change password"})
@@ -253,18 +251,8 @@ func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
 
 	err = h.adminService.UpdateUserRole(c.Request.Context(), adminID, targetUserID, models.UserRole(req.Role))
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			switch svcErr.Code {
-			case "USER_NOT_FOUND":
-				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-				return
-			case "SELF_ROLE_CHANGE":
-				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot change your own role"})
-				return
-			case "LAST_ADMIN":
-				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot demote the last admin"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update role"})
 		return
@@ -309,15 +297,8 @@ func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
 
 	err = h.adminService.UpdateUserStatus(c.Request.Context(), targetUserID, models.UserStatus(req.Status))
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok {
-			switch svcErr.Code {
-			case "USER_NOT_FOUND":
-				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-				return
-			case "LAST_ADMIN":
-				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot suspend/ban the last admin"})
-				return
-			}
+		if handleServiceError(c, err) {
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update status"})
 		return
@@ -421,8 +402,7 @@ func (h *AdminHandler) DeleteComment(c *gin.Context) {
 
 	err = h.adminService.DeleteComment(c.Request.Context(), commentID)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "COMMENT_NOT_FOUND" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "comment not found"})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete comment"})
@@ -455,8 +435,7 @@ func (h *AdminHandler) VerifyExercise(c *gin.Context) {
 
 	err = h.adminService.VerifyExercise(c.Request.Context(), exerciseID)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "EXERCISE_NOT_FOUND" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "exercise not found"})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to verify exercise"})
@@ -489,8 +468,7 @@ func (h *AdminHandler) DeleteExercise(c *gin.Context) {
 
 	err = h.adminService.DeleteExercise(c.Request.Context(), exerciseID)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "EXERCISE_NOT_FOUND" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "exercise not found"})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete exercise"})

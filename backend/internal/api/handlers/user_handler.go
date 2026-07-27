@@ -56,8 +56,7 @@ func (h *UserHandler) GetCurrentUser(c *gin.Context) {
 
 	user, err := h.userService.GetUserByID(c.Request.Context(), userIDInt)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "USER_NOT_FOUND" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve user"})
@@ -115,8 +114,7 @@ func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 
 	user, err := h.userService.UpdateUserProfile(c.Request.Context(), userIDInt, req.Profile)
 	if err != nil {
-		if svcErr, ok := err.(*services.ServiceError); ok && svcErr.Code == "USER_NOT_FOUND" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		if handleServiceError(c, err) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
