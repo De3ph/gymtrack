@@ -185,13 +185,12 @@ func (s *AuthService) validateToken(tokenString string, expectedType TokenType) 
 		return nil, ErrInvalidTokenType
 	}
 
-	// Check expiration
-	if exp, ok := claims["exp"].(float64); ok {
-		if int64(exp) < s.clock.Now().Unix() {
-			return nil, ErrTokenExpired
-		}
-	} else {
+	exp, ok := claims["exp"].(float64)
+	if !ok {
 		return nil, ErrInvalidToken
+	}
+	if int64(exp) < s.clock.Now().Unix() {
+		return nil, ErrTokenExpired
 	}
 
 	// Extract user info

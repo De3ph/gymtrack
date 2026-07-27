@@ -90,6 +90,10 @@ type DashboardStats struct {
 	TotalMeals        int `json:"totalMeals"`
 }
 
+func isOnOrAfter(t, boundary time.Time) bool {
+	return !t.Before(boundary)
+}
+
 // GetDashboardStats computes aggregate platform statistics.
 func (s *AdminService) GetDashboardStats(ctx context.Context) (*DashboardStats, error) {
 	users, err := s.userRepo.GetAllUsers(ctx)
@@ -112,18 +116,18 @@ func (s *AdminService) GetDashboardStats(ctx context.Context) (*DashboardStats, 
 			stats.TotalAthletes++
 		}
 
-		if u.CreatedAt.After(todayStart) || u.CreatedAt.Equal(todayStart) {
+		if isOnOrAfter(u.CreatedAt, todayStart) {
 			stats.NewUsersToday++
 		}
-		if u.CreatedAt.After(weekStart) || u.CreatedAt.Equal(weekStart) {
+		if isOnOrAfter(u.CreatedAt, weekStart) {
 			stats.NewUsersThisWeek++
 		}
-		if u.CreatedAt.After(monthStart) || u.CreatedAt.Equal(monthStart) {
+		if isOnOrAfter(u.CreatedAt, monthStart) {
 			stats.NewUsersThisMonth++
 		}
 
 		// Rough "active today": user was updated today
-		if u.UpdatedAt.After(todayStart) || u.UpdatedAt.Equal(todayStart) {
+		if isOnOrAfter(u.UpdatedAt, todayStart) {
 			stats.ActiveUsersToday++
 		}
 	}

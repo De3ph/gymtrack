@@ -295,13 +295,10 @@ func ParseBodyMeasurementQueryParams(c interface {
 	endDateStr := c.Query("endDate")
 
 	if startDateStr != "" && endDateStr != "" {
-		start, err1 := time.Parse(time.RFC3339, startDateStr)
-		end, err2 := time.Parse(time.RFC3339, endDateStr)
-		if err1 != nil || err2 != nil {
-			return 0, 0, nil, nil, NewServiceError("Invalid date format. Use RFC3339 format", "INVALID_DATE")
+		startDate, endDate, err = parseRFC3339Range(startDateStr, endDateStr)
+		if err != nil {
+			return 0, 0, nil, nil, err
 		}
-		startDate = &start
-		endDate = &end
 	}
 
 	return limit, offset, startDate, endDate, nil

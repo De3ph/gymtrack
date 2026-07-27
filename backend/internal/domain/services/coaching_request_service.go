@@ -172,11 +172,12 @@ func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, 
 	requests := make([]*models.CoachingRequest, 0)
 	var err error
 
-	if userRole == "athlete" {
+	switch models.UserRole(userRole) {
+	case models.RoleAthlete:
 		requests, err = s.coachingRequestRepo.GetByAthleteID(ctx, userID)
-	} else if userRole == "trainer" {
+	case models.RoleTrainer:
 		requests, err = s.coachingRequestRepo.GetByTrainerID(ctx, userID)
-	} else {
+	default:
 		return nil, fmt.Errorf("invalid user role")
 	}
 

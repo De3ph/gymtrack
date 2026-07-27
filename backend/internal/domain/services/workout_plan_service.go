@@ -147,21 +147,21 @@ func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, trainerID i
 		return NewServiceError("Access denied", "FORBIDDEN")
 	}
 
-	if !force {
-		assignments, err := s.assignmentRepo.GetByPlanID(ctx, planID)
-		if err != nil {
-			return fmt.Errorf("failed to check assignments: %w", err)
-		}
-		if len(assignments) > 0 {
-			return NewServiceError(
-				fmt.Sprintf("Plan has %d active assignment(s). Use force delete to remove.", len(assignments)),
-				"HAS_ASSIGNMENTS",
-			)
-		}
-	} else {
+	if force {
 		if err := s.assignmentRepo.DeleteByPlanID(ctx, planID); err != nil {
 			return fmt.Errorf("failed to delete assignments: %w", err)
 		}
+	}
+
+	assignments, err := s.assignmentRepo.GetByPlanID(ctx, planID)
+	if err != nil {
+		return fmt.Errorf("failed to check assignments: %w", err)
+	}
+	if len(assignments) > 0 {
+		return NewServiceError(
+			fmt.Sprintf("Plan has %d active assignment(s). Use force delete to remove.", len(assignments)),
+			"HAS_ASSIGNMENTS",
+		)
 	}
 
 	return s.planRepo.Delete(ctx, planID)
