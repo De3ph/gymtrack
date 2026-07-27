@@ -50,9 +50,9 @@ type AdminUserListResponse struct {
 // @Param role query string false "Filter by role (trainer, athlete, admin)"
 // @Param search query string false "Search by username or email"
 // @Success 200 {object} handlers.AdminUserListResponse "List of users with pagination"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden - admin role required"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 403 {object} map[string]any "Forbidden - admin role required"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/users [get]
 func (h *AdminHandler) ListAllUsers(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "25"))
@@ -95,10 +95,10 @@ func (h *AdminHandler) ListAllUsers(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "User ID"
 // @Success 200 {object} handlers.AdminUserListItem "User details with profile"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden - admin role required"
-// @Failure 404 {object} map[string]interface{} "User not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 403 {object} map[string]any "Forbidden - admin role required"
+// @Failure 404 {object} map[string]any "User not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/users/{id} [get]
 func (h *AdminHandler) GetUserDetail(c *gin.Context) {
 	userIDStr := c.Param("id")
@@ -137,9 +137,9 @@ func (h *AdminHandler) GetUserDetail(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} services.DashboardStats "Dashboard statistics"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden - admin role required"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 403 {object} map[string]any "Forbidden - admin role required"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/stats [get]
 func (h *AdminHandler) GetDashboardStats(c *gin.Context) {
 	stats, err := h.adminService.GetDashboardStats(c.Request.Context())
@@ -165,9 +165,9 @@ type ChangePasswordRequest struct {
 // @Security BearerAuth
 // @Param request body handlers.ChangePasswordRequest true "Password change request"
 // @Success 200 {object} map[string]string "Password changed successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid request"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/profile/password [put]
 func (h *AdminHandler) ChangePassword(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -218,11 +218,11 @@ type UpdateRoleRequest struct {
 // @Param id path string true "User ID"
 // @Param request body handlers.UpdateRoleRequest true "New role"
 // @Success 200 {object} map[string]string "Role updated successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden"
-// @Failure 404 {object} map[string]interface{} "User not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid request"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 403 {object} map[string]any "Forbidden"
+// @Failure 404 {object} map[string]any "User not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/users/{id}/role [put]
 func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
 	userIDStr := c.Param("id")
@@ -275,11 +275,11 @@ type UpdateStatusRequest struct {
 // @Param id path string true "User ID"
 // @Param request body handlers.UpdateStatusRequest true "New status"
 // @Success 200 {object} map[string]string "Status updated successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden"
-// @Failure 404 {object} map[string]interface{} "User not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid request"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 403 {object} map[string]any "Forbidden"
+// @Failure 404 {object} map[string]any "User not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/users/{id}/status [put]
 func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
 	userIDStr := c.Param("id")
@@ -338,8 +338,8 @@ type AdminCommentListResponse struct {
 // @Param offset query int false "Page offset"
 // @Param targetType query string false "Filter by target type (workout, meal)"
 // @Success 200 {object} handlers.AdminCommentListResponse "List of comments"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/comments [get]
 func (h *AdminHandler) ListAllComments(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "25"))
@@ -387,10 +387,10 @@ func (h *AdminHandler) ListAllComments(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Comment ID"
 // @Success 200 {object} map[string]string "Comment deleted successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid comment id"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 404 {object} map[string]interface{} "Comment not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid comment id"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 404 {object} map[string]any "Comment not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/comments/{id} [delete]
 func (h *AdminHandler) DeleteComment(c *gin.Context) {
 	commentIDStr := c.Param("id")
@@ -420,10 +420,10 @@ func (h *AdminHandler) DeleteComment(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Exercise ID"
 // @Success 200 {object} map[string]string "Exercise verified successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid exercise id"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 404 {object} map[string]interface{} "Exercise not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid exercise id"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 404 {object} map[string]any "Exercise not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/exercises/{id}/verify [put]
 func (h *AdminHandler) VerifyExercise(c *gin.Context) {
 	exerciseIDStr := c.Param("id")
@@ -453,10 +453,10 @@ func (h *AdminHandler) VerifyExercise(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Exercise ID"
 // @Success 200 {object} map[string]string "Exercise deleted successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid exercise id"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 404 {object} map[string]interface{} "Exercise not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid exercise id"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 404 {object} map[string]any "Exercise not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /admin/exercises/{id} [delete]
 func (h *AdminHandler) DeleteExercise(c *gin.Context) {
 	exerciseIDStr := c.Param("id")

@@ -182,7 +182,7 @@ Files with the duplicated `err1 || err2` pattern:
 
 ---
 
-## P6 — `interface{}` → `any` (15+ locations, mechanical)
+## P6 — `interface{}` → `any` (15+ locations, mechanical) ✅
 
 **Rule**: Go 1.18+ idiomatic. Simple find-and-replace.
 
@@ -196,6 +196,12 @@ Files with the duplicated `err1 || err2` pattern:
 | 6 | `internal/infrastructure/persistence/postgres/trainer_profile.go` | 30 | returns `[]interface{}` | `[]any` |
 | 7 | `internal/infrastructure/persistence/postgres/trainer_profile.go` | 120 | `args ...interface{}` | `args ...any` |
 | 8 | `internal/api/handlers/auth_handler.go` | 33 | `Profile interface{}` | `Profile any` |
+
+Also replaced `map[string]interface{}` in handler swagger comments across all handler files. Excluded:
+- `singleflight` callbacks (`func() (interface{}, error)`) — constrained by `golang.org/x/sync/singleflight` API.
+- `jwt.Parse` signing-key callback in `auth_service.go` — constrained by `golang-jwt` API.
+
+**Status**: Implemented. `go build ./...` passes.
 
 ---
 

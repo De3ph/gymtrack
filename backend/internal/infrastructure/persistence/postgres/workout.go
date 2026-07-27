@@ -55,7 +55,7 @@ func (r *PostgresWorkoutRepository) Create(ctx context.Context, workout *models.
 	}
 
 	// Handle nullable plan_id: 0 means no plan
-	var planID interface{}
+	var planID any
 	if workout.PlanID != 0 {
 		planID = workout.PlanID
 	}
@@ -144,7 +144,7 @@ func (r *PostgresWorkoutRepository) Update(ctx context.Context, workout *models.
 		return fmt.Errorf("failed to marshal exercises: %w", err)
 	}
 
-	var planID interface{}
+	var planID any
 	if workout.PlanID != 0 {
 		planID = workout.PlanID
 	}

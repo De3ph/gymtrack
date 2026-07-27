@@ -158,7 +158,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 // @Security BearerAuth
 // @Param targetType query string true "Type of target (workout or meal)" Enum(workout,meal)
 // @Param targetId query string true "ID of the target (workout or meal)"
-// @Success 200 {object} map[string]interface{} "Comments retrieved successfully"
+// @Success 200 {object} map[string]any "Comments retrieved successfully"
 // @Failure 400 {object} map[string]string "Missing or invalid query parameters"
 // @Failure 401 {object} map[string]string "User not authenticated"
 // @Failure 403 {object} map[string]string "Access denied"

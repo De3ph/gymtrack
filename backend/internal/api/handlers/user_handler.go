@@ -37,9 +37,9 @@ type UserResponse struct {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} handlers.UserResponse "User profile retrieved successfully"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
-// @Failure 404 {object} map[string]interface{} "User not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
+// @Failure 404 {object} map[string]any "User not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /users/me [get]
 func (h *UserHandler) GetCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -88,10 +88,10 @@ type UpdateProfileRequest struct {
 // @Security BearerAuth
 // @Param profile body handlers.UpdateProfileRequest true "Profile update data"
 // @Success 200 {object} handlers.UserResponse "User profile updated successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request body"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
-// @Failure 404 {object} map[string]interface{} "User not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid request body"
+// @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
+// @Failure 404 {object} map[string]any "User not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /users/me [put]
 func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("userID")

@@ -61,10 +61,10 @@ type UpdateBodyMeasurementRequest struct {
 // @Security BearerAuth
 // @Param request body CreateBodyMeasurementRequest true "Create body measurement request"
 // @Success 201 {object} models.BodyMeasurement "Body measurement created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request body or validation error"
-// @Failure 401 {object} map[string]interface{} "User not authenticated"
-// @Failure 403 {object} map[string]interface{} "User is not an athlete"
-// @Failure 500 {object} map[string]interface{} "Failed to create body measurement"
+// @Failure 400 {object} map[string]any "Invalid request body or validation error"
+// @Failure 401 {object} map[string]any "User not authenticated"
+// @Failure 403 {object} map[string]any "User is not an athlete"
+// @Failure 500 {object} map[string]any "Failed to create body measurement"
 // @Router /measurements [post]
 func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 	athleteID, exists := c.Get("userID")
@@ -121,8 +121,8 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Body measurement ID"
 // @Success 200 {object} models.BodyMeasurement "Body measurement retrieved"
-// @Failure 403 {object} map[string]interface{} "Access denied"
-// @Failure 404 {object} map[string]interface{} "Body measurement not found"
+// @Failure 403 {object} map[string]any "Access denied"
+// @Failure 404 {object} map[string]any "Body measurement not found"
 // @Router /measurements/{id} [get]
 func (h *BodyMeasurementHandler) GetBodyMeasurement(c *gin.Context) {
 	measurementIDStr := c.Param("id")
@@ -167,8 +167,8 @@ func (h *BodyMeasurementHandler) GetBodyMeasurement(c *gin.Context) {
 // @Param offset query int false "Number of entries to skip (default: 0)"
 // @Param startDate query string false "Start date filter (RFC3339)"
 // @Param endDate query string false "End date filter (RFC3339)"
-// @Success 200 {object} map[string]interface{} "Body measurements retrieved" SchemaExample:{"measurements":[],"count":0}
-// @Failure 403 {object} map[string]interface{} "Only athletes can list body measurements"
+// @Success 200 {object} map[string]any "Body measurements retrieved" SchemaExample:{"measurements":[],"count":0}
+// @Failure 403 {object} map[string]any "Only athletes can list body measurements"
 // @Router /measurements [get]
 func (h *BodyMeasurementHandler) GetBodyMeasurements(c *gin.Context) {
 	athleteID, _ := c.Get("userID")
@@ -272,8 +272,8 @@ func (h *BodyMeasurementHandler) GetLatestBodyMeasurement(c *gin.Context) {
 // @Param id path string true "Body measurement ID"
 // @Param request body UpdateBodyMeasurementRequest true "Updated body measurement data"
 // @Success 200 {object} models.BodyMeasurement "Body measurement updated"
-// @Failure 403 {object} map[string]interface{} "Access denied or edit window expired"
-// @Failure 404 {object} map[string]interface{} "Body measurement not found"
+// @Failure 403 {object} map[string]any "Access denied or edit window expired"
+// @Failure 404 {object} map[string]any "Body measurement not found"
 // @Router /measurements/{id} [put]
 func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 	measurementIDStr := c.Param("id")
@@ -329,9 +329,9 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Body measurement ID"
-// @Success 200 {object} map[string]interface{} "Body measurement deleted"
-// @Failure 403 {object} map[string]interface{} "Access denied or delete window expired"
-// @Failure 404 {object} map[string]interface{} "Body measurement not found"
+// @Success 200 {object} map[string]any "Body measurement deleted"
+// @Failure 403 {object} map[string]any "Access denied or delete window expired"
+// @Failure 404 {object} map[string]any "Body measurement not found"
 // @Router /measurements/{id} [delete]
 func (h *BodyMeasurementHandler) DeleteBodyMeasurement(c *gin.Context) {
 	measurementIDStr := c.Param("id")
@@ -371,8 +371,8 @@ func (h *BodyMeasurementHandler) DeleteBodyMeasurement(c *gin.Context) {
 // @Param offset query int false "Number of entries to skip (default: 0)"
 // @Param startDate query string false "Start date filter (RFC3339)"
 // @Param endDate query string false "End date filter (RFC3339)"
-// @Success 200 {object} map[string]interface{} "Client body measurements retrieved" SchemaExample:{"measurements":[],"count":0}
-// @Failure 403 {object} map[string]interface{} "No active relationship with client"
+// @Success 200 {object} map[string]any "Client body measurements retrieved" SchemaExample:{"measurements":[],"count":0}
+// @Failure 403 {object} map[string]any "No active relationship with client"
 // @Router /clients/{username}/measurements [get]
 func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 	username := c.Param("username")

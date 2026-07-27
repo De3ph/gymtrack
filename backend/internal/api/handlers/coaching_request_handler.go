@@ -32,11 +32,11 @@ type CreateCoachingRequestRequest struct {
 // @Produce json
 // @Security BearerAuth
 // @Param request body CreateCoachingRequestRequest true "Coaching request details"
-// @Success 201 {object} map[string]interface{} "Coaching request created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request data"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
-// @Failure 403 {object} map[string]interface{} "Forbidden - only athletes can create coaching requests"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {object} map[string]any "Coaching request created successfully"
+// @Failure 400 {object} map[string]any "Invalid request data"
+// @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
+// @Failure 403 {object} map[string]any "Forbidden - only athletes can create coaching requests"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /coaching-requests [post]
 func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -78,9 +78,9 @@ func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Successfully retrieved coaching requests" "{\"requests\": []}"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Successfully retrieved coaching requests" "{\"requests\": []}"
+// @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /coaching-requests/my [get]
 func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -113,11 +113,11 @@ func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Coaching request ID"
-// @Success 200 {object} map[string]interface{} "Coaching request accepted successfully" "{\"message\":\"coaching request accepted\",\"relationship\":{}}"
-// @Failure 400 {object} map[string]interface{} "Invalid request or coaching request not found"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
-// @Failure 403 {object} map[string]interface{} "Forbidden - only trainers can accept coaching requests"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Coaching request accepted successfully" "{\"message\":\"coaching request accepted\",\"relationship\":{}}"
+// @Failure 400 {object} map[string]any "Invalid request or coaching request not found"
+// @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
+// @Failure 403 {object} map[string]any "Forbidden - only trainers can accept coaching requests"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /coaching-requests/{id}/accept [post]
 func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -164,11 +164,11 @@ func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Coaching request ID"
-// @Success 200 {object} map[string]interface{} "Coaching request rejected successfully" "{\"message\":\"coaching request rejected\"}"
-// @Failure 400 {object} map[string]interface{} "Invalid request or coaching request not found"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
-// @Failure 403 {object} map[string]interface{} "Forbidden - only trainers can reject coaching requests"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Coaching request rejected successfully" "{\"message\":\"coaching request rejected\"}"
+// @Failure 400 {object} map[string]any "Invalid request or coaching request not found"
+// @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
+// @Failure 403 {object} map[string]any "Forbidden - only trainers can reject coaching requests"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /coaching-requests/{id}/reject [post]
 func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -211,10 +211,10 @@ func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Successfully retrieved pending coaching requests" "{\"requests\": []}"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - user not authenticated"
-// @Failure 403 {object} map[string]interface{} "Forbidden - only trainers can view pending requests"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Successfully retrieved pending coaching requests" "{\"requests\": []}"
+// @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
+// @Failure 403 {object} map[string]any "Forbidden - only trainers can view pending requests"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /coaching-requests/pending [get]
 func (h *CoachingRequestHandler) GetPendingRequests(c *gin.Context) {
 	userID, exists := c.Get("userID")

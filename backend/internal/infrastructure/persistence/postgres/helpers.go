@@ -8,7 +8,7 @@ import (
 // MarshalToJSONB converts a Go value into a JSONB-compatible []byte payload.
 // It returns an error wrapped with context when marshalling fails so callers
 // can attribute the failure to the originating struct.
-func MarshalToJSONB(v interface{}) ([]byte, error) {
+func MarshalToJSONB(v any) ([]byte, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return nil, fmt.Errorf("marshal to jsonb: %w", err)
@@ -19,7 +19,7 @@ func MarshalToJSONB(v interface{}) ([]byte, error) {
 // UnmarshalFromJSONB populates the target value from a JSONB []byte payload.
 // Caller passes a pointer; nil/empty payloads are treated as a no-op so that
 // NULL JSONB columns do not blow up deserialization.
-func UnmarshalFromJSONB(data []byte, v interface{}) error {
+func UnmarshalFromJSONB(data []byte, v any) error {
 	if len(data) == 0 {
 		return nil
 	}

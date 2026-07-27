@@ -38,7 +38,7 @@ type SearchExercisesRequest struct {
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.MuscleGroupDefinition "Muscle groups retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises/muscle-groups [get]
 func (h *ExerciseHandler) GetAllMuscleGroups(c *gin.Context) {
 	muscleGroups, err := h.exerciseService.GetAllMuscleGroups(c.Request.Context())
@@ -56,7 +56,7 @@ func (h *ExerciseHandler) GetAllMuscleGroups(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.EquipmentDefinition "Equipment types retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises/equipment [get]
 func (h *ExerciseHandler) GetAllEquipment(c *gin.Context) {
 	equipment, err := h.exerciseService.GetAllEquipment(c.Request.Context())
@@ -74,7 +74,7 @@ func (h *ExerciseHandler) GetAllEquipment(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.Exercise "Exercises retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises [get]
 func (h *ExerciseHandler) GetAllExercises(c *gin.Context) {
 	exercises, err := h.exerciseService.GetAllExercises(c.Request.Context())
@@ -93,8 +93,8 @@ func (h *ExerciseHandler) GetAllExercises(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Exercise ID"
 // @Success 200 {object} models.Exercise "Exercise retrieved successfully"
-// @Failure 404 {object} map[string]interface{} "Exercise not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 404 {object} map[string]any "Exercise not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises/{id} [get]
 func (h *ExerciseHandler) GetExerciseByID(c *gin.Context) {
 	exerciseIDStr := c.Param("id")
@@ -125,8 +125,8 @@ func (h *ExerciseHandler) GetExerciseByID(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Muscle Group ID"
 // @Success 200 {array} models.Exercise "Exercises retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid muscle group ID"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid muscle group ID"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises/muscle-groups/{id} [get]
 func (h *ExerciseHandler) GetExercisesByMuscleGroup(c *gin.Context) {
 	muscleGroupIDStr := c.Param("id")
@@ -152,8 +152,8 @@ func (h *ExerciseHandler) GetExercisesByMuscleGroup(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Equipment ID"
 // @Success 200 {array} models.Exercise "Exercises retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid equipment ID"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid equipment ID"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises/equipment/{id} [get]
 func (h *ExerciseHandler) GetExercisesByEquipment(c *gin.Context) {
 	equipmentIDStr := c.Param("id")
@@ -181,8 +181,8 @@ func (h *ExerciseHandler) GetExercisesByEquipment(c *gin.Context) {
 // @Param muscleGroupId query int false "Filter by muscle group ID"
 // @Param equipmentId query int false "Filter by equipment ID"
 // @Success 200 {array} models.Exercise "Exercises retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid search parameters"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid search parameters"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises/search [get]
 func (h *ExerciseHandler) SearchExercises(c *gin.Context) {
 	var req SearchExercisesRequest
@@ -208,9 +208,9 @@ func (h *ExerciseHandler) SearchExercises(c *gin.Context) {
 // @Security BearerAuth
 // @Param request body handlers.CreateExerciseRequest true "Exercise creation data"
 // @Success 201 {object} models.Exercise "Exercise created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request data"
-// @Failure 401 {object} map[string]interface{} "User not authenticated"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]any "Invalid request data"
+// @Failure 401 {object} map[string]any "User not authenticated"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises [post]
 func (h *ExerciseHandler) CreateExercise(c *gin.Context) {
 	var req CreateExerciseRequest

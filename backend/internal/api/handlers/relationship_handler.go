@@ -124,7 +124,7 @@ type GetClientStatsResponse struct {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 201 {object} map[string]interface{} "Invitation generated successfully" {"message":"Invitation generated successfully","invitation":{"code":"string","expiresAt":"string"}}
+// @Success 201 {object} map[string]any "Invitation generated successfully" {"message":"Invitation generated successfully","invitation":{"code":"string","expiresAt":"string"}}
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can generate invitations"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to generate invitation","details":"error message"}
@@ -174,7 +174,7 @@ func (h *RelationshipHandler) GenerateInvitation(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body AcceptInvitationRequest true "Invitation acceptance request"
-// @Success 200 {object} map[string]interface{} "Invitation accepted successfully" {"message":"Invitation accepted successfully","relationship": models.Relationship}
+// @Success 200 {object} map[string]any "Invitation accepted successfully" {"message":"Invitation accepted successfully","relationship": models.Relationship}
 // @Failure 400 {object} map[string]string "Bad request" {"error":"Invalid request body"} or {"error":"Validation failed"} or {"error":"Invalid invitation code"}
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only athletes can accept invitations"}
@@ -231,7 +231,7 @@ func (h *RelationshipHandler) AcceptInvitation(c *gin.Context) {
 // @Tags Relationships
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Success" {"pendingInvitations": []models.Invitation, "activeTrainer": map[string]interface{}{"relationship": models.Relationship, "trainer": models.User}}
+// @Success 200 {object} map[string]any "Success" {"pendingInvitations": []models.Invitation, "activeTrainer": map[string]any{"relationship": models.Relationship, "trainer": models.User}}
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only athletes can view their trainer"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to retrieve invitations/relationships"}
@@ -299,7 +299,7 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 // @Tags Relationships
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Success" {"clients": []ClientWithAthlete, "count": int}
+// @Success 200 {object} map[string]any "Success" {"clients": []ClientWithAthlete, "count": int}
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can view their clients"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to retrieve clients"}
@@ -469,7 +469,7 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Relationship ID" example("rel-123")
-// @Success 200 {object} map[string]interface{} "Relationship terminated successfully" {"message":"Relationship terminated successfully","relationship": models.Relationship}
+// @Success 200 {object} map[string]any "Relationship terminated successfully" {"message":"Relationship terminated successfully","relationship": models.Relationship}
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"You are not authorized to terminate this relationship"}
 // @Failure 404 {object} map[string]string "Not found" {"error":"Relationship not found"}

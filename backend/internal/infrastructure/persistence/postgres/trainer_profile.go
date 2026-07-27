@@ -27,9 +27,9 @@ func NewPostgresTrainerProfileRepository(pool *pgxpool.Pool) *PostgresTrainerPro
 
 // buildFilterWhereClause builds a WHERE clause from trainer filters, returning the clause,
 // parameters, and the next available parameter index.
-func (r *PostgresTrainerProfileRepository) buildFilterWhereClause(filters *repositories.TrainerFilters) (string, []interface{}, int) {
+func (r *PostgresTrainerProfileRepository) buildFilterWhereClause(filters *repositories.TrainerFilters) (string, []any, int) {
 	conditions := []string{"role = 'trainer'"}
-	params := []interface{}{}
+	params := []any{}
 	paramIdx := 1
 
 	if filters != nil {
@@ -117,7 +117,7 @@ func (r *PostgresTrainerProfileRepository) GetTrainerByID(ctx context.Context, t
 // scanTrainerPoolRow scans a single trainer row (with profile bytes) from a QueryRow.
 // Translates pgx.ErrNoRows to domainerrors.ErrNotFound to keep the not-found contract
 // consistent with other required getters (e.g. GetByID on coaching_request, workout).
-func (r *PostgresTrainerProfileRepository) scanTrainerPoolRow(ctx context.Context, query string, args ...interface{}) (*models.TrainerWithProfile, []byte, error) {
+func (r *PostgresTrainerProfileRepository) scanTrainerPoolRow(ctx context.Context, query string, args ...any) (*models.TrainerWithProfile, []byte, error) {
 	var trainer models.TrainerWithProfile
 	var profileRaw []byte
 	var avgRating float64

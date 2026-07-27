@@ -27,7 +27,7 @@ func NewPostgresExerciseRepository(pool *pgxpool.Pool) *PostgresExerciseReposito
 func (r *PostgresExerciseRepository) CreateExercise(ctx context.Context, ex *models.Exercise) error {
 	ex.CreatedAt = time.Now()
 
-	var createdBy interface{}
+	var createdBy any
 	if ex.CreatedBy != 0 {
 		createdBy = ex.CreatedBy
 	}
@@ -122,7 +122,7 @@ func (r *PostgresExerciseRepository) GetExercisesByEquipment(ctx context.Context
 
 func (r *PostgresExerciseRepository) SearchExercises(ctx context.Context, query string, muscleGroupID *int, equipmentID *int) ([]models.Exercise, error) {
 	sql := `SELECT ` + exCols + ` FROM exercises WHERE name ILIKE '%' || $1 || '%'`
-	args := []interface{}{query}
+	args := []any{query}
 	argIdx := 2
 
 	if muscleGroupID != nil {

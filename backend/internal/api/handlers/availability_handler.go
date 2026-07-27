@@ -26,9 +26,9 @@ func NewAvailabilityHandler(service *services.AvailabilityService) *Availability
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Slots retrieved successfully" "slots":{[]models.TrainerAvailability}
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Slots retrieved successfully" "slots":{[]models.TrainerAvailability}
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /trainers/me/availability [get]
 func (h *AvailabilityHandler) GetMyAvailability(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -59,10 +59,10 @@ func (h *AvailabilityHandler) GetMyAvailability(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param slots body []models.TrainerAvailability true "Array of availability slots to set" minItems(1)
-// @Success 200 {object} map[string]interface{} "Availability updated successfully" "message":"availability updated successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request - invalid input"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Availability updated successfully" "message":"availability updated successfully"
+// @Failure 400 {object} map[string]any "Bad request - invalid input"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /trainers/me/availability [put]
 func (h *AvailabilityHandler) SetMyAvailability(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -98,9 +98,9 @@ func (h *AvailabilityHandler) SetMyAvailability(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Trainer ID" minLength(1) maxLength(255)
-// @Success 200 {object} map[string]interface{} "Slots retrieved successfully" "slots":{[]models.TrainerAvailability}
-// @Failure 404 {object} map[string]interface{} "Trainer not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Slots retrieved successfully" "slots":{[]models.TrainerAvailability}
+// @Failure 404 {object} map[string]any "Trainer not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /trainers/{id}/availability [get]
 func (h *AvailabilityHandler) GetTrainerAvailability(c *gin.Context) {
 	trainerIDStr := c.Param("id")
@@ -126,11 +126,11 @@ func (h *AvailabilityHandler) GetTrainerAvailability(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param slotId path string true "Availability Slot ID" minLength(1) maxLength(255)
-// @Success 200 {object} map[string]interface{} "Slot deleted successfully" "message":"slot deleted successfully"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden - not your slot"
-// @Failure 404 {object} map[string]interface{} "Slot not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]any "Slot deleted successfully" "message":"slot deleted successfully"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 403 {object} map[string]any "Forbidden - not your slot"
+// @Failure 404 {object} map[string]any "Slot not found"
+// @Failure 500 {object} map[string]any "Internal server error"
 // @Router /trainers/availability/{slotId} [delete]
 func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
 	slotIDStr := c.Param("slotId")

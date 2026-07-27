@@ -47,10 +47,10 @@ type UpdateWorkoutRequest struct {
 // @Security BearerAuth
 // @Param request body CreateWorkoutRequest true "Create workout request"
 // @Success 201 {object} models.Workout "Workout created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request body or validation error"
-// @Failure 401 {object} map[string]interface{} "User not authenticated"
-// @Failure 403 {object} map[string]interface{} "User is not an athlete"
-// @Failure 500 {object} map[string]interface{} "Failed to create workout"
+// @Failure 400 {object} map[string]any "Invalid request body or validation error"
+// @Failure 401 {object} map[string]any "User not authenticated"
+// @Failure 403 {object} map[string]any "User is not an athlete"
+// @Failure 500 {object} map[string]any "Failed to create workout"
 // Router: /api/workouts
 func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 	athleteID, exists := c.Get("userID")
@@ -103,8 +103,8 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Workout ID"
 // @Success 200 {object} models.Workout "Workout retrieved successfully"
-// @Failure 404 {object} map[string]interface{} "Workout not found"
-// @Failure 403 {object} map[string]interface{} "Access denied"
+// @Failure 404 {object} map[string]any "Workout not found"
+// @Failure 403 {object} map[string]any "Access denied"
 // Router: /api/workouts/:id
 func (h *WorkoutHandler) GetWorkout(c *gin.Context) {
 	workoutIDStr := c.Param("id")
@@ -149,10 +149,10 @@ func (h *WorkoutHandler) GetWorkout(c *gin.Context) {
 // @Param offset query int false "Number of workouts to skip (default: 0)"
 // @Param startDate query string false "Start date for filtering (RFC3339 format)" Format(date-rfc3339)
 // @Param endDate query string false "End date for filtering (RFC3339 format)" Format(date-rfc3339)
-// @Success 200 {object} map[string]interface{} "Workouts retrieved successfully" SchemaExample:{"workouts":[],"count":0}
-// @Failure 400 {object} map[string]interface{} "Invalid date format"
-// @Failure 403 {object} map[string]interface{} "Only athletes can list their workouts"
-// @Failure 500 {object} map[string]interface{} "Failed to retrieve workouts"
+// @Success 200 {object} map[string]any "Workouts retrieved successfully" SchemaExample:{"workouts":[],"count":0}
+// @Failure 400 {object} map[string]any "Invalid date format"
+// @Failure 403 {object} map[string]any "Only athletes can list their workouts"
+// @Failure 500 {object} map[string]any "Failed to retrieve workouts"
 // Router: /api/workouts
 func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 	athleteID, _ := c.Get("userID")
@@ -202,10 +202,10 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 // @Param id path string true "Workout ID"
 // @Param request body UpdateWorkoutRequest true "Updated workout data"
 // @Success 200 {object} models.Workout "Workout updated successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request body or validation error"
-// @Failure 403 {object} map[string]interface{} "Access denied or edit window expired"
-// @Failure 404 {object} map[string]interface{} "Workout not found"
-// @Failure 500 {object} map[string]interface{} "Failed to update workout"
+// @Failure 400 {object} map[string]any "Invalid request body or validation error"
+// @Failure 403 {object} map[string]any "Access denied or edit window expired"
+// @Failure 404 {object} map[string]any "Workout not found"
+// @Failure 500 {object} map[string]any "Failed to update workout"
 // Router: /api/workouts/:id
 func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 	workoutIDStr := c.Param("id")
@@ -253,10 +253,10 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Workout ID"
-// @Success 200 {object} map[string]interface{} "Workout deleted successfully"
-// @Failure 403 {object} map[string]interface{} "Access denied or delete window expired"
-// @Failure 404 {object} map[string]interface{} "Workout not found"
-// @Failure 500 {object} map[string]interface{} "Failed to delete workout"
+// @Success 200 {object} map[string]any "Workout deleted successfully"
+// @Failure 403 {object} map[string]any "Access denied or delete window expired"
+// @Failure 404 {object} map[string]any "Workout not found"
+// @Failure 500 {object} map[string]any "Failed to delete workout"
 // Router: /api/workouts/:id
 func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
 	workoutIDStr := c.Param("id")
@@ -298,10 +298,10 @@ func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
 // @Param startDate query string false "Start date for filtering (RFC3339 format)" Format(date-rfc3339)
 // @Param endDate query string false "End date for filtering (RFC3339 format)" Format(date-rfc3339)
 // @Param exerciseType query string false "Filter by exercise type (case-insensitive partial match)"
-// @Success 200 {object} map[string]interface{} "Client workouts retrieved successfully" SchemaExample:{"workouts":[],"count":0}
-// @Failure 400 {object} map[string]interface{} "Invalid date format"
-// @Failure 403 {object} map[string]interface{} "User is not a trainer or no active relationship with client"
-// @Failure 500 {object} map[string]interface{} "Failed to retrieve workouts"
+// @Success 200 {object} map[string]any "Client workouts retrieved successfully" SchemaExample:{"workouts":[],"count":0}
+// @Failure 400 {object} map[string]any "Invalid date format"
+// @Failure 403 {object} map[string]any "User is not a trainer or no active relationship with client"
+// @Failure 500 {object} map[string]any "Failed to retrieve workouts"
 // Router: /api/clients/:id/workouts
 func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 	username := c.Param("username")

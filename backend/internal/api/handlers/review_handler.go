@@ -102,7 +102,7 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 // @Tags Reviews
 // @Produce json
 // @Param id path string true "Trainer ID"
-// @Success 200 {object} map[string]interface{} "Reviews retrieved successfully" {"reviews": []models.TrainerReview}
+// @Success 200 {object} map[string]any "Reviews retrieved successfully" {"reviews": []models.TrainerReview}
 // @Failure 500 {object} map[string]string "Failed to retrieve reviews"
 // @Router /trainers/{id}/reviews [get]
 func (h *ReviewHandler) GetTrainerReviews(c *gin.Context) {

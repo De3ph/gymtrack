@@ -39,8 +39,8 @@ func NewTrainerCatalogHandler(service *services.TrainerCatalogService) *TrainerC
 // @Param availableForNewClients query boolean false "Filter by availability for new clients (true/false)"
 // @Param limit query int false "Number of results per page (default: 20)"
 // @Param offset query int false "Number of results to skip (default: 0)"
-// @Success 200 {object} map[string]interface{} "Successfully retrieved trainers" "{\"trainers\":[],\"total\":0,\"limit\":20,\"offset\":0}"
-// @Failure 500 {object} map[string]interface{} "Internal server error" "{\"error\":\"error message\"}"
+// @Success 200 {object} map[string]any "Successfully retrieved trainers" "{\"trainers\":[],\"total\":0,\"limit\":20,\"offset\":0}"
+// @Failure 500 {object} map[string]any "Internal server error" "{\"error\":\"error message\"}"
 // @Router /trainers [get]
 func (h *TrainerCatalogHandler) GetTrainers(c *gin.Context) {
 	filters := &services.TrainerSearchFilters{
@@ -85,8 +85,8 @@ func (h *TrainerCatalogHandler) GetTrainers(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Trainer ID"
 // @Success 200 {object} models.TrainerWithProfile "Successfully retrieved trainer"
-// @Failure 404 {object} map[string]interface{} "Trainer not found" "{\"error\":\"trainer not found\"}"
-// @Failure 500 {object} map[string]interface{} "Internal server error" "{\"error\":\"error message\"}"
+// @Failure 404 {object} map[string]any "Trainer not found" "{\"error\":\"trainer not found\"}"
+// @Failure 500 {object} map[string]any "Internal server error" "{\"error\":\"error message\"}"
 // @Router /trainers/{id} [get]
 func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
 	trainerIDStr := c.Param("id")
@@ -116,10 +116,10 @@ func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param profile body models.TrainerProfile true "Profile update data"
-// @Success 200 {object} map[string]interface{} "Profile updated successfully" "{\"message\":\"profile updated successfully\"}"
-// @Failure 400 {object} map[string]interface{} "Invalid request data" "{\"error\":\"error message\"}"
-// @Failure 401 {object} map[string]interface{} "Unauthorized" "{\"error\":\"unauthorized\"}"
-// @Failure 500 {object} map[string]interface{} "Internal server error" "{\"error\":\"error message\"}"
+// @Success 200 {object} map[string]any "Profile updated successfully" "{\"message\":\"profile updated successfully\"}"
+// @Failure 400 {object} map[string]any "Invalid request data" "{\"error\":\"error message\"}"
+// @Failure 401 {object} map[string]any "Unauthorized" "{\"error\":\"unauthorized\"}"
+// @Failure 500 {object} map[string]any "Internal server error" "{\"error\":\"error message\"}"
 // @Router /trainers/me/profile [put]
 func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 	userID, exists := c.Get("userID")
@@ -156,10 +156,10 @@ func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} models.TrainerWithProfile "Successfully retrieved trainer profile"
-// @Failure 401 {object} map[string]interface{} "Unauthorized" "{\"error\":\"unauthorized\"}"
-// @Failure 403 {object} map[string]interface{} "Forbidden - only trainers can access" "{\"error\":\"Only trainers can access profile\"}"
-// @Failure 404 {object} map[string]interface{} "Profile not found" "{\"error\":\"trainer profile not found\"}"
-// @Failure 500 {object} map[string]interface{} "Internal server error" "{\"error\":\"error message\"}"
+// @Failure 401 {object} map[string]any "Unauthorized" "{\"error\":\"unauthorized\"}"
+// @Failure 403 {object} map[string]any "Forbidden - only trainers can access" "{\"error\":\"Only trainers can access profile\"}"
+// @Failure 404 {object} map[string]any "Profile not found" "{\"error\":\"trainer profile not found\"}"
+// @Failure 500 {object} map[string]any "Internal server error" "{\"error\":\"error message\"}"
 // @Router /trainers/me/profile [get]
 func (h *TrainerCatalogHandler) GetMyProfile(c *gin.Context) {
 	userID, exists := c.Get("userID")

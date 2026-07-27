@@ -103,7 +103,7 @@ func CreateTestAvailabilitySlot(id, trainerID int, day int, start, end string) m
 }
 
 // CreateTestContext returns a Gin context and recorder for tests.
-func CreateTestContext(method, path string, body interface{}, userID string, userRole models.UserRole) (*gin.Context, *httptest.ResponseRecorder) {
+func CreateTestContext(method, path string, body any, userID string, userRole models.UserRole) (*gin.Context, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.TestMode)
 	var req *http.Request
 	if body != nil {

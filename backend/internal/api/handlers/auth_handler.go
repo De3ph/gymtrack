@@ -30,7 +30,7 @@ type RegisterRequest struct {
 	Email    string      `json:"email" validate:"required,email" example:"test@example.com"`
 	Password string      `json:"password" validate:"required,min=8" example:"password123"`
 	Role     string      `json:"role" validate:"required,oneof=trainer athlete" example:"athlete"`
-	Profile  interface{} `json:"profile"`
+	Profile  any `json:"profile"`
 }
 
 // Register godoc
@@ -40,10 +40,10 @@ type RegisterRequest struct {
 // @Accept json
 // @Produce json
 // @Param request body handlers.RegisterRequest true "Register Request"
-// @Success 201 {object} map[string]interface{} "User registered successfully"
-// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input"
-// @Failure 409 {object} map[string]interface{} "Conflict - User with email or username already exists"
-// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Success 201 {object} map[string]any "User registered successfully"
+// @Failure 400 {object} map[string]any "Bad Request - Invalid input"
+// @Failure 409 {object} map[string]any "Conflict - User with email or username already exists"
+// @Failure 500 {object} map[string]any "Internal Server Error"
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -106,9 +106,9 @@ type LoginRequest struct {
 // @Produce json
 // @Param request body handlers.LoginRequest true "Login Request"
 // @Success 200 {object} map[string]string "Login successful"
-// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - Invalid credentials"
-// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Failure 400 {object} map[string]any "Bad Request - Invalid input"
+// @Failure 401 {object} map[string]any "Unauthorized - Invalid credentials"
+// @Failure 500 {object} map[string]any "Internal Server Error"
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -170,9 +170,9 @@ type RefreshTokenRequest struct {
 // @Produce json
 // @Param request body handlers.RefreshTokenRequest true "Refresh Token Request"
 // @Success 200 {object} map[string]string "Token refreshed successfully"
-// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input"
-// @Failure 401 {object} map[string]interface{} "Unauthorized - Invalid or expired refresh token"
-// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Failure 400 {object} map[string]any "Bad Request - Invalid input"
+// @Failure 401 {object} map[string]any "Unauthorized - Invalid or expired refresh token"
+// @Failure 500 {object} map[string]any "Internal Server Error"
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -212,8 +212,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} map[string]string "Logout successful"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 500 {object} map[string]any "Internal Server Error"
 func (h *AuthHandler) Logout(c *gin.Context) {
 	// In a stateless JWT implementation, logout is typically handled client-side
 	// by removing the token from storage. However, we can add token blacklisting
