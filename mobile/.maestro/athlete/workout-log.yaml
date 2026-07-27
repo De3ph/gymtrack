@@ -1,0 +1,50 @@
+# Athlete — Log Workout flow
+# Login → open workout tab → tap FAB → fill form → submit → verify list
+
+name: Log Workout
+appId: com.gymtrack.app
+---
+# Login
+- launchApp
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+- tapOn: "Login"
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+# Navigate to Workouts tab
+- tapOn: "Workouts"
+
+# Open create modal
+- tapOn: "+"
+- assertVisible:
+    text: "Log New Workout"
+    timeout: 5000
+
+# Date is pre-filled with today — skip
+
+# Fill exercise name (placeholder = "Exercise")
+- tapOn: "Exercise"
+- inputText: "Bench Press"
+
+# Fill set 1 weight (placeholder = "Weight")
+- tapOn: "Weight"
+- inputText: "60"
+
+# Fill set 1 reps (placeholder = "Reps")
+- tapOn: "Reps"
+- inputText: "10"
+
+# Submit
+- tapOn: "Log Workout"
+
+# Verify workout appears in list
+- assertVisible:
+    text: "exercises"
+    timeout: 15000

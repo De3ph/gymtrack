@@ -1,0 +1,65 @@
+# Athlete — Log Meal flow
+# Login → open meals tab → tap FAB → fill form → submit → verify list
+
+name: Log Meal
+appId: com.gymtrack.app
+---
+# Login
+- launchApp
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+- tapOn: "Login"
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+# Navigate to Meals tab
+- tapOn: "Meals"
+
+# Open create modal
+- tapOn: "+"
+- assertVisible:
+    text: "Log New Meal"
+    timeout: 5000
+
+# Date is pre-filled with today — skip
+
+# Select meal type
+- tapOn: "Lunch"
+
+# Fill food name (placeholder = "e.g., Chicken Breast")
+- tapOn: "e.g., Chicken Breast"
+- inputText: "Grilled Chicken"
+
+# Fill quantity (placeholder = "e.g., 200g, 1 cup")
+- tapOn: "e.g., 200g, 1 cup"
+- inputText: "200g"
+
+# Fill calories (placeholder = "e.g., 250")
+- tapOn: "e.g., 250"
+- inputText: "300"
+
+# Fill protein (placeholder = "Protein")
+- tapOn: "Protein"
+- inputText: "40"
+
+# Fill carbs (placeholder = "Carbs")
+- tapOn: "Carbs"
+- inputText: "10"
+
+# Fill fats (placeholder = "Fats")
+- tapOn: "Fats"
+- inputText: "8"
+
+# Submit
+- tapOn: "Save Meal"
+
+# Verify meal appears in list (meal type badge visible)
+- assertVisible:
+    text: "Lunch"
+    timeout: 15000

@@ -1,0 +1,73 @@
+# Athlete — Trainer Connect flow
+# Login → browse trainer catalog → tap trainer → request coaching
+
+name: Browse Trainer Catalog
+appId: com.gymtrack.app
+---
+# Login
+- launchApp
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+- tapOn: "Login"
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+# Open trainer catalog from dashboard quick action
+- tapOn: "common.navigation.trainers"
+
+# Catalog loads — trainer card or empty state visible
+- assertVisible:
+    text: "Search by specialization..."
+    timeout: 10000
+
+---
+
+name: Send Coaching Request
+appId: com.gymtrack.app
+---
+# Login
+- launchApp
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+- tapOn: "Login"
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+# Open trainer catalog
+- tapOn: "common.navigation.trainers"
+
+# Wait for catalog to load, then tap first trainer card
+- assertVisible:
+    text: "Search by specialization..."
+    timeout: 10000
+- tapOn:
+    point: "50%,30%"
+
+# Trainer detail screen — request coaching
+- assertVisible:
+    text: "Request Coaching"
+    timeout: 10000
+- tapOn: "Request Coaching"
+
+# Confirm send
+- assertVisible:
+    text: "Send Request"
+    timeout: 5000
+- tapOn: "Send Request"
+
+# Alert confirms request sent
+- assertVisible:
+    text: "Request Sent"
+    timeout: 10000

@@ -23,19 +23,24 @@ maestro test --env CI=true .maestro/
 1. **Backend** running on `localhost:8080`
 2. **Expo dev server** running (`pnpm start` in `mobile/`)
 3. **App installed** on device or emulator (`com.gymtrack.app`)
-4. **Test users** exist in the database (see `.maestro/maestro.yaml` for credentials)
+4. **Test users** exist in the database (see `.maestro/config.yaml` for credentials)
 
 ## Directory Structure
 
 ```
 .maestro/
-├── maestro.yaml              # Shared env config (appId, test credentials, base URL)
+├── config.yaml               # Shared env config (appId, test credentials, base URL)
 ├── README.md                 # This file
 ├── auth/                     # Phase 2: Auth flow tests
 │   ├── login.yaml            # Athlete login, trainer login, invalid creds, empty fields
 │   ├── register.yaml         # Athlete register, trainer register, duplicate email
 │   └── session-restore.yaml  # Kill app, reopen, session persists
-├── athlete/                  # Phase 3: Core athlete flows (planned)
+├── athlete/                  # Phase 3: Core athlete flows
+│   ├── workout-log.yaml      # Log workout (exercise, sets, reps, weight)
+│   ├── meal-log.yaml         # Log meal (food, quantity, calories, macros)
+│   ├── measurements.yaml     # Log body measurement (weight, BF%, parts)
+│   ├── trainer-connect.yaml  # Browse catalog + send coaching request
+│   └── workout-plans.yaml    # View assigned workout plans
 └── trainer/                  # Phase 4: Trainer flows (planned)
 ```
 
@@ -63,7 +68,7 @@ maestro test --env CI=true .maestro/
 
 ## Environment Variables
 
-Defined in `maestro.yaml`, overridable via `--env KEY=VALUE`:
+Defined in `config.yaml`, overridable via `--env KEY=VALUE`:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
@@ -72,9 +77,41 @@ Defined in `maestro.yaml`, overridable via `--env KEY=VALUE`:
 | `TRAINER_EMAIL` | `trainer@example.com` | Test trainer credentials |
 | `TRAINER_PASSWORD` | `Password123` | Test trainer password |
 
+## Athlete Flows (Phase 3)
+
+### workout-log.yaml (1 flow)
+| Flow | Description |
+|------|-------------|
+| **Log Workout** | Login → Workouts tab → + → fill exercise (Bench Press, 60kg, 10 reps) → submit → verify list |
+
+### meal-log.yaml (1 flow)
+| Flow | Description |
+|------|-------------|
+| **Log Meal** | Login → Meals tab → + → select Lunch → fill food (Grilled Chicken, 200g, 300cal, macros) → submit → verify list |
+
+### measurements.yaml (1 flow)
+| Flow | Description |
+|------|-------------|
+| **Log Measurement** | Login → Measurements tab → + → fill weight/BF%/notes/chest → save → verify list |
+
+### trainer-connect.yaml (2 flows)
+| Flow | Description |
+|------|-------------|
+| **Browse Trainer Catalog** | Login → dashboard quick action → catalog search visible |
+| **Send Coaching Request** | Login → catalog → tap trainer → Request Coaching → Send Request → confirmed |
+
+### workout-plans.yaml (1 flow)
+| Flow | Description |
+|------|-------------|
+| **View Workout Plans** | Login → deep link to /athlete/workout-plans → verify list or empty state |
+
 ## Notes
 
 - Maestro **cannot mock APIs** — all flows require a real backend with seeded test data.
 - `uniqueId()` in registration flows generates a unique suffix per run to avoid email collisions.
 - `stopApp` (not `clearState`) is used in session-restore to preserve persisted tokens.
 - All flows use `text:` selectors matching i18n keys from `messages/en.json`.
+- Form fields use **placeholder text** as selectors (e.g. `"Exercise"`, `"75.0"`, `"e.g., Chicken Breast"`).
+- Date fields are pre-filled with today's date and skipped in flows.
+- Workout plans uses `openLink` deep link since the route is not in bottom tabs.
+- Trainer catalog uses `point: "50%,30%"` to tap first card (no unique text selectors on list items).

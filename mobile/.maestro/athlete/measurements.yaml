@@ -1,0 +1,54 @@
+# Athlete — Log Body Measurement flow
+# Login → open measurements tab → tap FAB → fill form → save → verify list
+
+name: Log Measurement
+appId: com.gymtrack.app
+---
+# Login
+- launchApp
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+- tapOn: "Login"
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+# Navigate to Measurements tab
+- tapOn: "Measurements"
+
+# Open add modal
+- tapOn: "+"
+- assertVisible:
+    text: "Record Measurement"
+    timeout: 5000
+
+# Fill weight (placeholder = "75.0")
+- tapOn: "75.0"
+- inputText: "78.5"
+
+# Fill body fat (placeholder = "15.0")
+- tapOn: "15.0"
+- inputText: "16.2"
+
+# Fill notes (placeholder = "Optional...")
+- tapOn: "Optional..."
+- inputText: "Morning weigh-in"
+
+# Fill chest body part (placeholder = "--")
+- tapOn:
+    text: "chest"
+    index: 0
+- inputText: "102"
+
+# Save
+- tapOn: "Save"
+
+# Verify measurement appears in list (weight visible)
+- assertVisible:
+    text: "kg"
+    timeout: 15000

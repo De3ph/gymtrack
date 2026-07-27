@@ -79,6 +79,27 @@ appId: com.gymtrack.app
 - assertVisible: "Dashboard"
 ```
 
+## Phase 3 — Complete ✅
+
+### Core Athlete Flow Files
+
+5 Maestro flow files created in `.maestro/athlete/` covering the core athlete journey.
+
+| File | Flows | Scenarios |
+|------|-------|-----------|
+| `.maestro/athlete/workout-log.yaml` | 1 flow | Login → Workouts tab → tap + → fill exercise (Bench Press, 60kg, 10 reps) → submit → verify in list |
+| `.maestro/athlete/meal-log.yaml` | 1 flow | Login → Meals tab → tap + → select Lunch → fill food (Grilled Chicken, 200g, 300cal, macros) → submit → verify in list |
+| `.maestro/athlete/measurements.yaml` | 1 flow | Login → Measurements tab → tap + → fill weight/body fat/notes/chest → save → verify in list |
+| `.maestro/athlete/trainer-connect.yaml` | 2 flows | Browse Trainer Catalog (search visible); Send Coaching Request (tap trainer → request → send → confirmed) |
+| `.maestro/athlete/workout-plans.yaml` | 1 flow | Login → deep link to workout plans → verify empty state or plan list |
+
+### Key decisions
+- **Form field selectors**: Used placeholder text (`"Exercise"`, `"75.0"`, `"e.g., Chicken Breast"`) since React Native TextInputs have no label association — Maestro matches visible placeholder text
+- **Date fields**: Pre-filled with today's date, skipped in flows
+- **Trainer catalog**: Dashboard quick action label is `common.navigation.trainers` (i18n key shown as literal text due to missing `trainers` plural key in translations)
+- **Coaching request**: Uses `point: "50%,30%"` to tap first trainer card (no unique text selectors on list items)
+- **Workout plans**: Uses `openLink` deep link since route is not in bottom tabs
+
 ## Phase 2 — Complete ✅
 
 ### Consolidated Auth Flow Files
