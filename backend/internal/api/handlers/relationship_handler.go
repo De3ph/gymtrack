@@ -709,7 +709,8 @@ func calculateMealStats(meals []*models.Meal) *MealStats {
 			if item.Calories > 0 {
 				totalCalories += item.Calories
 			}
-			if item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0 {
+			hasAnyMacros := item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0
+			if hasAnyMacros {
 				totalProtein += item.Macros.Protein
 				totalCarbs += item.Macros.Carbs
 				totalFats += item.Macros.Fats
@@ -745,7 +746,8 @@ func calculateMealStats(meals []*models.Meal) *MealStats {
 				if item.Calories > 0 {
 					weekCalories += item.Calories
 				}
-				if item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0 {
+				hasAnyMacros := item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0
+				if hasAnyMacros {
 					weekProtein += item.Macros.Protein
 					weekCarbs += item.Macros.Carbs
 					weekFats += item.Macros.Fats

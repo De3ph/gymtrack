@@ -190,7 +190,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	response, err := h.authService.RefreshToken(ctx, req.RefreshToken)
 	if err != nil {
-		if err == services.ErrInvalidToken || err == services.ErrTokenExpired || err == services.ErrInvalidTokenType {
+		isTokenError := err == services.ErrInvalidToken || err == services.ErrTokenExpired || err == services.ErrInvalidTokenType
+		if isTokenError {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}

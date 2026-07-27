@@ -47,7 +47,8 @@ func JWTAuthMiddleware(cfg *config.Config, authService *services.AuthService, us
 			userID, err := strconv.Atoi(claims.UserID)
 			if err == nil {
 				user, err := userRepo.GetUserByID(c.Request.Context(), userID)
-				if err == nil && user != nil && user.Status != "" && user.Status != models.UserStatusActive {
+				isNonActiveUser := err == nil && user != nil && user.Status != "" && user.Status != models.UserStatusActive
+				if isNonActiveUser {
 					c.JSON(http.StatusForbidden, gin.H{
 						"error":  "account is " + string(user.Status),
 						"status": string(user.Status),

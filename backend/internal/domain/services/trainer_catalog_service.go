@@ -45,7 +45,8 @@ func (s *TrainerCatalogService) SearchTrainers(ctx context.Context, filters *Tra
 
 	// Get trainers with ratings
 	var repoFiltersPtr *repositories.TrainerFilters
-	if filters.Specialization != "" || filters.Location != "" || filters.MinRating > 0 || filters.AvailableForNewClients != nil {
+	hasFilters := filters.Specialization != "" || filters.Location != "" || filters.MinRating > 0 || filters.AvailableForNewClients != nil
+	if hasFilters {
 		repoFiltersPtr = repoFilters
 	}
 
