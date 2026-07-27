@@ -1,0 +1,26 @@
+# Login — athlete happy path
+appId: com.gymtrack.app
+---
+- launchApp
+
+# Wait for login screen
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+# Fill email — tap label text to focus nearby input
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+
+# Fill password
+- tapOn:
+    text: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+
+# Submit
+- tapOn: "Login"
+
+# Expect dashboard (athlete tabs visible)
+- assertVisible:
+    text: "Home"
+    timeout: 15000

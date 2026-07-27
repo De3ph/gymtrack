@@ -1,0 +1,37 @@
+# Register — duplicate email shows error
+appId: com.gymtrack.app
+---
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn: "Sign up"
+
+- assertVisible:
+    text: "Create Your Account"
+    timeout: 5000
+
+- tapOn:
+    text: "Username"
+- inputText: "dupuser"
+
+- tapOn:
+    text: "Email"
+- inputText: "${ATHLETE_EMAIL}"
+
+- tapOn:
+    text: "Password"
+- inputText: "TestPass123"
+
+- tapOn:
+    text: "Confirm Password"
+- inputText: "TestPass123"
+
+- tapOn: "Create Account"
+
+# Error about existing account
+- assertVisible:
+    text: "already"
+    timeout: 10000

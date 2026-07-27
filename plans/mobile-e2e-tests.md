@@ -79,7 +79,51 @@ appId: com.gymtrack.app
 - assertVisible: "Dashboard"
 ```
 
-## Open Questions
+## Phase 2 — Complete ✅
+
+### Consolidated Auth Flow Files
+
+Phase 1 created 8 individual flow files. Phase 2 consolidated them into 3 Maestro flow files with named flows, matching the plan spec (`login.yaml`, `register.yaml`, `session-restore.yaml`).
+
+| File | Flows | Scenarios |
+|------|-------|-----------|
+| `.maestro/auth/login.yaml` | 4 named flows | Athlete login, Trainer login, Invalid credentials, Empty fields |
+| `.maestro/auth/register.yaml` | 3 named flows | Athlete registration, Trainer registration, Duplicate email error |
+| `.maestro/auth/session-restore.yaml` | 1 named flow | Login → stopApp → relaunch → still authenticated |
+
+### Key changes from Phase 1
+- **Consolidated** 8 individual files into 3 multi-flow files with `name:` labels
+- **Fixed session-restore**: changed `clearState` → `stopApp` (clearState wipes persisted tokens, making the test always fail)
+- **Password strength**: registration flows use `TestPass123!` (8+ chars with special character) to meet Zod validation
+- **Added `name:` property** to each flow for Maestro test reporting and selective execution
+- **Updated README.md** with flow tables, env var docs, and usage examples
+
+### Notes
+- Phase 1 individual files (e.g., `login-athlete.yaml`) still exist alongside the consolidated files — can be removed once CI uses the consolidated versions
+- All text selectors verified against `messages/en.json` i18n keys and `LoginScreen.tsx`/`RegisterScreen.tsx` components
+
+## Phase 1 — Complete ✅
+
+- Maestro CLI 2.7.0 installed at `C:\maestro\bin\maestro.bat`
+- Added to User PATH permanently
+- `.maestro/` directory created with shared config + 8 auth flows
+- npm scripts added: `e2e:local`, `e2e:ci`, `e2e:auth`, `e2e:athlete`, `e2e:trainer`
+
+### Created Files
+| File | Purpose |
+|------|---------|
+| `.maestro/maestro.yaml` | Shared env config (appId, test credentials, base URL) |
+| `.maestro/README.md` | Usage instructions + prerequisites |
+| `.maestro/auth/login-athlete.yaml` | Athlete login happy path |
+| `.maestro/auth/login-trainer.yaml` | Trainer login happy path |
+| `.maestro/auth/login-invalid.yaml` | Invalid credentials error |
+| `.maestro/auth/login-empty-fields.yaml` | Empty fields validation |
+| `.maestro/auth/register-athlete.yaml` | Athlete registration |
+| `.maestro/auth/register-trainer.yaml` | Trainer registration |
+| `.maestro/auth/register-duplicate-email.yaml` | Duplicate email error |
+| `.maestro/auth/session-restore.yaml` | Kill app + reopen = still authed |
+
+### Open Questions
 
 1. **Real backend or mocked?** Web E2E mocks with `page.route`. Maestro cannot mock APIs — needs real backend running. Options: real backend with test database, or enable MSW in Expo app (MSW is React Native compatible per plan doc).
 

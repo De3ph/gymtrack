@@ -1,0 +1,33 @@
+# Session restore — login, kill app, reopen, still authenticated
+# Uses stopApp (not clearState) to simulate a normal app restart
+# without wiping persisted session data (tokens/cookies).
+name: Session Restore
+appId: com.gymtrack.app
+---
+# Step 1: Login
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+
+- tapOn: "Login"
+
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+# Step 2: Stop and relaunch — simulates user closing and reopening the app
+- stopApp
+- launchApp
+
+# Step 3: Should land on dashboard, not login screen
+- assertVisible:
+    text: "Home"
+    timeout: 15000

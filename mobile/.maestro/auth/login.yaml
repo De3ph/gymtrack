@@ -1,0 +1,86 @@
+# Auth — Login flows
+# Combines: athlete login, trainer login, invalid credentials, empty fields validation
+
+name: Athlete Login
+appId: com.gymtrack.app
+---
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+
+- tapOn: "Login"
+
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+---
+
+name: Trainer Login
+appId: com.gymtrack.app
+---
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn: "Email or Username"
+- inputText: "${TRAINER_EMAIL}"
+
+- tapOn: "Password"
+- inputText: "${TRAINER_PASSWORD}"
+
+- tapOn: "Login"
+
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+---
+
+name: Invalid Credentials
+appId: com.gymtrack.app
+---
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn: "Email or Username"
+- inputText: "wrong@example.com"
+
+- tapOn: "Password"
+- inputText: "WrongPass123"
+
+- tapOn: "Login"
+
+- assertVisible:
+    text: "Invalid"
+    timeout: 10000
+
+---
+
+name: Empty Fields Validation
+appId: com.gymtrack.app
+---
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn: "Login"
+
+- assertVisible:
+    text: "required"
+    timeout: 5000

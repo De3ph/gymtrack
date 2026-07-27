@@ -1,0 +1,40 @@
+# Register — athlete happy path
+appId: com.gymtrack.app
+---
+- launchApp
+
+# Wait for login screen, navigate to register
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn: "Sign up"
+
+- assertVisible:
+    text: "Create Your Account"
+    timeout: 5000
+
+# Athlete role selected by default
+- tapOn:
+    text: "Username"
+- inputText: "testathlete"
+
+- tapOn:
+    text: "Email"
+- inputText: "test-athlete-${uniqueId()}@example.com"
+
+- tapOn:
+    text: "Password"
+- inputText: "TestPass123"
+
+- tapOn:
+    text: "Confirm Password"
+- inputText: "TestPass123"
+
+# Submit
+- tapOn: "Create Account"
+
+# Should navigate to dashboard
+- assertVisible:
+    text: "Home"
+    timeout: 15000

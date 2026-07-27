@@ -1,0 +1,23 @@
+# Login — trainer happy path
+appId: com.gymtrack.app
+---
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn:
+    text: "Email or Username"
+- inputText: "${TRAINER_EMAIL}"
+
+- tapOn:
+    text: "Password"
+- inputText: "${TRAINER_PASSWORD}"
+
+- tapOn: "Login"
+
+# Trainer dashboard — Clients tab visible
+- assertVisible:
+    text: "Home"
+    timeout: 15000

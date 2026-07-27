@@ -1,0 +1,12 @@
+appId: com.gymtrack.app
+
+# Shared environment variables for all Maestro flows.
+# Override per-flow with: maestro test flow.yaml --env KEY=VALUE
+
+env:
+  BASE_URL: http://localhost:8080/api
+  # Test user credentials (seed data or pre-created)
+  ATHLETE_EMAIL: athlete@example.com
+  ATHLETE_PASSWORD: Password123
+  TRAINER_EMAIL: trainer@example.com
+  TRAINER_PASSWORD: Password123

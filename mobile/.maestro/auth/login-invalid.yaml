@@ -1,0 +1,23 @@
+# Login — invalid credentials shows error
+appId: com.gymtrack.app
+---
+- launchApp
+
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+
+- tapOn:
+    text: "Email or Username"
+- inputText: "wrong@example.com"
+
+- tapOn:
+    text: "Password"
+- inputText: "WrongPass123"
+
+- tapOn: "Login"
+
+# Error message appears
+- assertVisible:
+    text: "Invalid"
+    timeout: 10000
