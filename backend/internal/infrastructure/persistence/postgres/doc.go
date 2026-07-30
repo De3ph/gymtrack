@@ -25,9 +25,17 @@
 // Tests use SetupTestPostgresDB from internal/testutils/postgres.go which
 // accepts POSTGRES_TEST_DSN.
 //
+// # Cache Layer
+//
+// Read-heavy repositories (user, exercise, muscle group, equipment,
+// relationship, trainer profile) are wrapped by caching decorators in the
+// *_cached.go files. Each decorator composes a domain repository with a
+// cache.Cache[T] supplied by internal/infrastructure/cache/factory.go, which
+// honours the CACHE_ENABLED env flag (NoOpCache when disabled).
+//
 // # Migration Context
 //
-// These repos replace the original Couchbase implementations under
-// internal/repository/couchbase/ (kept for rollback). The DI swap is done in
-// internal/app/module.go -- one line change to revert.
+// PostgreSQL is the sole persistence backend; the original Couchbase
+// implementations have been removed. Repository wiring lives in
+// internal/app/module.go.
 package postgres

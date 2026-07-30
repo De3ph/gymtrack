@@ -67,7 +67,7 @@ func TestCachedUserRepository_AuthCacheHit(t *testing.T) {
 	userID := user.UserID
 
 	// Wrap with cache — short TTL so test is self-contained.
-	gc := cache.NewGoCache[*models.User](5*time.Minute, 1*time.Minute, nil)
+	gc := cache.NewGoCache[*models.User](5*time.Minute, 1*time.Minute, 0, nil)
 	countingWrapper := &countingUserRepo{inner: innerRepo}
 	cachedRepo := NewCachedUserRepository(countingWrapper, gc)
 
@@ -102,7 +102,7 @@ func TestCachedUserRepository_DeepCopyIsolation(t *testing.T) {
 	require.NoError(t, err)
 	userID := user.UserID
 
-	gc := cache.NewGoCache[*models.User](5*time.Minute, 1*time.Minute, nil)
+	gc := cache.NewGoCache[*models.User](5*time.Minute, 1*time.Minute, 0, nil)
 	cachedRepo := NewCachedUserRepository(innerRepo, gc)
 
 	fetched1, err := cachedRepo.GetUserByID(ctx, userID)

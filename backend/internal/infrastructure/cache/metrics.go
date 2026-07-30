@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"sync/atomic"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -14,8 +16,8 @@ type CacheMetrics struct {
 	Size      prometheus.Gauge
 	HitRatio  prometheus.GaugeFunc
 
-	hits   uint64
-	misses uint64
+	hits   atomic.Uint64
+	misses atomic.Uint64
 }
 
 // NewCacheMetrics creates a CacheMetrics with the given registry and prefix.
@@ -43,26 +45,34 @@ func NewCacheMetrics(reg *prometheus.Registry, prefix string) *CacheMetrics {
 		Name: prefix + "_hit_ratio",
 		Help: "Cache hit ratio (hits / total requests)",
 	}, func() float64 {
-		total := m.hits + m.misses
+		h := m.hits.Load()
+		ms := m.misses.Load()
+		total := h + ms
 		if total == 0 {
 			return 0
 		}
-		return float64(m.hits) / float64(total)
+		return float64(h) / float64(total)
 	})
 
 	return m
 }
 
-// RecordHit increments the hit counter.
+// RecordHit increments the hit counter atomically.
 func (m *CacheMetrics) RecordHit() {
-	m.hits++
+	m.hits.Add(1)
 	m.Hits.Inc()
 }
 
-// RecordMiss increments the miss counter.
+// RecordMiss increments the miss counter atomically.
 func (m *CacheMetrics) RecordMiss() {
-	m.misses++
+	m.misses.Add(1)
 	m.Misses.Inc()
+}
+
+// RecordEviction increments the eviction counter. Called by the cache adapter
+// when a random-2 eviction removes an entry to enforce the maxEntries bound.
+func (m *CacheMetrics) RecordEviction() {
+	m.Evictions.Inc()
 }
 
 // SetSize sets the size gauge to n.
