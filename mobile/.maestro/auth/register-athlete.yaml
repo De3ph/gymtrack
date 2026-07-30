@@ -4,14 +4,16 @@ appId: com.gymtrack.app
 - launchApp
 
 # Wait for login screen, navigate to register
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Sign up"
 
-- assertVisible:
-    text: "Create Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Create Your Account"
     timeout: 5000
 
 # Athlete role selected by default
@@ -35,6 +37,7 @@ appId: com.gymtrack.app
 - tapOn: "Create Account"
 
 # Should navigate to dashboard
-- assertVisible:
-    text: "Home"
+- extendedWaitUntil:
+    visible:
+      text: "Home"
     timeout: 15000

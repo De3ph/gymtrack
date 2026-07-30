@@ -6,8 +6,9 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Email or Username"
@@ -18,8 +19,9 @@ appId: com.gymtrack.app
 
 - tapOn: "Login"
 
-- assertVisible:
-    text: "Home"
+- extendedWaitUntil:
+    visible:
+      text: "Home"
     timeout: 15000
 
 ---
@@ -29,8 +31,9 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Email or Username"
@@ -41,8 +44,9 @@ appId: com.gymtrack.app
 
 - tapOn: "Login"
 
-- assertVisible:
-    text: "Home"
+- extendedWaitUntil:
+    visible:
+      text: "Home"
     timeout: 15000
 
 ---
@@ -52,8 +56,9 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Email or Username"
@@ -64,8 +69,9 @@ appId: com.gymtrack.app
 
 - tapOn: "Login"
 
-- assertVisible:
-    text: "Invalid"
+- extendedWaitUntil:
+    visible:
+      text: "Invalid"
     timeout: 10000
 
 ---
@@ -75,12 +81,14 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Login"
 
-- assertVisible:
-    text: "required"
+- extendedWaitUntil:
+    visible:
+      text: "required"
     timeout: 5000

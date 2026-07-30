@@ -6,14 +6,16 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Sign up"
 
-- assertVisible:
-    text: "Create Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Create Your Account"
     timeout: 5000
 
 # Athlete role selected by default — no tap needed
@@ -32,8 +34,9 @@ appId: com.gymtrack.app
 
 - tapOn: "Create Account"
 
-- assertVisible:
-    text: "Home"
+- extendedWaitUntil:
+    visible:
+      text: "Home"
     timeout: 15000
 
 ---
@@ -43,14 +46,16 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Sign up"
 
-- assertVisible:
-    text: "Create Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Create Your Account"
     timeout: 5000
 
 # Switch to trainer role
@@ -70,8 +75,9 @@ appId: com.gymtrack.app
 
 - tapOn: "Create Account"
 
-- assertVisible:
-    text: "Home"
+- extendedWaitUntil:
+    visible:
+      text: "Home"
     timeout: 15000
 
 ---
@@ -81,14 +87,16 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Sign up"
 
-- assertVisible:
-    text: "Create Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Create Your Account"
     timeout: 5000
 
 - tapOn: "Username"
@@ -105,6 +113,7 @@ appId: com.gymtrack.app
 
 - tapOn: "Create Account"
 
-- assertVisible:
-    text: "already"
+- extendedWaitUntil:
+    visible:
+      text: "already"
     timeout: 10000

@@ -36,3 +36,19 @@ Completed Phase 4 (Re-render hygiene) of the Vercel React Best Practices remedia
 
 ## Next Steps
 Proceed to Phase 5 (Misc cleanups & ESLint) when ready.
+
+## Mobile E2E — Phase 1 Complete
+
+### Installed
+- Maestro CLI 2.7.0 at `C:\maestro\bin\maestro.bat`
+- Java 25 (Temurin) — prerequisite satisfied
+- Added to User PATH permanently
+
+### Files Created
+- `.maestro/maestro.yaml` — shared env config (appId, credentials, base URL)
+- `.maestro/README.md` — usage docs
+- `.maestro/auth/` — 8 auth flow YAML files (login x4, register x3, session-restore x1)
+- `mobile/package.json` — added 5 npm scripts (`e2e:local`, `e2e:ci`, `e2e:auth`, `e2e:athlete`, `e2e:trainer`)
+
+### Known Issue
+TextInputs in LoginScreen/RegisterScreen lack `testID` props. Maestro taps label text to focus inputs. Consider adding `testID` for reliability.

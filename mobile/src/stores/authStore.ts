@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import * as authLib from "@/lib/auth";
 import { authApi } from "@/api/authApi";
+import { setSessionExpiredHandler } from "@/api/client";
 import type { User } from "@/types";
 
 interface AuthState {
@@ -71,3 +72,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, isAuthenticated: false });
   },
 }));
+
+setSessionExpiredHandler(() => {
+  useAuthStore.setState({ user: null, isAuthenticated: false });
+});

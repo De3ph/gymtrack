@@ -1,8 +1,16 @@
 import * as authLib from "@/lib/auth";
-import { useAuthStore } from "@/stores/authStore";
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080/api";
+
+type SessionExpiredHandler = () => void;
+
+let onSessionExpired: SessionExpiredHandler = () => {};
+
+/** Register handler called when session expires and cannot be refreshed. */
+export function setSessionExpiredHandler(handler: SessionExpiredHandler) {
+  onSessionExpired = handler;
+}
 
 interface RequestOptions {
   method?: string;
@@ -50,8 +58,8 @@ export async function apiRequest<T = unknown>(
       if (refreshed) {
         return apiRequest<T>(endpoint, options);
       }
-      // Refresh failed — force logout to trigger auth guard redirect
-      purgeAuth();
+      authLib.clearTokens();
+      onSessionExpired();
       throw new Error("Session expired. Please login again.");
     }
 
@@ -92,10 +100,4 @@ async function tryRefreshToken(): Promise<boolean> {
     await authLib.clearTokens();
     return false;
   }
-}
-
-/** Force-clear auth state so _layout auth guard redirects to login. */
-function purgeAuth() {
-  authLib.clearTokens();
-  useAuthStore.setState({ user: null, isAuthenticated: false });
 }

@@ -3,14 +3,16 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 # Submit with empty fields
 - tapOn: "Login"
 
 # Validation error for email
-- assertVisible:
-    text: "required"
+- extendedWaitUntil:
+    visible:
+      text: "required"
     timeout: 5000

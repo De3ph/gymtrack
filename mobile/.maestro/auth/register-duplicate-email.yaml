@@ -3,14 +3,16 @@ appId: com.gymtrack.app
 ---
 - launchApp
 
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 - tapOn: "Sign up"
 
-- assertVisible:
-    text: "Create Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Create Your Account"
     timeout: 5000
 
 - tapOn:
@@ -32,6 +34,7 @@ appId: com.gymtrack.app
 - tapOn: "Create Account"
 
 # Error about existing account
-- assertVisible:
-    text: "already"
+- extendedWaitUntil:
+    visible:
+      text: "already"
     timeout: 10000

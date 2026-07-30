@@ -4,8 +4,9 @@ appId: com.gymtrack.app
 - launchApp
 
 # Wait for login screen
-- assertVisible:
-    text: "Login to Your Account"
+- extendedWaitUntil:
+    visible:
+      text: "Login to Your Account"
     timeout: 10000
 
 # Fill email — tap label text to focus nearby input
@@ -21,6 +22,7 @@ appId: com.gymtrack.app
 - tapOn: "Login"
 
 # Expect dashboard (athlete tabs visible)
-- assertVisible:
-    text: "Home"
+- extendedWaitUntil:
+    visible:
+      text: "Home"
     timeout: 15000

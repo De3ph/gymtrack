@@ -54,7 +54,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 
 ## Feature Cards
 
-### G1 — Edit/Delete Workout, Meal, Measurement (P0)
+### G1 — Edit/Delete Workout, Meal, Measurement (P0) ✅
 
 **Why**: Athlete logs data, makes mistake, stuck. 24h edit window is core UX guarantee.
 
