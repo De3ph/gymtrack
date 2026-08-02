@@ -65,7 +65,10 @@ export function TrainerDetailScreen() {
   });
 
   const { mutate: submitReview, isPending: submittingReview } = useMutation({
-    mutationFn: () => reviewApi.createReview(id!, { rating, comment: reviewComment.trim() || undefined }),
+    mutationFn: () => {
+      if (!id) return Promise.reject(new Error("Trainer ID is missing"));
+      return reviewApi.createReview(id, { rating, comment: reviewComment.trim() || undefined });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews", id] });
       Alert.alert("Review Submitted");
@@ -151,7 +154,7 @@ export function TrainerDetailScreen() {
                 <TouchableOpacity
                   style={[styles.sendBtn, rating === 0 && styles.sendBtnDisabled]}
                   onPress={() => submitReview()}
-                  disabled={rating === 0 || submittingReview}
+                  disabled={!id || rating === 0 || submittingReview}
                 >
                   {submittingReview ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendBtnText}>Submit Review</Text>}
                 </TouchableOpacity>

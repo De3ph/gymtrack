@@ -70,9 +70,11 @@ export function WorkoutPlansScreen() {
         {item.description ? <Text style={styles.planDesc} numberOfLines={2}>{item.description}</Text> : null}
         <Text style={styles.exerciseCount}>{item.exercises?.length ?? 0} exercises</Text>
       </View>
+      {/* RN gesture responder fires inner onPress before parent card onPress,
+          so stopPropagation (a DOM API) is unnecessary here. */}
       <TouchableOpacity
         style={styles.deleteIcon}
-        onPress={(e) => { e.stopPropagation?.(); handleDeletePlan(item.planId!); }}
+        onPress={() => { handleDeletePlan(item.planId!); }}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Text style={styles.deleteIconText}>×</Text>

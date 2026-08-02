@@ -32,6 +32,7 @@ interface NewExercise {
   id: string
   name: string
   notes: string
+  pickedExerciseId?: number
   sets: NewSet[]
 }
 
@@ -195,8 +196,8 @@ export function WorkoutsScreen() {
   const handleExerciseSelect = (exercise: { name: string; exerciseId: number; category?: string }) => {
     if (pickingForExId) {
       updateExerciseName(pickingForExId, exercise.name)
-      if (exercise.category) {
-        updateExerciseNotes(pickingForExId, `Category: ${exercise.category}`)
+      if (exercise.exerciseId) {
+        updateExercisePickedId(pickingForExId, exercise.exerciseId)
       }
     }
   }
@@ -298,12 +299,19 @@ export function WorkoutsScreen() {
     )
   }
 
+  const updateExercisePickedId = (exId: string, pickedExerciseId: number) => {
+    setNewExercises((prev) =>
+      prev.map((ex) => (ex.id === exId ? { ...ex, pickedExerciseId } : ex))
+    )
+  }
+
   const addExercise = () => {
     setNewExercises((prev) => [...prev, createEmptyExercise()])
   }
 
   const removeExercise = (exId: string) => {
     setNewExercises((prev) => prev.filter((ex) => ex.id !== exId))
+    if (pickingForExId === exId) setPickingForExId(null)
   }
 
   const addSet = (exId: string) => {
@@ -387,7 +395,7 @@ export function WorkoutsScreen() {
     const payload: Record<string, unknown> = {
       date: newDate,
       exercises: validExercises.map((ex) => ({
-        exerciseId: 0,
+        exerciseId: ex.pickedExerciseId ?? 0,
         name: ex.name.trim(),
         notes: ex.notes.trim() || undefined,
         sets: ex.sets.map((s) => ({

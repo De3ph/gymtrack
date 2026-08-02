@@ -30,7 +30,7 @@ interface ExercisePickerProps {
 export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerProps) {
   const [search, setSearch] = useState("");
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["exercises"],
     queryFn: () => exerciseApi.getAll() as Promise<Exercise[]>,
     enabled: visible,
@@ -86,6 +86,9 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
         ) : isError ? (
           <View style={styles.center}>
             <Text style={styles.errorText}>Failed to load exercises</Text>
+            <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <FlatList
@@ -175,6 +178,8 @@ const styles = StyleSheet.create({
   },
   chevron: { fontSize: 16, color: "#9ca3af", marginLeft: 8 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  errorText: { fontSize: 15, color: "#ef4444" },
+  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
   emptyText: { fontSize: 15, color: "#6b7280" },
+  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
+  retryText: { color: "#fff", fontWeight: "600" },
 });

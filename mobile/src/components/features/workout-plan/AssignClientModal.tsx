@@ -137,7 +137,7 @@ export function AssignClientModal({ visible, onClose, planId, onAssigned }: Prop
             <>
               <FlatList
                 data={clients}
-                keyExtractor={(item) => String(item.relationship?.relationshipId ?? item.athlete?.userId ?? Math.random())}
+                keyExtractor={(item, index) => String(item.relationship?.relationshipId ?? item.athlete?.userId ?? index)}
                 renderItem={renderItem}
                 contentContainerStyle={styles.list}
               />

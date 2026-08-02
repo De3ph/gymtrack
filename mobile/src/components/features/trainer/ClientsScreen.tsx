@@ -8,7 +8,6 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
-import { useState } from "react";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
@@ -29,16 +28,13 @@ export function ClientsScreen() {
 
   const clients: Client[] = (data as { clients?: Client[] })?.clients ?? [];
 
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
-
   const { mutate: generateCode, isPending: generating } = useMutation({
     mutationFn: () => relationshipApi.generateInvitation(),
     onSuccess: (res) => {
       const invite = (res as { invitation?: { code?: string; expiresAt?: string } })?.invitation;
       if (invite?.code) {
-        setInviteCode(invite.code);
         Alert.alert("Invitation Code", `Share this code with your athlete:\n\n${invite.code}\n\nExpires: ${invite.expiresAt ?? "7 days"}`, [
-          { text: "OK", onPress: () => setInviteCode(null) },
+          { text: "OK" },
         ]);
       }
     },

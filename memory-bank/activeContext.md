@@ -1,7 +1,51 @@
 # Active Context
 
 ## Current Focus
-Frontend auth checklist fixes implemented (2026-08-02) — see "Frontend Auth Checklist Fixes" below. (Prior: frontend memory-usage plan complete via 4-agent team; Task 7 deferred.)
+Mobile G1-G8 review fixes implemented (2026-08-02) — see "Mobile Review Fixes" below. (Prior: frontend auth checklist fixes.)
+
+## Mobile Review Fixes — Complete
+
+Implemented `plans/mobile-review-fixes.md` — all 15 items addressed (14 implemented, 1 already-fixed). 10 files modified in `mobile/src/`. Verified: `npx tsc --noEmit` → 0 new errors (3 pre-existing in `ExternalLink.tsx` + `i18n.tsx` unchanged).
+
+### Changes (10 files)
+
+**WorkoutPlanDetailScreen.tsx** (items 1, 6, 13):
+- Item 1: Added `editExercises` state; `handleEdit` copies exercises from `data` into state; `savePlan` sends `editExercises` instead of stale `(data as PlanDetail)?.exercises`. Fixes silent exercise revert on refetch-while-editing.
+- Item 6: `deletePlan` onSuccess now calls `queryClient.removeQueries(["workoutPlan", id])` synchronously before `invalidateQueries(["workoutPlans"])` + `router.back()`. Prevents deleted plan flashing in list.
+- Item 13: `handleEdit` guarded with `if (!plan) return;` — prevents undefined access when edit button pressed before query resolves.
+
+**AssignClientModal.tsx** (item 2):
+- `keyExtractor` fallback changed from `Math.random()` to `index` — stable keys prevent FlatList full re-mount on toggle.
+
+**WorkoutsScreen.tsx** (items 3, 7):
+- Item 3: Added `pickedExerciseId?: number` to `NewExercise` interface. `handleExerciseSelect` sets `pickedExerciseId` via new `updateExercisePickedId()` instead of overwriting notes with category text. Notes field stays user-editable. Payload sends `ex.pickedExerciseId ?? 0`.
+- Item 7: `removeExercise` clears `pickingForExId` if it matches removed exercise — prevents silent no-op when user removes slot then picks from still-open picker.
+
+**TrainerProfileScreen.tsx** (items 4, 14):
+- Item 4: `removeSlot` guard changed from `if (slot.availabilityId)` (truthy, undefined-safe but fragile) to `if (slot.availabilityId != null)` — explicit null/undefined check prevents `String(undefined)` → bad DELETE request.
+- Item 14: Added `useEffect` syncing `availSlots` from `serverSlots` when `!editingAvail` — keeps local state fresh on refetch. Added `useEffect` import.
+
+**TrainerDetailScreen.tsx** (item 5):
+- `submitReview` mutationFn guarded with `if (!id) return Promise.reject(...)` instead of `id!` non-null assertion. Submit button `disabled` includes `!id` check.
+
+**WorkoutPlansScreen.tsx** (item 9):
+- Removed `e.stopPropagation?.()` (DOM API, no-op in RN). Added comment explaining RN gesture responder fires inner onPress before parent.
+
+**ClientsScreen.tsx** (item 10):
+- Removed dead `inviteCode` state + setter. Alert uses closure variable directly. Removed unused `useState` import.
+
+**ExercisePicker.tsx** (item 11):
+- Added `refetch` to useQuery destructuring. Error state now shows retry `TouchableOpacity` button. Added `retryButton` + `retryText` styles, `marginBottom` to `errorText`.
+
+**StarRatingInput.tsx** (item 12):
+- Stars row `View` gets `onTouchEnd={() => setHover(0)}` — fallback hover reset when touch ends outside individual star.
+
+**MyTrainerScreen.tsx** (item 15):
+- Added `showSuccess` flag + `isFetching` from useQuery. `acceptInvite` onSuccess sets `showSuccess=true`. Loading screen shows when `isLoading || showSuccess`. `useEffect` clears `showSuccess` when `isFetching` becomes false (refetch complete). Added `useEffect` import.
+
+### Already Fixed (verified, no change needed)
+- Item 8 (CommentSection.tsx): `renderComment` useCallback already includes `currentUserId` in deps at L153: `[currentUserId, readOnly, handleDelete, t]`. Plan was written against older version.
+
 
 ## Frontend Auth Checklist Fixes — Complete
 Implemented `plans/frontend-auth-checklist-review.md` priority fixes #1-#6 (#7 skipped). Verified: `authStore.test.ts` 10/10; no new tsc errors (single `authStore.ts:125` error is pre-existing `UserResponse` vs `User` mismatch — confirmed via `git stash`); LoginPage/RegisterPage failures unchanged pre-existing.

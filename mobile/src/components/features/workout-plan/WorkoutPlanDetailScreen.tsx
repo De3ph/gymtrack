@@ -32,6 +32,7 @@ export function WorkoutPlanDetailScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editExercises, setEditExercises] = useState<{ name?: string; sets?: number; reps?: number; weight?: number }[]>([]);
   const [showAssignModal, setShowAssignModal] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -45,7 +46,7 @@ export function WorkoutPlanDetailScreen() {
       workoutPlanApi.update(id!, {
         name: editName,
         description: editDescription,
-        exercises: (data as PlanDetail)?.exercises ?? [],
+        exercises: editExercises,
       }),
     onSuccess: () => {
       setIsEditing(false);
@@ -60,6 +61,7 @@ export function WorkoutPlanDetailScreen() {
   const { mutate: deletePlan, isPending: deleting } = useMutation({
     mutationFn: () => workoutPlanApi.delete(id!),
     onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ["workoutPlan", id] });
       queryClient.invalidateQueries({ queryKey: ["workoutPlans"] });
       router.back();
     },
@@ -77,8 +79,10 @@ export function WorkoutPlanDetailScreen() {
 
   const handleEdit = () => {
     const plan = data as PlanDetail;
+    if (!plan) return;
     setEditName(plan.name ?? "");
     setEditDescription(plan.description ?? "");
+    setEditExercises(plan.exercises ? plan.exercises.map((e) => ({ ...e })) : []);
     setIsEditing(true);
   };
 

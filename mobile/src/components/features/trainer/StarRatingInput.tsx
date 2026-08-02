@@ -27,7 +27,7 @@ export function StarRatingInput({
   return (
     <View style={styles.wrap}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={styles.row}>
+      <View style={styles.row} onTouchEnd={() => setHover(0)}>
         {Array.from({ length: MAX_RATING }, (_, i) => {
           const star = i + 1;
           const filled = star <= display;

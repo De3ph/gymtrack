@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -47,6 +47,13 @@ export function TrainerProfileScreen() {
 
   const [editingAvail, setEditingAvail] = useState(false);
   const [availSlots, setAvailSlots] = useState<AvailabilitySlot[]>([]);
+
+  // Keep local availSlots in sync with server data when not actively editing
+  useEffect(() => {
+    if (!editingAvail) {
+      setAvailSlots(serverSlots.length > 0 ? serverSlots.map((s) => ({ ...s })) : []);
+    }
+  }, [serverSlots, editingAvail]);
 
   const startEditAvail = () => {
     setAvailSlots(
@@ -106,7 +113,7 @@ export function TrainerProfileScreen() {
 
   const removeSlot = (index: number) => {
     const slot = availSlots[index];
-    if (slot.availabilityId) {
+    if (slot.availabilityId != null) {
       Alert.alert("Delete Slot", "Remove this availability slot?", [
         { text: "Cancel", style: "cancel" },
         {

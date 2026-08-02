@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 export function MyTrainerScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["myTrainer"],
     queryFn: () => relationshipApi.getMyTrainer(),
   });
@@ -27,11 +27,13 @@ export function MyTrainerScreen() {
   });
 
   const [inviteCode, setInviteCode] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { mutate: acceptInvite, isPending: accepting } = useMutation({
     mutationFn: (code: string) => relationshipApi.acceptInvitation(code),
     onSuccess: () => {
       setInviteCode("");
+      setShowSuccess(true);
       queryClient.invalidateQueries({ queryKey: ["myTrainer"] });
       Alert.alert("Success", "Invitation accepted! You are now connected with your trainer.");
     },
@@ -40,7 +42,12 @@ export function MyTrainerScreen() {
     },
   });
 
-  if (isLoading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
+  // Clear success flag once the refetch triggered by invalidation completes
+  useEffect(() => {
+    if (showSuccess && !isFetching) setShowSuccess(false);
+  }, [showSuccess, isFetching]);
+
+  if (isLoading || showSuccess) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
   if (isError || !data) return (
     <View style={styles.center}>
       <Text style={styles.emptyText}>No trainer assigned yet</Text>
