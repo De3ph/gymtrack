@@ -1,7 +1,7 @@
 ﻿import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
-import { decrypt, updateSession, SESSION_COOKIE_NAME } from './lib/session';
+import { decrypt, updateSession, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME } from './lib/session';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -25,6 +25,24 @@ function isAdminRoute(pathname: string): boolean {
       ? '/' + parts.slice(1).join('/')
       : pathname
   return normalized === '/admin' || normalized.startsWith('/admin/')
+}
+
+function isAthleteRoute(pathname: string): boolean {
+  const parts = pathname.split('/').filter(Boolean)
+  const normalized =
+    parts.length > 0 && parts[0].length === 2 && /^[a-z]{2}$/.test(parts[0])
+      ? '/' + parts.slice(1).join('/')
+      : pathname
+  return normalized === '/athlete' || normalized.startsWith('/athlete/')
+}
+
+function isTrainerRoute(pathname: string): boolean {
+  const parts = pathname.split('/').filter(Boolean)
+  const normalized =
+    parts.length > 0 && parts[0].length === 2 && /^[a-z]{2}$/.test(parts[0])
+      ? '/' + parts.slice(1).join('/')
+      : pathname
+  return normalized === '/trainer' || normalized.startsWith('/trainer/')
 }
 
 
@@ -79,10 +97,17 @@ export default async function proxy(req: NextRequest) {
       return NextResponse.redirect(loginUrl)
     }
 
-    // Role gate: /admin/* requires admin role
+    // Role gates: each role-scoped route requires the matching role. The
+    // proxy performs an optimistic check here; the server DAL (verifySession /
+    // verifyAdmin) and the Go backend remain the authoritative enforcers.
     if (isAdminRoute(path) && payload?.role !== 'admin') {
-      const dashboardUrl = new URL('/dashboard', req.nextUrl)
-      return NextResponse.redirect(dashboardUrl)
+      return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
+    }
+    if (isAthleteRoute(path) && payload?.role !== 'athlete') {
+      return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
+    }
+    if (isTrainerRoute(path) && payload?.role !== 'trainer') {
+      return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
     }
   }
 
@@ -100,6 +125,18 @@ export default async function proxy(req: NextRequest) {
         path: '/',
       })
     }
+  }
+
+  // Roll the separate refresh-token cookie alongside the session so the
+  // refresh token stays valid as long as the (rolling) session does.
+  const refreshCookie = req.cookies.get(REFRESH_COOKIE_NAME)?.value
+  if (refreshCookie) {
+    response.cookies.set(REFRESH_COOKIE_NAME, refreshCookie, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    })
   }
 
   return response

@@ -22,7 +22,7 @@ describe('AuthStore', () => {
         HttpResponse.json({ success: true })
       ),
       http.get('/api/auth/session', () =>
-        HttpResponse.json({ accessToken: 'session-recovered-token', userId: 'user-1', role: 'athlete' })
+        HttpResponse.json({ accessToken: 'session-recovered-token', refreshToken: 'session-refresh-token', userId: 'user-1', role: 'athlete' })
       ),
       http.delete('/api/auth/session', () =>
         HttpResponse.json({ success: true })
@@ -151,6 +151,7 @@ describe('AuthStore', () => {
     await initializeAuth()
 
     expect(tokenService.getAccessToken()).toBe('session-recovered-token')
+    expect(tokenService.getRefreshToken()).toBe('session-refresh-token')
     expect(userApi.getCurrentUser).toHaveBeenCalled()
 
     const state = useAuthStore.getState()

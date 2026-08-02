@@ -40,8 +40,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: JSON.stringify({
           accessToken,
           refreshToken,
-          userId: user.userId,
-          role: user.role,
         }),
       })
 
@@ -115,8 +113,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return
       }
 
-      // 2. Restore access token in memory
-      tokenService.set(session.accessToken)
+      // 2. Restore both tokens in memory (access + refresh). The refresh token
+      //    is recovered from its dedicated cookie via the GET handler.
+      tokenService.setTokens(session.accessToken, session.refreshToken || '')
 
       // 3. Fetch full user profile from Go backend
       const user = await userApi.getCurrentUser()
@@ -154,21 +153,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const response = await authApi.refreshToken(refreshToken)
-      const { accessToken } = response
+      const { accessToken, refreshToken: newRefreshToken } = response
 
-      // Update in-memory token
-      tokenService.set(accessToken)
+      // Handle refresh-token rotation: if the backend issues a new refresh
+      // token, use it; otherwise reuse the existing one.
+      const effectiveRefreshToken = newRefreshToken || refreshToken
 
-      // Update the HttpOnly cookie with refreshed token
-      const state = get()
+      // Update both in-memory tokens
+      tokenService.setTokens(accessToken, effectiveRefreshToken)
+
+      // Update the HttpOnly cookies with the refreshed tokens. The server
+      // derives userId/role from the backend, so they are not sent here.
       await fetch(SESSION_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accessToken,
-          refreshToken,
-          userId: state.user?.userId,
-          role: state.user?.role,
+          refreshToken: effectiveRefreshToken,
         }),
       })
 

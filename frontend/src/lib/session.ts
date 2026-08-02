@@ -8,12 +8,12 @@ if (!secretKey) {
 
 const encodedKey = new TextEncoder().encode(secretKey)
 const SESSION_COOKIE_NAME = 'session'
+const REFRESH_COOKIE_NAME = 'refresh_token'
 
 export interface SessionPayload {
   userId: string
   role: string
   accessToken: string
-  refreshToken: string
   expiresAt: Date
 }
 
@@ -41,7 +41,6 @@ export async function decrypt(
       userId: data.userId as string,
       role: data.role as string,
       accessToken: data.accessToken as string,
-      refreshToken: data.refreshToken as string,
       expiresAt: new Date(data.expiresAt as string),
     }
   } catch {
@@ -64,4 +63,4 @@ export async function updateSession(sessionCookie: string | undefined): Promise<
   return encrypt(payload)
 }
 
-export { SESSION_COOKIE_NAME }
+export { SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME }

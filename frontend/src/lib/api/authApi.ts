@@ -11,7 +11,7 @@ export const authApi = {
     },
 
     refreshToken: async (refreshToken: string) => {
-        return api.post<{ message: string; accessToken: string }>("/auth/refresh", { refreshToken })
+        return api.post<{ message: string; accessToken: string; refreshToken?: string }>("/auth/refresh", { refreshToken })
     },
 
     logout: async () => {

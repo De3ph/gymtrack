@@ -4,7 +4,7 @@
 **Source:** `frontend/node_modules/next/dist/docs/01-app/02-guides/authentication.md`
 **Scope:** `@frontend` (Next.js 16 App Router) auth flow
 
-## Status: Analysis complete. No edits applied. Awaiting act-mode go-ahead.
+## Status: Fixes implemented (2026-08-02). See "Implementation Log" at bottom.
 
 ## Checklist structure (from doc)
 
@@ -64,6 +64,48 @@ Token storage: access + refresh tokens in-memory `tokenService` singleton (no lo
 
 ### Context Providers
 - Not used for auth. Zustand `authStore` (client) + DAL (server). Correct — doc says context only works in Client Components.
+
+---
+
+## Implementation Log (2026-08-02)
+
+All actionable fixes implemented and validated. No new type errors; `authStore.test.ts` 10/10 pass; pre-existing test/type failures unchanged (confirmed via `git stash` comparison).
+
+### Fix #1 (CRITICAL) — dal.ts cache keys: ALREADY RESOLVED, no change needed
+Commit `cd3eb0b` (same day) refactored `dal.ts` from `unstable_cache` → `'use cache'` directive. Per Next.js `use-cache.md` (line 78-85), a cache entry's key includes "Serializable arguments — Props or function arguments." All four cached functions now take the user-specific `accessToken` as an argument, so it IS part of the cache key → user A and user B (different tokens) get different cache entries → no cross-user leak. `getLatestBodyMeasurementCached` / `getTrainerProfileCached` additionally include `userId`. The original `unstable_cache` static-key bug described in this review no longer exists. Left as-is to avoid regression.
+
+### Fix #2 (HIGH) — POST /api/auth/session no longer trusts client `role`
+**`frontend/src/app/api/auth/session/route.ts`**: POST handler now verifies the `accessToken` against the Go backend (`GET /users/me`) and uses the **backend-returned** `userId` + `role` (authoritative) to build the session cookie — the client-provided `userId`/`role` are ignored entirely. Returns 401 if the token is rejected by the backend, 502 on network failure. This prevents an XSS-compromised client from forging an arbitrary role in the session cookie (which the proxy trusts for route gating).
+**`frontend/src/stores/authStore.ts`**: `login` and `refreshAccessToken` POST only `{ accessToken, refreshToken }` (dropped `userId`/`role` — the server now derives them).
+
+### Fix #3 (MEDIUM) — decryptCache bounded: ALREADY DONE, no change needed
+`frontend/src/proxy.ts` already has `DECRYPT_CACHE_MAX = 1000` with FIFO eviction (`decryptCacheOrder` queue). Implemented earlier the same day as part of the memory-usage plan.
+
+### Fix #4 (MEDIUM) — athlete/trainer role gates added in proxy
+**`frontend/src/proxy.ts`**: added `isAthleteRoute()` + `isTrainerRoute()` (mirroring `isAdminRoute` with locale-prefix stripping) and optimistic role gates: `/athlete/*` requires `role === 'athlete'`, `/trainer/*` requires `role === 'trainer'` (else redirect to `/dashboard`, which itself role-routes). The server DAL (`verifySession`/`verifyAdmin`) and Go backend remain the authoritative enforcers; this closes the gap where athlete/trainer routes had no edge-level role check.
+
+### Fix #5 (LOW) — refresh token split into a dedicated cookie
+**`frontend/src/lib/session.ts`**: added `REFRESH_COOKIE_NAME = 'refresh_token'`; removed `refreshToken` from `SessionPayload` (and thus from the session JWT) so a leak of the session cookie no longer exposes the long-lived refresh token.
+**`frontend/src/app/api/auth/session/route.ts`**: POST sets a separate HttpOnly `refresh_token` cookie (Secure in prod, SameSite=lax, Path=/); GET returns `refreshToken` read from that cookie; DELETE clears both cookies.
+**`frontend/src/proxy.ts`**: rolls the refresh-token cookie alongside the session on each request (preserves the rolling-session behaviour).
+**`frontend/src/stores/authStore.ts`**: `initializeAuth` now restores **both** tokens to the in-memory `tokenService` via `setTokens(accessToken, refreshToken)` — this also fixes a pre-existing gap where the refresh token was never restored after a page refresh.
+> Deviation from checklist: used `sameSite: 'lax'` + `path: '/'` instead of the suggested `sameSite: 'strict'` + `Path: /api/auth/refresh`. `strict` would prevent the refresh cookie from being sent on cross-site top-level navigation, breaking refresh-after-external-link; the restricted `Path` is incompatible with the client-side refresh architecture (refresh goes directly to the Go backend, not a Next.js route). `lax` + separate cookie still achieves the primary goal (refresh token not bundled in the session JWT).
+
+### Fix #6 (LOW) — refresh-token rotation handled defensively
+**`frontend/src/lib/api/authApi.ts`**: refresh response type extended with `refreshToken?: string`.
+**`frontend/src/stores/authStore.ts`**: `refreshAccessToken` now reads an optional `newRefreshToken` from the refresh response and uses `effectiveRefreshToken = newRefreshToken || refreshToken`. The current Go backend (`RefreshToken` handler) returns only `{ message, accessToken }` (no rotation — confirmed in `auth_handler.go`), so the old token is reused. If the backend adds rotation later, the frontend will automatically pick up the new token.
+
+### Fix #7 (LOW) — DTO for admin user detail: SKIPPED
+Backend `UserResponse` (built in `auth_handler.go:142-151`) explicitly excludes the password hash. The checklist itself says "Skip unless backend leaks sensitive fields." No change.
+
+### Files changed
+- `frontend/src/lib/session.ts` — `REFRESH_COOKIE_NAME`, `SessionPayload` sans `refreshToken`, export.
+- `frontend/src/app/api/auth/session/route.ts` — backend role verification (POST), refresh cookie (POST/GET/DELETE).
+- `frontend/src/lib/api/authApi.ts` — optional `refreshToken` in refresh response type.
+- `frontend/src/proxy.ts` — athlete/trainer route gates + refresh-cookie rolling.
+- `frontend/src/stores/authStore.ts` — drop client `role`/`userId` from POST; restore both tokens on init; defensive rotation.
+- `frontend/src/test/stores/authStore.test.ts` — GET mock includes `refreshToken`; assertion for refresh-token restoration.
+
 
 ### `taintUniqueValue` / `taintObjectReference`
 - Not used. Access token intentionally exposed to client (needed for Bearer header). Low risk per architecture. Skip.

@@ -1,7 +1,26 @@
 # Active Context
 
 ## Current Focus
-Frontend memory-usage plan implemented (2026-08-02) via 4-agent team. All actionable tasks (1-6, 8, 9) complete; Task 7 deferred.
+Frontend auth checklist fixes implemented (2026-08-02) — see "Frontend Auth Checklist Fixes" below. (Prior: frontend memory-usage plan complete via 4-agent team; Task 7 deferred.)
+
+## Frontend Auth Checklist Fixes — Complete
+Implemented `plans/frontend-auth-checklist-review.md` priority fixes #1-#6 (#7 skipped). Verified: `authStore.test.ts` 10/10; no new tsc errors (single `authStore.ts:125` error is pre-existing `UserResponse` vs `User` mismatch — confirmed via `git stash`); LoginPage/RegisterPage failures unchanged pre-existing.
+
+### Changes (6 files)
+- **session.ts**: added `REFRESH_COOKIE_NAME='refresh_token'`; removed `refreshToken` from `SessionPayload` (so session JWT leak no longer exposes refresh token); export both cookie names.
+- **session/route.ts** (fix #2 HIGH): POST verifies `accessToken` via Go backend `GET /users/me`, uses **backend-returned** `userId`+`role` (ignores client-provided) → prevents XSS role forgery in cookie. Sets separate `refresh_token` cookie (fix #5). GET returns `refreshToken` from refresh cookie. DELETE clears both. Added `BACKEND_URL`.
+- **authApi.ts** (fix #6 LOW): refresh response type now `{ message, accessToken, refreshToken?: string }`.
+- **proxy.ts** (fix #4 MEDIUM): added `isAthleteRoute`/`isTrainerRoute` + role gates (`/athlete/*`→athlete, `/trainer/*`→trainer, else redirect `/dashboard`). Rolls refresh cookie alongside session.
+- **authStore.ts**: login/refresh POST body drops `userId`/`role` (server derives from backend); `initializeAuth` restores **both** tokens via `setTokens` (also fixes pre-existing gap: refresh token never restored after page refresh); `refreshAccessToken` handles optional rotation (`effectiveRefreshToken = newRefreshToken || refreshToken`).
+- **authStore.test.ts**: GET mock includes `refreshToken`; added `getRefreshToken()` assertion.
+
+### Fix status
+- #1 CRITICAL (dal.ts cache keys): ALREADY RESOLVED by `cd3eb0b` refactor (`unstable_cache`→`'use cache'`; accessToken in cache key = user isolation). No change.
+- #3 MEDIUM (decryptCache bound): ALREADY DONE (`DECRYPT_CACHE_MAX=1000` FIFO). No change.
+- #7 LOW (DTO admin): SKIPPED (backend UserResponse excludes password hash).
+
+### Deviation note
+Fix #5 used `sameSite:'lax'` + `path:'/'` (not `strict` + `/api/auth/refresh`) — strict breaks cross-site nav refresh; restricted path incompatible with client-side refresh-to-Go-backend. Primary goal (refresh not in session JWT) achieved.
 
 ## Frontend Memory Usage Plan — Complete
 
