@@ -55,7 +55,6 @@ CREATE TABLE IF NOT EXISTS equipment_definitions (
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS exercises (
     id SERIAL PRIMARY KEY,
-    legacy_id TEXT UNIQUE,
     name VARCHAR(255) NOT NULL,
     category VARCHAR(50) NOT NULL,
     muscle_group_id INTEGER REFERENCES muscle_groups(id),

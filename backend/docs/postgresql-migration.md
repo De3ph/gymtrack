@@ -35,9 +35,9 @@ Four columns store structured data as JSONB rather than decomposing into separat
 | `body_measurements` | `parts` | Object keyed by body part, each with a `value` field |
 | `workout_plans` | `exercises` | Array of exercise entries for the plan template |
 
-### Legacy ID Tracing
+### Legacy ID (removed)
 
-The `exercises` table includes a `legacy_id TEXT UNIQUE` column that stores the original Couchbase UUID. This allows tracing any PostgreSQL exercise back to its Couchbase origin and simplifies debugging if the JSONB rewrite misses an reference.
+The `exercises` table previously included a `legacy_id TEXT UNIQUE` column that stored the original Couchbase UUID for traceability during migration. This column was removed in migration `004` after the Couchbase → PostgreSQL migration was confirmed complete — no application code read or wrote it.
 
 ### Table Count
 
@@ -76,9 +76,11 @@ Couchbase had no referential integrity. PostgreSQL enforces FK constraints on al
 
 The migration runs inside a single PostgreSQL transaction. All ID maps are held in memory. If any step fails, the entire transaction rolls back.
 
+> **Historical note:** The `exercises.legacy_id` column referenced below was removed after migration completion (migration `004`). The algorithm description is preserved as a record of how the migration worked.
+
 ### Phase 1: Migrate exercises, build exerciseIDMap
 
-Exercises are migrated first (after users and lookup tables). Each Couchbase `exerciseId` (UUID string) is stored in `exercises.legacy_id`. The new SERIAL integer ID is captured via `RETURNING id` and stored in `exerciseIDMap[oldUUID] = newIntegerID`.
+Exercises are migrated first (after users and lookup tables). Each Couchbase `exerciseId` (UUID string) was stored in `exercises.legacy_id` (column since removed). The new SERIAL integer ID was captured via `RETURNING id` and stored in `exerciseIDMap[oldUUID] = newIntegerID`.
 
 ### Phase 2: Migrate workout_plans with empty exerciseIDMap
 
