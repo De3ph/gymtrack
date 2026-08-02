@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Inter, Geist_Mono } from "next/font/google";
@@ -14,21 +15,19 @@ export const metadata: Metadata = {
   description: "Track workouts, meals, and progress with your personal trainer",
 };
 
-export default async function LocaleLayout({
+export async function generateStaticParams() {
+  return [{ locale: "en" }, { locale: "tr" }];
+}
+
+export default function LocaleLayout({
   children,
   params
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-
-  // Providing all messages to the client
-  // side is the easiest way to get started
-  const messages = await getMessages();
-
   return (
-    <html lang={locale} className={cn("font-sans", inter.variable, geistMono.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn("font-sans", inter.variable, geistMono.variable)} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -54,10 +53,32 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="antialiased">
-        <NextIntlClientProvider messages={messages}>
-          <Providers>{children}</Providers>
-        </NextIntlClientProvider>
+        <Suspense fallback={null}>
+          <LocaleLayoutInner params={params}>
+            {children}
+          </LocaleLayoutInner>
+        </Suspense>
       </body>
     </html>
+  );
+}
+
+async function LocaleLayoutInner({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
+  // Providing all messages to the client
+  // side is the easiest way to get started
+  const messages = await getMessages();
+
+  return (
+    <NextIntlClientProvider messages={messages}>
+      <Providers>{children}</Providers>
+    </NextIntlClientProvider>
   );
 }

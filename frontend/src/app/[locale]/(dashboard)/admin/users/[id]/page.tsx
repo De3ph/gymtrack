@@ -14,28 +14,25 @@ interface PageProps {
  * RSC shell: server-side role gate + per-request cached data fetch +
  * Suspense streaming for the client detail island.
  */
-export default async function AdminUserDetailPage({ params }: PageProps) {
-  await verifyAdmin();
-  const { id } = await params;
-
+export default function AdminUserDetailPage({ params }: PageProps) {
   return (
     <Suspense fallback={<UserDetailSkeleton />}>
-      <UserDetailFetcher userId={id} />
+      <UserDetailContent params={params} />
     </Suspense>
   );
 }
 
-async function UserDetailFetcher({ userId }: { userId: string }) {
+async function UserDetailContent({ params }: { params: Promise<{ id: string }> }) {
+  await verifyAdmin();
+  const { id } = await params;
   const t = await getTranslations("common");
   let detail;
   try {
-    detail = await getAdminUserDetail(userId);
+    detail = await getAdminUserDetail(id);
   } catch (err) {
-    // 404 from the backend → show not-found page
     if (err instanceof Error && err.message.includes("404")) {
       notFound();
     }
-    // Everything else → show a user-friendly error
     return (
       <DataError
         title={t("errors.failed_load_user_details")}

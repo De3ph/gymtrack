@@ -59,7 +59,7 @@ func (h *WorkoutPlanHandler) CreatePlan(c *gin.Context) {
 
 	var req CreatePlanRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *WorkoutPlanHandler) CreatePlan(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create workout plan", "details": err.Error()})
+		handleInternalError(c, err, "failed to create workout plan")
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *WorkoutPlanHandler) GetPlans(c *gin.Context) {
 
 	plans, err := h.service.GetPlans(c.Request.Context(), userIDInt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workout plans", "details": err.Error()})
+		handleInternalError(c, err, "failed to retrieve workout plans")
 		return
 	}
 
@@ -156,7 +156,7 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 
 	var req UpdatePlanRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -171,7 +171,7 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update workout plan", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -207,7 +207,7 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete workout plan", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -232,7 +232,7 @@ func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
 
 	var req AssignPlanRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -257,7 +257,7 @@ func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign workout plan", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -294,7 +294,7 @@ func (h *WorkoutPlanHandler) GetAssignments(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve assignments", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -322,7 +322,7 @@ func (h *WorkoutPlanHandler) GetMyPlans(c *gin.Context) {
 
 	plans, err := h.service.GetMyPlans(c.Request.Context(), userIDInt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve assigned plans", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -359,7 +359,7 @@ func (h *WorkoutPlanHandler) StartWorkoutFromPlan(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start workout from plan", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -379,7 +379,7 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 	if athlete == nil {
@@ -398,7 +398,7 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve client plans", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -407,3 +407,5 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 		"count": len(plans),
 	})
 }
+
+

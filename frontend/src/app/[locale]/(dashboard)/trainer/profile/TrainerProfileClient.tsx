@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { TrainerProfile } from "@/types";
 import { trainerCatalogApi } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { revalidateTrainerProfileCache } from "@/lib/actions/cache";
 
 interface TrainerProfileClientProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +21,8 @@ export function TrainerProfileClient({ initialProfile }: TrainerProfileClientPro
 
   const mutation = useMutation({
     mutationFn: (profile: TrainerProfile) => trainerCatalogApi.updateTrainerProfile(profile),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await revalidateTrainerProfileCache();
       queryClient.invalidateQueries({ queryKey: ["myTrainerProfile"] });
       setMessage(t("profile_saved"));
       setTimeout(() => setMessage(""), 3000);

@@ -1,6 +1,6 @@
-- [ ] Sentry integration for frontend
-- [ ] Grafana integration for backend
+- [x] Sentry integration for frontend
+- [x] Grafana integration for backend
 - [ ] pgAudit
 - [ ] pg_stat_statements
 - [ ] pg_partman
-- [ ]
+- [x] backend cache

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   View,
   Text,
@@ -6,13 +7,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from "react-native";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
 import { useRouter } from "expo-router";
 
 export function MyTrainerScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["myTrainer"],
     queryFn: () => relationshipApi.getMyTrainer(),
@@ -23,10 +26,48 @@ export function MyTrainerScreen() {
     onSuccess: () => router.back(),
   });
 
+  const [inviteCode, setInviteCode] = useState("");
+
+  const { mutate: acceptInvite, isPending: accepting } = useMutation({
+    mutationFn: (code: string) => relationshipApi.acceptInvitation(code),
+    onSuccess: () => {
+      setInviteCode("");
+      queryClient.invalidateQueries({ queryKey: ["myTrainer"] });
+      Alert.alert("Success", "Invitation accepted! You are now connected with your trainer.");
+    },
+    onError: (err: Error) => {
+      Alert.alert("Error", err.message || "Failed to accept invitation");
+    },
+  });
+
   if (isLoading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
   if (isError || !data) return (
     <View style={styles.center}>
       <Text style={styles.emptyText}>No trainer assigned yet</Text>
+      <View style={styles.inviteSection}>
+        <Text style={styles.inviteLabel}>Have an invite code?</Text>
+        <TextInput
+          style={styles.inviteInput}
+          value={inviteCode}
+          onChangeText={setInviteCode}
+          placeholder="Enter 8-character code"
+          placeholderTextColor="#9ca3af"
+          maxLength={8}
+          autoCapitalize="characters"
+          autoCorrect={false}
+        />
+        <TouchableOpacity
+          style={[styles.acceptButton, (!inviteCode.trim() || accepting) && styles.acceptButtonDisabled]}
+          onPress={() => acceptInvite(inviteCode.trim())}
+          disabled={!inviteCode.trim() || accepting}
+        >
+          {accepting ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.acceptText}>Accept Invitation</Text>
+          )}
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></TouchableOpacity>
     </View>
   );
@@ -89,4 +130,20 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 16, color: "#6b7280", marginBottom: 12 },
   retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
   retryText: { color: "#fff", fontWeight: "600" },
+  inviteSection: {
+    width: "100%", maxWidth: 320, backgroundColor: "#fff", borderRadius: 12,
+    padding: 16, marginBottom: 16, borderWidth: 1, borderColor: "#e5e7eb",
+  },
+  inviteLabel: { fontSize: 14, fontWeight: "600", color: "#374151", marginBottom: 10, textAlign: "center" },
+  inviteInput: {
+    backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#d1d5db",
+    borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18,
+    color: "#111827", textAlign: "center", letterSpacing: 4, fontWeight: "700",
+    marginBottom: 12,
+  },
+  acceptButton: {
+    backgroundColor: "#7c3aed", paddingVertical: 12, borderRadius: 8, alignItems: "center",
+  },
+  acceptButtonDisabled: { backgroundColor: "#c4b5fd" },
+  acceptText: { color: "#fff", fontWeight: "700", fontSize: 14 },
 });

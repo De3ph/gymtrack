@@ -2,13 +2,19 @@ import 'server-only'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { unstable_cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 import { decrypt, SESSION_COOKIE_NAME } from '@/lib/session'
 import type {
   AdminDashboardStats,
   AdminUserListItem,
   AdminUserListResponse,
 } from '@/lib/api/adminApi'
+import type {
+  BodyMeasurement,
+  TrainerProfile,
+  WorkoutPlan,
+  AssignmentListResponse,
+} from '@/types'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
@@ -109,15 +115,6 @@ export interface GetAdminUsersParams {
 }
 
 /**
- * Fetch admin dashboard stats. Dedupe within a single render via React.cache.
- * For cross-request LRU, use getAdminStatsCached instead.
- */
-export const getAdminStats = cache(async (): Promise<AdminDashboardStats> => {
-  const session = await verifyAdmin()
-  return serverFetch<AdminDashboardStats>('/admin/stats', session.accessToken)
-})
-
-/**
  * Fetch admin users list with server-side filtering.
  * Cached per-request (same params dedupe within a render).
  */
@@ -151,89 +148,95 @@ export const getAdminUserDetail = cache(
 )
 
 /**
- * Cross-request LRU cache for dashboard stats.
- * Refreshes every 60s and is tagged so password changes (and other
- * mutations) can bust the cache via revalidateTag('admin-stats').
+ * Cross-request cache for dashboard stats.
+ * Refreshes every 60s and is tagged so mutations can bust via revalidateTag('admin-stats').
+ * Session read happens outside the cache scope — accessToken passed as arg.
  */
-export const getAdminStatsCached = unstable_cache(
-  async (): Promise<AdminDashboardStats> => {
-    const session = await verifyAdmin()
-    return serverFetch<AdminDashboardStats>(
-      '/admin/stats',
-      session.accessToken,
-    )
-  },
-  ['admin-stats'],
-  { revalidate: 60, tags: ['admin-stats'] },
-)
+export async function getAdminStatsCached(accessToken: string): Promise<AdminDashboardStats> {
+  'use cache'
+  cacheLife('minutes')
+  cacheTag('admin-stats')
+  return serverFetch<AdminDashboardStats>(
+    '/admin/stats',
+    accessToken,
+  )
+}
 
 /**
  * Server-side fetch for the latest body measurement.
- * Cross-request cached for 30 s; tagged for mutation invalidation.
+ * Cross-request cached for 30s; tagged for mutation invalidation.
+ * Session read outside cache scope — accessToken + userId passed as args
+ * to prevent cross-user cache leaks.
  */
-export const getLatestBodyMeasurementCached = unstable_cache(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async (): Promise<any> => {
-    const session = await verifySession()
-    const result = await serverFetch<Record<string, unknown> | null>(
-      '/measurements/latest',
-      session.accessToken,
-    )
-    // serverFetch returns {} for 204 No Content responses; treat empty as null
-    if (result && Object.keys(result).length === 0) return null
-    return result
-  },
-  ['latest-body-measurement'],
-  { revalidate: 30, tags: ['body-measurements', 'latest-body-measurement'] },
-)
+export async function getLatestBodyMeasurementCached(
+  accessToken: string,
+  userId: string,
+): Promise<BodyMeasurement | null> {
+  'use cache'
+  cacheLife({ revalidate: 30, expire: 60 })
+  cacheTag('body-measurements', 'latest-body-measurement')
+  const result = await serverFetch<Record<string, unknown> | null>(
+    '/measurements/latest',
+    accessToken,
+  )
+  if (result && Object.keys(result).length === 0) return null
+  return result as BodyMeasurement | null
+}
 
 /**
  * Server-side fetch for the current trainer's profile.
  * Cross-request cached for 5 min; tagged for mutation invalidation.
+ * Session read outside cache scope — accessToken + userId passed as args
+ * to prevent cross-user cache leaks.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getTrainerProfileCached = unstable_cache(
-  async (): Promise<any> => {
-    const session = await verifySession()
-    return serverFetch<Record<string, unknown>>(
-      '/trainer-catalog/my-profile',
-      session.accessToken,
-    )
-  },
-  ['trainer-profile'],
-  { revalidate: 300, tags: ['trainer-profile'] },
-)
+export async function getTrainerProfileCached(
+  accessToken: string,
+  userId: string,
+): Promise<TrainerProfile> {
+  'use cache'
+  cacheLife({ revalidate: 300, expire: 3600 })
+  cacheTag('trainer-profile')
+  const result = await serverFetch<Record<string, unknown>>(
+    '/trainer-catalog/my-profile',
+    accessToken,
+  )
+  return result as unknown as TrainerProfile
+}
 
 /**
  * Server-side fetch for a single workout plan by ID.
- * Cross-request cached for 60 s; tagged for mutation invalidation.
+ * Cross-request cached for 60s; tagged for mutation invalidation.
+ * Session read outside cache scope — accessToken passed as arg.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getWorkoutPlanCached = unstable_cache(
-  async (planId: string): Promise<any> => {
-    const session = await verifySession()
-    return serverFetch<Record<string, unknown>>(
-      `/workout-plans/${planId}`,
-      session.accessToken,
-    )
-  },
-  ['workout-plan'],
-  { revalidate: 60, tags: ['workout-plans'] },
-)
+export async function getWorkoutPlanCached(
+  accessToken: string,
+  planId: string,
+): Promise<WorkoutPlan> {
+  'use cache'
+  cacheLife('minutes')
+  cacheTag('workout-plans')
+  const result = await serverFetch<Record<string, unknown>>(
+    `/workout-plans/${planId}`,
+    accessToken,
+  )
+  return result as unknown as WorkoutPlan
+}
 
 /**
  * Server-side fetch for a workout plan's athlete assignments.
- * Cross-request cached for 60 s; tagged for mutation invalidation.
+ * Cross-request cached for 60s; tagged for mutation invalidation.
+ * Session read outside cache scope — accessToken passed as arg.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getWorkoutPlanAssignmentsCached = unstable_cache(
-  async (planId: string): Promise<any> => {
-    const session = await verifySession()
-    return serverFetch<Record<string, unknown>>(
-      `/workout-plans/${planId}/assignments`,
-      session.accessToken,
-    )
-  },
-  ['workout-plan-assignments'],
-  { revalidate: 60, tags: ['workout-plans'] },
-)
+export async function getWorkoutPlanAssignmentsCached(
+  accessToken: string,
+  planId: string,
+): Promise<AssignmentListResponse> {
+  'use cache'
+  cacheLife('minutes')
+  cacheTag('workout-plans')
+  const result = await serverFetch<Record<string, unknown>>(
+    `/workout-plans/${planId}/assignments`,
+    accessToken,
+  )
+  return result as unknown as AssignmentListResponse
+}

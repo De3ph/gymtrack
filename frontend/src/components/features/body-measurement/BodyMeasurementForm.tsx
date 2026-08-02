@@ -15,6 +15,7 @@ import { combineDateTime } from "@/lib/utils/datetime";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { BODY_PARTS, DATE_FORMATS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
+import { revalidateBodyMeasurementsCache } from "@/lib/actions/cache";
 import {
   BodyMeasurement,
   BodyMeasurementPart
@@ -103,7 +104,8 @@ export function BodyMeasurementForm({
       }
       return bodyMeasurementApi.create(payload);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await revalidateBodyMeasurementsCache();
       queryClient.invalidateQueries({ queryKey: ["body-measurements"] });
       queryClient.invalidateQueries({ queryKey: ["latest-body-measurement"] });
       queryClient.invalidateQueries({ queryKey: ["client-measurements"] });

@@ -50,9 +50,12 @@ export function EditWorkoutDialog({
     [tValidation],
   );
 
-  // Initialize form with workout data when dialog opens
-  const form = useForm({
-    defaultValues: {
+  // Initialize form with workout data when dialog opens. Memoize the
+  // default-values object so the nested mapping isn't rebuilt on every
+  // render; useForm only consumes defaultValues on mount, and workout
+  // changes are handled by the reset effect below.
+  const defaultValues = React.useMemo(
+    () => ({
       date: workout ? dayjs(workout.date).toDate() : new Date(),
       workoutTime: workout
         ? dayjs(workout.date).format("HH:mm")
@@ -86,7 +89,12 @@ export function EditWorkoutDialog({
               ],
             },
           ],
-    },
+    }),
+    [workout],
+  );
+
+  const form = useForm({
+    defaultValues,
     validators: {
       onSubmit: workoutWithPerSetSchema,
     },
@@ -199,10 +207,13 @@ export function EditWorkoutDialog({
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    form.handleSubmit();
-  };
+  const handleSubmit = React.useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      form.handleSubmit();
+    },
+    [form],
+  );
 
   if (!workout) {
     return null;

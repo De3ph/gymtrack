@@ -15,10 +15,12 @@ import {
   ListRenderItemInfo,
   Alert
 } from "react-native"
+import { useRouter, type Href } from "expo-router"
 import { useI18n } from "@/lib/i18n"
 import { workoutApi } from "@/api/workoutApi"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Workout, WorkoutListResponse } from "@/types"
+import { ExercisePicker } from "./ExercisePicker"
 
 interface NewSet {
   id: string
@@ -92,6 +94,7 @@ function workoutToExercises(workout: Workout): NewExercise[] {
 interface WorkoutCardProps {
   workout: Workout
   editable: boolean
+  onOpen: (workout: Workout) => void
   onEdit: (workout: Workout) => void
   onDelete: (workout: Workout) => void
 }
@@ -99,6 +102,7 @@ interface WorkoutCardProps {
 function WorkoutCard({
   workout,
   editable,
+  onOpen,
   onEdit,
   onDelete
 }: WorkoutCardProps) {
@@ -115,7 +119,11 @@ function WorkoutCard({
   })
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onOpen(workout)}
+      activeOpacity={0.85}
+    >
       <Text style={styles.cardDate}>{formattedDate}</Text>
       <View style={styles.cardStats}>
         <Text style={styles.cardStat}>
@@ -146,13 +154,19 @@ function WorkoutCard({
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   )
 }
 
 export function WorkoutsScreen() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const router = useRouter()
+
+  const openDetail = useCallback((w: Workout) => {
+    if (w.workoutId == null) return
+    router.push(("/workouts/" + String(w.workoutId)) as Href)
+  }, [router])
 
   const { data, isLoading, isError, error, refetch, isRefetching } =
     useQuery<WorkoutListResponse>({
@@ -170,6 +184,22 @@ export function WorkoutsScreen() {
     createEmptyExercise()
   ])
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [pickerVisible, setPickerVisible] = useState(false)
+  const [pickingForExId, setPickingForExId] = useState<string | null>(null)
+
+  const openPickerFor = (exId: string) => {
+    setPickingForExId(exId)
+    setPickerVisible(true)
+  }
+
+  const handleExerciseSelect = (exercise: { name: string; exerciseId: number; category?: string }) => {
+    if (pickingForExId) {
+      updateExerciseName(pickingForExId, exercise.name)
+      if (exercise.category) {
+        updateExerciseNotes(pickingForExId, `Category: ${exercise.category}`)
+      }
+    }
+  }
 
   // --- create mutation ---
   const createMutation = useMutation({
@@ -380,11 +410,12 @@ export function WorkoutsScreen() {
       <WorkoutCard
         workout={item}
         editable={canEdit(item.createdAt)}
+        onOpen={openDetail}
         onEdit={openEditModal}
         onDelete={handleDelete}
       />
     ),
-    [openEditModal, handleDelete]
+    [openDetail, openEditModal, handleDelete]
   )
 
   const keyExtractor = useCallback(
@@ -505,13 +536,22 @@ export function WorkoutsScreen() {
                   )}
                 </View>
 
-                <TextInput
-                  style={styles.textInput}
-                  value={ex.name}
-                  onChangeText={(v) => updateExerciseName(ex.id, v)}
-                  placeholder={t("workout.form.exercise.name.label")}
-                  placeholderTextColor='#9ca3af'
-                />
+                <View style={styles.nameRow}>
+                  <TextInput
+                    style={[styles.textInput, styles.nameInput]}
+                    value={ex.name}
+                    onChangeText={(v) => updateExerciseName(ex.id, v)}
+                    placeholder={t("workout.form.exercise.name.label")}
+                    placeholderTextColor="#9ca3af"
+                  />
+                  <TouchableOpacity
+                    style={styles.browseButton}
+                    onPress={() => openPickerFor(ex.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.browseText}>Browse</Text>
+                  </TouchableOpacity>
+                </View>
 
                 <TextInput
                   style={[styles.textInput, styles.notesInput]}
@@ -606,6 +646,12 @@ export function WorkoutsScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
+
+      <ExercisePicker
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+        onSelect={handleExerciseSelect}
+      />
     </View>
   )
 }
@@ -747,6 +793,13 @@ const styles = StyleSheet.create({
   },
   exerciseTitle: { fontSize: 15, fontWeight: "600", color: "#111827" },
   removeLink: { fontSize: 14, color: "#ef4444", fontWeight: "500" },
+  nameRow: { flexDirection: "row", gap: 8, alignItems: "center" },
+  nameInput: { flex: 1 },
+  browseButton: {
+    backgroundColor: "#2563eb", paddingHorizontal: 14, paddingVertical: 12,
+    borderRadius: 8,
+  },
+  browseText: { color: "#fff", fontSize: 14, fontWeight: "600" },
 
   setsLabel: {
     fontSize: 13,

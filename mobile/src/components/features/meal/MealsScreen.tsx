@@ -15,6 +15,7 @@ import {
   ListRenderItemInfo,
   Alert
 } from "react-native"
+import { useRouter, type Href } from "expo-router"
 import { useI18n } from "@/lib/i18n"
 import { mealApi } from "@/api/mealApi"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -93,11 +94,12 @@ function mealToItems(meal: Meal): NewFoodItem[] {
 interface MealCardProps {
   meal: Meal
   editable: boolean
+  onOpen: (meal: Meal) => void
   onEdit: (meal: Meal) => void
   onDelete: (meal: Meal) => void
 }
 
-function MealCard({ meal, editable, onEdit, onDelete }: MealCardProps) {
+function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
   const { t } = useI18n()
   const itemCount = meal.items?.length ?? 0
   const totalCalories =
@@ -115,7 +117,11 @@ function MealCard({ meal, editable, onEdit, onDelete }: MealCardProps) {
   })
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onOpen(meal)}
+      activeOpacity={0.85}
+    >
       <View style={styles.cardHeader}>
         <Text style={styles.cardDate}>{formattedDate}</Text>
         <View style={styles.mealTypeBadge}>
@@ -153,7 +159,7 @@ function MealCard({ meal, editable, onEdit, onDelete }: MealCardProps) {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   )
 }
 
@@ -162,6 +168,12 @@ function MealCard({ meal, editable, onEdit, onDelete }: MealCardProps) {
 export function MealsScreen() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const router = useRouter()
+
+  const openDetail = useCallback((m: Meal) => {
+    if (m.mealId == null) return
+    router.push(("/meals/" + String(m.mealId)) as Href)
+  }, [router])
 
   // --- data ---
   const { data, isLoading, isError, error, refetch, isRefetching } =
@@ -343,11 +355,12 @@ export function MealsScreen() {
       <MealCard
         meal={item}
         editable={canEdit(item.createdAt)}
+        onOpen={openDetail}
         onEdit={openEditModal}
         onDelete={handleDelete}
       />
     ),
-    [handleDelete]
+    [openDetail, handleDelete]
   )
 
   const mealKeyExtractor = useCallback(

@@ -10,12 +10,13 @@ import {
   TextInput,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trainerCatalogApi } from "@/api/trainerCatalogApi";
 import { reviewApi } from "@/api/reviewApi";
 import { coachingRequestApi } from "@/api/coachingRequestApi";
 import { availabilityApi } from "@/api/availabilityApi";
 import { useAuthStore } from "@/stores/authStore";
+import { StarRatingInput } from "./StarRatingInput";
 
 interface TrainerData {
   userId?: number;
@@ -31,9 +32,13 @@ interface ReviewItem {
 
 export function TrainerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const [message, setMessage] = useState("");
   const [showRequestForm, setShowRequestForm] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const { data: trainer, isLoading, isError, refetch } = useQuery({
     queryKey: ["trainer", id],
@@ -56,6 +61,18 @@ export function TrainerDetailScreen() {
   const { mutate: sendRequest, isPending: sending } = useMutation({
     mutationFn: () => coachingRequestApi.createCoachingRequest({ trainerId: Number(id), message: message.trim() || undefined }),
     onSuccess: () => { Alert.alert("Request Sent"); setShowRequestForm(false); setMessage(""); },
+    onError: (err: Error) => Alert.alert("Error", err.message),
+  });
+
+  const { mutate: submitReview, isPending: submittingReview } = useMutation({
+    mutationFn: () => reviewApi.createReview(id!, { rating, comment: reviewComment.trim() || undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+      Alert.alert("Review Submitted");
+      setShowReviewForm(false);
+      setRating(0);
+      setReviewComment("");
+    },
     onError: (err: Error) => Alert.alert("Error", err.message),
   });
 
@@ -112,6 +129,43 @@ export function TrainerDetailScreen() {
       ) : null}
 
       {user?.role === "athlete" && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Write a Review</Text>
+          {showReviewForm ? (
+            <View style={styles.reviewForm}>
+              <StarRatingInput value={rating} onChange={setRating} label="Your rating" />
+              <TextInput
+                style={styles.messageInput}
+                value={reviewComment}
+                onChangeText={setReviewComment}
+                placeholder="Add a comment (optional)..."
+                placeholderTextColor="#9ca3af"
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+              <View style={styles.formButtons}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowReviewForm(false); setRating(0); setReviewComment(""); }}>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.sendBtn, rating === 0 && styles.sendBtnDisabled]}
+                  onPress={() => submitReview()}
+                  disabled={rating === 0 || submittingReview}
+                >
+                  {submittingReview ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendBtnText}>Submit Review</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.reviewButton} onPress={() => setShowReviewForm(true)}>
+              <Text style={styles.reviewText}>Rate This Trainer</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {user?.role === "athlete" && (
         <View style={styles.actionSection}>
           {showRequestForm ? (
             <View style={styles.requestForm}>
@@ -162,6 +216,10 @@ const styles = StyleSheet.create({
   cancelBtnText: { fontSize: 14, fontWeight: "600", color: "#6b7280" },
   sendBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
   sendBtnText: { fontSize: 14, fontWeight: "600", color: "#fff" },
+  sendBtnDisabled: { backgroundColor: "#9ca3af" },
+  reviewForm: { gap: 12 },
+  reviewButton: { backgroundColor: "#f59e0b", paddingVertical: 14, borderRadius: 10, alignItems: "center" },
+  reviewText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
   retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
   retryText: { color: "#fff", fontWeight: "600" },

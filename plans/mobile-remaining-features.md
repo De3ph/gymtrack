@@ -76,7 +76,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 
 ---
 
-### G2 — Comments UI (P1)
+### G2 — Comments UI (P1)✅
 
 **Why**: Trainer-athlete interaction loop broken without comments.
 
@@ -102,7 +102,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 
 ---
 
-### G3 — Submit Trainer Review (P1)
+### G3 — Submit Trainer Review (P1)✅
 
 **Why**: Athlete can see reviews in TrainerDetailScreen but can't submit own.
 
@@ -120,7 +120,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 - `mobile/src/components/features/trainer/StarRatingInput.tsx` (new, reusable)
 
 
-### G4 — Workout Plan Edit/Delete (P2)
+### G4 — Workout Plan Edit/Delete (P2)✅
 
 **Why**: Trainer creates plan, wants to fix exercise list or delete obsolete plan.
 
@@ -140,7 +140,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 
 ---
 
-### G5 — Workout Plan Assignment (P2)
+### G5 — Workout Plan Assignment (P2)✅
 
 **Why**: Trainer creates plan but can't assign it to athletes.
 
@@ -160,7 +160,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 
 ---
 
-### G6 — Trainer Availability CRUD (P2)
+### G6 — Trainer Availability CRUD (P2)✅
 
 **Why**: Trainer profile has no availability settings. Athletes see empty availability.
 
@@ -178,7 +178,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 
 ---
 
-### G7 — Invitation Codes (P2)
+### G7 — Invitation Codes (P2)✅
 
 **Why**: No way to generate invite code (trainer) or accept one (athlete).
 
@@ -196,7 +196,7 @@ All backend API groups have matching mobile API client modules in `mobile/src/ap
 
 ---
 
-### G8 — Exercise Catalog Picker (P3)
+### G8 — Exercise Catalog Picker (P3)✅
 
 **Why**: Workout create form uses free-text exercise name. Should pick from structured catalog.
 

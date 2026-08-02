@@ -10,21 +10,19 @@ import { getTranslations } from "next-intl/server";
  * RSC shell: server-side role gate + initial data fetch +
  * Suspense boundary around the dynamic client table island.
  */
-export default async function AdminUsersPage() {
-  await verifyAdmin();
-
+export default function AdminUsersPage() {
   return (
     <Suspense fallback={<UsersTableSkeleton />}>
-      <UsersTableWithData />
+      <UsersTableContent />
     </Suspense>
   );
 }
 
-async function UsersTableWithData() {
+async function UsersTableContent() {
+  await verifyAdmin();
   const t = await getTranslations("common");
   let initialData: AdminUserListResponse;
   try {
-    // Server-side initial data — handed to client via props as React Query seed
     initialData = await getAdminUsers({ limit: 25 });
   } catch (err) {
     return (

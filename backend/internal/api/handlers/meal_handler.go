@@ -75,7 +75,7 @@ func (h *MealHandler) CreateMeal(c *gin.Context) {
 
 	var req CreateMealRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -96,7 +96,7 @@ func (h *MealHandler) CreateMeal(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create meal", "details": err.Error()})
+		handleInternalError(c, err, "failed to create meal")
 		return
 	}
 
@@ -195,7 +195,7 @@ func (h *MealHandler) GetMeals(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve meals", "details": err.Error()})
+		handleInternalError(c, err, "failed to retrieve meals")
 		return
 	}
 
@@ -231,7 +231,7 @@ func (h *MealHandler) UpdateMeal(c *gin.Context) {
 
 	var req UpdateMealRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -252,7 +252,7 @@ func (h *MealHandler) UpdateMeal(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update meal", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -292,7 +292,7 @@ func (h *MealHandler) DeleteMeal(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete meal", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -335,7 +335,7 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 	// Get athlete by username first
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 	if athlete == nil {
@@ -362,7 +362,7 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve meals", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -371,3 +371,4 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 		"count": result.Count,
 	})
 }
+

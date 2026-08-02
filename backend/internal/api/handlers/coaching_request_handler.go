@@ -53,7 +53,7 @@ func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 
 	var req CreateCoachingRequestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 
 	request, err := h.service.CreateCoachingRequest(c.Request.Context(), userIDInt, req.TrainerID, req.Message)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid coaching request"})
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 
 	requests, err := h.service.GetMyRequests(c.Request.Context(), userIDInt, string(userRole.(models.UserRole)))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
 
 	relationship, err := h.service.AcceptCoachingRequest(c.Request.Context(), requestID, userIDInt)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -198,7 +198,7 @@ func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 
 	err = h.service.RejectCoachingRequest(c.Request.Context(), requestID, userIDInt)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -237,9 +237,11 @@ func (h *CoachingRequestHandler) GetPendingRequests(c *gin.Context) {
 
 	requests, err := h.service.GetPendingRequestsForTrainer(c.Request.Context(), userIDInt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"requests": requests})
 }
+
+

@@ -31,7 +31,17 @@ function isAdminRoute(pathname: string): boolean {
 // In-memory decrypt cache to avoid re-decrypt on every navigation.
 // TTL is kept intentionally short (500 ms) to avoid serving stale auth
 // decisions after logout — the server gate (getSession) is the source of truth.
+//
+// The Map persists across Edge invocations in the same instance, so it is
+// bounded to DECRYPT_CACHE_MAX entries. When the cap is reached, the
+// oldest-inserted entry is evicted first (FIFO). We exploit the ES2015 Map
+// iteration order, which yields keys in insertion order, and rely on a
+// separate keys list (decryptCacheOrder) as a FIFO queue because re-setting an
+// existing key would otherwise move it to the end of the Map's iteration
+// order — FIFO semantics must be preserved explicitly.
 const decryptCache = new Map<string, { payload: any; exp: number }>();
+const decryptCacheOrder: string[] = [];
+const DECRYPT_CACHE_MAX = 1000;
 const DECRYPT_TTL_MS = 500;
 
 async function cachedDecrypt(cookie: string): Promise<any> {
@@ -39,6 +49,19 @@ async function cachedDecrypt(cookie: string): Promise<any> {
   if (hit && hit.exp > Date.now()) return hit.payload;
   const payload = await decrypt(cookie);
   if (payload) {
+    // Enforce the size cap before inserting a brand-new entry: evict the
+    // oldest-inserted key (FIFO). Skip eviction when the key already exists,
+    // because a re-set only refreshes its value/expiry.
+    if (!decryptCache.has(cookie) && decryptCacheOrder.length >= DECRYPT_CACHE_MAX) {
+      const oldest = decryptCacheOrder.shift()!;
+      decryptCache.delete(oldest);
+    }
+    // First insertion: record the key at the tail of the FIFO queue. On a
+    // cache hit-refresh we keep its original position so queue order is
+    // stable and the eviction target stays correct.
+    if (!decryptCache.has(cookie)) {
+      decryptCacheOrder.push(cookie);
+    }
     decryptCache.set(cookie, { payload, exp: Date.now() + DECRYPT_TTL_MS });
   }
   return payload;

@@ -1,14 +1,24 @@
+import { Suspense } from "react";
 import { getTrainerProfileCached, verifySession } from "@/lib/dal";
 import { TrainerProfileClient } from "./TrainerProfileClient";
 import { DataError } from "@/components/features/DataError";
 import { getTranslations } from "next-intl/server";
+import type { TrainerProfile } from "@/types";
 
-export default async function TrainerProfilePage() {
-  await verifySession();
+export default function TrainerProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <TrainerProfileContent />
+    </Suspense>
+  );
+}
+
+async function TrainerProfileContent() {
+  const session = await verifySession();
   const t = await getTranslations("common");
-  let profile: Record<string, unknown>;
+  let profile: TrainerProfile;
   try {
-    profile = await getTrainerProfileCached();
+    profile = await getTrainerProfileCached(session.accessToken, session.userId);
   } catch (err) {
     return (
       <DataError

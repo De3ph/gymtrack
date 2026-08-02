@@ -77,7 +77,7 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 
 	var req CreateReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
 
@@ -89,7 +89,7 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 
 	review, err := h.service.CreateReview(c.Request.Context(), trainerID, userIDInt, req.Rating, req.Comment)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review request"})
 		return
 	}
 
@@ -115,7 +115,7 @@ func (h *ReviewHandler) GetTrainerReviews(c *gin.Context) {
 
 	reviews, err := h.service.GetTrainerReviews(c.Request.Context(), trainerID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -154,7 +154,7 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 
 	var req UpdateReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -166,7 +166,7 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 
 	err = h.service.UpdateReview(c.Request.Context(), reviewID, userIDInt, req.Rating, req.Comment)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -209,9 +209,10 @@ func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 
 	err = h.service.DeleteReview(c.Request.Context(), reviewID, userIDInt)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "review deleted successfully"})
 }
+

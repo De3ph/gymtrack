@@ -87,11 +87,11 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 
 	var req CreateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed"})
 		return
 	}
 
@@ -121,7 +121,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		if handleCommentServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "failed to create comment")
 		return
 	}
 
@@ -143,7 +143,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	}
 	comment := models.NewComment(req.TargetType, targetIDInt, userIDInt, authorRole, req.Content, parentCommentIDInt)
 	if err := h.commentRepo.Create(c.Request.Context(), comment); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create comment", "details": err.Error()})
+		handleInternalError(c, err, "failed to create comment")
 		return
 	}
 	c.JSON(http.StatusCreated, comment)
@@ -204,13 +204,13 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 		if handleCommentServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "failed to verify comment access")
 		return
 	}
 
 	comments, err := h.commentRepo.GetByTarget(c.Request.Context(), targetType, targetID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load comments", "details": err.Error()})
+		handleInternalError(c, err, "failed to load comments")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"comments": comments})
@@ -255,17 +255,17 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 		if handleCommentServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "failed to update comment")
 		return
 	}
 
 	var req UpdateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed"})
 		return
 	}
 
@@ -276,7 +276,7 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 	}
 	comment.Edit(req.Content)
 	if err := h.commentRepo.Update(c.Request.Context(), comment); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update comment", "details": err.Error()})
+		handleInternalError(c, err, "failed to update comment")
 		return
 	}
 	c.JSON(http.StatusOK, comment)
@@ -319,12 +319,12 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 		if handleCommentServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "failed to delete comment")
 		return
 	}
 
 	if err := h.commentRepo.Delete(c.Request.Context(), commentID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete comment", "details": err.Error()})
+		handleInternalError(c, err, "failed to delete comment")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted"})

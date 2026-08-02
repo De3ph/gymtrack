@@ -1,4 +1,5 @@
-import { getWorkoutPlanCached } from "@/lib/dal";
+import { Suspense } from "react";
+import { getWorkoutPlanCached, verifySession } from "@/lib/dal";
 import { WorkoutPlan } from "@/types";
 import { Workout, WorkoutExercise } from "@/types";
 import { WorkoutsClient } from "./WorkoutsClient";
@@ -31,19 +32,32 @@ function buildWorkoutFromPlan(plan: WorkoutPlan): Workout {
   };
 }
 
-export default async function WorkoutsPage({
+export default function WorkoutsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ planId?: string }>;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <WorkoutsContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function WorkoutsContent({
   searchParams,
 }: {
   searchParams: Promise<{ planId?: string }>;
 }) {
   const t = await getTranslations("common");
+  const session = await verifySession();
   const { planId } = await searchParams;
   let initialWorkout: Workout | undefined;
   if (planId) {
     try {
-      const plan = await getWorkoutPlanCached(planId);
+      const plan = await getWorkoutPlanCached(session.accessToken, planId);
       if (plan) {
-        initialWorkout = buildWorkoutFromPlan(plan as WorkoutPlan);
+        initialWorkout = buildWorkoutFromPlan(plan);
       }
     } catch (err) {
       return (

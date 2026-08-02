@@ -34,7 +34,7 @@ func JWTAuthMiddleware(cfg *config.Config, authService *services.AuthService, us
 		// Validate token using auth service
 		claims, err := authService.ValidateToken(c.Request.Context(), tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token", "details": err.Error()})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}

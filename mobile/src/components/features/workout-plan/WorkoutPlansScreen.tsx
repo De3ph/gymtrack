@@ -9,6 +9,7 @@ import {
   RefreshControl,
   TextInput,
   Modal,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,13 +44,39 @@ export function WorkoutPlansScreen() {
     },
   });
 
+  const { mutate: deletePlan } = useMutation({
+    mutationFn: (planId: number) => workoutPlanApi.delete(planId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workoutPlans"] });
+    },
+    onError: (err: Error) => {
+      Alert.alert("Error", err.message || "Failed to delete plan");
+    },
+  });
+
+  const handleDeletePlan = (planId: number) => {
+    Alert.alert("Delete Plan", "Delete this workout plan?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deletePlan(planId) },
+    ]);
+  };
+
   const plans: Plan[] = (data as { plans?: Plan[] })?.plans ?? [];
 
   const renderItem = ({ item }: { item: Plan }) => (
     <TouchableOpacity style={styles.card} onPress={() => router.push(`/trainer/plans/${item.planId}`)} activeOpacity={0.7}>
-      <Text style={styles.planName}>{item.name}</Text>
-      {item.description ? <Text style={styles.planDesc} numberOfLines={2}>{item.description}</Text> : null}
-      <Text style={styles.exerciseCount}>{item.exercises?.length ?? 0} exercises</Text>
+      <View style={styles.cardContent}>
+        <Text style={styles.planName}>{item.name}</Text>
+        {item.description ? <Text style={styles.planDesc} numberOfLines={2}>{item.description}</Text> : null}
+        <Text style={styles.exerciseCount}>{item.exercises?.length ?? 0} exercises</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.deleteIcon}
+        onPress={(e) => { e.stopPropagation?.(); handleDeletePlan(item.planId!); }}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.deleteIconText}>×</Text>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
@@ -100,10 +127,13 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: "#f9fafb" },
   center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
   list: { padding: 16, gap: 12, paddingBottom: 80 },
-  card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: "#e5e7eb" },
+  card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "flex-start" },
+  cardContent: { flex: 1 },
   planName: { fontSize: 16, fontWeight: "700", color: "#111827", marginBottom: 4 },
   planDesc: { fontSize: 13, color: "#6b7280", marginBottom: 6 },
   exerciseCount: { fontSize: 12, fontWeight: "600", color: "#2563eb" },
+  deleteIcon: { paddingLeft: 12, paddingTop: 2 },
+  deleteIconText: { fontSize: 22, color: "#9ca3af", fontWeight: "300", lineHeight: 24 },
   emptyText: { fontSize: 15, color: "#6b7280" },
   errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
   retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },

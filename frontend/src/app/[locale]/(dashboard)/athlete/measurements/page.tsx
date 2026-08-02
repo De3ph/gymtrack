@@ -1,14 +1,24 @@
+import { Suspense } from "react";
 import { getLatestBodyMeasurementCached, verifySession } from "@/lib/dal";
 import { MeasurementsClient } from "./MeasurementsClient";
 import { DataError } from "@/components/features/DataError";
 import { getTranslations } from "next-intl/server";
+import type { BodyMeasurement } from "@/types";
 
-export default async function BodyMeasurementsPage() {
-  await verifySession();
+export default function BodyMeasurementsPage() {
+  return (
+    <Suspense fallback={null}>
+      <BodyMeasurementsContent />
+    </Suspense>
+  );
+}
+
+async function BodyMeasurementsContent() {
+  const session = await verifySession();
   const t = await getTranslations("common");
-  let latest: Record<string, unknown> | null;
+  let latest: BodyMeasurement | null;
   try {
-    latest = await getLatestBodyMeasurementCached();
+    latest = await getLatestBodyMeasurementCached(session.accessToken, session.userId);
   } catch (err) {
     return (
       <DataError

@@ -43,7 +43,7 @@ type SearchExercisesRequest struct {
 func (h *ExerciseHandler) GetAllMuscleGroups(c *gin.Context) {
 	muscleGroups, err := h.exerciseService.GetAllMuscleGroups(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *ExerciseHandler) GetAllMuscleGroups(c *gin.Context) {
 func (h *ExerciseHandler) GetAllEquipment(c *gin.Context) {
 	equipment, err := h.exerciseService.GetAllEquipment(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -79,7 +79,7 @@ func (h *ExerciseHandler) GetAllEquipment(c *gin.Context) {
 func (h *ExerciseHandler) GetAllExercises(c *gin.Context) {
 	exercises, err := h.exerciseService.GetAllExercises(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h *ExerciseHandler) GetExerciseByID(c *gin.Context) {
 
 	exercise, err := h.exerciseService.GetExerciseByID(c.Request.Context(), exerciseID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -138,7 +138,7 @@ func (h *ExerciseHandler) GetExercisesByMuscleGroup(c *gin.Context) {
 
 	exercises, err := h.exerciseService.GetExercisesByMuscleGroup(c.Request.Context(), muscleGroupID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -165,7 +165,7 @@ func (h *ExerciseHandler) GetExercisesByEquipment(c *gin.Context) {
 
 	exercises, err := h.exerciseService.GetExercisesByEquipment(c.Request.Context(), equipmentID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -187,13 +187,13 @@ func (h *ExerciseHandler) GetExercisesByEquipment(c *gin.Context) {
 func (h *ExerciseHandler) SearchExercises(c *gin.Context) {
 	var req SearchExercisesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid search parameters"})
 		return
 	}
 
 	exercises, err := h.exerciseService.SearchExercises(c.Request.Context(), req.Query, req.MuscleGroupID, req.EquipmentID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -215,7 +215,7 @@ func (h *ExerciseHandler) SearchExercises(c *gin.Context) {
 func (h *ExerciseHandler) CreateExercise(c *gin.Context) {
 	var req CreateExerciseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
 
@@ -241,7 +241,7 @@ func (h *ExerciseHandler) CreateExercise(c *gin.Context) {
 		userIDInt,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 

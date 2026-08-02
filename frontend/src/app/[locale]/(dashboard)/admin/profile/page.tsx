@@ -1,11 +1,16 @@
+import { Suspense } from "react";
 import { verifyAdmin } from "@/lib/dal";
 import { AdminProfileClient } from "./_components/AdminProfileClient";
 
-/**
- * RSC shell: server-side role gate around the interactive password form.
- * No data fetch here — profile state lives in the auth store.
- */
-export default async function AdminProfilePage() {
+export default function AdminProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminProfileContent />
+    </Suspense>
+  );
+}
+
+async function AdminProfileContent() {
   await verifyAdmin();
   return <AdminProfileClient />;
 }

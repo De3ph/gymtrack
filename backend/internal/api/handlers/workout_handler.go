@@ -67,7 +67,7 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 
 	var req CreateWorkoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create workout", "details": err.Error()})
+		handleInternalError(c, err, "failed to create workout")
 		return
 	}
 
@@ -160,7 +160,7 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 
 	limit, offset, startDate, endDate, err := services.ParseWorkoutQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
 		return
 	}
 
@@ -182,7 +182,7 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workouts", "details": err.Error()})
+		handleInternalError(c, err, "failed to retrieve workouts")
 		return
 	}
 
@@ -218,7 +218,7 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 
 	var req UpdateWorkoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -238,7 +238,7 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update workout", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -278,7 +278,7 @@ func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete workout", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -309,7 +309,7 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 
 	limit, offset, startDate, endDate, err := services.ParseWorkoutQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -318,7 +318,7 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 	// Get athlete by username first
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 	if athlete == nil {
@@ -345,7 +345,7 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve workouts", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -354,3 +354,6 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 		"count":    result.Count,
 	})
 }
+
+
+

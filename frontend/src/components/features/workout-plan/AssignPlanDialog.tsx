@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { ApiErrorHandler } from "@/lib/error-handler";
+import { revalidateWorkoutPlansCache } from "@/lib/actions/cache";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ export function AssignPlanDialog({
     mutationFn: () =>
       workoutPlanApi.assign(planId, { athleteIds: selectedIds }),
     onSuccess: async () => {
+      await revalidateWorkoutPlansCache();
       await queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
       setSelectedIds([]);
       if (onSuccess) onSuccess();

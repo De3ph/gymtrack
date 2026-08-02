@@ -68,10 +68,13 @@ export function BodyMeasurementCharts({
   const [internalFilter, setInternalFilter] = React.useState<BodyMeasurementFilter>(EMPTY_FILTER);
   const filter = filterProp ?? internalFilter;
 
-  const handleFilterChange = (next: BodyMeasurementFilter) => {
-    if (onFilterChange) onFilterChange(next);
-    else setInternalFilter(next);
-  };
+  const handleFilterChange = React.useCallback(
+    (next: BodyMeasurementFilter) => {
+      if (onFilterChange) onFilterChange(next);
+      else setInternalFilter(next);
+    },
+    [onFilterChange],
+  );
 
   const isSelfFetching = !propMeasurements;
 
@@ -93,11 +96,54 @@ export function BodyMeasurementCharts({
     enabled: isSelfFetching
   });
 
+  // Derive the chart dataset once per data change so recharts doesn't
+  // re-process identical data on unrelated re-renders. These hooks must
+  // run before any early return to satisfy the rules of hooks.
+  const raw = React.useMemo(
+    () => propMeasurements || data?.measurements || [],
+    [propMeasurements, data],
+  );
+
+  // Sort ascending by date for charts
+  const sorted = React.useMemo(
+    () =>
+      [...raw].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      ),
+    [raw],
+  );
+
+  const chartData = React.useMemo<ChartDataPoint[]>(
+    () =>
+      sorted.map((m) => {
+        const point: ChartDataPoint = {
+          date: dayjs(m.date).format("MMM D")
+        };
+        // Convert to kg for chart consistency
+        point.weight =
+          m.weightUnit === "lbs" ? m.weight * 0.453592 : m.weight;
+        if (typeof m.bodyFatPct === "number" && m.bodyFatPct > 0) {
+          point.bodyFatPct = m.bodyFatPct;
+        }
+        if (m.parts) {
+          for (const [k, v] of Object.entries(m.parts)) {
+            point[k] = v.value;
+          }
+        }
+        return point;
+      }),
+    [sorted],
+  );
+
+  const availableParts = React.useMemo(
+    () =>
+      BODY_PARTS.filter((p) => chartData.some((d) => typeof d[p.key] === "number")),
+    [chartData],
+  );
+
   if (isLoading && isSelfFetching) {
     return <div>{t("loading")}</div>;
   }
-
-  const raw = propMeasurements || data?.measurements || [];
 
   const filterBar = isSelfFetching ? (
     <BodyMeasurementFilterBar
@@ -114,33 +160,6 @@ export function BodyMeasurementCharts({
       </div>
     );
   }
-
-  // Sort ascending by date for charts
-  const sorted = [...raw].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-
-  const chartData: ChartDataPoint[] = sorted.map((m) => {
-    const point: ChartDataPoint = {
-      date: dayjs(m.date).format("MMM D")
-    };
-    // Convert to kg for chart consistency
-    point.weight =
-      m.weightUnit === "lbs" ? m.weight * 0.453592 : m.weight;
-    if (typeof m.bodyFatPct === "number" && m.bodyFatPct > 0) {
-      point.bodyFatPct = m.bodyFatPct;
-    }
-    if (m.parts) {
-      for (const [k, v] of Object.entries(m.parts)) {
-        point[k] = v.value;
-      }
-    }
-    return point;
-  });
-
-  const availableParts = BODY_PARTS.filter((p) =>
-    chartData.some((d) => typeof d[p.key] === "number")
-  );
 
   return (
     <div className="space-y-6">

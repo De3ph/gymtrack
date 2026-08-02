@@ -13,6 +13,7 @@ import { workoutPlanApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { revalidateWorkoutPlansCache } from "@/lib/actions/cache";
 
 interface WorkoutPlanFormProps {
   onSuccess?: () => void;
@@ -52,6 +53,7 @@ export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
       return workoutPlanApi.create(data);
     },
     onSuccess: async () => {
+      await revalidateWorkoutPlansCache();
       await queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
       setName("");
       setDescription("");

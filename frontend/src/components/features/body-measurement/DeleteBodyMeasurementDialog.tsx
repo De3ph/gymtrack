@@ -17,6 +17,7 @@ import { bodyMeasurementApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { BodyMeasurement } from "@/types";
 import { useTranslations } from "next-intl";
+import { revalidateBodyMeasurementsCache } from "@/lib/actions/cache";
 
 interface DeleteBodyMeasurementDialogProps {
   measurement: BodyMeasurement | null;
@@ -34,7 +35,8 @@ export function DeleteBodyMeasurementDialog({
 
   const { mutate: deleteMeasurement, isPending } = useMutation({
     mutationFn: async (id: number) => bodyMeasurementApi.delete(id),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await revalidateBodyMeasurementsCache();
       queryClient.invalidateQueries({ queryKey: ["body-measurements"] });
       queryClient.invalidateQueries({ queryKey: ["latest-body-measurement"] });
       queryClient.invalidateQueries({ queryKey: ["client-measurements"] });

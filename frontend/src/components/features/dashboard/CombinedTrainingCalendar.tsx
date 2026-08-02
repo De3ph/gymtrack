@@ -84,11 +84,11 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
     ].sort((a, b) => dayjs(a.time, "HH:mm").valueOf() - dayjs(b.time, "HH:mm").valueOf());
   }, [tEvent, workouts, meals, selectedDate]);
 
-  const handleToday = () => {
+  const handleToday = React.useCallback(() => {
     const today = dayjs().toDate();
     setSelectedDate(today);
     setViewMonth(today);
-  };
+  }, []);
 
   if (isLoading) {
     return <CalendarSkeleton />;

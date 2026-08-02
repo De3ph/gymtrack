@@ -26,7 +26,6 @@ async function request<T>(
   }
 
   let url = `${API_BASE_URL}${endpoint}`
-  console.log('API Request URL:', url)
   if (params) {
     const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
@@ -40,11 +39,14 @@ async function request<T>(
   const controller = timeout !== undefined ? new AbortController() : undefined;
   const timeoutId = timeout !== undefined ? setTimeout(() => controller?.abort(), timeout) : undefined;
 
+  // 'X-Abbreviate' header removed (audit 2026-07): the Go backend only
+  // allow-lists it in CORS config (internal/app/module.go AllowHeaders) but no
+  // handler reads c.GetHeader("X-Abbreviate") — it was a dead header coupled
+  // to the timeout path. Do not re-add unless a backend handler consumes it.
   const response = await fetch(url, {
     ...rest,
     headers: {
       ...defaultHeaders,
-      ...(controller !== undefined && { 'X-Abbreviate': 'true' })
     },
     signal: controller?.signal
   })

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
@@ -50,3 +52,16 @@ func handleCommentServiceError(c *gin.Context, err error) bool {
 	}
 	return true
 }
+
+// handleInternalError logs the real error server-side and returns a generic 500 response.
+// Use this instead of c.JSON(500, gin.H{"error": err.Error()}) to prevent
+// internal error details from leaking to clients.
+func handleInternalError(c *gin.Context, err error, msg string) {
+	zap.L().Error(msg,
+		zap.String("path", c.Request.URL.Path),
+		zap.String("method", c.Request.Method),
+		zap.Error(err),
+	)
+	c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+}
+

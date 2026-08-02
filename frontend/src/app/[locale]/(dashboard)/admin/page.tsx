@@ -10,23 +10,20 @@ import { getTranslations } from "next-intl/server";
  * RSC shell: server-side role gate + cached data fetch +
  * Suspense streaming for the interactive client island.
  */
-export default async function AdminDashboardPage() {
-  // Server-side auth/role gate (defense in depth — middleware already blocks)
-  await verifyAdmin();
-
+export default function AdminDashboardPage() {
   return (
     <Suspense fallback={<AdminDashboardSkeleton />}>
-      <AdminStatsFetcher />
+      <AdminDashboardContent />
     </Suspense>
   );
 }
 
-async function AdminStatsFetcher() {
+async function AdminDashboardContent() {
+  const session = await verifyAdmin();
   const t = await getTranslations("common");
   let stats: AdminDashboardStats;
   try {
-    // unstable_cache: 60s LRU across requests, tagged for invalidation
-    stats = await getAdminStatsCached();
+    stats = await getAdminStatsCached(session.accessToken);
   } catch (err) {
     return (
       <DataError

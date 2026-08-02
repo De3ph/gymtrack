@@ -212,6 +212,7 @@ var RepositoryModule = fx.Module("repositories",
 		corsConfig.AllowCredentials = true
 
 		router.Use(cors.New(corsConfig))
+		router.Use(middleware.BodyLimitMiddleware(middleware.DefaultMaxBodyBytes))
 
 		// Prometheus metrics
 		router.Use(metricsMw)
@@ -246,7 +247,14 @@ func StartServer(lc fx.Lifecycle, router *gin.Engine) {
 	var srv *http.Server
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			srv = &http.Server{Addr: ":8080", Handler: router}
+			srv = &http.Server{
+			Addr:              ":8080",
+			Handler:           router,
+			ReadTimeout:       10 * time.Second,
+			ReadHeaderTimeout: 5 * time.Second,
+			WriteTimeout:      30 * time.Second,
+			IdleTimeout:       120 * time.Second,
+		}
 			go func() {
 				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					zap.L().Error("Server error", zap.Error(err))

@@ -22,6 +22,7 @@ import { WorkoutPlan } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
+import { revalidateWorkoutPlansCache } from "@/lib/actions/cache";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ export default function TrainerWorkoutPlansPage() {
     if (!deletingPlan) return;
     try {
       await workoutPlanApi.delete(deletingPlan.planId);
+      await revalidateWorkoutPlansCache();
       queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
       setPlanFilter(""); // Reset filter when deleting
       setDeletingPlan(null);

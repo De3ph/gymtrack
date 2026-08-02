@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from "react-native";
+import { useState } from "react";
 import { useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
 
 interface Client {
@@ -26,6 +28,24 @@ export function ClientsScreen() {
   });
 
   const clients: Client[] = (data as { clients?: Client[] })?.clients ?? [];
+
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+
+  const { mutate: generateCode, isPending: generating } = useMutation({
+    mutationFn: () => relationshipApi.generateInvitation(),
+    onSuccess: (res) => {
+      const invite = (res as { invitation?: { code?: string; expiresAt?: string } })?.invitation;
+      if (invite?.code) {
+        setInviteCode(invite.code);
+        Alert.alert("Invitation Code", `Share this code with your athlete:\n\n${invite.code}\n\nExpires: ${invite.expiresAt ?? "7 days"}`, [
+          { text: "OK", onPress: () => setInviteCode(null) },
+        ]);
+      }
+    },
+    onError: (err: Error) => {
+      Alert.alert("Error", err.message || "Failed to generate invitation");
+    },
+  });
 
   const renderItem = ({ item }: { item: Client }) => (
     <TouchableOpacity
@@ -59,6 +79,20 @@ export function ClientsScreen() {
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+          ListHeaderComponent={
+            <TouchableOpacity
+              style={styles.inviteButton}
+              onPress={() => generateCode()}
+              disabled={generating}
+              activeOpacity={0.7}
+            >
+              {generating ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.inviteText}>Generate Invite Code</Text>
+              )}
+            </TouchableOpacity>
+          }
           ListEmptyComponent={<View style={styles.center}><Text style={styles.emptyText}>No clients yet</Text></View>}
         />
       )}
@@ -79,4 +113,9 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
   retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
   retryText: { color: "#fff", fontWeight: "600" },
+  inviteButton: {
+    backgroundColor: "#7c3aed", paddingVertical: 14, borderRadius: 10,
+    alignItems: "center", marginBottom: 12,
+  },
+  inviteText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 });

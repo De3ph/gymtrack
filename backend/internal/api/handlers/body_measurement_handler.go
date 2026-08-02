@@ -76,7 +76,7 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 
 	var req CreateBodyMeasurementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -105,7 +105,7 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create body measurement", "details": err.Error()})
+		handleInternalError(c, err, "failed to create body measurement")
 		return
 	}
 
@@ -176,7 +176,7 @@ func (h *BodyMeasurementHandler) GetBodyMeasurements(c *gin.Context) {
 
 	limit, offset, startDate, endDate, err := services.ParseBodyMeasurementQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
 		return
 	}
 
@@ -198,7 +198,7 @@ func (h *BodyMeasurementHandler) GetBodyMeasurements(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve body measurements", "details": err.Error()})
+		handleInternalError(c, err, "failed to retrieve body measurements")
 		return
 	}
 
@@ -286,7 +286,7 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 
 	var req UpdateBodyMeasurementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -315,7 +315,7 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update body measurement", "details": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -353,7 +353,7 @@ func (h *BodyMeasurementHandler) DeleteBodyMeasurement(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete body measurement", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete body measurement"})
 		return
 	}
 
@@ -380,7 +380,7 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details"})
 		return
 	}
 	if athlete == nil {
@@ -390,7 +390,7 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 
 	limit, offset, startDate, endDate, err := services.ParseBodyMeasurementQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -412,7 +412,7 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 		if handleServiceError(c, err) {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve client body measurements", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve client body measurements"})
 		return
 	}
 
@@ -421,3 +421,6 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 		"count":        result.Count,
 	})
 }
+
+
+

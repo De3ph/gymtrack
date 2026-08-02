@@ -2,7 +2,15 @@
 import { verifyAdmin } from "@/lib/dal";
 import ModerationClient from "./_components/ModerationClient";
 
-export default async function AdminModerationPage() {
+export default function AdminModerationPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ModerationContent />
+    </Suspense>
+  );
+}
+
+async function ModerationContent() {
   await verifyAdmin();
-  return <Suspense fallback={<div>Loading...</div>}><ModerationClient /></Suspense>;
+  return <ModerationClient />;
 }

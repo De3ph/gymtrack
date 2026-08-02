@@ -18,6 +18,7 @@ import { ROUTES } from "@/lib/routes";
 import { InfoRow } from "@/components/ui/info-row";
 import { DetailSection } from "@/components/ui/detail-section";
 import { adminApi } from "@/lib/api/adminApi";
+import { revalidateAdminStatsCache } from "@/lib/actions/cache";
 import {
   ArrowLeft,
   Calendar,
@@ -69,6 +70,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
   const handleRoleChange = useCallback(async (newRole: UserRole) => {
     try {
       await adminApi.updateUserRole(detail.userId, newRole);
+      await revalidateAdminStatsCache();
       setDetail((prev) => ({ ...prev, role: newRole }));
     } catch {
       // Error handled by API interceptor
@@ -79,6 +81,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
   const handleStatusChange = useCallback(async (newStatus: UserStatus) => {
     try {
       await adminApi.updateUserStatus(detail.userId, newStatus);
+      await revalidateAdminStatsCache();
       setDetail((prev) => ({ ...prev, status: newStatus }));
     } catch {
       // Error handled by API interceptor

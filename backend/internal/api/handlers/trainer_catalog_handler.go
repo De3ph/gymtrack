@@ -66,7 +66,7 @@ func (h *TrainerCatalogHandler) GetTrainers(c *gin.Context) {
 
 	trainers, count, err := h.service.SearchTrainers(c.Request.Context(), filters)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -98,7 +98,7 @@ func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
 
 	trainer, err := h.service.GetTrainerProfile(c.Request.Context(), trainerID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 	if trainer == nil {
@@ -130,7 +130,7 @@ func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 
 	var profile models.TrainerProfile
 	if err := c.ShouldBindJSON(&profile); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
 
@@ -142,7 +142,7 @@ func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 
 	err = h.service.UpdateTrainerProfile(c.Request.Context(), userIDInt, &profile)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
@@ -183,7 +183,7 @@ func (h *TrainerCatalogHandler) GetMyProfile(c *gin.Context) {
 
 	profile, err := h.service.GetTrainerProfile(c.Request.Context(), userIDInt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 	if profile == nil {

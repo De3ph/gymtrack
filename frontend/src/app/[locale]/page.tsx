@@ -1,9 +1,10 @@
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/dal';
 import { ROUTES } from '@/lib/routes';
 import { LandingClient } from './LandingClient';
 
-export default async function Home(props: { searchParams: Promise<{ error?: string }> }) {
+async function HomeContent(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;
 
   // If the client redirected here because auth failed (dashboard → HOME), don't
@@ -17,4 +18,12 @@ export default async function Home(props: { searchParams: Promise<{ error?: stri
   }
 
   return <LandingClient />;
+}
+
+export default function Home(props: { searchParams: Promise<{ error?: string }> }) {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent searchParams={props.searchParams} />
+    </Suspense>
+  );
 }
