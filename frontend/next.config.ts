@@ -13,11 +13,17 @@ const withBundleAnalyzer = createBundleAnalyzer({
 const nextConfig: NextConfig = {
   cacheComponents: true,
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**"
+      }
+    ]
   },
   experimental: {
-    webpackMemoryOptimizations: true,
-  },
+    webpackMemoryOptimizations: true
+  }
 }
 
 export default withBundleAnalyzer(

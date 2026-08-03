@@ -37,25 +37,24 @@ export function ImageWithFallback({
           fill
           className={cn(
             "object-cover transition-opacity duration-300",
-            isLoaded ? "opacity-100" : "opacity-0",
+            isLoaded ? "opacity-100" : "opacity-0"
           )}
-          unoptimized
           onError={() => setHasError(true)}
           onLoad={() => setIsLoaded(true)}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
           priority={priority}
         />
       ) : null}
       {(!src || hasError) && (
-        <div className="flex h-full w-full items-center justify-center bg-muted">
+        <div className='flex h-full w-full items-center justify-center bg-muted'>
           {fallback ?? (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <Dumbbell className="size-8 opacity-40" />
-              <span className="text-xs font-medium opacity-40">{alt}</span>
+            <div className='flex flex-col items-center gap-2 text-muted-foreground'>
+              <Dumbbell className='size-8 opacity-40' />
+              <span className='text-xs font-medium opacity-40'>{alt}</span>
             </div>
           )}
         </div>
       )}
     </div>
-  );
+  )
 }
