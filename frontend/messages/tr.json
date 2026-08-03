@@ -101,7 +101,8 @@
       "remove": "Kaldır",
       "view_client": "Danışanı Gör",
       "apply_filters": "Filtreleri Uygula",
-      "clear": "Temizle"
+      "clear": "Temizle",
+      "retry": "Tekrar Dene"
     },
     "navigation": {
       "dashboard": "Panel",

@@ -101,7 +101,8 @@
       "remove": "Remove",
       "view_client": "View Client",
       "apply_filters": "Apply Filters",
-      "clear": "Clear"
+      "clear": "Clear",
+      "retry": "Retry"
     },
     "navigation": {
       "dashboard": "Dashboard",

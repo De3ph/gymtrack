@@ -29,6 +29,7 @@ const translationSchema = z.object({
       view_client: z.string(),
       apply_filters: z.string(),
       clear: z.string(),
+      retry: z.string(),
     }),
     navigation: z.object({
       dashboard: z.string(),
