@@ -36,23 +36,24 @@ async function request<T>(
     url += `?${searchParams.toString()}`
   }
 
-  const controller = timeout !== undefined ? new AbortController() : undefined;
-  const timeoutId = timeout !== undefined ? setTimeout(() => controller?.abort(), timeout) : undefined;
+  const controller = timeout !== undefined ? new AbortController() : undefined
+  const timeoutId =
+    timeout !== undefined
+      ? setTimeout(() => controller?.abort(), timeout)
+      : undefined
 
-  // 'X-Abbreviate' header removed (audit 2026-07): the Go backend only
-  // allow-lists it in CORS config (internal/app/module.go AllowHeaders) but no
-  // handler reads c.GetHeader("X-Abbreviate") — it was a dead header coupled
-  // to the timeout path. Do not re-add unless a backend handler consumes it.
+  // Intentionally omit the X-Abbreviate header. The backend allows it in CORS,
+  // but no handler consumes it, so it is not required for this client flow.
   const response = await fetch(url, {
     ...rest,
     headers: {
-      ...defaultHeaders,
+      ...defaultHeaders
     },
     signal: controller?.signal
   })
 
   if (controller) {
-    clearTimeout(timeoutId);
+    clearTimeout(timeoutId)
   }
 
   if (!response.ok) {
@@ -75,11 +76,11 @@ async function request<T>(
     return {} as T
   }
 
-  return response.json().catch(error => {
-    if (error instanceof Error && error.message.includes('AbortError')) {
-      throw new Error('Request timed out');
+  return response.json().catch((error) => {
+    if (error instanceof Error && error.message.includes("AbortError")) {
+      throw new Error("Request timed out")
     }
-    throw error;
+    throw error
   })
 }
 
