@@ -25,14 +25,14 @@ interface AvailabilitySlot {
 
 export function TrainerProfileScreen() {
   const queryClient = useQueryClient();
-  const { data: profile, isLoading: loadingProfile } = useQuery({
+  const { data: profile, isLoading: loadingProfile, isError: profileError, refetch: refetchProfile } = useQuery({
     queryKey: ["trainerProfile"],
     queryFn: () => trainerCatalogApi.getMyProfile(),
   });
 
   const p = (profile as { profile?: { name?: string; bio?: string; hourlyRate?: number; certifications?: string; specializations?: string } })?.profile;
 
-  const { data: availData, isLoading: loadingAvail } = useQuery({
+  const { data: availData, isLoading: loadingAvail, isError: availError, refetch: refetchAvail } = useQuery({
     queryKey: ["myAvailability"],
     queryFn: () => availabilityApi.getMyAvailability(),
   });
@@ -41,6 +41,7 @@ export function TrainerProfileScreen() {
     (availData as { slots?: AvailabilitySlot[] })?.slots ?? [];
 
   const [editing, setEditing] = useState(false);
+  const [error, setError] = useState("");
   const [name, setName] = useState(p?.name ?? "");
   const [bio, setBio] = useState(p?.bio ?? "");
   const [hourlyRate, setHourlyRate] = useState(String(p?.hourlyRate ?? ""));
@@ -51,9 +52,10 @@ export function TrainerProfileScreen() {
   // Keep local availSlots in sync with server data when not actively editing
   useEffect(() => {
     if (!editingAvail) {
-      setAvailSlots(serverSlots.length > 0 ? serverSlots.map((s) => ({ ...s })) : []);
+      const slots = (availData as { slots?: AvailabilitySlot[] })?.slots ?? [];
+      setAvailSlots(slots.length > 0 ? slots.map((s) => ({ ...s })) : []);
     }
-  }, [serverSlots, editingAvail]);
+  }, [availData, editingAvail]);
 
   const startEditAvail = () => {
     setAvailSlots(
@@ -70,7 +72,38 @@ export function TrainerProfileScreen() {
       setEditing(false);
       queryClient.invalidateQueries({ queryKey: ["trainerProfile"] });
     },
+    onError: (err: Error) => {
+      setError(err.message || "Failed to save profile");
+    },
   });
+
+  const handleSaveProfile = () => {
+    setError("");
+    const trimmedName = name.trim();
+    const trimmedBio = bio.trim();
+
+    if (trimmedName.length < 2) {
+      setError("Name must be at least 2 characters");
+      return;
+    }
+    if (trimmedBio.length > 500) {
+      setError("Bio must be 500 characters or fewer");
+      return;
+    }
+    if (hourlyRate.trim() !== "") {
+      const rate = Number(hourlyRate);
+      if (!Number.isFinite(rate) || rate <= 0) {
+        setError("Hourly rate must be a positive number");
+        return;
+      }
+    }
+
+    save({
+      name: trimmedName,
+      bio: trimmedBio,
+      hourlyRate: hourlyRate.trim() !== "" ? Number(hourlyRate) : undefined,
+    });
+  };
 
   const { mutate: saveAvail, isPending: savingAvail } = useMutation({
     mutationFn: (slots: { dayOfWeek: number; startTime: string; endTime: string }[]) =>
@@ -97,6 +130,24 @@ export function TrainerProfileScreen() {
   });
 
   if (loadingProfile || loadingAvail) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
+
+  if (profileError) return (
+    <View style={styles.center}>
+      <Text style={styles.loadErrorText}>Failed to load trainer profile</Text>
+      <TouchableOpacity onPress={() => refetchProfile()} style={styles.retryButton}>
+        <Text style={styles.retryText}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  if (availError) return (
+    <View style={styles.center}>
+      <Text style={styles.loadErrorText}>Failed to load availability</Text>
+      <TouchableOpacity onPress={() => refetchAvail()} style={styles.retryButton}>
+        <Text style={styles.retryText}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const updateSlot = (index: number, field: string, value: string | number) => {
     setAvailSlots((prev) =>
@@ -129,6 +180,11 @@ export function TrainerProfileScreen() {
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
+      {error ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : null}
       <Text style={styles.title}>Trainer Profile</Text>
       {editing ? (
         <View style={styles.form}>
@@ -139,8 +195,8 @@ export function TrainerProfileScreen() {
           <Text style={styles.label}>Hourly Rate</Text>
           <TextInput style={styles.input} value={hourlyRate} onChangeText={setHourlyRate} keyboardType="numeric" placeholderTextColor="#9ca3af" />
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => setEditing(false)}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn} onPress={() => save({ name, bio, hourlyRate: Number(hourlyRate) || undefined })} disabled={saving}>
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => { setEditing(false); setError(""); }}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile} disabled={saving}>
               {saving ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.saveText}>Save</Text>}
             </TouchableOpacity>
           </View>
@@ -154,6 +210,7 @@ export function TrainerProfileScreen() {
             setName(p?.name ?? "");
             setBio(p?.bio ?? "");
             setHourlyRate(String(p?.hourlyRate ?? ""));
+            setError("");
             setEditing(true);
           }}>
             <Text style={styles.editText}>Edit Profile</Text>
@@ -242,6 +299,11 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: "#f9fafb" },
   container: { padding: 24, paddingBottom: 48 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  errorBox: { backgroundColor: "#fef2f2", borderLeftWidth: 3, borderLeftColor: "#ef4444", padding: 12, marginBottom: 16, borderRadius: 4 },
+  errorText: { color: "#dc2626", fontSize: 14, fontWeight: "500" },
+  loadErrorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
+  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
+  retryText: { color: "#fff", fontWeight: "600" },
   title: { fontSize: 24, fontWeight: "700", color: "#111827", marginBottom: 20 },
   card: { backgroundColor: "#fff", borderRadius: 12, padding: 18 },
   row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: "#e5e7eb" },

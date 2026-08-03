@@ -24,6 +24,7 @@ export function ProfileScreen() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.profile?.name ?? "");
   const [bio, setBio] = useState(user?.profile?.bio ?? "");
+  const [error, setError] = useState("");
 
   const { mutate: saveProfile, isPending: saving } = useMutation({
     mutationFn: (data: Record<string, unknown>) => userApi.updateCurrentUser(data),
@@ -31,10 +32,26 @@ export function ProfileScreen() {
       setEditing(false);
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
+    onError: (err: Error) => {
+      setError(err.message || t("profile.update_error"));
+    },
   });
 
   const handleSave = () => {
-    saveProfile({ profile: { name: name.trim(), bio: bio.trim() } });
+    setError("");
+    const trimmedName = name.trim();
+    const trimmedBio = bio.trim();
+
+    if (trimmedName.length < 2) {
+      setError(t("auth.register.name.error.required"));
+      return;
+    }
+    if (trimmedBio.length > 500) {
+      setError(t("common.errors.invalid"));
+      return;
+    }
+
+    saveProfile({ profile: { name: trimmedName, bio: trimmedBio } });
   };
 
   const handleLogout = () => {
@@ -62,6 +79,12 @@ export function ProfileScreen() {
         </View>
       </View>
 
+      {error ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : null}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t("profile.title")}</Text>
 
@@ -85,6 +108,7 @@ export function ProfileScreen() {
                 onChangeText={setName}
                 placeholder={t("auth.register.name.placeholder")}
                 placeholderTextColor="#9ca3af"
+                editable={!saving}
               />
             </View>
             <View style={styles.field}>
@@ -98,10 +122,17 @@ export function ProfileScreen() {
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
+                editable={!saving}
               />
             </View>
             <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setEditing(false)}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setEditing(false);
+                  setError("");
+                }}
+              >
                 <Text style={styles.cancelText}>{t("common.cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
@@ -155,6 +186,8 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: "#f9fafb" },
   container: { padding: 24, paddingBottom: 48 },
+  errorBox: { backgroundColor: "#fef2f2", borderLeftWidth: 3, borderLeftColor: "#ef4444", padding: 12, marginBottom: 16, borderRadius: 4 },
+  errorText: { color: "#dc2626", fontSize: 14, fontWeight: "500" },
   header: { alignItems: "center", marginBottom: 28, marginTop: 16 },
   avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: "#2563eb", alignItems: "center", justifyContent: "center", marginBottom: 12 },
   avatarText: { color: "#fff", fontSize: 28, fontWeight: "800" },

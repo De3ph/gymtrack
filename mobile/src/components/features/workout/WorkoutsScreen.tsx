@@ -196,7 +196,7 @@ export function WorkoutsScreen() {
   const handleExerciseSelect = (exercise: { name: string; exerciseId: number; category?: string }) => {
     if (pickingForExId) {
       updateExerciseName(pickingForExId, exercise.name)
-      if (exercise.exerciseId) {
+      if (exercise.exerciseId != null) {
         updateExercisePickedId(pickingForExId, exercise.exerciseId)
       }
     }
@@ -450,7 +450,7 @@ export function WorkoutsScreen() {
         </Text>
         <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
           <Text style={styles.retryButtonText}>
-            {t("common.actions.submit")}
+            {t("common.actions.retry")}
           </Text>
         </TouchableOpacity>
       </View>

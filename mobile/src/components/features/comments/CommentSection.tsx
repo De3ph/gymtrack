@@ -180,7 +180,7 @@ export function CommentSection({
             onPress={() => refetch()}
             style={styles.retryButton}
           >
-            <Text style={styles.retryText}>{t("common.actions.confirm")}</Text>
+            <Text style={styles.retryText}>{t("common.actions.retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : (

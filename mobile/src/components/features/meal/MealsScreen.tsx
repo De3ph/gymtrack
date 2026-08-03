@@ -387,7 +387,7 @@ export function MealsScreen() {
         <Text style={styles.errorText}>{errorMessage}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
           <Text style={styles.retryButtonText}>
-            {t("common.actions.submit")}
+            {t("common.actions.retry")}
           </Text>
         </TouchableOpacity>
       </View>

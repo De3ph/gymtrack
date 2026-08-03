@@ -45,6 +45,12 @@ function canEdit(createdAt?: string): boolean {
   return now - created < 24 * 60 * 60 * 1000
 }
 
+function isValidNumber(value: string): boolean {
+  if (!value.trim()) return true
+  const n = Number(value)
+  return !Number.isNaN(n) && n >= 0
+}
+
 function Sparkline({
   data,
   w,
@@ -93,6 +99,7 @@ export function MeasurementsScreen() {
     [bodyFat, setBodyFat] = useState("")
   const [notes, setNotes] = useState("")
   const [parts, setParts] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState("")
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["measurements"],
@@ -160,6 +167,7 @@ export function MeasurementsScreen() {
     setBodyFat("")
     setNotes("")
     setParts({})
+    setFormError("")
     setShowAdd(true)
   }
 
@@ -175,6 +183,7 @@ export function MeasurementsScreen() {
       })
     }
     setParts(partsStr)
+    setFormError("")
     setShowAdd(true)
   }
 
@@ -185,9 +194,20 @@ export function MeasurementsScreen() {
     setBodyFat("")
     setNotes("")
     setParts({})
+    setFormError("")
   }
 
   function handleSave() {
+    if (!isValidNumber(weight) || !isValidNumber(bodyFat)) {
+      setFormError("Weight and body fat must be non-negative numbers")
+      return
+    }
+    const badPart = Object.entries(parts).find(([, v]) => !isValidNumber(v))
+    if (badPart) {
+      setFormError(`${badPart[0]} must be a non-negative number`)
+      return
+    }
+    setFormError("")
     const body: Record<string, unknown> = {
       date: editingMeasurement?.date ?? new Date().toISOString().split("T")[0]
     }
@@ -437,6 +457,11 @@ export function MeasurementsScreen() {
                 </View>
               ))}
             </View>
+            {formError ? (
+              <View style={s.errorBanner}>
+                <Text style={s.errorBannerText}>{formError}</Text>
+              </View>
+            ) : null}
             <View style={s.mBtns}>
               <TouchableOpacity style={s.cBtn} onPress={closeForm}>
                 <Text style={s.cTxt}>Cancel</Text>
@@ -657,5 +682,13 @@ const s = StyleSheet.create({
     backgroundColor: "#2563eb",
     alignItems: "center"
   },
-  sTxt: { color: "#fff", fontSize: 14, fontWeight: "600" }
+  sTxt: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  errorBanner: {
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    borderRadius: 8,
+    padding: 12
+  },
+  errorBannerText: { fontSize: 14, color: "#ef4444" }
 })

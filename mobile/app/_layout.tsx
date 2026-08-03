@@ -41,6 +41,16 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <I18nProvider>
+        <AppNavigator />
+      </I18nProvider>
+    </QueryClientProvider>
+  );
+}
+
+function AppNavigator() {
   const { isAuthenticated, isInitialized, initializeAuth } = useAuthStore();
 
   useEffect(() => {
@@ -51,27 +61,19 @@ function RootLayoutNav() {
 
   if (!isAuthenticated) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <I18nProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" />
-          </Stack>
-        </I18nProvider>
-      </QueryClientProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+      </Stack>
     );
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <I18nProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="trainer" />
-          <Stack.Screen name="trainer-catalog" />
-          <Stack.Screen name="athlete" />
-        </Stack>
-      </I18nProvider>
-    </QueryClientProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="trainer" />
+      <Stack.Screen name="trainer-catalog" />
+      <Stack.Screen name="athlete" />
+    </Stack>
   );
 }
 

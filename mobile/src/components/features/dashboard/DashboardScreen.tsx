@@ -72,7 +72,7 @@ export function DashboardScreen() {
       <View style={styles.centered}>
         <Text style={styles.errorText}>{errorMessage || t("common.errors.generic")}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
-          <Text style={styles.retryButtonText}>{t("common.actions.submit")}</Text>
+          <Text style={styles.retryButtonText}>{t("common.actions.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
