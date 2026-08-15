@@ -1,35 +1,22 @@
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { linkStyles } from "./dashboard-styles";
-import { ROUTES } from "@/lib/routes";
 import { useTranslations } from 'next-intl';
+import { ROUTES } from '@/lib/routes';
+import { NavLink } from '@/components/ui/nav-link';
 
 export function TrainerNav() {
   const tNav = useTranslations('common.navigation');
   const tTrainer = useTranslations('trainer');
-  const pathname = usePathname();
 
   return (
     <>
-      <Link
-        href={ROUTES.TRAINER_CLIENTS}
-        className={cn(linkStyles.nav, pathname.endsWith(ROUTES.TRAINER_CLIENTS) && "bg-gray-200 dark:bg-gray-700")}
-      >
+      <NavLink href={ROUTES.TRAINER_CLIENTS} activeMatch="endsWith">
         {tTrainer('clients.title')}
-      </Link>
-      <Link
-        href={ROUTES.TRAINER_PROFILE}
-        className={cn(linkStyles.nav, pathname.endsWith(ROUTES.TRAINER_PROFILE) && "bg-gray-200 dark:bg-gray-700")}
-      >
+      </NavLink>
+      <NavLink href={ROUTES.TRAINER_PROFILE} activeMatch="endsWith">
         {tNav('profile')}
-      </Link>
-      <Link
-        href={ROUTES.TRAINER_WORKOUT_PLANS}
-        className={cn(linkStyles.nav, pathname.endsWith(ROUTES.TRAINER_WORKOUT_PLANS) && "bg-gray-200 dark:bg-gray-700")}
-      >
+      </NavLink>
+      <NavLink href={ROUTES.TRAINER_WORKOUT_PLANS} activeMatch="endsWith">
         {tNav('workout_plans')}
-      </Link>
+      </NavLink>
     </>
   );
 }

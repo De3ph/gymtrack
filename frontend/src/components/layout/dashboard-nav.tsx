@@ -21,38 +21,52 @@ export function DashboardNav({
   onLogout,
 }: DashboardNavProps) {
   return (
-    <nav className="bg-card shadow-sm">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between items-center">
-          <div className="flex items-center">
-            <Link href={ROUTES.DASHBOARD} className={linkStyles.brand}>
-              GymTrack
-            </Link>
-            <div className="ml-10 hidden lg:flex lg:items-baseline lg:space-x-4">
-              {userRole === "athlete" && <AthleteNav />}
-              {userRole === "trainer" && <TrainerNav />}
-              {userRole === "admin" && <AdminNav />}
-            </div>
+    <nav 
+      className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      aria-label="Main navigation"
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left section: Brand + Desktop Navigation */}
+        <div className="flex items-center gap-8">
+          <Link 
+            href={ROUTES.DASHBOARD} 
+            className={linkStyles.brand}
+            aria-label="GymTrack Dashboard"
+          >
+            GymTrack
+          </Link>
+          
+          {/* Desktop Navigation - Hidden on mobile */}
+          <div className="hidden lg:flex lg:items-center lg:gap-1" role="menubar">
+            {userRole === "athlete" && <AthleteNav />}
+            {userRole === "trainer" && <TrainerNav />}
+            {userRole === "admin" && <AdminNav />}
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <LocaleToggle />
-            </div>
-            <div className="hidden lg:block">
-              <UserAvatarMenu
-                userName={userName}
-                userRole={userRole}
-                onLogout={onLogout}
-              />
-            </div>
+        </div>
 
-            <MobileNav
-              userRole={userRole}
+        {/* Right section: Actions + User Menu */}
+        <div className="flex items-center gap-2">
+          {/* Theme and Locale toggles */}
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <LocaleToggle />
+          </div>
+
+          {/* User Avatar Menu - Hidden on mobile */}
+          <div className="hidden lg:block">
+            <UserAvatarMenu
               userName={userName}
+              userRole={userRole}
               onLogout={onLogout}
             />
           </div>
+
+          {/* Mobile Navigation */}
+          <MobileNav
+            userRole={userRole}
+            userName={userName}
+            onLogout={onLogout}
+          />
         </div>
       </div>
     </nav>

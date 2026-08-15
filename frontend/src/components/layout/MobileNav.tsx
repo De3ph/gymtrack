@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -38,43 +38,64 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
   return (
     <Drawer direction="right">
       <DrawerTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="lg:hidden"
+          aria-label={tCommon("toggle_menu")}
+        >
           <Menu className="h-5 w-5" />
-          <span className="sr-only">{tCommon("toggle_menu")}</span>
         </Button>
       </DrawerTrigger>
       <DrawerContent className="h-full w-3/4 max-w-sm">
-        <DrawerHeader className="border-b">
-          <DrawerTitle className="text-left">
+        <DrawerHeader className="border-b px-6 py-4">
+          <DrawerTitle className="flex items-center justify-between">
             <Link
               href={ROUTES.DASHBOARD}
               className={linkStyles.brand}
-              onClick={() => {
-                // Close handled by link navigation
-              }}
             >
               GymTrack
             </Link>
+            <DrawerClose asChild>
+              <Button variant="ghost" size="icon" aria-label="Close menu">
+                <X className="h-5 w-5" />
+              </Button>
+            </DrawerClose>
           </DrawerTitle>
         </DrawerHeader>
-        <nav className="flex flex-col gap-1 p-4">
-          {userRole === "athlete" && <AthleteNavLinks />}
-          {userRole === "trainer" && <TrainerNavLinks />}
-          {userRole === "admin" && <AdminNavLinks />}
+        
+        {/* Navigation Links */}
+        <nav className="flex-1 overflow-y-auto px-4 py-4" aria-label="Mobile navigation">
+          <div className="flex flex-col gap-1">
+            {userRole === "athlete" && <AthleteNavLinks />}
+            {userRole === "trainer" && <TrainerNavLinks />}
+            {userRole === "admin" && <AdminNavLinks />}
+          </div>
         </nav>
-        <div className="mt-auto border-t p-4">
-          <div className="mb-3 flex items-center justify-center gap-2">
+
+        {/* Footer Actions */}
+        <div className="border-t px-6 py-4">
+          {/* User Info */}
+          <div className="mb-4 flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="text-sm">{initials}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium text-foreground">{userName}</span>
+          </div>
+
+          {/* Theme and Locale toggles */}
+          <div className="mb-4 flex items-center justify-center gap-2">
             <ThemeToggle />
             <LocaleToggle />
           </div>
-          <div className="mb-3 flex items-center justify-center gap-3">
-            <Avatar>
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-muted-foreground">{userName}</span>
-          </div>
+
+          {/* Logout Button */}
           <DrawerClose asChild>
-            <Button onClick={onLogout} variant="secondary" className="w-full">
+            <Button 
+              onClick={onLogout} 
+              variant="secondary" 
+              className="w-full"
+            >
               {tCommon("logout")}
             </Button>
           </DrawerClose>

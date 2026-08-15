@@ -379,6 +379,7 @@ export function BodyMeasurementForm({
             <>
               <textarea
                 id="measurement-notes"
+                data-testid="measurement-notes"
                 value={field.state.value ?? ""}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}

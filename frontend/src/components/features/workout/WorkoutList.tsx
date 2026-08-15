@@ -198,6 +198,7 @@ export function WorkoutList({
                         variant='ghost'
                         size='icon'
                         onClick={() => handleEditClick(workout)}
+                        aria-label={t("edit")}
                       >
                         <Edit2 className='h-4 w-4' />
                       </Button>
@@ -205,6 +206,7 @@ export function WorkoutList({
                         variant='ghost'
                         size='icon'
                         onClick={() => handleDeleteClick(workout)}
+                        aria-label={t("delete")}
                       >
                         <Trash2 className='h-4 w-4 text-destructive' />
                       </Button>

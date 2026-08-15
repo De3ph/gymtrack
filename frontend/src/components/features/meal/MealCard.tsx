@@ -81,6 +81,7 @@ export const MealCard = memo(function MealCardImpl({
                     variant='ghost'
                     size='icon'
                     onClick={() => onEdit(meal)}
+                    aria-label={t("list.edit")}
                   >
                     <Edit2 className='h-4 w-4' />
                   </Button>
@@ -91,6 +92,7 @@ export const MealCard = memo(function MealCardImpl({
                       if (confirm(t("card.confirm_delete")))
                         onDelete(meal.mealId)
                     }}
+                    aria-label={t("list.delete")}
                   >
                     <Trash2 className='h-4 w-4 text-destructive' />
                   </Button>

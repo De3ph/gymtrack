@@ -21,7 +21,13 @@ export function NavLink({ href, children, activeMatch = "exact", className }: Na
   return (
     <Link
       href={href}
-      className={cn(linkStyles.nav, isActive && "bg-gray-200 dark:bg-gray-700", className)}
+      role="menuitem"
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        linkStyles.nav,
+        isActive && linkStyles.navActive,
+        className
+      )}
     >
       {children}
     </Link>

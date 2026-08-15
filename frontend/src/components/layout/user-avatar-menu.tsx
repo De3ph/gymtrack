@@ -41,14 +41,17 @@ export function UserAvatarMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <Avatar>
-              <AvatarFallback>{initials}</AvatarFallback>
+          <button 
+            className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200"
+            aria-label={`User menu for ${userName || 'user'}`}
+          >
+            <Avatar className="h-9 w-9 transition-transform duration-200 hover:scale-105">
+              <AvatarFallback className="text-sm font-medium">{initials}</AvatarFallback>
             </Avatar>
           </button>
         }
       />
-      <DropdownMenuContent align="end" sideOffset={8}>
+      <DropdownMenuContent align="end" sideOffset={8} className="w-48">
         <DropdownMenuItem render={<Link href={profileHref} />}>
           <User className="mr-2 h-4 w-4" />
           {tCommon("profile")}

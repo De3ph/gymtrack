@@ -152,6 +152,7 @@ export function ExerciseSetInput({
                     disabled={disabled}
                     className="w-16"
                     placeholder="0"
+                    data-testid="set-weight"
                   />
                 </Field>
                 <span className="text-sm text-muted-foreground self-end pb-1">
@@ -173,6 +174,7 @@ export function ExerciseSetInput({
                     disabled={disabled}
                     className="w-16"
                     placeholder="1"
+                    data-testid="set-reps"
                   />
                 </Field>
               </div>
@@ -196,6 +198,7 @@ export function ExerciseSetInput({
                     disabled={disabled}
                     className="w-16"
                     placeholder="60"
+                    data-testid="set-rest"
                   />
                 </Field>
                 <span className="text-sm text-muted-foreground self-end pb-1">
@@ -211,6 +214,7 @@ export function ExerciseSetInput({
                 onClick={() => removeSet(set.id)}
                 disabled={disabled}
                 className="text-red-600 hover:text-red-700 ml-auto"
+                data-testid="remove-set"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>

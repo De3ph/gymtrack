@@ -65,11 +65,11 @@
 
 ## Priority fixes
 
-1. Add `not-found.tsx` (404) + route-level `error.tsx` for dashboard groups.
-2. Remove `console.log` in `api-client.ts`; audit `X-Abbreviate` header.
+1. Add `not-found.tsx` (404) + route-level `error.tsx` for dashboard groups. ✅ DONE
+2. Remove `console.log` in `api-client.ts`; audit `X-Abbreviate` header. ✅ DONE
 3. Add CSP + security headers in `proxy.ts` response.
-4. Re-enable `<Image>` optimization: drop global `images.unoptimized`, set `images.remotePatterns` for Unsplash, remove per-image `unoptimized`.
-5. Add `loading.tsx` to dashboard routes for streaming.
+4. Re-enable `<Image>` optimization: drop global `images.unoptimized`, set `images.remotePatterns` for Unsplash, remove per-image `unoptimized`. ✅ DONE
+5. Add `loading.tsx` to dashboard routes for streaming. ✅ DONE
 6. Landing page `metadata` + `opengraph-image`.
 7. Install `@next/bundle-analyzer`, add `useReportWebVitals` → Sentry.
 8. Bound `decryptCache` size (LRU or cap).

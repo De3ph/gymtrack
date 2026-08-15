@@ -42,6 +42,7 @@ export function WorkoutFilterBar({
         </label>
         <Input
           type="date"
+          data-testid="workout-start-date"
           value={
             pending.startDate
               ? dayjs(pending.startDate).format(DATE_FORMATS.DATE_ONLY)
@@ -68,6 +69,7 @@ export function WorkoutFilterBar({
         </label>
         <Input
           type="date"
+          data-testid="workout-end-date"
           value={
             pending.endDate
               ? dayjs(pending.endDate).format(DATE_FORMATS.DATE_ONLY)

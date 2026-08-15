@@ -184,14 +184,17 @@ export function EditMealDialog({
               </form.Field>
               <form.Field name='mealTime'>
                 {(field) => (
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    type='time'
-                    id='mealTime'
-                    className='w-full md:w-[120px]'
-                  />
+                  <div className="space-y-2">
+                    <Input
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      type='time'
+                      id='mealTime'
+                      className='w-full md:w-[120px]'
+                    />
+                    <FieldInfo field={field} />
+                  </div>
                 )}
               </form.Field>
               <form.Field name='mealType'>
@@ -249,6 +252,7 @@ export function EditMealDialog({
                           {(subField) => (
                             <Field>
                               <Input
+                                data-testid="edit-meal-food"
                                 value={subField.state.value}
                                 onChange={(e) =>
                                   subField.handleChange(e.target.value)
@@ -268,6 +272,7 @@ export function EditMealDialog({
                           {(subField) => (
                             <Field>
                               <Input
+                                data-testid="edit-meal-quantity"
                                 value={subField.state.value}
                                 onChange={(e) =>
                                   subField.handleChange(e.target.value)

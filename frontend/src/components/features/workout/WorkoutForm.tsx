@@ -96,6 +96,18 @@ export function WorkoutForm({
       setSubmitError(null);
       createWorkout(value);
     },
+    onSubmitInvalid: ({ formApi }) => {
+      const fieldMeta = formApi.state.fieldMeta;
+      const errors = Object.values(fieldMeta ?? {})
+        .flatMap((meta) => meta?.errors ?? [])
+        .filter(Boolean);
+      const messages = errors
+        .map((e) => (typeof e === "string" ? e : e.message))
+        .filter(Boolean);
+      if (messages.length > 0) {
+        setSubmitError(messages.join(". "));
+      }
+    },
   });
 
   // Mutation for creating workout
@@ -183,6 +195,7 @@ export function WorkoutForm({
                 onBlur={field.handleBlur}
                 type="time"
                 id="workoutTime"
+                data-testid="workout-time"
                 className="w-full md:w-[120px]"
               />
             )}

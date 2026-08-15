@@ -89,6 +89,7 @@ export function CommentForm({
           <Field>
             <FieldLabel>{placeholder}</FieldLabel>
             <Textarea
+              data-testid="comment-content"
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}

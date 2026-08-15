@@ -70,6 +70,18 @@ export function MealForm({ onSuccess }: MealFormProps) {
       setSubmitError(null);
       createMeal(value);
     },
+    onSubmitInvalid: ({ formApi }) => {
+      const fieldMeta = formApi.state.fieldMeta;
+      const errors = Object.values(fieldMeta ?? {})
+        .flatMap((meta) => meta?.errors ?? [])
+        .filter(Boolean);
+      const messages = errors
+        .map((e) => (typeof e === "string" ? e : e.message))
+        .filter(Boolean);
+      if (messages.length > 0) {
+        setSubmitError(messages.join(". "));
+      }
+    },
   });
 
   // Mutation for creating meal
@@ -147,14 +159,18 @@ export function MealForm({ onSuccess }: MealFormProps) {
             </form.Field>
             <form.Field name="mealTime">
               {(field) => (
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  type="time"
-                  id="mealTime"
-                  className="w-full md:w-[120px]"
-                />
+                <div className="space-y-2">
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    type="time"
+                    id="mealTime"
+                    data-testid="meal-time"
+                    className="w-full md:w-[120px]"
+                  />
+                  <FieldInfo field={field} />
+                </div>
               )}
             </form.Field>
           </div>
@@ -229,6 +245,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
                             }
                             onBlur={subField.handleBlur}
                             placeholder={t("form.food.placeholder")}
+                            data-testid="meal-food"
                           />
                           <FieldInfo field={subField} />
                         </Field>
@@ -248,6 +265,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
                             }
                             onBlur={subField.handleBlur}
                             placeholder={t("form.quantity.placeholder")}
+                            data-testid="meal-quantity"
                           />
                           <FieldInfo field={subField} />
                         </Field>
@@ -259,15 +277,19 @@ export function MealForm({ onSuccess }: MealFormProps) {
                     <FieldLabel>{t("form.calories.label")}</FieldLabel>
                     <form.Field name={`items[${index}].calories`}>
                       {(subField) => (
-                        <Input
-                          value={subField.state.value}
-                          onChange={(e) =>
-                            subField.handleChange(Number(e.target.value))
-                          }
-                          onBlur={subField.handleBlur}
-                          type="number"
-                          placeholder={t("form.calories.placeholder")}
-                        />
+                        <Field>
+                          <Input
+                            value={subField.state.value}
+                            onChange={(e) =>
+                              subField.handleChange(Number(e.target.value))
+                            }
+                            onBlur={subField.handleBlur}
+                            type="number"
+                            placeholder={t("form.calories.placeholder")}
+                            data-testid="meal-calories"
+                          />
+                          <FieldInfo field={subField} />
+                        </Field>
                       )}
                     </form.Field>
                   </div>
@@ -288,6 +310,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
                               }
                               onBlur={subField.handleBlur}
                               type="number"
+                              data-testid="meal-protein"
                             />
                           )}
                         </form.Field>
@@ -305,6 +328,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
                               }
                               onBlur={subField.handleBlur}
                               type="number"
+                              data-testid="meal-carbs"
                             />
                           )}
                         </form.Field>
@@ -322,6 +346,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
                               }
                               onBlur={subField.handleBlur}
                               type="number"
+                              data-testid="meal-fats"
                             />
                           )}
                         </form.Field>

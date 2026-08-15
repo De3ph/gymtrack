@@ -1188,10 +1188,14 @@
     "selector": {
       "pick_exercise": "Egzersiz Seç",
       "select_exercise": "Egzersiz Seç",
+      "selected": "Seçili",
       "description": "Antrenmanınıza eklemek için egzersizleri ara ve filtreleyin",
       "loading": "Egzersiz verileri yükleniyor...",
       "error": "Egzersiz verileri yüklenirken hata oluştu. Lütfen tekrar deneyin.",
-      "search_placeholder": "Egzersiz ara..."
+      "search_placeholder": "Egzersiz ara...",
+      "exercises_found": "egzersiz bulundu",
+      "no_exercises_found": "Egzersiz bulunamadı",
+      "clear_filters": "Filtreleri Temizle"
     }
   },
   "review": {
@@ -1204,7 +1208,8 @@
       "submit": "İnceleme Gönder",
       "submitting": "Gönderiliyor...",
       "cancel": "İptal",
-      "error_create": "İnceleme oluşturulamadı"
+      "error_create": "İnceleme oluşturulamadı",
+      "description": "Bu antrenör hakkında dürüst geri bildiriminizi paylaşın"
     },
     "edit": {
       "title": "İncelemenizi Düzenleyin",
@@ -1223,7 +1228,8 @@
       "description": "Bu incelemeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
       "confirm_text": "İncelemeyi Sil",
       "cancel": "İptal",
-      "deleting": "Siliniyor..."
+      "deleting": "Siliniyor...",
+      "error_delete": "İnceleme silinemedi"
     },
     "actions": {
       "helpful": "Yararlı",
