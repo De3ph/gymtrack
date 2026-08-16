@@ -24,7 +24,16 @@ import {
   createWorkoutWithPerSetSchema,
   WorkoutWithPerSetFormData,
 } from "@/lib/validations/workout";
-import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const ExerciseSelector = dynamic(
+  () =>
+    import("@/components/features/exercise/ExerciseSelector").then(
+      (m) => m.ExerciseSelector,
+    ),
+  { ssr: false, loading: () => <Skeleton className="h-9 w-28" /> },
+);
 import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
 import { useTranslations } from "next-intl";
 

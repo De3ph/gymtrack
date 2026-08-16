@@ -6,7 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const ExerciseSelector = dynamic(
+  () =>
+    import("@/components/features/exercise/ExerciseSelector").then(
+      (m) => m.ExerciseSelector,
+    ),
+  { ssr: false, loading: () => <Skeleton className="h-9 w-28" /> },
+);
 import { PlanSetInput } from "./PlanSetInput";
 import { WorkoutPlan, WorkoutPlanExercise, WorkoutPlanSet } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
