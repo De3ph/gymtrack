@@ -20,8 +20,8 @@ func ProvidePostgresPool(cfg *PostgresConfig) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to parse postgres DSN: %w", err)
 	}
 
-	poolCfg.MaxConns = 25
-	poolCfg.MinConns = 2
+	poolCfg.MaxConns = 10
+	poolCfg.MinConns = 1
 	poolCfg.MaxConnLifetime = 30 * time.Minute
 	poolCfg.MaxConnIdleTime = 5 * time.Minute
 

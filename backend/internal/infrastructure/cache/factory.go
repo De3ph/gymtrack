@@ -29,6 +29,56 @@ func (n *NoOpCache[T]) Invalidate(key string) {}
 
 func (n *NoOpCache[T]) InvalidatePrefix(prefix string) {}
 
+// NoOp cache ctors (skip prometheus metrics registration)
+func NewUserCacheNoMetrics(enabled bool) Cache[*models.User] {
+	if !enabled {
+		return NewNoOpCache[*models.User]()
+	}
+	return NewGoCache[*models.User](5*time.Minute, 1*time.Minute, 1000, nil)
+}
+
+func NewExerciseCacheNoMetrics(enabled bool) Cache[[]models.Exercise] {
+	if !enabled {
+		return NewNoOpCache[[]models.Exercise]()
+	}
+	return NewGoCache[[]models.Exercise](30*time.Minute, 1*time.Minute, 50, nil)
+}
+
+func NewMuscleGroupCacheNoMetrics(enabled bool) Cache[[]models.MuscleGroupDefinition] {
+	if !enabled {
+		return NewNoOpCache[[]models.MuscleGroupDefinition]()
+	}
+	return NewGoCache[[]models.MuscleGroupDefinition](30*time.Minute, 1*time.Minute, 50, nil)
+}
+
+func NewEquipmentCacheNoMetrics(enabled bool) Cache[[]models.EquipmentDefinition] {
+	if !enabled {
+		return NewNoOpCache[[]models.EquipmentDefinition]()
+	}
+	return NewGoCache[[]models.EquipmentDefinition](30*time.Minute, 1*time.Minute, 50, nil)
+}
+
+func NewRelationshipCacheNoMetrics(enabled bool) Cache[[]*models.Relationship] {
+	if !enabled {
+		return NewNoOpCache[[]*models.Relationship]()
+	}
+	return NewGoCache[[]*models.Relationship](2*time.Minute, 30*time.Second, 500, nil)
+}
+
+func NewTrainerIDCacheNoMetrics(enabled bool) Cache[*models.TrainerWithProfile] {
+	if !enabled {
+		return NewNoOpCache[*models.TrainerWithProfile]()
+	}
+	return NewGoCache[*models.TrainerWithProfile](5*time.Minute, 1*time.Minute, 200, nil)
+}
+
+func NewTrainerPublicCacheNoMetrics(enabled bool) Cache[[]models.TrainerWithProfile] {
+	if !enabled {
+		return NewNoOpCache[[]models.TrainerWithProfile]()
+	}
+	return NewGoCache[[]models.TrainerWithProfile](5*time.Minute, 1*time.Minute, 200, nil)
+}
+
 // NewUserCache creates a Cache[*models.User] for the auth middleware user cache.
 func NewUserCache(reg *prometheus.Registry, enabled bool) Cache[*models.User] {
 	if !enabled {

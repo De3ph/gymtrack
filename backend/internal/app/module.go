@@ -44,26 +44,26 @@ var RepositoryModule = fx.Module("repositories",
 		},
 
 		// Cache adapter factories (one per domain, separate metrics per instance)
-		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[*models.User] {
-			return cache.NewUserCache(reg, cfg.CacheEnabled)
+		func(cfg *config.Config) cache.Cache[*models.User] {
+			return cache.NewUserCacheNoMetrics(cfg.CacheEnabled)
 		},
-		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.Exercise] {
-			return cache.NewExerciseCache(reg, cfg.CacheEnabled)
+		func(cfg *config.Config) cache.Cache[[]models.Exercise] {
+			return cache.NewExerciseCacheNoMetrics(cfg.CacheEnabled)
 		},
-		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.MuscleGroupDefinition] {
-			return cache.NewMuscleGroupCache(reg, cfg.CacheEnabled)
+		func(cfg *config.Config) cache.Cache[[]models.MuscleGroupDefinition] {
+			return cache.NewMuscleGroupCacheNoMetrics(cfg.CacheEnabled)
 		},
-		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.EquipmentDefinition] {
-			return cache.NewEquipmentCache(reg, cfg.CacheEnabled)
+		func(cfg *config.Config) cache.Cache[[]models.EquipmentDefinition] {
+			return cache.NewEquipmentCacheNoMetrics(cfg.CacheEnabled)
 		},
-		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]*models.Relationship] {
-			return cache.NewRelationshipCache(reg, cfg.CacheEnabled)
+		func(cfg *config.Config) cache.Cache[[]*models.Relationship] {
+			return cache.NewRelationshipCacheNoMetrics(cfg.CacheEnabled)
 		},
-		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[*models.TrainerWithProfile] {
-			return cache.NewTrainerIDCache(reg, cfg.CacheEnabled)
+		func(cfg *config.Config) cache.Cache[*models.TrainerWithProfile] {
+			return cache.NewTrainerIDCacheNoMetrics(cfg.CacheEnabled)
 		},
-		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.TrainerWithProfile] {
-			return cache.NewTrainerPublicCache(reg, cfg.CacheEnabled)
+		func(cfg *config.Config) cache.Cache[[]models.TrainerWithProfile] {
+			return cache.NewTrainerPublicCacheNoMetrics(cfg.CacheEnabled)
 		},
 
 		// Cached repositories (implement same interfaces, transparent to services)
@@ -204,7 +204,7 @@ var RepositoryModule = fx.Module("repositories",
 		metricsMw := middleware.MetricsMiddleware(registry)
 
 		corsConfig := cors.DefaultConfig()
-		corsConfig.AllowAllOrigins = true // Allow mobile devices + emulators in development
+		corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"}
 
 		// corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"} // Replaced by AllowAllOrigins above
 		corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}

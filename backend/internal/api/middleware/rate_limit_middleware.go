@@ -43,7 +43,7 @@ func NewRateLimiter(r rate.Limit, burst int) *RateLimiter {
 		rate:     r,
 		burst:    burst,
 	}
-	go rl.cleanupLoop()
+	// cleanupLoop deferred to first request via lifecycle hook instead
 	return rl
 }
 
