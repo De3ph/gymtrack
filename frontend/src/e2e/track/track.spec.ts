@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import {
   setupAthleteState,
   mockExerciseCatalogApi,
@@ -9,6 +9,32 @@ import {
 } from "../helpers/mock-athlete";
 
 const nowIso = new Date().toISOString();
+
+/**
+ * Pick a date using the DatePicker component:
+ * 1. Click the trigger by testid to open the popover
+ * 2. Set month/year via the dropdowns (aria-labels "Month:" / "Year:")
+ * 3. Click the target day button inside the popover content
+ */
+async function pickDate(
+  page: Page,
+  testId: string,
+  { year, month, day }: { year: number; month: number; day: number },
+) {
+  await page.getByTestId(testId).click();
+
+  const popover = page.locator('[data-slot="popover-content"]');
+  await popover.waitFor({ state: 'visible' });
+
+  const monthSelect = popover.locator('select').first();
+  const yearSelect = popover.locator('select').last();
+
+  await yearSelect.selectOption(String(year));
+  await monthSelect.selectOption(String(month - 1));
+
+  const dayButton = popover.locator(`button`).filter({ hasText: new RegExp(`^${day}$`) }).first();
+  await dayButton.click();
+}
 
 const recentWorkout = {
   workoutId: 1,
@@ -110,8 +136,8 @@ test.describe("TRACK", () => {
       await mockWorkoutsApi(page, [recentWorkout]);
       await page.goto("/athlete/workouts");
       await page.getByRole("tab", { name: "History (List)" }).click();
-      await page.getByTestId("workout-start-date").fill("2025-01-01");
-      await page.getByTestId("workout-end-date").fill("2025-12-31");
+      await pickDate(page, "workout-start-date", { year: 2025, month: 1, day: 1 });
+      await pickDate(page, "workout-end-date", { year: 2025, month: 12, day: 31 });
       await page.getByRole("button", { name: "Apply" }).click();
       await expect(page.getByText("Bench Press")).toBeVisible();
     });
@@ -222,8 +248,8 @@ test.describe("TRACK", () => {
       await mockMealsApi(page, [recentMeal]);
       await page.goto("/athlete/meals");
       await page.getByRole("tab", { name: "History (List)" }).click();
-      await page.getByTestId("meal-start-date").fill("2025-01-01");
-      await page.getByTestId("meal-end-date").fill("2025-12-31");
+      await pickDate(page, "meal-start-date", { year: 2025, month: 1, day: 1 });
+      await pickDate(page, "meal-end-date", { year: 2025, month: 12, day: 31 });
       await page.getByRole("button", { name: "Apply" }).click();
       await expect(page.getByText("Oatmeal")).toBeVisible();
     });

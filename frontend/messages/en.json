@@ -104,6 +104,9 @@
       "clear": "Clear",
       "retry": "Retry"
     },
+    "date_picker": {
+      "placeholder": "Pick a date"
+    },
     "navigation": {
       "dashboard": "Dashboard",
       "profile": "Profile",
@@ -1079,12 +1082,30 @@
     },
     "workout_plans": {
       "title": "My Workout Plans",
-      "description": "View and start workout plans created by your trainer",
+      "description": "Create and manage your own workout plans, or view plans assigned by your trainer",
       "empty": "You don't have any workout plans yet. Ask your trainer to create one!",
       "view_plan": "View Plan",
       "start_workout": "Start Workout",
       "exercises": "exercises",
-      "set_format": "{count} set, {reps} reps"
+      "set_format": "{count} set, {reps} reps",
+      "create": "Create Plan",
+      "edit": "Edit Plan",
+      "delete": "Delete Plan",
+      "delete_confirm": "Delete this plan? It has {count} exercise(s).",
+      "plan_name": "Plan Name",
+      "description_label": "Description",
+      "description_placeholder": "Brief description of the plan",
+      "add_exercise": "Add Exercise",
+      "no_plans": "No workout plans yet. Create your first one!",
+      "exercise_name_placeholder": "Exercise name",
+      "notes_placeholder": "Notes for this exercise",
+      "fallback_exercise_name": "Exercise {index}",
+      "plan_update": "Update Plan",
+      "plan_create": "Create Plan",
+      "limit_reached": "You reached the maximum of 3 plans",
+      "limit_counter": "{count}/3 plans",
+      "own_plans": "My Plans",
+      "assigned_plans": "Assigned by Trainer"
     },
     "profile": {
       "title": "Athlete Profile",

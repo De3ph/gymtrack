@@ -104,6 +104,9 @@
       "clear": "Temizle",
       "retry": "Tekrar Dene"
     },
+    "date_picker": {
+      "placeholder": "Tarih seçin"
+    },
     "navigation": {
       "dashboard": "Panel",
       "profile": "Profil",
@@ -1076,12 +1079,30 @@
     },
     "workout_plans": {
       "title": "Antrenman Planlarım",
-      "description": "Antrenörünüz tarafından oluşturulan planları görüntüleyin ve başlatın",
+      "description": "Kendi antrenman planlarınızı oluşturun ve yönetin veya antrenörünüzün atadığı planları görüntüleyin",
       "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!",
       "view_plan": "Planı Görüntüle",
       "start_workout": "Antrenmana Başla",
       "exercises": "egzersiz",
-      "set_format": "{count} set, {reps} tekrar"
+      "set_format": "{count} set, {reps} tekrar",
+      "create": "Plan Oluştur",
+      "edit": "Planı Düzenle",
+      "delete": "Planı Sil",
+      "delete_confirm": "Bu plan silinsin mi? {count} egzersiz içeriyor.",
+      "plan_name": "Plan Adı",
+      "description_label": "Açıklama",
+      "description_placeholder": "Planın kısa açıklaması",
+      "add_exercise": "Egzersiz Ekle",
+      "no_plans": "Henüz antrenman planı yok. İlk planınızı oluşturun!",
+      "exercise_name_placeholder": "Egzersiz adı",
+      "notes_placeholder": "Bu egzersiz için notlar",
+      "fallback_exercise_name": "Egzersiz {index}",
+      "plan_update": "Planı Güncelle",
+      "plan_create": "Plan Oluştur",
+      "limit_reached": "En fazla 3 plan oluşturabilirsiniz",
+      "limit_counter": "{count}/3 plan",
+      "own_plans": "Planlarım",
+      "assigned_plans": "Antrenör Tarafından Atanan"
     },
     "profile": {
       "title": "Sporcu Profili",

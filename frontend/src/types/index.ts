@@ -286,7 +286,7 @@ export interface WorkoutPlanExercise {
 
 export interface WorkoutPlan {
   planId: number;
-  trainerId: number;
+  creatorId: number;
   name: string;
   description?: string;
   exercises: WorkoutPlanExercise[];

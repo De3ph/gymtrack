@@ -4,8 +4,7 @@ import dayjs from "dayjs";
 import { Filter, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DATE_FORMATS } from "@/lib/constants";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useTranslations } from "next-intl";
 import type { BodyMeasurementFilter } from "./BodyMeasurementList";
 import { useDeferredFilter } from "@/lib/hooks/use-deferred-filter";
@@ -40,52 +39,34 @@ export function BodyMeasurementFilterBar({
         <label className="text-xs text-muted-foreground">
           {t("start_date")}
         </label>
-        <Input
-          type="date"
-          value={
-            pending.startDate
-              ? dayjs(pending.startDate).format(DATE_FORMATS.DATE_ONLY)
-              : ""
-          }
-          max={
-            pending.endDate
-              ? dayjs(pending.endDate).format(DATE_FORMATS.DATE_ONLY)
-              : undefined
-          }
-          onChange={(e) =>
+        <DatePicker
+          data-testid="measurement-start-date"
+          value={pending.startDate ? new Date(pending.startDate) : undefined}
+          maxDate={pending.endDate ? new Date(pending.endDate) : undefined}
+          onChange={(d) =>
             setPending({
               ...pending,
-              startDate: e.target.value
-                ? dayjs(e.target.value).startOf("day").toISOString()
-                : undefined
+              startDate: d ? dayjs(d).startOf("day").toISOString() : undefined,
             })
           }
+          className="w-full"
         />
       </div>
       <div className="flex flex-col space-y-1 flex-1 sm:max-w-[180px]">
         <label className="text-xs text-muted-foreground">
           {t("end_date")}
         </label>
-        <Input
-          type="date"
-          value={
-            pending.endDate
-              ? dayjs(pending.endDate).format(DATE_FORMATS.DATE_ONLY)
-              : ""
-          }
-          min={
-            pending.startDate
-              ? dayjs(pending.startDate).format(DATE_FORMATS.DATE_ONLY)
-              : undefined
-          }
-          onChange={(e) =>
+        <DatePicker
+          data-testid="measurement-end-date"
+          value={pending.endDate ? new Date(pending.endDate) : undefined}
+          minDate={pending.startDate ? new Date(pending.startDate) : undefined}
+          onChange={(d) =>
             setPending({
               ...pending,
-              endDate: e.target.value
-                ? dayjs(e.target.value).endOf("day").toISOString()
-                : undefined
+              endDate: d ? dayjs(d).endOf("day").toISOString() : undefined,
             })
           }
+          className="w-full"
         />
       </div>
       <div className="flex items-center gap-2 sm:self-end">

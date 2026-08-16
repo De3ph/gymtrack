@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
@@ -23,7 +24,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldInfo } from "@/components/ui/form-field";
 import { mealApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { DATE_FORMATS } from "@/lib/constants";
 import type { MealFormData, FoodItemFormData } from "@/lib/validations/meal";
 import { createMealSchema } from "@/lib/validations/meal";
 
@@ -145,15 +145,13 @@ export function MealForm({ onSuccess }: MealFormProps) {
           <div className="flex flex-wrap gap-4">
             <form.Field name="date">
               {(field) => (
-                <Input
-                  value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
-                  onChange={(e) =>
-                    field.handleChange(dayjs(e.target.value).toDate())
-                  }
+                <DatePicker
+                  value={field.state.value}
+                  onChange={(d) => { if (d) field.handleChange(d); }}
                   onBlur={field.handleBlur}
-                  type="date"
                   id="date"
                   className="w-full md:w-45"
+                  required
                 />
               )}
             </form.Field>

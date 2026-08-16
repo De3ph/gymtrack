@@ -7,13 +7,13 @@ import dayjs from "dayjs";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { workoutApi } from "@/lib/api";
 import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
 import { ExerciseSetInput } from "./ExerciseSetInput";
-import { DATE_FORMATS } from "@/lib/constants";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import {
   createWorkoutWithPerSetSchema,
@@ -175,15 +175,13 @@ export function WorkoutForm({
         <div className="flex flex-wrap gap-4">
           <form.Field name="date">
             {(field) => (
-              <Input
-                value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
-                onChange={(e) =>
-                  field.handleChange(dayjs(e.target.value).toDate())
-                }
+              <DatePicker
+                value={field.state.value}
+                onChange={(d) => { if (d) field.handleChange(d); }}
                 onBlur={field.handleBlur}
-                type="date"
                 id="date"
                 className="w-full md:w-[180px]"
+                required
               />
             )}
           </form.Field>

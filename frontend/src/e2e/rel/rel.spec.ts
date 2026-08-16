@@ -343,6 +343,13 @@ function mockMyWorkoutPlans(page: Page, plans: PlanSeed[] = []) {
         body: JSON.stringify({ plans, count: plans.length }),
       });
     }
+    if (method === "GET" && url.includes("/workout-plans")) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ plans: [], count: 0 }),
+      });
+    }
     return route.continue();
   });
 }

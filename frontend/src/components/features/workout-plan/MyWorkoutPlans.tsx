@@ -41,7 +41,7 @@ export function MyWorkoutPlans() {
         <WorkoutPlanCard
           key={plan.planId}
           plan={plan}
-          role="athlete"
+          role="athlete-assigned"
           onStart={() => router.push(ROUTES.ATHLETE_WORKOUTS + `?planId=${plan.planId}`)}
         />
       ))}

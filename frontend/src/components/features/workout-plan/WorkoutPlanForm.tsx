@@ -18,6 +18,7 @@ import { revalidateWorkoutPlansCache } from "@/lib/actions/cache";
 interface WorkoutPlanFormProps {
   onSuccess?: () => void;
   plan?: WorkoutPlan;
+  namespace?: "trainer.workout_plans" | "athlete.workout_plans";
 }
 
 const createDefaultExercise = (): WorkoutPlanExercise => ({
@@ -28,9 +29,9 @@ const createDefaultExercise = (): WorkoutPlanExercise => ({
   order: 0,
 });
 
-export function WorkoutPlanForm({ onSuccess, plan }: WorkoutPlanFormProps) {
+export function WorkoutPlanForm({ onSuccess, plan, namespace }: WorkoutPlanFormProps) {
   const queryClient = useQueryClient();
-  const t = useTranslations("trainer.workout_plans");
+  const t = useTranslations(namespace ?? "trainer.workout_plans");
 
   const [name, setName] = useState(plan?.name || "");
   const [description, setDescription] = useState(plan?.description || "");

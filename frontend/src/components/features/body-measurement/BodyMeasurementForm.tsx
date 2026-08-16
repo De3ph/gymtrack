@@ -8,12 +8,13 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { FieldError, FieldLabel } from "@/components/ui/field";
 import { bodyMeasurementApi } from "@/lib/api";
 import { combineDateTime } from "@/lib/utils/datetime";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { BODY_PARTS, DATE_FORMATS } from "@/lib/constants";
+import { BODY_PARTS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { revalidateBodyMeasurementsCache } from "@/lib/actions/cache";
 import {
@@ -217,15 +218,13 @@ export function BodyMeasurementForm({
           <form.Field name="date">
             {(field) => (
               <>
-                <Input
-                  value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
-                  onChange={(e) =>
-                    field.handleChange(dayjs(e.target.value).toDate())
-                  }
+                <DatePicker
+                  value={field.state.value}
+                  onChange={(d) => { if (d) field.handleChange(d); }}
                   onBlur={field.handleBlur}
-                  type="date"
                   id="measurement-date"
                   aria-invalid={!field.state.meta.isValid}
+                  required
                 />
                 <FieldError errors={field.state.meta.errors} />
               </>

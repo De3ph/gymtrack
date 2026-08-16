@@ -28,7 +28,7 @@ func handleServiceError(c *gin.Context, err error) bool {
 		"BODY_MEASUREMENT_NOT_FOUND", "USER_NOT_FOUND",
 		"COMMENT_NOT_FOUND", "EXERCISE_NOT_FOUND":
 		c.JSON(http.StatusNotFound, gin.H{"error": svcErr.Message})
-	case "HAS_ASSIGNMENTS":
+	case "HAS_ASSIGNMENTS", "PLAN_LIMIT_REACHED":
 		c.JSON(http.StatusConflict, gin.H{"error": svcErr.Message})
 	default:
 		return false
@@ -64,4 +64,3 @@ func handleInternalError(c *gin.Context, err error, msg string) {
 	)
 	c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 }
-

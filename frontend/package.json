@@ -7,6 +7,8 @@
     "build": "next build",
     "build:debug": "next build --experimental-debug-memory-usage",
     "build:heap": "node --heap-prof node_modules/next/dist/bin/next build",
+    "build:inspect": "cross-env NODE_OPTIONS=--inspect next build",
+    "dev:inspect": "cross-env NODE_OPTIONS=--inspect next dev",
     "analyze": "cross-env ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint",

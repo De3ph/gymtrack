@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 
 interface WorkoutPlanCardProps {
   plan: WorkoutPlan;
-  role: "trainer" | "athlete";
+  role: "trainer" | "athlete-owner" | "athlete-assigned";
   onEdit?: (plan: WorkoutPlan) => void;
   onDelete?: (plan: WorkoutPlan) => void;
   onAssign?: (plan: WorkoutPlan) => void;
@@ -41,7 +41,7 @@ export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
           {plan.exercises.length} {tAthlete("exercises")}
         </p>
         <div className="flex items-center gap-2">
-          {role === "athlete" && (
+          {role === "athlete-assigned" && (
             <>
               <PlanViewDialog plan={plan} label={tAthlete("view_plan")} />
               {onStart && (
@@ -51,6 +51,29 @@ export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
                   onClick={() => onStart(plan)}
                 >
                   <Play className="w-4 h-4 mr-1" /> {tAthlete("start_workout")}
+                </Button>
+              )}
+            </>
+          )}
+          {role === "athlete-owner" && (
+            <>
+              {onEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onEdit(plan)}
+                >
+                  <Pencil className="w-4 h-4 mr-1" /> {tAthlete("edit")}
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-red-600"
+                  onClick={() => onDelete(plan)}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" /> {tAthlete("delete")}
                 </Button>
               )}
             </>

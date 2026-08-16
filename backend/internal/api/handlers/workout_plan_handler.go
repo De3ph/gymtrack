@@ -52,8 +52,9 @@ func (h *WorkoutPlanHandler) CreatePlan(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User role not found"})
 		return
 	}
-	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can create workout plans"})
+	role := userRole.(models.UserRole)
+	if role != models.RoleTrainer && role != models.RoleAthlete {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can create workout plans"})
 		return
 	}
 
@@ -69,7 +70,7 @@ func (h *WorkoutPlanHandler) CreatePlan(c *gin.Context) {
 		return
 	}
 
-	plan, err := h.service.CreatePlan(c.Request.Context(), userIDInt, req.Name, req.Description, req.Exercises)
+	plan, err := h.service.CreatePlan(c.Request.Context(), userIDInt, role, req.Name, req.Description, req.Exercises)
 	if err != nil {
 		if handleServiceError(c, err) {
 			return
@@ -86,8 +87,9 @@ func (h *WorkoutPlanHandler) GetPlans(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
-	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can list their workout plans"})
+	role := userRole.(models.UserRole)
+	if role != models.RoleTrainer && role != models.RoleAthlete {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can list their workout plans"})
 		return
 	}
 
@@ -149,8 +151,9 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
-	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can update workout plans"})
+	role := userRole.(models.UserRole)
+	if role != models.RoleTrainer && role != models.RoleAthlete {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can update workout plans"})
 		return
 	}
 
@@ -189,8 +192,9 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
-	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can delete workout plans"})
+	role := userRole.(models.UserRole)
+	if role != models.RoleTrainer && role != models.RoleAthlete {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can delete workout plans"})
 		return
 	}
 
@@ -407,5 +411,3 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 		"count": len(plans),
 	})
 }
-
-

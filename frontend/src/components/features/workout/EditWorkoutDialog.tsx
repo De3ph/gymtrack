@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { FieldLabel } from "@/components/ui/field";
 import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
@@ -23,7 +24,6 @@ import {
   createWorkoutWithPerSetSchema,
   WorkoutWithPerSetFormData,
 } from "@/lib/validations/workout";
-import { DATE_FORMATS } from "@/lib/constants";
 import { ExerciseSelector } from "@/components/features/exercise/ExerciseSelector";
 import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
 import { useTranslations } from "next-intl";
@@ -238,17 +238,13 @@ export function EditWorkoutDialog({
             <div className="flex flex-wrap gap-4">
               <form.Field name="date">
                 {(field) => (
-                  <Input
-                    value={dayjs(field.state.value).format(
-                      DATE_FORMATS.DATE_ONLY,
-                    )}
-                    onChange={(e) =>
-                      field.handleChange(dayjs(e.target.value).toDate())
-                    }
+                  <DatePicker
+                    value={field.state.value}
+                    onChange={(d) => { if (d) field.handleChange(d); }}
                     onBlur={field.handleBlur}
-                    type="date"
                     id="date"
                     className="w-full md:w-45"
+                    required
                   />
                 )}
               </form.Field>
