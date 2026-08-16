@@ -70,10 +70,9 @@ describe("DailyNutritionSummary", () => {
     renderWithProvider(<DailyNutritionSummary date={targetDate} />);
 
     await waitFor(() => {
-      expect(mealApi.getByDate).toHaveBeenCalled();
+      expect(screen.getByText("title_with_date")).toBeInTheDocument();
     });
-    expect(screen.getByText(/nutrition summary/i)).toBeInTheDocument();
-    expect(screen.getByText(/2024/)).toBeInTheDocument();
+    expect(mealApi.getByDate).toHaveBeenCalledWith("2024-06-15", expect.anything());
   });
 
   it("displays total calories for the day", async () => {
@@ -104,9 +103,7 @@ describe("DailyNutritionSummary", () => {
     vi.mocked(mealApi.getByDate).mockResolvedValue({ meals: [], count: 0 });
     renderWithProvider(<DailyNutritionSummary date={targetDate} />);
 
-    await waitFor(() => {
-      expect(mealApi.getByDate).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(screen.getByText("0")).toBeInTheDocument());
     expect(screen.getByText("0")).toBeInTheDocument();
   });
 });

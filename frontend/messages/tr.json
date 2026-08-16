@@ -513,11 +513,12 @@
     "summary": {
       "title": "Günlük Özet",
       "loading_title": "Özet yükleniyor...",
-      "title_with_date": "{date} Özeti",
+      "title_with_date": "Günlük Beslenme Özeti - {date}",
       "total_calories": "Toplam Kalori",
       "total_protein": "Protein",
       "total_carbs": "Karbonhidrat",
-      "total_fats": "Yağ"
+      "total_fats": "Yağ",
+      "macronutrients": "Makro Besinler"
     },
     "card": {
       "items": "besin",

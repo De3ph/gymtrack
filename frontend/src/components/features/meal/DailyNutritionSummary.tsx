@@ -2,20 +2,20 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { mealApi } from "@/lib/api"
-import { withTiming } from "@/lib/performance"
-import dayjs from "dayjs"
-import { API, DATE_FORMATS } from "@/lib/constants"
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { mealApi } from "@/lib/api";
+import { withTiming } from "@/lib/performance";
+import dayjs from "dayjs";
+import { API, DATE_FORMATS } from "@/lib/constants";
 
 interface DailyNutritionSummaryProps {
   date: dayjs.Dayjs
 }
 
 export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
-  const t = useTranslations("meal")
-  const dateStr = date.format(DATE_FORMATS.DATE_ONLY)
+  const t = useTranslations("meal");
+  const dateStr = date.format(DATE_FORMATS.DATE_ONLY);
 
   const { data, isLoading } = useQuery({
     queryKey: ["meals", dateStr],
@@ -25,18 +25,13 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
       )
   })
 
-  const dailyMeals = React.useMemo(() => {
-    if (!data?.meals) return []
-    return data.meals
-  }, [data])
-
   const totals = React.useMemo(() => {
     let calories = 0
     let protein = 0
     let carbs = 0
     let fats = 0
 
-    dailyMeals.forEach((meal) => {
+    data?.meals?.forEach((meal) => {
       meal.items.forEach((item) => {
         calories += item.calories || 0
         protein += item.macros?.protein || 0
@@ -46,21 +41,25 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
     })
 
     return { calories, protein, carbs, fats }
-  }, [dailyMeals])
+  }, [data])
+
+  const formatNumber = (value: number) => value.toLocaleString()
 
   // Show skeleton while loading
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-[#F8F9FA] text-[#2D3748] dark:bg-card dark:text-card-foreground">
         <CardHeader>
-          <CardTitle>{t("summary.loading_title")}</CardTitle>
+          <CardTitle className="text-xl font-extrabold">
+            {t("summary.loading_title")}
+          </CardTitle>
         </CardHeader>
-        <CardContent className='p-4 space-y-4'>
+        <CardContent className="space-y-4">
           {[...Array(4)].map((_, index) => (
             <div
               key={index}
-              className='h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse'
-            ></div>
+              className="h-10 animate-pulse rounded-lg bg-[#e9ecef] dark:bg-muted"
+            />
           ))}
         </CardContent>
       </Card>
@@ -68,35 +67,51 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
+    <Card className="bg-[#F8F9FA] text-[#2D3748] dark:bg-card dark:text-card-foreground">
+      <CardHeader className="gap-2">
+        <CardTitle className="font-heading text-2xl font-extrabold tracking-tight sm:text-[2.5rem]">
           {t("summary.title_with_date", { date: date.format("MMMM D, YYYY") })}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
-          <div className='p-4 bg-muted rounded-lg'>
-            <div className='text-2xl font-bold'>{totals.calories}</div>
-            <div className='text-sm text-muted-foreground'>
-              {t("summary.total_calories")}
-            </div>
+      <CardContent className="space-y-8">
+        <div className="text-center">
+          <div
+            className="font-heading text-[2rem] font-bold leading-none tracking-tight text-[#FF6B35] sm:text-[3rem]"
+            aria-label={`${formatNumber(totals.calories)} ${t("summary.total_calories")}`}
+          >
+            {formatNumber(totals.calories)}
           </div>
-          <div className='p-4 bg-blue-100 dark:bg-blue-900/20 rounded-lg'>
-            <div className='text-2xl font-bold'>{totals.protein}g</div>
-            <div className='text-sm text-muted-foreground'>
+          <div className="mt-2 text-sm font-medium uppercase tracking-[0.22em] text-[#A0AEC0]">
+            {t("card.kcal")}
+          </div>
+          <span className="sr-only">{t("summary.total_calories")}</span>
+        </div>
+
+        <div
+          className="flex flex-wrap justify-center gap-3"
+          aria-label={t("summary.macronutrients")}
+        >
+          <div className="min-w-[7.5rem] rounded-full border border-[#4ECDC4]/40 bg-[#4ECDC4]/15 px-5 py-3 text-center">
+            <div className="font-heading text-lg font-bold text-[#2D3748] dark:text-foreground">
+              {formatNumber(totals.protein)}g
+            </div>
+            <div className="text-xs font-medium uppercase tracking-[0.16em] text-[#4ECDC4]">
               {t("summary.total_protein")}
             </div>
           </div>
-          <div className='p-4 bg-green-100 dark:bg-green-900/20 rounded-lg'>
-            <div className='text-2xl font-bold'>{totals.carbs}g</div>
-            <div className='text-sm text-muted-foreground'>
+          <div className="min-w-[7.5rem] rounded-full border border-[#4ECDC4]/40 bg-[#4ECDC4]/15 px-5 py-3 text-center">
+            <div className="font-heading text-lg font-bold text-[#2D3748] dark:text-foreground">
+              {formatNumber(totals.carbs)}g
+            </div>
+            <div className="text-xs font-medium uppercase tracking-[0.16em] text-[#4ECDC4]">
               {t("summary.total_carbs")}
             </div>
           </div>
-          <div className='p-4 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg'>
-            <div className='text-2xl font-bold'>{totals.fats}g</div>
-            <div className='text-sm text-muted-foreground'>
+          <div className="min-w-[7.5rem] rounded-full border border-[#FFE66D]/70 bg-[#FFE66D]/25 px-5 py-3 text-center">
+            <div className="font-heading text-lg font-bold text-[#2D3748] dark:text-foreground">
+              {formatNumber(totals.fats)}g
+            </div>
+            <div className="text-xs font-medium uppercase tracking-[0.16em] text-[#a17b00] dark:text-[#FFE66D]">
               {t("summary.total_fats")}
             </div>
           </div>

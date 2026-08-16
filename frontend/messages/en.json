@@ -512,11 +512,12 @@
     "summary": {
       "title": "Daily Summary",
       "loading_title": "Loading summary...",
-      "title_with_date": "Summary for {date}",
+      "title_with_date": "Daily Nutrition Summary - {date}",
       "total_calories": "Total Calories",
       "total_protein": "Protein",
       "total_carbs": "Carbs",
-      "total_fats": "Fats"
+      "total_fats": "Fats",
+      "macronutrients": "Macronutrients"
     },
     "card": {
       "items": "items",
