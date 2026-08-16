@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useDeferredValue } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
@@ -22,6 +22,7 @@ import { MuscleGroupBadge } from "./MuscleGroupBadge";
 import { EquipmentBadge } from "./EquipmentBadge";
 import { ExerciseFilters } from "./exercise-selector/ExerciseFilters";
 import { ExerciseLibrary, ExerciseSearchParams } from "@/types";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 
 interface ExerciseSelectorProps {
   onSelect: (exercise: ExerciseLibrary) => void;
@@ -32,7 +33,6 @@ interface ExerciseSelectorProps {
 
 export function ExerciseSelector({
   onSelect,
-  selectedExerciseId,
   disabled = false,
 }: ExerciseSelectorProps) {
   const t = useTranslations("exercise");
@@ -45,7 +45,10 @@ export function ExerciseSelector({
     number | undefined
   >();
 
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  // Defer the search query so the input stays responsive while expensive
+  // search/filter operations derive from it (rerender-use-deferred-value).
+  const deferredSearch = useDeferredValue(searchQuery);
+  const debouncedSearch = useDebounce(deferredSearch, 300);
 
   // Fetch muscle groups
   const {
@@ -55,7 +58,7 @@ export function ExerciseSelector({
   } = useQuery({
     queryKey: ["muscleGroups"],
     queryFn: () => exerciseApi.getMuscleGroups(),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: STALE_TIMES.TWELVE_HOURS,
   });
 
   // Fetch equipment types
@@ -66,7 +69,7 @@ export function ExerciseSelector({
   } = useQuery({
     queryKey: ["equipmentTypes"],
     queryFn: () => exerciseApi.getEquipment(),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: STALE_TIMES.TWELVE_HOURS,
   });
 
   // Build search params
@@ -84,7 +87,7 @@ export function ExerciseSelector({
     queryKey: ["exercises", searchParams],
     queryFn: () => exerciseApi.search(searchParams),
     enabled: isDialogOpen,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: STALE_TIMES.FIVE_MINUTES,
   });
 
   const handleSelect = useCallback(
@@ -107,18 +110,28 @@ export function ExerciseSelector({
 
   const muscleGroups = muscleGroupsData || [];
   const equipment = equipmentData || [];
-  const rawExercises = exercisesData || [];
 
   // Handle errors
   const hasError = muscleGroupsError || equipmentError;
   const isLoading = isLoadingMuscleGroups || isLoadingEquipment;
 
-  // Join muscle group and equipment data
-  const exercises = rawExercises.map((exercise: ExerciseLibrary) => ({
-    ...exercise,
-    muscleGroup: muscleGroups.find((mg) => mg.id === exercise.muscleGroupId),
-    equipment: equipment.find((eq) => eq.id === exercise.equipmentId),
-  }));
+  // Join muscle group and equipment data — memoized so the mapping only
+  // re-runs when one of its inputs actually changes (rerender-memo). The
+  // `?? []` fallbacks live inside the callback so the dependency list uses
+  // the stable query result references.
+  const exercises = useMemo(
+    () =>
+      (exercisesData ?? []).map((exercise: ExerciseLibrary) => ({
+        ...exercise,
+        muscleGroup: (muscleGroupsData ?? []).find(
+          (mg) => mg.id === exercise.muscleGroupId
+        ),
+        equipment: (equipmentData ?? []).find(
+          (eq) => eq.id === exercise.equipmentId
+        ),
+      })),
+    [exercisesData, muscleGroupsData, equipmentData],
+  );
 
   return (
     <div className="flex items-center gap-2">
@@ -136,7 +149,7 @@ export function ExerciseSelector({
             </Button>
           }
         />
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("selector.select_exercise")}</DialogTitle>
             <DialogDescription>{t("selector.description")}</DialogDescription>
@@ -199,6 +212,7 @@ export function ExerciseSelector({
                       <Card
                         key={exercise.exerciseId}
                         className="cursor-pointer hover:bg-accent transition-colors rounded-none border-0"
+                        style={{ contentVisibility: "auto" }}
                         onClick={() => handleSelect(exercise)}
                       >
                         <CardContent className="p-4">

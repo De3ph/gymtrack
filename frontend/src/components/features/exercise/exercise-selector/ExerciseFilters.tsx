@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -37,18 +38,26 @@ export function ExerciseFilters({
   const hasActiveFilters =
     selectedMuscleGroup || selectedEquipment || searchQuery;
 
-  const muscleGroupItems = [
-    { value: "", label: t("filters.all_muscle_groups") },
-    ...muscleGroups.map((mg) => ({
-      value: String(mg.id),
-      label: mg.description,
-    })),
-  ];
+  // Memoize option arrays so select items keep a stable reference across
+  // renders when the underlying data is unchanged (rerender-memo).
+  const muscleGroupItems = useMemo(
+    () => [
+      { value: "", label: t("filters.all_muscle_groups") },
+      ...muscleGroups.map((mg) => ({
+        value: String(mg.id),
+        label: mg.description,
+      })),
+    ],
+    [muscleGroups, t],
+  );
 
-  const equipmentItems = [
-    { value: "", label: t("filters.all_equipment") },
-    ...equipment.map((eq) => ({ value: String(eq.id), label: eq.description })),
-  ];
+  const equipmentItems = useMemo(
+    () => [
+      { value: "", label: t("filters.all_equipment") },
+      ...equipment.map((eq) => ({ value: String(eq.id), label: eq.description })),
+    ],
+    [equipment, t],
+  );
 
   return (
     <div className="flex flex-wrap gap-2">
