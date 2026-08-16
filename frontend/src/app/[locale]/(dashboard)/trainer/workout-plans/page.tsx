@@ -29,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 
 export default function TrainerWorkoutPlansPage() {
   const { user } = useAuthStore();
@@ -72,7 +73,7 @@ export default function TrainerWorkoutPlansPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["workout-plans"],
     queryFn: () => workoutPlanApi.getAll(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIMES.FIVE_MINUTES,
   });
   const allPlans = data?.plans ?? [];
 

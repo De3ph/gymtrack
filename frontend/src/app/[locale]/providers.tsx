@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toast';
 import { useState } from 'react';
+import { STALE_TIMES } from '@/lib/api/api-constants';
 
 declare global {
   interface Window {
@@ -17,8 +18,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const client = new QueryClient({
       defaultOptions: {
         queries: {
-          staleTime: 5 * 60 * 1000, // 5 minutes
-          gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+          staleTime: STALE_TIMES.FIVE_MINUTES,
+          gcTime: STALE_TIMES.TEN_MINUTES, // (formerly cacheTime)
           retry: 1,
         },
       },

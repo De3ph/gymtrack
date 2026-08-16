@@ -4,12 +4,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { coachingRequestApi } from "@/lib/api";
-import { CoachingRequestWithDetails } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, MessageCircle } from "lucide-react";
+import { Calendar, MessageCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 
 interface CoachingRequestsListProps {
   userType: "trainer" | "athlete";
@@ -17,10 +17,10 @@ interface CoachingRequestsListProps {
 
 export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   const tList = useTranslations('coaching.list')
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["coachingRequests", userType],
     queryFn: () => coachingRequestApi.getMyRequests(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIMES.FIVE_MINUTES,
   });
   const requests = data?.requests ?? [];
 

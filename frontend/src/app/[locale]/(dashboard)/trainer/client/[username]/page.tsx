@@ -13,6 +13,7 @@ import { TerminateRelationshipDialog } from "@/components/features/trainer/Termi
 import { Loader2, ArrowLeft, UserX } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -63,7 +64,7 @@ export default function ClientDetailPage() {
         mealStats: statsResp.mealStats,
       };
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIMES.FIVE_MINUTES,
     enabled: user?.role === "trainer",
   });
 

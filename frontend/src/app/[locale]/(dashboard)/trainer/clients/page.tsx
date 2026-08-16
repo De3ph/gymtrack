@@ -21,6 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ROUTES, buildRoute } from "@/lib/routes";
 import { motion } from "motion/react";
 import { staggerContainer } from "@/lib/animations";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 
 export default function TrainerClientsPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function TrainerClientsPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["myClients"],
     queryFn: () => relationshipApi.getMyClients(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIMES.FIVE_MINUTES,
     enabled: user?.role === "trainer",
   });
   const clients = data?.clients ?? [];

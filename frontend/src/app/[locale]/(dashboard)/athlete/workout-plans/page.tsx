@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 
 const PLAN_LIMIT = 3;
 
@@ -43,7 +44,7 @@ export default function AthleteWorkoutPlansPage() {
   const { data: ownData, isLoading: ownLoading } = useQuery({
     queryKey: ["workout-plans"],
     queryFn: () => workoutPlanApi.getAll(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIMES.FIVE_MINUTES,
   });
   const ownPlans = ownData?.plans ?? [];
   const limitReached = ownPlans.length >= PLAN_LIMIT;

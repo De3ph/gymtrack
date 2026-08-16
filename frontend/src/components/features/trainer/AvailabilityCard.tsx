@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 
 interface AvailabilityCardProps {
   onMessage: (message: string) => void;
@@ -21,7 +22,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
   const { data: availabilityData, isLoading } = useQuery({
     queryKey: ["myAvailability"],
     queryFn: () => availabilityApi.getMyAvailability(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIMES.FIVE_MINUTES,
   });
 
   // Sync availability data when query returns
@@ -34,7 +35,9 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">{t('trainer.availability.loading')}</CardContent>
+        <CardContent className="p-6">
+          {t("trainer.availability.loading")}
+        </CardContent>
       </Card>
     );
   }
@@ -44,9 +47,9 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
     onMessage("");
     try {
       await availabilityApi.setMyAvailability(availability);
-      onMessage(t('trainer.availability.saved_success'));
+      onMessage(t("trainer.availability.saved_success"));
     } catch (error) {
-      onMessage(t('trainer.availability.save_failed'));
+      onMessage(t("trainer.availability.save_failed"));
       console.error(error);
     } finally {
       setSaving(false);
@@ -117,7 +120,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
                       }
                       className="w-32"
                     />
-                    <span>{t('trainer.availability.to_label')}</span>
+                    <span>{t("trainer.availability.to_label")}</span>
                     <Input
                       type="time"
                       value={slot.endTime}
@@ -131,7 +134,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
                       size="sm"
                       onClick={() => removeSlot(actualIndex)}
                     >
-                      {t('trainer.availability.remove_slot')}
+                      {t("trainer.availability.remove_slot")}
                     </Button>
                   </div>
                 );
