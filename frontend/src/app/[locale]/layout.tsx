@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Inter, Geist_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import { Providers } from "./providers";
 import "../globals.css";
 
@@ -13,6 +14,20 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono'
 export const metadata: Metadata = {
   title: "GymTrack - Fitness Tracking for Trainers & Athletes",
   description: "Track workouts, meals, and progress with your personal trainer",
+  applicationName: "GymTrack",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "GymTrack",
+  },
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
+  ],
 };
 
 export async function generateStaticParams() {
@@ -53,6 +68,7 @@ export default function LocaleLayout({
         />
       </head>
       <body className="antialiased">
+        <ServiceWorkerRegistrar />
         <Suspense fallback={null}>
           <LocaleLayoutInner params={params}>
             {children}
