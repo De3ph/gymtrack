@@ -18,6 +18,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "validate:i18n": "ts-node scripts/validate-translations.ts",
+    "generate:icons": "node scripts/generate-pwa-icons.mjs",
     "codegen:types": "openapi-typescript ../backend/docs/swagger.json -o ./src/types/generated.ts"
   },
   "dependencies": {
