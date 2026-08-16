@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
 interface TerminateRelationshipDialogProps {
   clientId: string | number;
@@ -27,8 +27,8 @@ export function TerminateRelationshipDialog({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [terminateError, setTerminateError] = useState<string | null>(null);
-  const t = useTranslations('trainer.client_detail.terminate_dialog');
-  const tClients = useTranslations('trainer.clients');
+  const t = useTranslations("trainer.client_detail.terminate_dialog");
+  const tClients = useTranslations("trainer.clients");
 
   const handleTerminateRelationship = async () => {
     try {
@@ -39,7 +39,7 @@ export function TerminateRelationshipDialog({
       setOpen(false);
       router.push(ROUTES.TRAINER_CLIENTS);
     } catch (err) {
-      setTerminateError(err instanceof Error ? err.message : t('error'));
+      setTerminateError(err instanceof Error ? err.message : t("error"));
     }
   };
 
@@ -50,15 +50,15 @@ export function TerminateRelationshipDialog({
   if (trigger) {
     return (
       <>
-        <div onClick={() => setOpen(true)}>
-          {trigger}
-        </div>
+        <div onClick={() => setOpen(true)}>{trigger}</div>
         <AlertDialog open={open} onOpenChange={setOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t('title')}</AlertDialogTitle>
+              <AlertDialogTitle>{t("title")}</AlertDialogTitle>
               <AlertDialogDescription>
-{t('description', { name: athleteName || tClients('this_athlete') })}
+                {t("description", {
+                  name: athleteName || tClients("this_athlete"),
+                })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             {terminateError && (
@@ -67,12 +67,12 @@ export function TerminateRelationshipDialog({
               </div>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleTerminate}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {t('confirm')}
+                {t("confirm")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -85,9 +85,9 @@ export function TerminateRelationshipDialog({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t('title')}</AlertDialogTitle>
+          <AlertDialogTitle>{t("title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t('description', { name: athleteName || "this athlete" })}
+            {t("description", { name: athleteName || "this athlete" })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {terminateError && (
@@ -96,12 +96,12 @@ export function TerminateRelationshipDialog({
           </div>
         )}
         <AlertDialogFooter>
-          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleTerminate}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {t('confirm')}
+            {t("confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
