@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0c0a09" />
+    <title>GymTrack — Offline</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        background: #0c0a09;
+        color: #fafaf9;
+        font-family:
+          ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        padding: 1.5rem;
+      }
+      main {
+        text-align: center;
+        max-width: 22rem;
+      }
+      .mark {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1.5rem;
+        border-radius: 1rem;
+        background: #1c1917;
+        display: grid;
+        place-items: center;
+      }
+      .mark svg {
+        width: 2.25rem;
+        height: 2.25rem;
+      }
+      h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        color: #a8a29e;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+      }
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 0.45rem;
+        background: #d93535;
+        color: #fff;
+        font: inherit;
+        font-weight: 500;
+        padding: 0.625rem 1.25rem;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #ef4444;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 512 512" fill="#ef4444" xmlns="http://www.w3.org/2000/svg">
+          <rect x="106" y="238" width="300" height="36" rx="18" />
+          <rect x="136" y="156" width="54" height="200" rx="20" />
+          <rect x="322" y="156" width="54" height="200" rx="20" />
+          <rect x="76" y="196" width="42" height="120" rx="18" />
+          <rect x="394" y="196" width="42" height="120" rx="18" />
+        </svg>
+      </div>
+      <h1 data-i18n="title">You are offline</h1>
+      <p data-i18n="body">
+        GymTrack needs a connection to reach your training data. Check your
+        network and try again.
+      </p>
+      <button type="button" data-i18n="retry" onclick="window.location.reload()">
+        Try again
+      </button>
+    </main>
+    <script>
+      (function () {
+        var strings = {
+          en: {
+            title: 'You are offline',
+            body: 'GymTrack needs a connection to reach your training data. Check your network and try again.',
+            retry: 'Try again',
+          },
+          tr: {
+            title: 'Çevrimdışısınız',
+            body: 'GymTrack, antrenman verilerinize ulaşmak için bağlantı gerektirir. Ağınızı kontrol edip tekrar deneyin.',
+            retry: 'Tekrar dene',
+          },
+        };
+        var lang = (navigator.language || 'en').slice(0, 2);
+        var dict = strings[lang] || strings.en;
+        document.documentElement.lang = strings[lang] ? lang : 'en';
+        document.title = 'GymTrack — ' + dict.title;
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+          el.textContent = dict[el.getAttribute('data-i18n')];
+        });
+      })();
+    </script>
+  </body>
+</html>
