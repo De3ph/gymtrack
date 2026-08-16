@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"context"
+	"embed"
 	_ "embed"
 	"os"
 	"testing"
@@ -13,8 +14,26 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-//go:embed migrations/001_initial_schema.up.sql
-var migrationSQL string
+//go:embed migrations/*.sql
+var migrationsFS embed.FS
+
+// applyMigrations runs every migration file in filename order (001, 002, ...).
+func applyMigrations(ctx context.Context, pool *pgxpool.Pool) error {
+	entries, err := migrationsFS.ReadDir("migrations")
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		sql, err := migrationsFS.ReadFile("migrations/" + entry.Name())
+		if err != nil {
+			return err
+		}
+		if _, err := pool.Exec(ctx, string(sql)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // SetupTestPostgresDB returns a PostgreSQL connection pool for testing.
 //
@@ -40,7 +59,7 @@ func SetupTestPostgresDB(t testing.TB) (*pgxpool.Pool, func()) {
 			pool.Close()
 			t.Fatalf("failed to reset schema via POSTGRES_TEST_DSN: %v", err)
 		}
-		if _, err := pool.Exec(ctx, migrationSQL); err != nil {
+		if err := applyMigrations(ctx, pool); err != nil {
 			pool.Close()
 			t.Fatalf("failed to apply schema via POSTGRES_TEST_DSN: %v", err)
 		}
@@ -74,8 +93,8 @@ func SetupTestPostgresDB(t testing.TB) (*pgxpool.Pool, func()) {
 		t.Fatalf("failed to create pool: %v", err)
 	}
 
-	// Apply schema migration
-	if _, err := pool.Exec(ctx, migrationSQL); err != nil {
+	// Apply schema migrations
+	if err := applyMigrations(ctx, pool); err != nil {
 		pool.Close()
 		t.Fatalf("failed to apply schema: %v", err)
 	}

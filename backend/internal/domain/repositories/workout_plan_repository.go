@@ -10,7 +10,8 @@ import (
 type WorkoutPlanRepository interface {
 	Create(ctx context.Context, plan *models.WorkoutPlan) error
 	GetByID(ctx context.Context, planID int) (*models.WorkoutPlan, error)
-	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.WorkoutPlan, error)
+	GetByCreatorID(ctx context.Context, creatorID int) ([]*models.WorkoutPlan, error)
+	CountByCreatorID(ctx context.Context, creatorID int) (int, error)
 	Update(ctx context.Context, plan *models.WorkoutPlan) error
 	Delete(ctx context.Context, planID int) error
 }

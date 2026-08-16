@@ -34,9 +34,9 @@ func (r *PostgresWorkoutPlanRepository) Create(ctx context.Context, plan *models
 		return fmt.Errorf("failed to marshal plan exercises: %w", err)
 	}
 
-	query := `INSERT INTO workout_plans (trainer_id, name, description, exercises, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`
+	query := `INSERT INTO workout_plans (creator_id, name, description, exercises, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`
 	err = r.pool.QueryRow(ctx, query,
-		plan.TrainerID, plan.Name, plan.Description, exJSON, plan.CreatedAt, plan.UpdatedAt,
+		plan.CreatorID, plan.Name, plan.Description, exJSON, plan.CreatedAt, plan.UpdatedAt,
 	).Scan(&plan.PlanID)
 	if err != nil {
 		return fmt.Errorf("failed to create workout plan: %w", err)
@@ -48,7 +48,7 @@ func (r *PostgresWorkoutPlanRepository) Create(ctx context.Context, plan *models
 func (r *PostgresWorkoutPlanRepository) scanPlan(row pgx.Row) (*models.WorkoutPlan, error) {
 	p := &models.WorkoutPlan{}
 	var exRaw []byte
-	err := row.Scan(&p.PlanID, &p.TrainerID, &p.Name, &p.Description, &exRaw, &p.CreatedAt, &p.UpdatedAt)
+	err := row.Scan(&p.PlanID, &p.CreatorID, &p.Name, &p.Description, &exRaw, &p.CreatedAt, &p.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domainerrors.ErrNotFound
@@ -62,14 +62,14 @@ func (r *PostgresWorkoutPlanRepository) scanPlan(row pgx.Row) (*models.WorkoutPl
 	return p, nil
 }
 
-const planCols = `id, trainer_id, name, description, exercises, created_at, updated_at`
+const planCols = `id, creator_id, name, description, exercises, created_at, updated_at`
 
 func (r *PostgresWorkoutPlanRepository) GetByID(ctx context.Context, planID int) (*models.WorkoutPlan, error) {
 	return r.scanPlan(r.pool.QueryRow(ctx, `SELECT `+planCols+` FROM workout_plans WHERE id = $1`, planID))
 }
 
-func (r *PostgresWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.WorkoutPlan, error) {
-	rows, err := r.pool.Query(ctx, `SELECT `+planCols+` FROM workout_plans WHERE trainer_id = $1 ORDER BY created_at DESC`, trainerID)
+func (r *PostgresWorkoutPlanRepository) GetByCreatorID(ctx context.Context, creatorID int) ([]*models.WorkoutPlan, error) {
+	rows, err := r.pool.Query(ctx, `SELECT `+planCols+` FROM workout_plans WHERE creator_id = $1 ORDER BY created_at DESC`, creatorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query workout plans: %w", err)
 	}
@@ -79,7 +79,7 @@ func (r *PostgresWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trai
 	for rows.Next() {
 		p := &models.WorkoutPlan{}
 		var exRaw []byte
-		if err := rows.Scan(&p.PlanID, &p.TrainerID, &p.Name, &p.Description, &exRaw, &p.CreatedAt, &p.UpdatedAt); err != nil {
+		if err := rows.Scan(&p.PlanID, &p.CreatorID, &p.Name, &p.Description, &exRaw, &p.CreatedAt, &p.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan plan row: %w", err)
 		}
 		if err := UnmarshalFromJSONB(exRaw, &p.Exercises); err != nil {
@@ -94,6 +94,15 @@ func (r *PostgresWorkoutPlanRepository) GetByTrainerID(ctx context.Context, trai
 	return plans, nil
 }
 
+func (r *PostgresWorkoutPlanRepository) CountByCreatorID(ctx context.Context, creatorID int) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, `SELECT COUNT(*) FROM workout_plans WHERE creator_id = $1`, creatorID).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count workout plans: %w", err)
+	}
+	return count, nil
+}
+
 func (r *PostgresWorkoutPlanRepository) Update(ctx context.Context, plan *models.WorkoutPlan) error {
 	plan.UpdatedAt = time.Now()
 	exJSON, err := MarshalToJSONB(plan.Exercises)
@@ -101,8 +110,8 @@ func (r *PostgresWorkoutPlanRepository) Update(ctx context.Context, plan *models
 		return fmt.Errorf("failed to marshal plan exercises: %w", err)
 	}
 	tag, err := r.pool.Exec(ctx,
-		`UPDATE workout_plans SET trainer_id=$1, name=$2, description=$3, exercises=$4, updated_at=$5 WHERE id=$6`,
-		plan.TrainerID, plan.Name, plan.Description, exJSON, plan.UpdatedAt, plan.PlanID,
+		`UPDATE workout_plans SET creator_id=$1, name=$2, description=$3, exercises=$4, updated_at=$5 WHERE id=$6`,
+		plan.CreatorID, plan.Name, plan.Description, exJSON, plan.UpdatedAt, plan.PlanID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update workout plan: %w", err)

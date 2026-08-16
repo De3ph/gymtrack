@@ -36,10 +36,10 @@ func NewWorkoutPlanService(
 	}
 }
 
-// CreatePlan creates a new workout plan for a trainer
+// CreatePlan creates a new workout plan for a trainer or athlete
 func (s *WorkoutPlanService) CreatePlan(
 	ctx context.Context,
-	trainerID int, name, description string,
+	creatorID int, role models.UserRole, name, description string,
 	exercises []models.WorkoutPlanExercise,
 ) (*models.WorkoutPlan, error) {
 	if name == "" {
@@ -49,7 +49,17 @@ func (s *WorkoutPlanService) CreatePlan(
 		return nil, NewServiceError("At least one exercise is required", "VALIDATION")
 	}
 
-	plan := models.NewWorkoutPlan(trainerID, name, description, exercises)
+	if role == models.RoleAthlete {
+		count, err := s.planRepo.CountByCreatorID(ctx, creatorID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to count plans: %w", err)
+		}
+		if count >= 3 {
+			return nil, NewServiceError("Maximum 3 workout plans allowed", "PLAN_LIMIT_REACHED")
+		}
+	}
+
+	plan := models.NewWorkoutPlan(creatorID, name, description, exercises)
 
 	if err := s.validator.Struct(plan); err != nil {
 		return nil, fmt.Errorf("plan validation failed: %w", err)
@@ -62,9 +72,9 @@ func (s *WorkoutPlanService) CreatePlan(
 	return plan, nil
 }
 
-// GetPlans returns all plans owned by a trainer
-func (s *WorkoutPlanService) GetPlans(ctx context.Context, trainerID int) ([]*models.WorkoutPlan, error) {
-	return s.planRepo.GetByTrainerID(ctx, trainerID)
+// GetPlans returns all plans owned by a trainer or athlete
+func (s *WorkoutPlanService) GetPlans(ctx context.Context, creatorID int) ([]*models.WorkoutPlan, error) {
+	return s.planRepo.GetByCreatorID(ctx, creatorID)
 }
 
 // GetPlan returns a single plan with access control
@@ -79,10 +89,13 @@ func (s *WorkoutPlanService) GetPlan(ctx context.Context, planID, requesterID in
 
 	switch requesterRole {
 	case models.RoleTrainer:
-		if plan.TrainerID != requesterID {
+		if plan.CreatorID != requesterID {
 			return nil, NewServiceError("Access denied", "FORBIDDEN")
 		}
 	case models.RoleAthlete:
+		if plan.CreatorID == requesterID {
+			return plan, nil
+		}
 		assignment, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, requesterID, planID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to verify assignment: %w", err)
@@ -100,7 +113,7 @@ func (s *WorkoutPlanService) GetPlan(ctx context.Context, planID, requesterID in
 // UpdatePlan updates a plan (owner only)
 func (s *WorkoutPlanService) UpdatePlan(
 	ctx context.Context,
-	planID, trainerID int, name, description string,
+	planID, creatorID int, name, description string,
 	exercises []models.WorkoutPlanExercise,
 ) (*models.WorkoutPlan, error) {
 	plan, err := s.planRepo.GetByID(ctx, planID)
@@ -111,7 +124,7 @@ func (s *WorkoutPlanService) UpdatePlan(
 		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
-	if plan.TrainerID != trainerID {
+	if plan.CreatorID != creatorID {
 		return nil, NewServiceError("Access denied", "FORBIDDEN")
 	}
 
@@ -134,7 +147,7 @@ func (s *WorkoutPlanService) UpdatePlan(
 }
 
 // DeletePlan deletes a plan, optionally force-deleting assignments
-func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, trainerID int, force bool) error {
+func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, creatorID int, force bool) error {
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -143,7 +156,7 @@ func (s *WorkoutPlanService) DeletePlan(ctx context.Context, planID, trainerID i
 		return fmt.Errorf("failed to get plan: %w", err)
 	}
 
-	if plan.TrainerID != trainerID {
+	if plan.CreatorID != creatorID {
 		return NewServiceError("Access denied", "FORBIDDEN")
 	}
 
@@ -181,7 +194,7 @@ func (s *WorkoutPlanService) AssignPlan(
 		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
-	if plan.TrainerID != trainerID {
+	if plan.CreatorID != trainerID {
 		return nil, NewServiceError("Access denied", "FORBIDDEN")
 	}
 
@@ -224,7 +237,7 @@ func (s *WorkoutPlanService) GetAssignmentsForPlan(ctx context.Context, planID, 
 		return nil, fmt.Errorf("failed to get plan: %w", err)
 	}
 
-	if plan.TrainerID != trainerID {
+	if plan.CreatorID != trainerID {
 		return nil, NewServiceError("Access denied", "FORBIDDEN")
 	}
 
@@ -255,20 +268,22 @@ func (s *WorkoutPlanService) StartWorkoutFromPlan(
 	ctx context.Context,
 	planID, athleteID int,
 ) (*models.Workout, error) {
-	assignment, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, athleteID, planID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to verify assignment: %w", err)
-	}
-	if assignment == nil {
-		return nil, NewServiceError("You are not assigned to this plan", "FORBIDDEN")
-	}
-
 	plan, err := s.planRepo.GetByID(ctx, planID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
 			return nil, ErrWorkoutPlanNotFound
 		}
 		return nil, fmt.Errorf("failed to get plan: %w", err)
+	}
+
+	if plan.CreatorID != athleteID {
+		assignment, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, athleteID, planID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to verify assignment: %w", err)
+		}
+		if assignment == nil {
+			return nil, NewServiceError("You are not assigned to this plan", "FORBIDDEN")
+		}
 	}
 
 	exercises := convertPlanExercisesToWorkout(plan.Exercises)

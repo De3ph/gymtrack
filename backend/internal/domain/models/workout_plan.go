@@ -7,7 +7,7 @@ import (
 type WorkoutPlan struct {
 	Type        string                `json:"type"` // Always "workout_plan"
 	PlanID      int                   `json:"planId"`
-	TrainerID   int                   `json:"trainerId"`
+	CreatorID   int                   `json:"creatorId"`
 	Name        string                `json:"name"`
 	Description string                `json:"description,omitempty"`
 	Exercises   []WorkoutPlanExercise `json:"exercises"`
@@ -41,13 +41,13 @@ type WorkoutPlanAssignment struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
-func NewWorkoutPlan(trainerID int, name, description string, exercises []WorkoutPlanExercise) *WorkoutPlan {
+func NewWorkoutPlan(creatorID int, name, description string, exercises []WorkoutPlanExercise) *WorkoutPlan {
 	now := time.Now()
 
 	return &WorkoutPlan{
 		Type:        "workout_plan",
 		PlanID:      0,
-		TrainerID:   trainerID,
+		CreatorID:   creatorID,
 		Name:        name,
 		Description: description,
 		Exercises:   exercises,

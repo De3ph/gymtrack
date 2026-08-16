@@ -34,7 +34,7 @@ func TestPostgresWorkoutPlanAssignmentRepository(t *testing.T) {
 		t.Helper()
 		var planID int
 		err := pool.QueryRow(ctx,
-			`INSERT INTO workout_plans (trainer_id, name, exercises) VALUES ($1,$2,$3) RETURNING id`,
+			`INSERT INTO workout_plans (creator_id, name, exercises) VALUES ($1,$2,$3) RETURNING id`,
 			trainerID, "Test Plan", `[]`,
 		).Scan(&planID)
 		require.NoError(t, err)
