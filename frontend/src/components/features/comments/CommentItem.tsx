@@ -75,7 +75,7 @@ export function CommentItem({
       <div className='flex items-center justify-between gap-2 text-sm text-muted-foreground'>
         <span className='font-medium capitalize'>{comment.authorRole}</span>
         <span>
-          {dayjs(comment.createdAt).format("MMM D, YYYY h:mm A")}
+          {formatDate(comment.createdAt, "MMM D, YYYY h:mm A")}
           {comment.editedAt && <span className='ml-1 text-xs'>{t('item.edited_label')}</span>}
         </span>
       </div>

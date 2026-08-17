@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
   const form = useForm({
     defaultValues: {
       date: new Date(),
-      mealTime: dayjs().format("HH:mm"),
+      mealTime: formatDate(new Date(), "HH:mm"),
       mealType: "breakfast" as const,
       items: [
         {

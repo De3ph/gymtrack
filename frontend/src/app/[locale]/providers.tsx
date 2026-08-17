@@ -1,15 +1,17 @@
-'use client';
+"use client";
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/toast';
-import { useState } from 'react';
-import { STALE_TIMES } from '@/lib/api/api-constants';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toast";
+import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
+import { STALE_TIMES } from "@/lib/api/api-constants";
+import { initializeDayjsLocale } from "@/lib/i18n/dayjs";
 
 declare global {
   interface Window {
-    __TANSTACK_QUERY_CLIENT__:
-    import("@tanstack/react-query").QueryClient;
+    __TANSTACK_QUERY_CLIENT__: import("@tanstack/react-query").QueryClient;
+    __NEXT_INTL_LOCALE?: string;
   }
 }
 
@@ -30,8 +32,23 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return client;
   });
 
+  // Initialize dayjs locale on client side
+  // The locale is set by next-intl and stored on window for cross-component access
+  const locale = useLocale();
+
+  useEffect(() => {
+    if (locale) {
+      initializeDayjsLocale(locale);
+    }
+  }, [locale]);
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <QueryClientProvider client={queryClient}>
         {children}
         <Toaster />

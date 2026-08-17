@@ -56,7 +56,7 @@ export function DeleteBodyMeasurementDialog({
           <AlertDialogDescription>
             {measurement
               ? t("description", {
-                  date: dayjs(measurement.date).format("MMMM D, YYYY")
+                  date: formatDate(measurement.date, "MMMM D, YYYY")
                 })
               : t("description_generic")}
           </AlertDialogDescription>

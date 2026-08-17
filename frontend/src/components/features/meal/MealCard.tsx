@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import {
   Edit2,
   Trash2,
@@ -66,7 +66,7 @@ export const MealCard = memo(function MealCardImpl({
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <div className='flex flex-col'>
             <CardTitle className='text-base font-semibold capitalize'>
-              {meal.mealType} - {dayjs(meal.date).format("MMMM D, YYYY")}
+              {meal.mealType} - {formatDate(meal.date, "MMMM D, YYYY")}
             </CardTitle>
             <CardDescription>
               {meal.items.length} {t("card.items")} - {calculateCalorie(meal)}{" "}

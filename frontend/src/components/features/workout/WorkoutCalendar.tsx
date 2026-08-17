@@ -3,7 +3,7 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { useTranslations } from "next-intl";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,7 +64,7 @@ export function WorkoutCalendar() {
         <CardHeader>
           <CardTitle>
             {selectedDate
-              ? dayjs(selectedDate).format("dddd, MMMM D, YYYY")
+              ? formatDate(selectedDate, "dddd, MMMM D, YYYY")
               : t("select_date")}
           </CardTitle>
         </CardHeader>
@@ -77,7 +77,7 @@ export function WorkoutCalendar() {
                   className="border-b last:border-0 pb-2"
                 >
                   <div className="font-semibold">
-                    {dayjs(workout.date).format("h:mm A")}
+                    {formatDate(workout.date, "h:mm A")}
                   </div>
                   <ul className="list-disc pl-5 mt-2">
                     {workout.exercises.map((ex: WorkoutExercise) => (

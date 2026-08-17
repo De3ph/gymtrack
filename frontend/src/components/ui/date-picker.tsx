@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import dayjs from "dayjs";
+import dayjs, { formatDate } from "@/lib/i18n/dayjs";
 import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -46,7 +46,7 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false);
 
   const triggerLabel = value
-    ? dayjs(value).format(format)
+    ? formatDate(value, format)
     : placeholder;
 
   const disabledMatcher = React.useMemo(() => {

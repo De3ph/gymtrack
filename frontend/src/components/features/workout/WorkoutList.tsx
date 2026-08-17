@@ -2,45 +2,48 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import dayjs from "dayjs";
+import dayjs, { formatDate } from "@/lib/i18n/dayjs";
 import {
   Edit2,
   Trash2,
   ChevronDown,
   ChevronUp,
   MessageSquare,
-  Dumbbell
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+  Dumbbell,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
-} from "@/components/ui/card"
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious
-} from "@/components/ui/pagination"
-import { workoutApi } from "@/lib/api"
-import { EditWorkoutDialog } from "./EditWorkoutDialog"
-import { DeleteWorkoutDialog } from "./DeleteWorkoutDialog"
-import { WorkoutFilterBar } from "./WorkoutFilterBar"
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { workoutApi } from "@/lib/api";
+import { EditWorkoutDialog } from "./EditWorkoutDialog";
+import { DeleteWorkoutDialog } from "./DeleteWorkoutDialog";
+import { WorkoutFilterBar } from "./WorkoutFilterBar";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const CommentThread = dynamic(
-  () => import("@/components/features/comments/CommentThread").then(m => m.CommentThread),
-  { ssr: false, loading: () => <Skeleton className="h-12 w-full" /> }
+  () =>
+    import("@/components/features/comments/CommentThread").then(
+      (m) => m.CommentThread,
+    ),
+  { ssr: false, loading: () => <Skeleton className="h-12 w-full" /> },
 );
-import { Workout, WorkoutExercise, ExerciseSet } from "@/types"
-import { useTranslations } from "next-intl"
-import { PAGINATION, TIME_LIMITS, TARGET_TYPES } from "@/lib/constants"
+import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
+import { useTranslations } from "next-intl";
+import { PAGINATION, TIME_LIMITS, TARGET_TYPES } from "@/lib/constants";
 
 export interface WorkoutFilter {
   startDate?: string;
@@ -48,12 +51,12 @@ export interface WorkoutFilter {
 }
 
 interface WorkoutListProps {
-  workouts?: Workout[]
-  readOnly?: boolean
-  filter?: WorkoutFilter
-  onFilterChange?: (filter: WorkoutFilter) => void
-  page?: number
-  onPageChange?: (page: number) => void
+  workouts?: Workout[];
+  readOnly?: boolean;
+  filter?: WorkoutFilter;
+  onFilterChange?: (filter: WorkoutFilter) => void;
+  page?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const EMPTY_FILTER: WorkoutFilter = {};
@@ -64,12 +67,13 @@ export function WorkoutList({
   filter: filterProp,
   onFilterChange,
   page: pageProp,
-  onPageChange
+  onPageChange,
 }: WorkoutListProps) {
-  const t = useTranslations("workout.list")
-  const tPagination = useTranslations("workout.pagination")
+  const t = useTranslations("workout.list");
+  const tPagination = useTranslations("workout.pagination");
 
-  const [internalFilter, setInternalFilter] = React.useState<WorkoutFilter>(EMPTY_FILTER);
+  const [internalFilter, setInternalFilter] =
+    React.useState<WorkoutFilter>(EMPTY_FILTER);
   const [internalPage, setInternalPage] = React.useState(1);
 
   const filter = filterProp ?? internalFilter;
@@ -91,15 +95,15 @@ export function WorkoutList({
 
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<
     string | number | null
-  >(null)
+  >(null);
   const [editingWorkout, setEditingWorkout] = React.useState<Workout | null>(
-    null
-  )
+    null,
+  );
   const [workoutToDelete, setWorkoutToDelete] = React.useState<Workout | null>(
-    null
-  )
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
+    null,
+  );
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
   const pageSize = PAGINATION.WORKOUT_PAGE_SIZE;
   const isSelfFetching = !propWorkouts;
@@ -112,68 +116,65 @@ export function WorkoutList({
         page,
         pageSize,
         startDate: filter.startDate,
-        endDate: filter.endDate
-      }
+        endDate: filter.endDate,
+      },
     ],
     queryFn: () =>
       workoutApi.getAll({
         limit: pageSize,
         offset: (page - 1) * pageSize,
         startDate: filter.startDate,
-        endDate: filter.endDate
+        endDate: filter.endDate,
       }),
-    enabled: isSelfFetching
-  })
+    enabled: isSelfFetching,
+  });
 
   const handleDeleteClick = (workout: Workout) => {
-    setWorkoutToDelete(workout)
-    setDeleteDialogOpen(true)
-  }
+    setWorkoutToDelete(workout);
+    setDeleteDialogOpen(true);
+  };
 
   const canEdit = (workout: Workout) => {
-    const createdAt = dayjs(workout.createdAt)
-    const now = dayjs()
-    return now.diff(createdAt, "hour") < TIME_LIMITS.EDIT_WINDOW_HOURS
-  }
+    const createdAt = dayjs(workout.createdAt);
+    const now = dayjs();
+    return now.diff(createdAt, "hour") < TIME_LIMITS.EDIT_WINDOW_HOURS;
+  };
 
   const handleEditClick = (workout: Workout) => {
-    setEditingWorkout(workout)
-    setIsEditDialogOpen(true)
-  }
+    setEditingWorkout(workout);
+    setIsEditDialogOpen(true);
+  };
 
   if (isLoading && isSelfFetching) {
-    return <div>{t("loading")}</div>
+    return <div>{t("loading")}</div>;
   }
 
-  const workouts = propWorkouts || data?.workouts || []
-  const totalCount = propWorkouts ? propWorkouts.length : data?.count ?? 0
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
-  const showPagination = isSelfFetching && totalPages > 1
+  const workouts = propWorkouts || data?.workouts || [];
+  const totalCount = propWorkouts ? propWorkouts.length : (data?.count ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const showPagination = isSelfFetching && totalPages > 1;
 
   const filterBar = isSelfFetching ? (
-    <WorkoutFilterBar
-      filter={filter}
-      onChange={handleFilterChange}
-    />
-  ) : null
+    <WorkoutFilterBar filter={filter} onChange={handleFilterChange} />
+  ) : null;
 
   if (workouts.length === 0) {
     return (
-      <div className='space-y-4'>
+      <div className="space-y-4">
         {filterBar}
-        <div className='text-center p-8 text-muted-foreground'>
+        <div className="text-center p-8 text-muted-foreground">
           {t("no_workouts")}
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className='space-y-4'>
+    <div className="space-y-4">
       {filterBar}
 
       {isSelfFetching && totalCount > 0 && (
-        <div className='text-xs text-muted-foreground'>
+        <div className="text-xs text-muted-foreground">
           {tPagination("count", { count: totalCount })}
         </div>
       )}
@@ -181,54 +182,57 @@ export function WorkoutList({
       {workouts.map((workout) => (
         <div key={workout.workoutId}>
           <Card>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <div className='flex flex-col'>
-                <CardTitle className='text-base font-semibold'>
-                  {dayjs(workout.date).format("MMMM D, YYYY")}
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex flex-col">
+                <CardTitle className="text-base font-semibold">
+                  {formatDate(workout.date, "MMMM D, YYYY")}
                 </CardTitle>
                 <CardDescription>
                   {workout.exercises.length} {t("exercises")}
                 </CardDescription>
               </div>
               {!readOnly && (
-                <div className='flex space-x-2'>
+                <div className="flex space-x-2">
                   {canEdit(workout) && (
                     <>
                       <Button
-                        variant='ghost'
-                        size='icon'
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleEditClick(workout)}
                         aria-label={t("edit")}
                       >
-                        <Edit2 className='h-4 w-4' />
+                        <Edit2 className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant='ghost'
-                        size='icon'
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleDeleteClick(workout)}
                         aria-label={t("delete")}
                       >
-                        <Trash2 className='h-4 w-4 text-destructive' />
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </>
                   )}
                 </div>
               )}
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='space-y-2'>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
                 {workout.exercises.map((ex: WorkoutExercise, i: number) => (
-                  <div key={i} className='flex items-center text-sm'>
-                    <Dumbbell className='mr-2 h-4 w-4 text-muted-foreground' />
-                    <span className='font-medium mr-2'>{ex.name}:</span>
-                    <span className='text-muted-foreground'>
+                  <div key={i} className="flex items-center text-sm">
+                    <Dumbbell className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium mr-2">{ex.name}:</span>
+                    <span className="text-muted-foreground">
                       {ex.sets && ex.sets.length > 0 ? (
                         <>
                           {t("sets_x", { sets: ex.sets.length })}{" "}
                           {ex.sets
-                            .map(
-                              (set: ExerciseSet) =>
-                                t("set_detail", { reps: set.reps, weight: set.weight, unit: set.weightUnit || "kg" })
+                            .map((set: ExerciseSet) =>
+                              t("set_detail", {
+                                reps: set.reps,
+                                weight: set.weight,
+                                unit: set.weightUnit || "kg",
+                              }),
                             )
                             .join(", ")}
                         </>
@@ -239,26 +243,26 @@ export function WorkoutList({
                   </div>
                 ))}
               </div>
-              <div className='border-t pt-3'>
+              <div className="border-t pt-3">
                 <button
-                  type='button'
-                  className='w-full justify-start text-muted-foreground flex items-center hover:bg-accent/50 rounded-md px-2 py-2 transition-colors'
+                  type="button"
+                  className="w-full justify-start text-muted-foreground flex items-center hover:bg-accent/50 rounded-md px-2 py-2 transition-colors"
                   onClick={() =>
                     setExpandedCommentsId((id) =>
-                      id === workout.workoutId ? null : workout.workoutId
+                      id === workout.workoutId ? null : workout.workoutId,
                     )
                   }
                 >
-                  <MessageSquare className='mr-2 h-4 w-4' />
+                  <MessageSquare className="mr-2 h-4 w-4" />
                   {t("comments")}
                   {expandedCommentsId === workout.workoutId ? (
-                    <ChevronUp className='ml-auto h-4 w-4' />
+                    <ChevronUp className="ml-auto h-4 w-4" />
                   ) : (
-                    <ChevronDown className='ml-auto h-4 w-4' />
+                    <ChevronDown className="ml-auto h-4 w-4" />
                   )}
                 </button>
                 {expandedCommentsId === workout.workoutId && (
-                  <div className='mt-3 overflow-hidden'>
+                  <div className="mt-3 overflow-hidden">
                     <CommentThread
                       targetType={TARGET_TYPES.WORKOUT}
                       targetId={workout.workoutId}
@@ -274,13 +278,13 @@ export function WorkoutList({
       ))}
 
       {showPagination && (
-        <Pagination className='mt-6'>
+        <Pagination className="mt-6">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
                 onClick={(e) => {
-                  e.preventDefault()
-                  if (page > 1) handlePageChange(page - 1)
+                  e.preventDefault();
+                  if (page > 1) handlePageChange(page - 1);
                 }}
                 aria-disabled={page <= 1}
                 className={page <= 1 ? "pointer-events-none opacity-50" : ""}
@@ -291,8 +295,8 @@ export function WorkoutList({
                 <PaginationLink
                   isActive={p === page}
                   onClick={(e) => {
-                    e.preventDefault()
-                    handlePageChange(p)
+                    e.preventDefault();
+                    handlePageChange(p);
                   }}
                 >
                   {p}
@@ -302,11 +306,13 @@ export function WorkoutList({
             <PaginationItem>
               <PaginationNext
                 onClick={(e) => {
-                  e.preventDefault()
-                  if (page < totalPages) handlePageChange(page + 1)
+                  e.preventDefault();
+                  if (page < totalPages) handlePageChange(page + 1);
                 }}
                 aria-disabled={page >= totalPages}
-                className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
+                className={
+                  page >= totalPages ? "pointer-events-none opacity-50" : ""
+                }
               />
             </PaginationItem>
           </PaginationContent>
@@ -327,5 +333,5 @@ export function WorkoutList({
         </>
       )}
     </div>
-  )
+  );
 }

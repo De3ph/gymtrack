@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import {
   CartesianGrid,
   Line,
@@ -117,7 +117,7 @@ export function BodyMeasurementCharts({
     () =>
       sorted.map((m) => {
         const point: ChartDataPoint = {
-          date: dayjs(m.date).format("MMM D")
+          date: formatDate(m.date)
         };
         // Convert to kg for chart consistency
         point.weight =

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { Loader2, Save } from "lucide-react";
 
 import {
@@ -67,8 +68,8 @@ export function EditWorkoutDialog({
     () => ({
       date: workout ? dayjs(workout.date).toDate() : new Date(),
       workoutTime: workout
-        ? dayjs(workout.date).format("HH:mm")
-        : dayjs().format("HH:mm"),
+        ? formatDate(new Date(workout.date), "HH:mm")
+        : formatDate(new Date(), "HH:mm"),
       exercises: workout
         ? workout.exercises.map((ex) => ({
             exerciseId: String(ex.exerciseId),
@@ -119,7 +120,7 @@ export function EditWorkoutDialog({
       setError(null); // Clear any previous errors
       form.reset({
         date: dayjs(workout.date).toDate(),
-        workoutTime: dayjs(workout.date).format("HH:mm"),
+        workoutTime: formatDate(workout.date, "HH:mm"),
         exercises: workout.exercises.map((ex) => ({
           exerciseId: String(ex.exerciseId),
           name: ex.name,

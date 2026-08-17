@@ -66,10 +66,10 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="flex flex-col">
           <CardTitle className="text-base font-semibold">
-            {dayjs(measurement.date).format("MMMM D, YYYY")}
+            {formatDate(measurement.date, "MMMM D, YYYY")}
           </CardTitle>
           <CardDescription>
-            {dayjs(measurement.date).format("HH:mm")}
+            {formatDate(measurement.date, "HH:mm")}
           </CardDescription>
         </div>
         {!readOnly && isEditableWithinWindow(measurement) && (

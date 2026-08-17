@@ -12,6 +12,7 @@ import {
 import { ClientWithAthlete } from "@/types";
 import { Eye, Users } from "lucide-react";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { motion } from "motion/react";
 import { staggerItem } from "@/lib/animations";
 import { useTranslations } from "next-intl"
@@ -48,7 +49,7 @@ export const ClientCard = memo(function ClientCardImpl({ client, onViewClient }:
             <p className='text-xs text-muted-foreground'>
               {t("client_since")}{" "}
               {client.relationship?.createdAt
-                ? dayjs(client.relationship.createdAt).format("DD/MM/YYYY")
+                ? formatDate(client.relationship.createdAt, "DD/MM/YYYY")
                 : tCommon('not_set')}
             </p>
           </div>

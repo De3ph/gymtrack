@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Loader2, Plus, Trash2 } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,8 +89,8 @@ export function WorkoutForm({
     defaultValues: {
       date: initialWorkout?.date ? new Date(initialWorkout.date) : new Date(),
       workoutTime: initialWorkout?.date
-        ? dayjs(initialWorkout.date).format("HH:mm")
-        : dayjs().format("HH:mm"),
+        ? formatDate(new Date(initialWorkout.date), "HH:mm")
+        : formatDate(new Date(), "HH:mm"),
       exercises: initialWorkout?.exercises
         ? initialWorkout.exercises.map((ex) => ({
             ...ex,

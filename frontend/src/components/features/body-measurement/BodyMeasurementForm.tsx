@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { History, Loader2, Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -70,8 +71,8 @@ export function BodyMeasurementForm({
         ? new Date(initialMeasurement.date)
         : new Date(),
       measurementTime: initialMeasurement?.date
-        ? dayjs(initialMeasurement.date).format("HH:mm")
-        : dayjs().format("HH:mm"),
+        ? formatDate(new Date(initialMeasurement.date), "HH:mm")
+        : formatDate(new Date(), "HH:mm"),
       weight: initialMeasurement?.weight ?? 0,
       weightUnit: (initialMeasurement?.weightUnit ?? "kg") as "kg" | "lbs",
       bodyFatPct: initialMeasurement?.bodyFatPct ?? undefined,

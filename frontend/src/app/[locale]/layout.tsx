@@ -44,7 +44,7 @@ export default function LocaleLayout({
   return (
     <html lang="en" className={cn("font-sans", inter.variable, geistMono.variable)} suppressHydrationWarning>
       <head>
-        <script
+        <template
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

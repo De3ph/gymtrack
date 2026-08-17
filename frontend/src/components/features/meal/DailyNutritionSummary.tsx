@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mealApi } from "@/lib/api";
 import { withTiming } from "@/lib/performance";
-import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { API, DATE_FORMATS } from "@/lib/constants";
 
 interface DailyNutritionSummaryProps {
@@ -15,7 +15,7 @@ interface DailyNutritionSummaryProps {
 
 export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
   const t = useTranslations("meal");
-  const dateStr = date.format(DATE_FORMATS.DATE_ONLY);
+  const dateStr = formatDate(date, DATE_FORMATS.DATE_ONLY);
 
   const { data, isLoading } = useQuery({
     queryKey: ["meals", dateStr],
@@ -70,7 +70,7 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
     <Card className="bg-[#F8F9FA] text-[#2D3748] dark:bg-card dark:text-card-foreground">
       <CardHeader className="gap-2">
         <CardTitle className="font-heading text-2xl font-extrabold tracking-tight sm:text-[2.5rem]">
-          {t("summary.title_with_date", { date: date.format("MMMM D, YYYY") })}
+          {t("summary.title_with_date", { date: formatDate(date, "MMMM D, YYYY") })}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-8">

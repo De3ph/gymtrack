@@ -3,6 +3,7 @@
 // import { useState } from "react"; // not needed
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { coachingRequestApi } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,7 +73,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   };
 
   const formatDate = (dateString: string) => {
-    return dayjs(dateString).format("MMM D, YYYY h:mm A");
+    return formatDate(new Date(dateString), "MMM D, YYYY h:mm A");
   };
 
   if (isLoading) {

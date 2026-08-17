@@ -3,6 +3,7 @@
 import { CalendarDays, UtensilsCrossed } from "lucide-react";
 import { useTranslations } from "next-intl";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 
 export type DashboardEventKind = "workout" | "meal";
 
@@ -38,7 +39,7 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
   return (
     <div className="space-y-3">
       <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        {dayjs(date).format("dddd, MMMM D, YYYY")}
+        {formatDate(date, "dddd, MMMM D, YYYY")}
       </p>
       {events.map((event) => (
         <div

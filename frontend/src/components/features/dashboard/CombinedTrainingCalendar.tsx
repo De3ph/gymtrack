@@ -13,6 +13,7 @@ import dynamic from "next/dynamic";
 import { mealApi, workoutApi } from "@/lib/api";
 import { Meal, Workout } from "@/types";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/i18n/dayjs";
 import { CalendarDays, UtensilsCrossed } from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as React from "react";
@@ -203,7 +204,7 @@ function workoutToEvent(workout: Workout, tEvent: (key: string) => string): Dash
     id: workout.workoutId,
     kind: "workout",
     title: tEvent("workout"),
-    time: dayjs(workout.date).format("HH:mm"),
+    time: formatDate(new Date(workout.date), "HH:mm"),
     detail: firstExercise
       ? `${firstExercise.name} · ${workout.exercises.length} ${tEvent("exercises")}`
       : tEvent("no_exercises"),
@@ -215,7 +216,7 @@ function mealToEvent(meal: Meal): DashboardEvent {
     id: meal.mealId,
     kind: "meal",
     title: capitalize(meal.mealType),
-    time: dayjs(meal.date).format("HH:mm"),
+    time: formatDate(new Date(meal.date), "HH:mm"),
     detail: meal.items.map((item) => item.food).join(", "),
   };
 }
