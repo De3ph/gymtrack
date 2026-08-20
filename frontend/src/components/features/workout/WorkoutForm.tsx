@@ -1,30 +1,23 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Loader2, Plus, Trash2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ClipboardList, Loader2, Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
-import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { FieldInfo } from "@/components/ui/form-field";
-import { workoutApi } from "@/lib/api";
-import dynamic from "next/dynamic";
-import { Skeleton } from "@/components/ui/skeleton";
-
-const ExerciseSelector = dynamic(
-  () =>
-    import("@/components/features/exercise/ExerciseSelector").then(
-      (m) => m.ExerciseSelector,
-    ),
-  { ssr: false, loading: () => <Skeleton className="h-9 w-28" /> },
-);
-import { ExerciseSetInput } from "./ExerciseSetInput";
-import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
+import { FieldLabel } from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { workoutApi, workoutPlanApi } from "@/lib/api";
+import { Workout, WorkoutExercise, ExerciseSet, WorkoutPlan } from "@/types";
 import {
   createWorkoutWithPerSetSchema,
   WorkoutWithPerSetFormData,
@@ -32,6 +25,10 @@ import {
 import { combineDateTime } from "@/lib/utils/datetime";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
+import {
+  WorkoutExerciseCard,
+  type ExerciseArrayFieldApi,
+} from "./WorkoutExerciseCard";
 
 interface WorkoutFormProps {
   onSuccess?: () => void;
@@ -69,6 +66,36 @@ const formatExercisesForApi = (exercises: WorkoutExercise[]) => {
   }));
 };
 
+type LoadedPlanExercise = {
+  exerciseId: string;
+  name: string;
+  notes?: string;
+  sets: {
+    setId?: string;
+    weight: number;
+    weightUnit: "kg" | "lbs";
+    reps: number;
+    restTime: number;
+    completed: boolean;
+  }[];
+};
+
+const planExerciseToWorkoutExercise = (
+  pe: WorkoutPlan["exercises"][number],
+): LoadedPlanExercise => ({
+  exerciseId: String(pe.exerciseId),
+  name: pe.name,
+  notes: pe.notes,
+  sets: pe.sets.map((ps) => ({
+    setId: ps.setId != null ? String(ps.setId) : undefined,
+    weight: ps.weight,
+    weightUnit: ps.weightUnit,
+    reps: ps.reps,
+    restTime: ps.restTime,
+    completed: false,
+  })),
+});
+
 export function WorkoutForm({
   onSuccess,
   onClear,
@@ -104,7 +131,7 @@ export function WorkoutForm({
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
-      createWorkout(value);
+      createWorkout(value as WorkoutWithPerSetFormData);
     },
     onSubmitInvalid: ({ formApi }) => {
       const fieldMeta = formApi.state.fieldMeta;
@@ -149,6 +176,39 @@ export function WorkoutForm({
     setCollapsedMap((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
+  const { data: ownPlansData } = useQuery({
+    queryKey: ["workout-plans"],
+    queryFn: () => workoutPlanApi.getAll(),
+  });
+  const { data: assignedPlansData } = useQuery({
+    queryKey: ["my-workout-plans"],
+    queryFn: () => workoutPlanApi.getMyPlans(),
+  });
+  const plans = useMemo(() => {
+    const seen = new Set<number>();
+    const merged: WorkoutPlan[] = [];
+    for (const plan of [...(ownPlansData?.plans ?? []), ...(assignedPlansData?.plans ?? [])]) {
+      if (!seen.has(plan.planId)) {
+        seen.add(plan.planId);
+        merged.push(plan);
+      }
+    }
+    return merged;
+  }, [ownPlansData, assignedPlansData]);
+
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+  const [loadedPlanName, setLoadedPlanName] = useState<string | null>(null);
+
+  const handleLoadPlan = (plan: WorkoutPlan) => {
+    form.setFieldValue(
+      "exercises",
+      plan.exercises.map(planExerciseToWorkoutExercise),
+    );
+    setCollapsedMap({});
+    setSelectedPlanId(String(plan.planId));
+    setLoadedPlanName(plan.name);
+  };
+
   // Event handlers
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,17 +216,8 @@ export function WorkoutForm({
     form.handleSubmit();
   };
 
-  const handleSetsChange = (sets: ExerciseSet[], index: number, field: any) => {
-    const newExercises = [...field.state.value];
-    newExercises[index] = {
-      ...newExercises[index],
-      sets: sets,
-    };
-    field.setValue(newExercises);
-  };
-
-  const handleAddExercise = (field: any) => {
-    field.pushValue(createDefaultExercise());
+  const handleAddExercise = (field: ExerciseArrayFieldApi) => {
+    field.pushValue(createDefaultExercise() as unknown as WorkoutExercise);
   };
 
   return (
@@ -211,104 +262,74 @@ export function WorkoutForm({
         </div>
       </div>
 
+      {/* Load from saved plan */}
+      <div className="flex flex-col space-y-2">
+        <FieldLabel>{t("plan.label")}</FieldLabel>
+        <div className="flex flex-wrap items-center gap-3">
+          <Select
+            value={selectedPlanId}
+            onValueChange={(value) => {
+              const plan = plans.find((p) => String(p.planId) === value);
+              if (plan) handleLoadPlan(plan);
+            }}
+          >
+            <SelectTrigger className="w-full md:w-72">
+              <SelectValue>
+                {plans.find((p) => String(p.planId) === selectedPlanId)?.name}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {plans.length === 0 ? (
+                <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                  {t("plan.empty")}
+                </div>
+              ) : (
+                plans.map((plan) => (
+                  <SelectItem
+                    key={plan.planId}
+                    value={String(plan.planId)}
+                  >
+                    {plan.name}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          {loadedPlanName && (
+            <span className="flex items-center gap-1.5 text-sm text-accent">
+              <ClipboardList className="size-4" />
+              {t("plan.loaded", { name: loadedPlanName })}
+            </span>
+          )}
+        </div>
+      </div>
+
       <form.Field name="exercises" mode="array">
         {(field) => (
           <div className="space-y-4">
             {field.state.value.map((exercise, index) => (
-              <Card key={`${exercise.exerciseId || "new"}-${index}`}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 shrink-0"
-                        onClick={() => toggleCollapsed(index)}
-                      >
-                        {collapsedMap[index] ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronUp className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <CardTitle className="text-lg font-bold truncate">
-                        {exercise.name ||
-                          t("exercise.fallback_name", { number: index + 1 })}
-                      </CardTitle>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => field.removeValue(index)}
-                      disabled={field.state.value.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="mt-2">
-                    <form.Field name={`exercises[${index}].exerciseId`}>
-                      {(subField) => (
-                        <Field>
-                          <ExerciseSelector
-                            selectedExerciseId={subField.state.value}
-                              onSelect={(selected) => {
-                                field.setValue((prev) => {
-                                  const newExercises = [...prev];
-                                  newExercises[index] = {
-                                    ...newExercises[index],
-                                    exerciseId: String(selected.exerciseId),
-                                    name: selected.name,
-                                  };
-                                  return newExercises;
-                                });
-                              }}
-                          />
-                          <FieldInfo field={subField} />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-                </CardHeader>
-                {!collapsedMap[index] && (
-                  <CardContent className="space-y-4">
-                    {/* Per-Set Input */}
-                    <form.Field name={`exercises[${index}].sets`}>
-                      {(subField) => (
-                        <Field>
-                          <ExerciseSetInput
-                            value={subField.state.value}
-                            onChange={(sets) =>
-                              handleSetsChange(sets, index, field)
-                            }
-                          />
-                          <FieldInfo field={subField} />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </CardContent>
-                )}
-              </Card>
+              <WorkoutExerciseCard
+                key={`${exercise.exerciseId || "new"}-${index}`}
+                exercise={exercise as unknown as WorkoutExercise & { exerciseId: string }}
+                index={index}
+                field={field as unknown as ExerciseArrayFieldApi}
+                form={form}
+                isCollapsed={!!collapsedMap[index]}
+                onToggle={() => toggleCollapsed(index)}
+              />
             ))}
+            <Button
+              type="button"
+              onClick={() => handleAddExercise(field as unknown as ExerciseArrayFieldApi)}
+              className="w-full"
+            >
+              <Plus className="mr-2 h-4 w-4" /> {t("add_exercise")}
+            </Button>
           </div>
         )}
       </form.Field>
 
       <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
-        <form.Field name="exercises" mode="array">
-          {(field) => (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleAddExercise(field)}
-              className="w-full md:w-auto"
-            >
-              <Plus className="mr-2 h-4 w-4" /> {t("add_exercise")}
-            </Button>
-          )}
-        </form.Field>
         <Button
           type="button"
           variant="outline"
