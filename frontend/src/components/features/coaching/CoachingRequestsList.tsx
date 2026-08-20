@@ -2,7 +2,6 @@
 
 // import { useState } from "react"; // not needed
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { coachingRequestApi } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +31,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       // handle error via toast or console; keeping simple
       console.error(err);
     },
@@ -43,7 +42,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       console.error(err);
     },
   });
@@ -70,10 +69,6 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
-  };
-
-  const formatDate = (dateString: string) => {
-    return formatDate(new Date(dateString), "MMM D, YYYY h:mm A");
   };
 
   if (isLoading) {
@@ -127,7 +122,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
                 <div className="flex items-center gap-2 mt-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    {formatDate(request.createdAt)}
+                    {formatDate(request.createdAt, "MMM D, YYYY h:mm A")}
                   </span>
                   {getStatusBadge(request.status)}
                 </div>

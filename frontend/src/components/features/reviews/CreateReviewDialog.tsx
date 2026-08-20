@@ -54,7 +54,7 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
     },
   })
 
-  const renderStars = (currentRating: number, fieldValue: any) => {
+  const renderStars = (currentRating: number, fieldValue: { handleChange: (value: number) => void }) => {
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (

@@ -5,7 +5,7 @@ import { DAYS_OF_WEEK } from "@/lib/constants";
 import { availabilityApi } from "@/lib/api";
 import { TrainerAvailability } from "@/types";
 import dayjs from "dayjs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { STALE_TIMES } from "@/lib/api/api-constants";
@@ -18,6 +18,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
   const t = useTranslations();
   const [availability, setAvailability] = useState<TrainerAvailability[]>([]);
   const [saving, setSaving] = useState(false);
+  const [syncedSlots, setSyncedSlots] = useState<TrainerAvailability[] | undefined>(undefined);
 
   const { data: availabilityData, isLoading } = useQuery({
     queryKey: ["myAvailability"],
@@ -25,12 +26,14 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
     staleTime: STALE_TIMES.FIVE_MINUTES,
   });
 
-  // Sync availability data when query returns
-  useEffect(() => {
-    if (availabilityData?.slots) {
-      setAvailability(availabilityData.slots);
-    }
-  }, [availabilityData]);
+  // Sync availability data when the query returns. We adjust state during
+  // render (guarded by a previous-value check) instead of calling setState in
+  // an effect, which avoids cascading re-renders.
+  const slots = availabilityData?.slots;
+  if (slots && slots !== syncedSlots) {
+    setSyncedSlots(slots);
+    setAvailability(slots);
+  }
 
   if (isLoading) {
     return (

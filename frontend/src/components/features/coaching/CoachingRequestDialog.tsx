@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useParams } from "next/navigation"
 import { coachingRequestApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -18,7 +17,6 @@ interface CoachingRequestDialogProps {
 
 export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, children }: CoachingRequestDialogProps) {
   const t = useTranslations('coaching.request_dialog')
-  const tCommon = useTranslations('common.actions')
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -37,8 +35,12 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
       setOpen(false)
       setMessage("")
       onRequestSent?.()
-    } catch (err: any) {
-      setError(err.response?.data?.error || t('error_fallback'))
+    } catch (err: unknown) {
+      const serverError =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
+          : undefined
+      setError(serverError || t('error_fallback'))
     } finally {
       setSubmitting(false)
     }

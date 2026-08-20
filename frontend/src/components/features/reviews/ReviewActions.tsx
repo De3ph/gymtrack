@@ -38,8 +38,12 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
       await reviewApi.updateReview(review.reviewId, { rating, comment })
       setEditOpen(false)
       onReviewUpdated?.()
-    } catch (err: any) {
-      setError(err.response?.data?.error || tEdit('error_update'))
+    } catch (err: unknown) {
+      const serverError =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
+          : undefined
+      setError(serverError || tEdit('error_update'))
     } finally {
       setSubmitting(false)
     }
@@ -53,8 +57,12 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
       await reviewApi.deleteReview(review.reviewId)
       setDeleteOpen(false)
       onReviewUpdated?.()
-    } catch (err: any) {
-      setError(err.response?.data?.error || tEdit('error_delete'))
+    } catch (err: unknown) {
+      const serverError =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
+          : undefined
+      setError(serverError || tEdit('error_delete'))
     } finally {
       setSubmitting(false)
     }
