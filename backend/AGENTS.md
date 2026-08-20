@@ -8,6 +8,7 @@
 | `go build -o server.exe cmd/server/main.go` | Build binary |
 | `go test ./...` | Run all tests |
 | `go test ./internal/infrastructure/persistence/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
+| `go run cmd/seed/main.go` | Seed mock data: 30 workouts + 30 meals for `de3ph` (password `1234567890`) |
 
 **No hot-reload** — stop and restart after every edit, or use a tool like `air`.
 

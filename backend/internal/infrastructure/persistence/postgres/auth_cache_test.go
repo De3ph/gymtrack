@@ -60,6 +60,7 @@ func TestCachedUserRepository_AuthCacheHit(t *testing.T) {
 		Email:        "cache_test_user@example.com",
 		PasswordHash: "hashedpassword",
 		Role:         models.RoleAthlete,
+		Status:       models.UserStatusActive,
 		Profile:      models.UserProfile{Name: "Cache Test"},
 	}
 	err := innerRepo.CreateUser(ctx, user)
@@ -96,6 +97,7 @@ func TestCachedUserRepository_DeepCopyIsolation(t *testing.T) {
 		Email:        "deep_copy_user@example.com",
 		PasswordHash: "hashedpassword",
 		Role:         models.RoleAthlete,
+		Status:       models.UserStatusActive,
 		Profile:      models.UserProfile{Name: "Deep Copy Test"},
 	}
 	err := innerRepo.CreateUser(ctx, user)

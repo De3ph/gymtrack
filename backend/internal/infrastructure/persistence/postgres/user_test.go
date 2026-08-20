@@ -25,6 +25,7 @@ func TestPostgresUserRepository(t *testing.T) {
 			Email:        "test@example.com",
 			PasswordHash: "hashedpassword123",
 			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
 			Profile: models.UserProfile{
 				Name: "Test User",
 				Age:  25,
@@ -45,6 +46,7 @@ func TestPostgresUserRepository(t *testing.T) {
 			Email:        "getbyid@example.com",
 			PasswordHash: "hashedpassword",
 			Role:         models.RoleTrainer,
+			Status:       models.UserStatusActive,
 			Profile: models.UserProfile{
 				Name:              "Get By ID User",
 				Bio:               "Experienced trainer",
@@ -79,6 +81,7 @@ func TestPostgresUserRepository(t *testing.T) {
 			Email:        "email_test@example.com",
 			PasswordHash: "hashedpassword",
 			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
 			Profile:      models.UserProfile{Name: "Email User"},
 		}
 		err := repo.CreateUser(ctx, user)
@@ -103,6 +106,7 @@ func TestPostgresUserRepository(t *testing.T) {
 			Email:        "username_test@example.com",
 			PasswordHash: "hashedpassword",
 			Role:         models.RoleTrainer,
+			Status:       models.UserStatusActive,
 			Profile:      models.UserProfile{Name: "Username User"},
 		}
 		err := repo.CreateUser(ctx, user)
@@ -139,6 +143,7 @@ func TestPostgresUserRepository(t *testing.T) {
 			Email:        "update@example.com",
 			PasswordHash: "hashedpassword",
 			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
 			Profile:      models.UserProfile{Name: "Original Name", Age: 20},
 		}
 		err := repo.CreateUser(ctx, user)
@@ -167,6 +172,7 @@ func TestPostgresUserRepository(t *testing.T) {
 			Email:        "ghost@example.com",
 			PasswordHash: "hash",
 			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
 		}
 		err := repo.UpdateUser(ctx, user)
 		require.Error(t, err)
@@ -176,14 +182,14 @@ func TestPostgresUserRepository(t *testing.T) {
 	t.Run("CreateUser_DuplicateEmail", func(t *testing.T) {
 		user1 := &models.User{
 			Username: "dup_email_1", Email: "dup@example.com",
-			PasswordHash: "hash", Role: models.RoleAthlete,
+			PasswordHash: "hash", Role: models.RoleAthlete, Status: models.UserStatusActive,
 			Profile: models.UserProfile{Name: "Dup 1"},
 		}
 		require.NoError(t, repo.CreateUser(ctx, user1))
 
 		user2 := &models.User{
 			Username: "dup_email_2", Email: "dup@example.com",
-			PasswordHash: "hash", Role: models.RoleAthlete,
+			PasswordHash: "hash", Role: models.RoleAthlete, Status: models.UserStatusActive,
 			Profile: models.UserProfile{Name: "Dup 2"},
 		}
 		err := repo.CreateUser(ctx, user2)
@@ -193,14 +199,14 @@ func TestPostgresUserRepository(t *testing.T) {
 	t.Run("CreateUser_DuplicateUsername", func(t *testing.T) {
 		user1 := &models.User{
 			Username: "dup_user_name", Email: "dup_user_1@example.com",
-			PasswordHash: "hash", Role: models.RoleAthlete,
+			PasswordHash: "hash", Role: models.RoleAthlete, Status: models.UserStatusActive,
 			Profile: models.UserProfile{Name: "Dup Username 1"},
 		}
 		require.NoError(t, repo.CreateUser(ctx, user1))
 
 		user2 := &models.User{
 			Username: "dup_user_name", Email: "dup_user_2@example.com",
-			PasswordHash: "hash", Role: models.RoleAthlete,
+			PasswordHash: "hash", Role: models.RoleAthlete, Status: models.UserStatusActive,
 			Profile: models.UserProfile{Name: "Dup Username 2"},
 		}
 		err := repo.CreateUser(ctx, user2)
@@ -210,7 +216,7 @@ func TestPostgresUserRepository(t *testing.T) {
 	t.Run("JSONB_Profile_RoundTrip", func(t *testing.T) {
 		user := &models.User{
 			Username: "jsonb_user", Email: "jsonb@example.com",
-			PasswordHash: "hash", Role: models.RoleTrainer,
+			PasswordHash: "hash", Role: models.RoleTrainer, Status: models.UserStatusActive,
 			Profile: models.UserProfile{
 				Name: "JSONB Test", Bio: "Full bio",
 				ProfilePhotoURL: "https://example.com/photo.jpg",

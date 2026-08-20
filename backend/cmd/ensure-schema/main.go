@@ -8,8 +8,6 @@ import (
 	"go.uber.org/zap"
 	"os"
 
-	"gymtrack-backend/internal/infrastructure/persistence/postgres"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -168,14 +166,14 @@ CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_comment_id);
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS workout_plans (
     id SERIAL PRIMARY KEY,
-    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    creator_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     exercises JSONB NOT NULL DEFAULT '[]',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_workout_plans_trainer ON workout_plans(trainer_id);
+CREATE INDEX IF NOT EXISTS idx_workout_plans_creator ON workout_plans(creator_id);
 CREATE INDEX IF NOT EXISTS idx_workout_plans_exercises_gin ON workout_plans USING GIN (exercises);
 
 -- ============================================================================
@@ -289,7 +287,7 @@ func main() {
 
 	// Seed lookup tables
 	zap.L().Info("Seeding lookup tables...")
-	if err := postgres.SeedLookupTables(ctx, pool); err != nil {
+	if err := seedLookupTables(ctx, pool); err != nil {
 		zap.L().Fatal("Failed to seed lookup tables", zap.Error(err))
 	}
 	zap.L().Info("Lookup tables seeded")
@@ -298,4 +296,27 @@ func main() {
 	fmt.Println("  Database: gymtrack")
 	fmt.Println("  Tables: 15")
 	fmt.Println("  Seed data: muscle_groups, equipment_definitions")
+}
+
+func seedLookupTables(ctx context.Context, pool *pgxpool.Pool) error {
+	muscleGroups := []string{"chest", "back", "shoulders", "biceps", "triceps", "legs", "abs", "glutes"}
+	for _, code := range muscleGroups {
+		if _, err := pool.Exec(ctx,
+			"INSERT INTO muscle_groups (code, description) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
+			code, code,
+		); err != nil {
+			return err
+		}
+	}
+
+	equipment := []string{"barbell", "dumbbell", "kettlebell", "cable", "machine", "bodyweight", "band"}
+	for _, code := range equipment {
+		if _, err := pool.Exec(ctx,
+			"INSERT INTO equipment_definitions (code, description) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
+			code, code,
+		); err != nil {
+			return err
+		}
+	}
+	return nil
 }

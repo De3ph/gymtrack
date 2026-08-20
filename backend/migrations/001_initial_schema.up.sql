@@ -151,14 +151,14 @@ CREATE INDEX idx_comments_parent ON comments(parent_comment_id);
 -- ============================================================================
 CREATE TABLE workout_plans (
     id SERIAL PRIMARY KEY,
-    trainer_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    creator_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     exercises JSONB NOT NULL DEFAULT '[]',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX idx_workout_plans_trainer ON workout_plans(trainer_id);
+CREATE INDEX idx_workout_plans_creator ON workout_plans(creator_id);
 CREATE INDEX idx_workout_plans_exercises_gin ON workout_plans USING GIN (exercises);
 
 -- ============================================================================
