@@ -15,6 +15,8 @@ import {
 import Svg, { Polyline, Circle } from "react-native-svg"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { bodyMeasurementApi } from "@/api/bodyMeasurementApi"
+import { useThemeColors } from "@/components/useThemeColors"
+import type { ThemeColors } from "@/constants/Colors"
 
 interface Measurement {
   measurementId?: number
@@ -91,6 +93,7 @@ function Sparkline({
 }
 
 export function MeasurementsScreen() {
+  const c = useThemeColors()
   const qc = useQueryClient()
   const [showAdd, setShowAdd] = useState(false)
   const [editingMeasurement, setEditingMeasurement] =
@@ -100,6 +103,8 @@ export function MeasurementsScreen() {
   const [notes, setNotes] = useState("")
   const [parts, setParts] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState("")
+
+  const s = createStyles(c)
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["measurements"],
@@ -313,7 +318,7 @@ export function MeasurementsScreen() {
         </View>
       )
     },
-    [handleDelete]
+    [handleDelete, s]
   )
 
   const modalTitle = editingMeasurement
@@ -325,7 +330,7 @@ export function MeasurementsScreen() {
     <View style={s.f}>
       {isLoading ? (
         <View style={s.c}>
-          <ActivityIndicator size='large' color='#2563eb' />
+          <ActivityIndicator size='large' color={c.accent} />
         </View>
       ) : isError ? (
         <View style={s.c}>
@@ -392,7 +397,7 @@ export function MeasurementsScreen() {
                     data={wData.slice(-14)}
                     w={300}
                     h={80}
-                    c='#2563eb'
+                    c={c.accent}
                   />
                 </View>
               )}
@@ -419,7 +424,7 @@ export function MeasurementsScreen() {
               onChangeText={setWeight}
               keyboardType='numeric'
               placeholder='75.0'
-              placeholderTextColor='#9ca3af'
+              placeholderTextColor={c.textTertiary}
             />
             <Text style={s.lbl}>Body Fat %</Text>
             <TextInput
@@ -428,7 +433,7 @@ export function MeasurementsScreen() {
               onChangeText={setBodyFat}
               keyboardType='numeric'
               placeholder='15.0'
-              placeholderTextColor='#9ca3af'
+              placeholderTextColor={c.textTertiary}
             />
             <Text style={s.lbl}>Notes</Text>
             <TextInput
@@ -436,7 +441,7 @@ export function MeasurementsScreen() {
               value={notes}
               onChangeText={setNotes}
               placeholder='Optional...'
-              placeholderTextColor='#9ca3af'
+              placeholderTextColor={c.textTertiary}
               multiline
               numberOfLines={2}
               textAlignVertical='top'
@@ -452,7 +457,7 @@ export function MeasurementsScreen() {
                     onChangeText={(v) => setParts((pr) => ({ ...pr, [p]: v }))}
                     keyboardType='numeric'
                     placeholder='--'
-                    placeholderTextColor='#d1d5db'
+                    placeholderTextColor={c.borderStrong}
                   />
                 </View>
               ))}
@@ -472,7 +477,7 @@ export function MeasurementsScreen() {
                 disabled={isPending}
               >
                 {isPending ? (
-                  <ActivityIndicator color='#fff' size='small' />
+                  <ActivityIndicator color={c.onAccent} size='small' />
                 ) : (
                   <Text style={s.sTxt}>{saveLabel}</Text>
                 )}
@@ -485,210 +490,212 @@ export function MeasurementsScreen() {
   )
 }
 
-const s = StyleSheet.create({
-  f: { flex: 1, backgroundColor: "#f9fafb" },
-  c: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24
-  },
-  list: { padding: 16, gap: 12, paddingBottom: 80 },
-  sum: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 0.5,
-    borderColor: "#e5e7eb"
-  },
-  sumT: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 14
-  },
-  sumR: { flexDirection: "row", gap: 24, marginBottom: 8 },
-  sumI: { alignItems: "flex-start" },
-  sumV: { fontSize: 32, fontWeight: "800", color: "#2563eb" },
-  sumL: { fontSize: 12, fontWeight: "600", color: "#6b7280", marginTop: 2 },
-  sumD: { fontSize: 13, color: "#9ca3af", marginTop: 4 },
-  pDet: { marginTop: 16, gap: 8 },
-  pR: { flexDirection: "row", alignItems: "center", gap: 10 },
-  pL: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#6b7280",
-    width: 70,
-    textTransform: "capitalize"
-  },
-  pB: {
-    flex: 1,
-    height: 6,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 3,
-    overflow: "hidden"
-  },
-  pF: { height: "100%", backgroundColor: "#2563eb", borderRadius: 3 },
-  pV: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#111827",
-    width: 50,
-    textAlign: "right"
-  },
-  chart: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    alignItems: "center"
-  },
-  chT: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 12
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 0.5,
-    borderColor: "#e5e7eb"
-  },
-  cardH: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6
-  },
-  cardD: { fontSize: 14, fontWeight: "600", color: "#111827" },
-  mets: { flexDirection: "row", gap: 12 },
-  met: { fontSize: 13, fontWeight: "700", color: "#2563eb" },
-  pRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
-  pTag: {
-    backgroundColor: "#f3f4f6",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4
-  },
-  pTxt: { fontSize: 11, color: "#6b7280" },
-  note: { fontSize: 12, color: "#9ca3af", marginTop: 6 },
-  cardActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 16,
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6"
-  },
-  cardActionBtn: { paddingVertical: 4, paddingHorizontal: 8 },
-  cardActionEdit: { fontSize: 13, fontWeight: "600", color: "#2563eb" },
-  cardActionDelete: { fontSize: 13, fontWeight: "600", color: "#ef4444" },
-  empty: { fontSize: 15, color: "#6b7280" },
-  err: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retry: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: "#2563eb",
-    borderRadius: 8
-  },
-  retryT: { color: "#fff", fontWeight: "600" },
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#2563eb",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 6
-  },
-  fabT: { color: "#fff", fontSize: 28, fontWeight: "300", lineHeight: 30 },
-  mOver: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end"
-  },
-  mCont: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    paddingBottom: 40,
-    gap: 10
-  },
-  mTtl: { fontSize: 20, fontWeight: "700", color: "#111827", marginBottom: 6 },
-  lbl: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: 0.5
-  },
-  inp: {
-    backgroundColor: "#f9fafb",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: "#111827"
-  },
-  ta: { minHeight: 50, paddingTop: 10 },
-  pGrid: { gap: 8 },
-  pIR: { flexDirection: "row", alignItems: "center", gap: 10 },
-  pIL: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#374151",
-    width: 80,
-    textTransform: "capitalize"
-  },
-  pI: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    color: "#111827"
-  },
-  mBtns: { flexDirection: "row", gap: 10, marginTop: 8 },
-  cBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    alignItems: "center"
-  },
-  cTxt: { fontSize: 14, fontWeight: "600", color: "#6b7280" },
-  sBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "#2563eb",
-    alignItems: "center"
-  },
-  sTxt: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  errorBanner: {
-    backgroundColor: "#fef2f2",
-    borderWidth: 1,
-    borderColor: "#fecaca",
-    borderRadius: 8,
-    padding: 12
-  },
-  errorBannerText: { fontSize: 14, color: "#ef4444" }
-})
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    f: { flex: 1, backgroundColor: c.background },
+    c: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24
+    },
+    list: { padding: 16, gap: 12, paddingBottom: 80 },
+    sum: {
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 16,
+      borderWidth: 0.5,
+      borderColor: c.border
+    },
+    sumT: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: c.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+      marginBottom: 14
+    },
+    sumR: { flexDirection: "row", gap: 24, marginBottom: 8 },
+    sumI: { alignItems: "flex-start" },
+    sumV: { fontSize: 32, fontWeight: "800", color: c.accent },
+    sumL: { fontSize: 12, fontWeight: "600", color: c.textSecondary, marginTop: 2 },
+    sumD: { fontSize: 13, color: c.textTertiary, marginTop: 4 },
+    pDet: { marginTop: 16, gap: 8 },
+    pR: { flexDirection: "row", alignItems: "center", gap: 10 },
+    pL: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: c.textSecondary,
+      width: 70,
+      textTransform: "capitalize"
+    },
+    pB: {
+      flex: 1,
+      height: 6,
+      backgroundColor: c.border,
+      borderRadius: 3,
+      overflow: "hidden"
+    },
+    pF: { height: "100%", backgroundColor: c.accent, borderRadius: 3 },
+    pV: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: c.text,
+      width: 50,
+      textAlign: "right"
+    },
+    chart: {
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      alignItems: "center"
+    },
+    chT: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: c.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+      marginBottom: 12
+    },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 12,
+      padding: 14,
+      borderWidth: 0.5,
+      borderColor: c.border
+    },
+    cardH: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 6
+    },
+    cardD: { fontSize: 14, fontWeight: "600", color: c.text },
+    mets: { flexDirection: "row", gap: 12 },
+    met: { fontSize: 13, fontWeight: "700", color: c.accent },
+    pRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
+    pTag: {
+      backgroundColor: c.surfaceSubtle,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 4
+    },
+    pTxt: { fontSize: 11, color: c.textSecondary },
+    note: { fontSize: 12, color: c.textTertiary, marginTop: 6 },
+    cardActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 16,
+      marginTop: 10,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: c.surfaceSubtle
+    },
+    cardActionBtn: { paddingVertical: 4, paddingHorizontal: 8 },
+    cardActionEdit: { fontSize: 13, fontWeight: "600", color: c.accent },
+    cardActionDelete: { fontSize: 13, fontWeight: "600", color: c.danger },
+    empty: { fontSize: 15, color: c.textSecondary },
+    err: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retry: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      backgroundColor: c.accent,
+      borderRadius: 8
+    },
+    retryT: { color: c.onAccent, fontWeight: "600" },
+    fab: {
+      position: "absolute",
+      bottom: 24,
+      right: 24,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: c.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 6
+    },
+    fabT: { color: c.onAccent, fontSize: 28, fontWeight: "300", lineHeight: 30 },
+    mOver: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "flex-end"
+    },
+    mCont: {
+      backgroundColor: c.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 24,
+      paddingBottom: 40,
+      gap: 10
+    },
+    mTtl: { fontSize: 20, fontWeight: "700", color: c.text, marginBottom: 6 },
+    lbl: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: c.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 0.5
+    },
+    inp: {
+      backgroundColor: c.background,
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: c.text
+    },
+    ta: { minHeight: 50, paddingTop: 10 },
+    pGrid: { gap: 8 },
+    pIR: { flexDirection: "row", alignItems: "center", gap: 10 },
+    pIL: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.textBody,
+      width: 80,
+      textTransform: "capitalize"
+    },
+    pI: {
+      flex: 1,
+      backgroundColor: c.background,
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      fontSize: 14,
+      color: c.text
+    },
+    mBtns: { flexDirection: "row", gap: 10, marginTop: 8 },
+    cBtn: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      alignItems: "center"
+    },
+    cTxt: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
+    sBtn: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 8,
+      backgroundColor: c.accent,
+      alignItems: "center"
+    },
+    sTxt: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
+    errorBanner: {
+      backgroundColor: c.dangerSurface,
+      borderWidth: 1,
+      borderColor: c.dangerBorder,
+      borderRadius: 8,
+      padding: 12
+    },
+    errorBannerText: { fontSize: 14, color: c.danger }
+  })
+}

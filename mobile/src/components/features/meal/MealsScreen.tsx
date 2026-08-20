@@ -20,6 +20,8 @@ import { useI18n } from "@/lib/i18n"
 import { mealApi } from "@/api/mealApi"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Meal, MealListResponse } from "@/types"
+import { useThemeColors } from "@/components/useThemeColors"
+import type { ThemeColors } from "@/constants/Colors"
 
 // ------- helpers -------
 
@@ -100,7 +102,9 @@ interface MealCardProps {
 }
 
 function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
+  const c = useThemeColors()
   const { t } = useI18n()
+  const styles = createStyles(c)
   const itemCount = meal.items?.length ?? 0
   const totalCalories =
     meal.items?.reduce((sum, item) => sum + (item.calories ?? 0), 0) ?? 0
@@ -166,9 +170,11 @@ function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
 // ------- main screen -------
 
 export function MealsScreen() {
+  const c = useThemeColors()
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const router = useRouter()
+  const styles = createStyles(c)
 
   const openDetail = useCallback((m: Meal) => {
     if (m.mealId == null) return
@@ -372,7 +378,7 @@ export function MealsScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color='#2563eb' />
+        <ActivityIndicator size='large' color={c.accent} />
         <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     )
@@ -462,7 +468,7 @@ export function MealsScreen() {
                 editingMeal && styles.textInputDisabled
               ]}
               placeholder='YYYY-MM-DD'
-              placeholderTextColor='#9ca3af'
+              placeholderTextColor={c.textTertiary}
               value={newDate}
               onChangeText={setNewDate}
               autoCapitalize='none'
@@ -524,7 +530,7 @@ export function MealsScreen() {
                 <TextInput
                   style={styles.textInput}
                   placeholder={t("meal.form.food.placeholder")}
-                  placeholderTextColor='#9ca3af'
+                  placeholderTextColor={c.textTertiary}
                   value={item.food}
                   onChangeText={(v) => updateItemField(item.id, "food", v)}
                 />
@@ -534,7 +540,7 @@ export function MealsScreen() {
                     <TextInput
                       style={styles.textInput}
                       placeholder={t("meal.form.quantity.placeholder")}
-                      placeholderTextColor='#9ca3af'
+                      placeholderTextColor={c.textTertiary}
                       value={item.quantity}
                       onChangeText={(v) =>
                         updateItemField(item.id, "quantity", v)
@@ -545,7 +551,7 @@ export function MealsScreen() {
                     <TextInput
                       style={styles.textInput}
                       placeholder={t("meal.form.calories.placeholder")}
-                      placeholderTextColor='#9ca3af'
+                      placeholderTextColor={c.textTertiary}
                       value={item.calories}
                       onChangeText={(v) =>
                         updateItemField(item.id, "calories", v)
@@ -564,7 +570,7 @@ export function MealsScreen() {
                     <TextInput
                       style={[styles.textInput, styles.macroInput]}
                       placeholder={t("meal.form.macros.protein")}
-                      placeholderTextColor='#9ca3af'
+                      placeholderTextColor={c.textTertiary}
                       value={item.protein}
                       onChangeText={(v) =>
                         updateItemField(item.id, "protein", v)
@@ -576,7 +582,7 @@ export function MealsScreen() {
                     <TextInput
                       style={[styles.textInput, styles.macroInput]}
                       placeholder={t("meal.form.macros.carbs")}
-                      placeholderTextColor='#9ca3af'
+                      placeholderTextColor={c.textTertiary}
                       value={item.carbs}
                       onChangeText={(v) => updateItemField(item.id, "carbs", v)}
                       keyboardType='numeric'
@@ -586,7 +592,7 @@ export function MealsScreen() {
                     <TextInput
                       style={[styles.textInput, styles.macroInput]}
                       placeholder={t("meal.form.macros.fats")}
-                      placeholderTextColor='#9ca3af'
+                      placeholderTextColor={c.textTertiary}
                       value={item.fats}
                       onChangeText={(v) => updateItemField(item.id, "fats", v)}
                       keyboardType='numeric'
@@ -633,7 +639,7 @@ export function MealsScreen() {
                 disabled={isPending}
               >
                 {isPending ? (
-                  <ActivityIndicator size='small' color='#fff' />
+                  <ActivityIndicator size='small' color={c.onAccent} />
                 ) : (
                   <Text style={styles.submitButtonText}>{submitLabel}</Text>
                 )}
@@ -648,255 +654,257 @@ export function MealsScreen() {
 
 // ------- styles -------
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f9fafb" },
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.background },
 
-  // list
-  listContent: { padding: 16, paddingBottom: 100 },
-  listEmptyContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24
-  },
+    // list
+    listContent: { padding: 16, paddingBottom: 100 },
+    listEmptyContent: {
+      flexGrow: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24
+    },
 
-  // centered states
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-    backgroundColor: "#f9fafb"
-  },
-  loadingText: { marginTop: 12, fontSize: 15, color: "#6b7280" },
-  errorIcon: {
-    fontSize: 40,
-    color: "#ef4444",
-    marginBottom: 8,
-    fontWeight: "700"
-  },
-  errorText: {
-    fontSize: 15,
-    color: "#ef4444",
-    textAlign: "center",
-    marginBottom: 16
-  },
-  retryButton: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8
-  },
-  retryButtonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+    // centered states
+    centered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24,
+      backgroundColor: c.background
+    },
+    loadingText: { marginTop: 12, fontSize: 15, color: c.textSecondary },
+    errorIcon: {
+      fontSize: 40,
+      color: c.danger,
+      marginBottom: 8,
+      fontWeight: "700"
+    },
+    errorText: {
+      fontSize: 15,
+      color: c.danger,
+      textAlign: "center",
+      marginBottom: 16
+    },
+    retryButton: {
+      backgroundColor: c.accent,
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      borderRadius: 8
+    },
+    retryButtonText: { color: c.onAccent, fontSize: 15, fontWeight: "600" },
 
-  // empty
-  emptyContainer: { alignItems: "center", paddingVertical: 60 },
-  emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontSize: 16, color: "#6b7280", textAlign: "center" },
+    // empty
+    emptyContainer: { alignItems: "center", paddingVertical: 60 },
+    emptyIcon: { fontSize: 48, marginBottom: 16 },
+    emptyText: { fontSize: 16, color: c.textSecondary, textAlign: "center" },
 
-  // card
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8
-  },
-  cardDate: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  mealTypeBadge: {
-    backgroundColor: "#eff6ff",
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4
-  },
-  mealTypeBadgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#2563eb",
-    textTransform: "capitalize"
-  },
-  cardStats: { flexDirection: "row", alignItems: "center" },
-  cardStat: { fontSize: 13, color: "#4b5563" },
-  cardStatDivider: { marginHorizontal: 8, color: "#d1d5db", fontSize: 13 },
-  cardActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 16,
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6"
-  },
-  cardActionButton: { paddingVertical: 4, paddingHorizontal: 8 },
-  cardActionEdit: { fontSize: 14, fontWeight: "600", color: "#2563eb" },
-  cardActionDelete: { fontSize: 14, fontWeight: "600", color: "#ef4444" },
+    // card
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2
+    },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8
+    },
+    cardDate: { fontSize: 15, fontWeight: "600", color: c.text },
+    mealTypeBadge: {
+      backgroundColor: c.accentSurface,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 4
+    },
+    mealTypeBadgeText: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: c.accent,
+      textTransform: "capitalize"
+    },
+    cardStats: { flexDirection: "row", alignItems: "center" },
+    cardStat: { fontSize: 13, color: c.textSecondary },
+    cardStatDivider: { marginHorizontal: 8, color: c.borderStrong, fontSize: 13 },
+    cardActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 16,
+      marginTop: 10,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: c.surfaceSubtle
+    },
+    cardActionButton: { paddingVertical: 4, paddingHorizontal: 8 },
+    cardActionEdit: { fontSize: 14, fontWeight: "600", color: c.accent },
+    cardActionDelete: { fontSize: 14, fontWeight: "600", color: c.danger },
 
-  // fab
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#2563eb",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6
-  },
-  fabText: { fontSize: 28, color: "#fff", lineHeight: 30 },
+    // fab
+    fab: {
+      position: "absolute",
+      bottom: 24,
+      right: 24,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: c.accent,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 6
+    },
+    fabText: { fontSize: 28, color: c.onAccent, lineHeight: 30 },
 
-  // modal
-  modalOverlay: { flex: 1, backgroundColor: "#f9fafb" },
-  modalScroll: { flex: 1 },
-  modalContent: { padding: 20, paddingBottom: 60 },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 20
-  },
+    // modal
+    modalOverlay: { flex: 1, backgroundColor: c.background },
+    modalScroll: { flex: 1 },
+    modalContent: { padding: 20, paddingBottom: 60 },
+    modalTitle: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: c.text,
+      marginBottom: 20
+    },
 
-  // fields
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 6,
-    marginTop: 12
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: "#111827",
-    backgroundColor: "#fff",
-    marginBottom: 8
-  },
-  textInputDisabled: {
-    backgroundColor: "#f3f4f6",
-    color: "#9ca3af"
-  },
+    // fields
+    fieldLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: c.text,
+      marginBottom: 6,
+      marginTop: 12
+    },
+    textInput: {
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: c.text,
+      backgroundColor: c.card,
+      marginBottom: 8
+    },
+    textInputDisabled: {
+      backgroundColor: c.surfaceSubtle,
+      color: c.textTertiary
+    },
 
-  // meal type row
-  mealTypeRow: { flexDirection: "row", gap: 8, marginBottom: 4 },
-  mealTypeButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  mealTypeButtonSelected: { backgroundColor: "#2563eb" },
-  mealTypeButtonUnselected: {
-    backgroundColor: "#f3f4f6",
-    borderWidth: 1,
-    borderColor: "#d1d5db"
-  },
-  mealTypeButtonText: { fontSize: 12, fontWeight: "600" },
-  mealTypeButtonTextSelected: { color: "#fff" },
-  mealTypeButtonTextUnselected: { color: "#6b7280" },
+    // meal type row
+    mealTypeRow: { flexDirection: "row", gap: 8, marginBottom: 4 },
+    mealTypeButton: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 4,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    mealTypeButtonSelected: { backgroundColor: c.accent },
+    mealTypeButtonUnselected: {
+      backgroundColor: c.surfaceSubtle,
+      borderWidth: 1,
+      borderColor: c.borderStrong
+    },
+    mealTypeButtonText: { fontSize: 12, fontWeight: "600" },
+    mealTypeButtonTextSelected: { color: c.onAccent },
+    mealTypeButtonTextUnselected: { color: c.textSecondary },
 
-  // food item block
-  foodItemBlock: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    padding: 14,
-    marginTop: 12,
-    backgroundColor: "#fff"
-  },
-  foodItemHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6
-  },
-  foodItemTitle: { fontSize: 14, fontWeight: "600", color: "#374151" },
-  removeLink: { fontSize: 14, color: "#ef4444", fontWeight: "500" },
+    // food item block
+    foodItemBlock: {
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 10,
+      padding: 14,
+      marginTop: 12,
+      backgroundColor: c.card
+    },
+    foodItemHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 6
+    },
+    foodItemTitle: { fontSize: 14, fontWeight: "600", color: c.textBody },
+    removeLink: { fontSize: 14, color: c.danger, fontWeight: "500" },
 
-  // row fields
-  rowFields: { flexDirection: "row", gap: 8 },
-  rowFieldHalf: { flex: 1 },
+    // row fields
+    rowFields: { flexDirection: "row", gap: 8 },
+    rowFieldHalf: { flex: 1 },
 
-  // macros
-  macrosLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#374151",
-    marginTop: 6,
-    marginBottom: 4
-  },
-  macrosRow: { flexDirection: "row", gap: 8 },
-  macroField: { flex: 1 },
-  macroInput: { marginBottom: 0 },
+    // macros
+    macrosLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.textBody,
+      marginTop: 6,
+      marginBottom: 4
+    },
+    macrosRow: { flexDirection: "row", gap: 8 },
+    macroField: { flex: 1 },
+    macroInput: { marginBottom: 0 },
 
-  // add item
-  addItemButton: {
-    borderWidth: 1,
-    borderColor: "#2563eb",
-    borderStyle: "dashed",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: 16
-  },
-  addItemButtonText: { fontSize: 15, color: "#2563eb", fontWeight: "600" },
+    // add item
+    addItemButton: {
+      borderWidth: 1,
+      borderColor: c.accent,
+      borderStyle: "dashed",
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: "center",
+      marginTop: 16
+    },
+    addItemButtonText: { fontSize: 15, color: c.accent, fontWeight: "600" },
 
-  // error banner
-  errorBanner: {
-    backgroundColor: "#fef2f2",
-    borderWidth: 1,
-    borderColor: "#fecaca",
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 16
-  },
-  errorBannerText: { fontSize: 14, color: "#ef4444" },
+    // error banner
+    errorBanner: {
+      backgroundColor: c.dangerSurface,
+      borderWidth: 1,
+      borderColor: c.dangerBorder,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 16
+    },
+    errorBannerText: { fontSize: 14, color: c.danger },
 
-  // modal actions
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-    marginTop: 24
-  },
-  cancelButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db"
-  },
-  cancelButtonText: { fontSize: 15, color: "#6b7280", fontWeight: "600" },
-  submitButton: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 100
-  },
-  submitButtonDisabled: { opacity: 0.5 },
-  submitButtonText: { fontSize: 15, color: "#fff", fontWeight: "600" }
-})
+    // modal actions
+    modalActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 12,
+      marginTop: 24
+    },
+    cancelButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: c.borderStrong
+    },
+    cancelButtonText: { fontSize: 15, color: c.textSecondary, fontWeight: "600" },
+    submitButton: {
+      backgroundColor: c.accent,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 100
+    },
+    submitButtonDisabled: { opacity: 0.5 },
+    submitButtonText: { fontSize: 15, color: c.onAccent, fontWeight: "600" }
+  })
+}

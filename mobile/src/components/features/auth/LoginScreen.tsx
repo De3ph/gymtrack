@@ -13,8 +13,11 @@ import {
 import { useRouter } from "expo-router";
 import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/authStore";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 export function LoginScreen() {
+  const c = useThemeColors();
   const { t } = useI18n();
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
@@ -23,6 +26,8 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const styles = createStyles(c);
 
   const handleLogin = async () => {
     setError("");
@@ -83,7 +88,7 @@ export function LoginScreen() {
               value={identifier}
               onChangeText={setIdentifier}
               placeholder={t("auth.login.email.placeholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textTertiary}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
@@ -101,7 +106,7 @@ export function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               placeholder={t("auth.login.password.placeholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textTertiary}
               secureTextEntry
               textContentType="password"
               editable={!loading}
@@ -116,7 +121,7 @@ export function LoginScreen() {
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={c.onAccent} size="small" />
             ) : (
               <Text style={styles.buttonText}>
                 {t("auth.login.submit")}
@@ -140,97 +145,99 @@ export function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#f9fafb",
-  },
-  header: {
-    marginBottom: 32,
-    alignItems: "center",
-  },
-  brand: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#9ca3af",
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#111827",
-  },
-  errorBox: {
-    backgroundColor: "#fef2f2",
-    borderLeftWidth: 3,
-    borderLeftColor: "#ef4444",
-    padding: 12,
-    marginBottom: 20,
-    borderRadius: 4,
-  },
-  errorText: {
-    color: "#dc2626",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  form: {
-    gap: 16,
-  },
-  field: {
-    gap: 6,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#6b7280",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#111827",
-  },
-  button: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 48,
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 32,
-    alignItems: "center",
-  },
-  footerText: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  link: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#2563eb",
-  },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1 },
+    container: {
+      flexGrow: 1,
+      justifyContent: "center",
+      padding: 24,
+      backgroundColor: c.background,
+    },
+    header: {
+      marginBottom: 32,
+      alignItems: "center",
+    },
+    brand: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.textTertiary,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+      marginBottom: 8,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "800",
+      color: c.text,
+    },
+    errorBox: {
+      backgroundColor: c.dangerSurface,
+      borderLeftWidth: 3,
+      borderLeftColor: c.danger,
+      padding: 12,
+      marginBottom: 20,
+      borderRadius: 4,
+    },
+    errorText: {
+      color: c.dangerText,
+      fontSize: 14,
+      fontWeight: "500",
+    },
+    form: {
+      gap: 16,
+    },
+    field: {
+      gap: 6,
+    },
+    label: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: c.textSecondary,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+    },
+    input: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 16,
+      color: c.text,
+    },
+    button: {
+      backgroundColor: c.accent,
+      paddingVertical: 14,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 48,
+      marginTop: 8,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    buttonText: {
+      color: c.onAccent,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    footer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: 32,
+      alignItems: "center",
+    },
+    footerText: {
+      fontSize: 14,
+      color: c.textSecondary,
+    },
+    link: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: c.accent,
+    },
+  });
+}

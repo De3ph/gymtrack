@@ -11,6 +11,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { coachingRequestApi } from "@/api/coachingRequestApi";
 import { useAuthStore } from "@/stores/authStore";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface Request {
   requestId?: number;
@@ -24,9 +26,12 @@ interface Request {
 }
 
 export function CoachingRequestsScreen() {
+  const c = useThemeColors();
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const isTrainer = user?.role === "trainer";
+
+  const styles = createStyles(c);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["coachingRequests", isTrainer],
@@ -47,9 +52,9 @@ export function CoachingRequestsScreen() {
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case "accepted": return { bg: "#dcfce7", color: "#166534" };
-      case "rejected": return { bg: "#fef2f2", color: "#991b1b" };
-      default: return { bg: "#fef9c3", color: "#854d0e" };
+      case "accepted": return { bg: c.successSurface, color: c.successText };
+      case "rejected": return { bg: c.dangerSurface, color: c.dangerText };
+      default: return { bg: c.warningSurface, color: c.warningText };
     }
   };
 
@@ -81,7 +86,7 @@ export function CoachingRequestsScreen() {
   return (
     <View style={styles.flex}>
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
       ) : isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load requests</Text>
@@ -101,23 +106,25 @@ export function CoachingRequestsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  list: { padding: 16, gap: 12 },
-  card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: "#e5e7eb" },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-  cardTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
-  statusText: { fontSize: 12, fontWeight: "700", textTransform: "capitalize" },
-  message: { fontSize: 14, color: "#6b7280", marginBottom: 10 },
-  actions: { flexDirection: "row", gap: 10, marginTop: 8 },
-  acceptBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: "#16a34a", alignItems: "center" },
-  acceptText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-  rejectBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: "#ef4444", alignItems: "center" },
-  rejectText: { color: "#ef4444", fontWeight: "700", fontSize: 14 },
-  emptyText: { fontSize: 15, color: "#6b7280" },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
+    list: { padding: 16, gap: 12 },
+    card: { backgroundColor: c.card, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: c.border },
+    cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+    cardTitle: { fontSize: 16, fontWeight: "700", color: c.text },
+    statusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
+    statusText: { fontSize: 12, fontWeight: "700", textTransform: "capitalize" },
+    message: { fontSize: 14, color: c.textSecondary, marginBottom: 10 },
+    actions: { flexDirection: "row", gap: 10, marginTop: 8 },
+    acceptBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: c.success, alignItems: "center" },
+    acceptText: { color: c.onAccent, fontWeight: "700", fontSize: 14 },
+    rejectBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: c.danger, alignItems: "center" },
+    rejectText: { color: c.danger, fontWeight: "700", fontSize: 14 },
+    emptyText: { fontSize: 15, color: c.textSecondary },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+  });
+}

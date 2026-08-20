@@ -15,6 +15,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
 import { commentApi } from "@/api/commentApi";
 import { useAuthStore } from "@/stores/authStore";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 import type { Comment } from "@/types";
 
 interface CommentSectionProps {
@@ -28,10 +30,13 @@ export function CommentSection({
   targetId,
   readOnly = false,
 }: CommentSectionProps) {
+  const c = useThemeColors();
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const currentUserId = user?.userId;
+
+  const styles = createStyles(c);
 
   const queryKey = ["comments", targetType, String(targetId)];
 
@@ -150,7 +155,7 @@ export function CommentSection({
         </View>
       );
     },
-    [currentUserId, readOnly, handleDelete, t]
+    [currentUserId, readOnly, handleDelete, t, styles]
   );
 
   const keyExtractor = useCallback(
@@ -170,7 +175,7 @@ export function CommentSection({
       <Text style={styles.sectionTitle}>{countLabel}</Text>
 
       {isLoading ? (
-        <ActivityIndicator size="small" color="#2563eb" style={styles.loader} />
+        <ActivityIndicator size="small" color={c.accent} style={styles.loader} />
       ) : isError ? (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>
@@ -205,7 +210,7 @@ export function CommentSection({
             value={draft}
             onChangeText={setDraft}
             placeholder={t("comment.form.comment")}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={c.textTertiary}
             multiline
           />
           <TouchableOpacity
@@ -233,92 +238,94 @@ export function CommentSection({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { marginTop: 16 },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 10,
-  },
-  loader: { marginVertical: 12 },
-  listContent: { gap: 8 },
-  commentCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 0.5,
-    borderColor: "#e5e7eb",
-  },
-  commentHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  roleBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  roleBadgeTrainer: { backgroundColor: "#dbeafe" },
-  roleBadgeAthlete: { backgroundColor: "#dcfce7" },
-  roleBadgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#1d4ed8",
-    textTransform: "capitalize",
-  },
-  commentTime: { fontSize: 11, color: "#9ca3af" },
-  commentContent: { fontSize: 14, color: "#111827", lineHeight: 20 },
-  editedLabel: {
-    fontSize: 11,
-    color: "#9ca3af",
-    fontStyle: "italic",
-    marginTop: 4,
-  },
-  deleteLink: { alignSelf: "flex-end", marginTop: 6 },
-  deleteLinkText: { fontSize: 12, color: "#ef4444", fontWeight: "600" },
-  emptyText: {
-    textAlign: "center",
-    color: "#9ca3af",
-    fontSize: 13,
-    paddingVertical: 16,
-  },
-  errorBox: { alignItems: "center", paddingVertical: 12 },
-  errorText: { fontSize: 13, color: "#ef4444", marginBottom: 8 },
-  retryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-  },
-  retryText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-  inputRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 12,
-    alignItems: "flex-end",
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#111827",
-    backgroundColor: "#fff",
-    minHeight: 44,
-    textAlignVertical: "top",
-  },
-  submitButton: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    justifyContent: "center",
-  },
-  submitButtonDisabled: { opacity: 0.5 },
-  submitButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
-  submitError: { fontSize: 12, color: "#ef4444", marginTop: 6 },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    container: { marginTop: 16 },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: c.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+      marginBottom: 10,
+    },
+    loader: { marginVertical: 12 },
+    listContent: { gap: 8 },
+    commentCard: {
+      backgroundColor: c.card,
+      borderRadius: 10,
+      padding: 12,
+      borderWidth: 0.5,
+      borderColor: c.border,
+    },
+    commentHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 6,
+    },
+    roleBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+    roleBadgeTrainer: { backgroundColor: c.accentSurface },
+    roleBadgeAthlete: { backgroundColor: c.successSurface },
+    roleBadgeText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: c.accentOnLight,
+      textTransform: "capitalize",
+    },
+    commentTime: { fontSize: 11, color: c.textTertiary },
+    commentContent: { fontSize: 14, color: c.text, lineHeight: 20 },
+    editedLabel: {
+      fontSize: 11,
+      color: c.textTertiary,
+      fontStyle: "italic",
+      marginTop: 4,
+    },
+    deleteLink: { alignSelf: "flex-end", marginTop: 6 },
+    deleteLinkText: { fontSize: 12, color: c.danger, fontWeight: "600" },
+    emptyText: {
+      textAlign: "center",
+      color: c.textTertiary,
+      fontSize: 13,
+      paddingVertical: 16,
+    },
+    errorBox: { alignItems: "center", paddingVertical: 12 },
+    errorText: { fontSize: 13, color: c.danger, marginBottom: 8 },
+    retryButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: c.accent,
+      borderRadius: 8,
+    },
+    retryText: { color: c.onAccent, fontWeight: "600", fontSize: 13 },
+    inputRow: {
+      flexDirection: "row",
+      gap: 8,
+      marginTop: 12,
+      alignItems: "flex-end",
+    },
+    input: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: c.text,
+      backgroundColor: c.card,
+      minHeight: 44,
+      textAlignVertical: "top",
+    },
+    submitButton: {
+      backgroundColor: c.accent,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 8,
+      justifyContent: "center",
+    },
+    submitButtonDisabled: { opacity: 0.5 },
+    submitButtonText: { color: c.onAccent, fontWeight: "600", fontSize: 14 },
+    submitError: { fontSize: 12, color: c.danger, marginTop: 6 },
+  });
+}

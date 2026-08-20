@@ -13,10 +13,13 @@ import {
 import { useRouter } from "expo-router";
 import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/authStore";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 type Role = "athlete" | "trainer";
 
 export function RegisterScreen() {
+  const c = useThemeColors();
   const { t } = useI18n();
   const router = useRouter();
   const register = useAuthStore((s) => s.register);
@@ -35,6 +38,8 @@ export function RegisterScreen() {
   const [specializations, setSpecializations] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const styles = createStyles(c);
 
   const handleRegister = async () => {
     setError("");
@@ -134,7 +139,7 @@ export function RegisterScreen() {
               value={username}
               onChangeText={setUsername}
               placeholder={t("auth.register.username.placeholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textTertiary}
               autoCapitalize="none"
               autoCorrect={false}
               editable={!loading}
@@ -148,7 +153,7 @@ export function RegisterScreen() {
               value={name}
               onChangeText={setName}
               placeholder={t("auth.register.name.placeholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textTertiary}
               editable={!loading}
             />
           </View>
@@ -160,7 +165,7 @@ export function RegisterScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder={t("auth.register.email.placeholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textTertiary}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
@@ -176,7 +181,7 @@ export function RegisterScreen() {
               value={password}
               onChangeText={setPassword}
               placeholder={t("auth.register.password.placeholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textTertiary}
               secureTextEntry
               textContentType="newPassword"
               editable={!loading}
@@ -190,7 +195,7 @@ export function RegisterScreen() {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder={t("auth.register.confirm_password.placeholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textTertiary}
               secureTextEntry
               textContentType="newPassword"
               editable={!loading}
@@ -202,30 +207,30 @@ export function RegisterScreen() {
             <>
               <View style={styles.field}>
                 <Text style={styles.label}>{t("auth.register.age.label")}</Text>
-                <TextInput style={styles.input} value={age} onChangeText={setAge} placeholder={t("auth.register.age.placeholder")} placeholderTextColor="#9ca3af" keyboardType="numeric" editable={!loading} />
+                <TextInput style={styles.input} value={age} onChangeText={setAge} placeholder={t("auth.register.age.placeholder")} placeholderTextColor={c.textTertiary} keyboardType="numeric" editable={!loading} />
               </View>
               <View style={styles.field}>
                 <Text style={styles.label}>{t("auth.register.weight.label")}</Text>
-                <TextInput style={styles.input} value={weight} onChangeText={setWeight} placeholder={t("auth.register.weight.placeholder")} placeholderTextColor="#9ca3af" keyboardType="numeric" editable={!loading} />
+                <TextInput style={styles.input} value={weight} onChangeText={setWeight} placeholder={t("auth.register.weight.placeholder")} placeholderTextColor={c.textTertiary} keyboardType="numeric" editable={!loading} />
               </View>
               <View style={styles.field}>
                 <Text style={styles.label}>{t("auth.register.height.label")}</Text>
-                <TextInput style={styles.input} value={height} onChangeText={setHeight} placeholder={t("auth.register.height.placeholder")} placeholderTextColor="#9ca3af" keyboardType="numeric" editable={!loading} />
+                <TextInput style={styles.input} value={height} onChangeText={setHeight} placeholder={t("auth.register.height.placeholder")} placeholderTextColor={c.textTertiary} keyboardType="numeric" editable={!loading} />
               </View>
               <View style={styles.field}>
                 <Text style={styles.label}>{t("auth.register.fitness_goals.label")}</Text>
-                <TextInput style={[styles.input, styles.textArea]} value={fitnessGoals} onChangeText={setFitnessGoals} placeholder={t("auth.register.fitness_goals.placeholder")} placeholderTextColor="#9ca3af" multiline numberOfLines={3} textAlignVertical="top" editable={!loading} />
+                <TextInput style={[styles.input, styles.textArea]} value={fitnessGoals} onChangeText={setFitnessGoals} placeholder={t("auth.register.fitness_goals.placeholder")} placeholderTextColor={c.textTertiary} multiline numberOfLines={3} textAlignVertical="top" editable={!loading} />
               </View>
             </>
           ) : (
             <>
               <View style={styles.field}>
                 <Text style={styles.label}>{t("auth.register.certifications.label")}</Text>
-                <TextInput style={styles.input} value={certifications} onChangeText={setCertifications} placeholder={t("auth.register.certifications.placeholder")} placeholderTextColor="#9ca3af" editable={!loading} />
+                <TextInput style={styles.input} value={certifications} onChangeText={setCertifications} placeholder={t("auth.register.certifications.placeholder")} placeholderTextColor={c.textTertiary} editable={!loading} />
               </View>
               <View style={styles.field}>
                 <Text style={styles.label}>{t("auth.register.specializations.label")}</Text>
-                <TextInput style={styles.input} value={specializations} onChangeText={setSpecializations} placeholder={t("auth.register.specializations.placeholder")} placeholderTextColor="#9ca3af" editable={!loading} />
+                <TextInput style={styles.input} value={specializations} onChangeText={setSpecializations} placeholder={t("auth.register.specializations.placeholder")} placeholderTextColor={c.textTertiary} editable={!loading} />
               </View>
             </>
           )}
@@ -237,7 +242,7 @@ export function RegisterScreen() {
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={c.onAccent} size="small" />
             ) : (
               <Text style={styles.buttonText}>{t("auth.register.submit")}</Text>
             )}
@@ -255,28 +260,30 @@ export function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  container: { flexGrow: 1, padding: 24, paddingTop: 48, paddingBottom: 48, backgroundColor: "#f9fafb" },
-  header: { marginBottom: 28, alignItems: "center" },
-  brand: { fontSize: 13, fontWeight: "600", color: "#9ca3af", letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: "800", color: "#111827" },
-  errorBox: { backgroundColor: "#fef2f2", borderLeftWidth: 3, borderLeftColor: "#ef4444", padding: 12, marginBottom: 20, borderRadius: 4 },
-  errorText: { color: "#dc2626", fontSize: 14, fontWeight: "500" },
-  form: { gap: 14 },
-  field: { gap: 6 },
-  label: { fontSize: 12, fontWeight: "700", color: "#6b7280", letterSpacing: 1, textTransform: "uppercase" },
-  input: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#d1d5db", borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: "#111827" },
-  textArea: { minHeight: 80, paddingTop: 12 },
-  roleRow: { flexDirection: "row", gap: 10 },
-  roleButton: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1.5, borderColor: "#d1d5db", alignItems: "center", backgroundColor: "#fff" },
-  roleButtonActive: { borderColor: "#2563eb", backgroundColor: "#2563eb" },
-  roleText: { fontSize: 15, fontWeight: "600", color: "#374151" },
-  roleTextActive: { color: "#fff" },
-  button: { backgroundColor: "#2563eb", paddingVertical: 14, borderRadius: 8, alignItems: "center", justifyContent: "center", minHeight: 48, marginTop: 8 },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  footer: { flexDirection: "row", justifyContent: "center", marginTop: 28, alignItems: "center" },
-  footerText: { fontSize: 14, color: "#6b7280" },
-  link: { fontSize: 14, fontWeight: "700", color: "#2563eb" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1 },
+    container: { flexGrow: 1, padding: 24, paddingTop: 48, paddingBottom: 48, backgroundColor: c.background },
+    header: { marginBottom: 28, alignItems: "center" },
+    brand: { fontSize: 13, fontWeight: "600", color: c.textTertiary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 },
+    title: { fontSize: 28, fontWeight: "800", color: c.text },
+    errorBox: { backgroundColor: c.dangerSurface, borderLeftWidth: 3, borderLeftColor: c.danger, padding: 12, marginBottom: 20, borderRadius: 4 },
+    errorText: { color: c.dangerText, fontSize: 14, fontWeight: "500" },
+    form: { gap: 14 },
+    field: { gap: 6 },
+    label: { fontSize: 12, fontWeight: "700", color: c.textSecondary, letterSpacing: 1, textTransform: "uppercase" },
+    input: { backgroundColor: c.card, borderWidth: 1, borderColor: c.borderStrong, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: c.text },
+    textArea: { minHeight: 80, paddingTop: 12 },
+    roleRow: { flexDirection: "row", gap: 10 },
+    roleButton: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1.5, borderColor: c.borderStrong, alignItems: "center", backgroundColor: c.card },
+    roleButtonActive: { borderColor: c.accent, backgroundColor: c.accent },
+    roleText: { fontSize: 15, fontWeight: "600", color: c.textBody },
+    roleTextActive: { color: c.onAccent },
+    button: { backgroundColor: c.accent, paddingVertical: 14, borderRadius: 8, alignItems: "center", justifyContent: "center", minHeight: 48, marginTop: 8 },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
+    footer: { flexDirection: "row", justifyContent: "center", marginTop: 28, alignItems: "center" },
+    footerText: { fontSize: 14, color: c.textSecondary },
+    link: { fontSize: 14, fontWeight: "700", color: c.accent },
+  });
+}

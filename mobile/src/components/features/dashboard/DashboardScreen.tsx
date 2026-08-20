@@ -15,6 +15,8 @@ import { useAuthStore } from "@/stores/authStore";
 import { workoutApi } from "@/api/workoutApi";
 import { mealApi } from "@/api/mealApi";
 import type { Workout, Meal, WorkoutListResponse, MealListResponse } from "@/types";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 const QUICK_ACTIONS = [
   { key: "workouts", icon: "🏋️", route: "/(tabs)/workouts" as const },
@@ -24,10 +26,13 @@ const QUICK_ACTIONS = [
 ] as const;
 
 export function DashboardScreen() {
+  const c = useThemeColors();
   const { t } = useI18n();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const displayName = user?.profile?.name || user?.username || (user?.email?.split("@")[0]) || "";
+
+  const styles = createStyles(c);
 
   const workoutsQuery = useQuery<WorkoutListResponse>({
     queryKey: ["workouts", "recent"],
@@ -48,7 +53,7 @@ export function DashboardScreen() {
   }, [workoutsQuery, mealsQuery]);
 
   const recentActivity = useMemo(() => {
-    const items: Array<{ type: "workout" | "meal"; data: Workout | Meal; date: string }> = [];
+    const items: { type: "workout" | "meal"; data: Workout | Meal; date: string }[] = [];
     (workoutsQuery.data?.workouts ?? []).forEach((w) => items.push({ type: "workout" as const, data: w, date: w.date }));
     (mealsQuery.data?.meals ?? []).forEach((m) => items.push({ type: "meal" as const, data: m, date: m.date }));
     items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -60,7 +65,7 @@ export function DashboardScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={c.accent} />
         <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
@@ -134,30 +139,32 @@ export function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollView: { flex: 1, backgroundColor: "#f9fafb" },
-  scrollContent: { padding: 16, paddingBottom: 40 },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, backgroundColor: "#f9fafb" },
-  loadingText: { marginTop: 12, fontSize: 15, color: "#6b7280" },
-  errorText: { fontSize: 15, color: "#ef4444", textAlign: "center", marginBottom: 16 },
-  retryButton: { backgroundColor: "#2563eb", paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
-  retryButtonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  welcomeSection: { marginBottom: 20 },
-  welcomeTitle: { fontSize: 26, fontWeight: "700", color: "#111827" },
-  section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", color: "#111827", marginBottom: 12 },
-  quickActionsRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  quickActionCard: { backgroundColor: "#fff", borderRadius: 12, paddingVertical: 18, paddingHorizontal: 16, alignItems: "center", minWidth: "47%", flex: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
-  quickActionIcon: { fontSize: 28, marginBottom: 8 },
-  quickActionLabel: { fontSize: 14, fontWeight: "600", color: "#111827" },
-  activityCard: { backgroundColor: "#fff", borderRadius: 12, padding: 14, marginBottom: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
-  activityHeader: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-  activityIcon: { fontSize: 20, marginRight: 10 },
-  activityMeta: { flex: 1 },
-  activityType: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  activityDate: { fontSize: 12, color: "#6b7280", marginTop: 1 },
-  activityDetail: { marginLeft: 30 },
-  activityStats: { fontSize: 13, color: "#4b5563" },
-  emptyCard: { backgroundColor: "#fff", borderRadius: 12, padding: 32, alignItems: "center" },
-  emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    scrollView: { flex: 1, backgroundColor: c.background },
+    scrollContent: { padding: 16, paddingBottom: 40 },
+    centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, backgroundColor: c.background },
+    loadingText: { marginTop: 12, fontSize: 15, color: c.textSecondary },
+    errorText: { fontSize: 15, color: c.danger, textAlign: "center", marginBottom: 16 },
+    retryButton: { backgroundColor: c.accent, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
+    retryButtonText: { color: c.onAccent, fontSize: 15, fontWeight: "600" },
+    welcomeSection: { marginBottom: 20 },
+    welcomeTitle: { fontSize: 26, fontWeight: "700", color: c.text },
+    section: { marginBottom: 24 },
+    sectionTitle: { fontSize: 18, fontWeight: "600", color: c.text, marginBottom: 12 },
+    quickActionsRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    quickActionCard: { backgroundColor: c.card, borderRadius: 12, paddingVertical: 18, paddingHorizontal: 16, alignItems: "center", minWidth: "47%", flex: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+    quickActionIcon: { fontSize: 28, marginBottom: 8 },
+    quickActionLabel: { fontSize: 14, fontWeight: "600", color: c.text },
+    activityCard: { backgroundColor: c.card, borderRadius: 12, padding: 14, marginBottom: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+    activityHeader: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
+    activityIcon: { fontSize: 20, marginRight: 10 },
+    activityMeta: { flex: 1 },
+    activityType: { fontSize: 15, fontWeight: "600", color: c.text },
+    activityDate: { fontSize: 12, color: c.textSecondary, marginTop: 1 },
+    activityDetail: { marginLeft: 30 },
+    activityStats: { fontSize: 13, color: c.textSecondary },
+    emptyCard: { backgroundColor: c.card, borderRadius: 12, padding: 32, alignItems: "center" },
+    emptyText: { fontSize: 14, color: c.textSecondary, textAlign: "center" },
+  });
+}
