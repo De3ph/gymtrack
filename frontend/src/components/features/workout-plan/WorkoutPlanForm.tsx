@@ -1,11 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Dumbbell, Save, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -50,6 +51,11 @@ export function WorkoutPlanForm({ onSuccess, plan, namespace }: WorkoutPlanFormP
 
   const isEditing = !!plan;
 
+  const totalSets = exercises.reduce(
+    (sum, ex) => sum + ex.sets.length,
+    0
+  );
+
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const data = {
@@ -87,6 +93,15 @@ export function WorkoutPlanForm({ onSuccess, plan, namespace }: WorkoutPlanFormP
     setExercises(newExercises);
   };
 
+  const removeExercise = (index: number) => {
+    const newExercises = exercises.filter((_, i) => i !== index);
+    setExercises(newExercises.length ? newExercises : [createDefaultExercise()]);
+  };
+
+  const addExercise = () => {
+    setExercises([...exercises, createDefaultExercise()]);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     mutate();
@@ -94,88 +109,154 @@ export function WorkoutPlanForm({ onSuccess, plan, namespace }: WorkoutPlanFormP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">{t("plan_name")}</label>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t('exercise_name_placeholder')}
-          required
-        />
+      {/* Hero — plan identity */}
+      <div className="relative overflow-hidden rounded-xl border bg-card p-5">
+        <div className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden />
+        <div className="space-y-4 pl-3">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="gap-1.5">
+              {isEditing ? (
+                <Pencil className="size-3" />
+              ) : (
+                <Dumbbell className="size-3" />
+              )}
+              {isEditing ? t("edit") : t("create")}
+            </Badge>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t("plan_name")}
+            </label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('exercise_name_placeholder')}
+              required
+              className="h-11 border-transparent bg-muted/40 px-3 text-base font-medium focus-visible:border-primary/60 focus-visible:bg-background"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t("description_label")}
+            </label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t('description_placeholder')}
+              className="min-h-16 border-transparent bg-muted/40 px-3 focus-visible:border-primary/60 focus-visible:bg-background"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">{t("description_label")}</label>
-        <Textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder={t('description_placeholder')}
-        />
-      </div>
-
+      {/* Exercises section */}
       <div className="space-y-4">
-        <h3 className="font-medium">{t("exercises")}</h3>
+        <div className="flex items-end justify-between px-1">
+          <div className="flex items-baseline gap-3">
+            <h3 className="font-heading text-lg font-semibold">{t("exercises")}</h3>
+            <span className="text-sm tabular-nums text-muted-foreground">
+              {exercises.length}
+            </span>
+          </div>
+          <span className="hidden text-xs text-muted-foreground sm:block">
+            {totalSets} {totalSets === 1 ? "set" : "sets"} total
+          </span>
+        </div>
+
         {exercises.map((exercise, index) => (
-          <Card key={`${exercise.exerciseId || "new"}-${index}`}>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">
-                  {exercise.name || t('fallback_exercise_name', { index: index + 1 })}
-                </CardTitle>
-                <Button
-                  type="button" variant="ghost" size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={() => {
-                    const newExercises = exercises.filter((_, i) => i !== index);
-                    setExercises(newExercises.length ? newExercises : [createDefaultExercise()]);
-                  }}
-                  disabled={exercises.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+          <div
+            key={`${exercise.exerciseId || "new"}-${index}`}
+            className="group relative overflow-hidden rounded-xl border bg-card shadow-xs transition-colors hover:border-primary/40"
+          >
+                {/* Index chip + accent */}
+                <div className="flex items-center justify-between gap-3 border-b bg-muted/30 px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-heading text-sm font-bold tabular-nums text-primary">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="truncate font-medium">
+                      {exercise.name || t('fallback_exercise_name', { index: index + 1 })}
+                    </span>
+                  </div>
+                  <Button
+                    type="button" variant="ghost" size="icon-sm"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => removeExercise(index)}
+                    disabled={exercises.length === 1}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4 p-4">
+                  <ExerciseSelector
+                    onSelect={(selected) => handleExerciseSelect(
+                      { exerciseId: selected.exerciseId, name: selected.name },
+                      index
+                    )}
+                  />
+
+                  <div className="space-y-2">
+                    <div className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {exercise.sets.length} set{exercise.sets.length === 1 ? "" : "s"}
+                    </div>
+                    <PlanSetInput
+                      value={exercise.sets}
+                      onChange={(sets) => handleSetsChange(sets, index)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {t("notes_placeholder")}
+                    </label>
+                    <Input
+                      value={exercise.notes || ""}
+                      onChange={(e) => {
+                        const newExercises = [...exercises];
+                        newExercises[index] = { ...newExercises[index], notes: e.target.value };
+                        setExercises(newExercises);
+                      }}
+                      placeholder={t('notes_placeholder')}
+                      className="text-sm"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="mt-2">
-                <ExerciseSelector
-                  onSelect={(selected) => handleExerciseSelect(
-                    { exerciseId: selected.exerciseId, name: selected.name },
-                    index
-                  )}
-                />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <PlanSetInput
-                value={exercise.sets}
-                onChange={(sets) => handleSetsChange(sets, index)}
-              />
-              <div className="mt-2">
-                <Input
-                  value={exercise.notes || ""}
-                  onChange={(e) => {
-                    const newExercises = [...exercises];
-                    newExercises[index] = { ...newExercises[index], notes: e.target.value };
-                    setExercises(newExercises);
-                  }}
-                  placeholder={t('notes_placeholder')}
-                  className="text-sm"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+          ))}
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addExercise}
+          className="w-full border-dashed py-6 text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+        >
+          <Plus className="mr-2 size-4" /> {t("add_exercise")}
+        </Button>
       </div>
 
-      <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
-        <Button
-          type="button" variant="outline"
-          onClick={() => setExercises([...exercises, createDefaultExercise()])}
-        >
-          <Plus className="mr-2 h-4 w-4" /> {t("add_exercise")}
-        </Button>
-        <Button type="submit" disabled={isPending} className="w-full md:w-auto md:ml-auto">
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? t('plan_update') : t('plan_create')}
-        </Button>
+      {/* Sticky action bar */}
+      <div className="sticky bottom-0 -mx-6 -mb-6 border-t bg-popover/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-popover/80">
+        <div className="flex items-center justify-between gap-4">
+          <div className="hidden text-sm text-muted-foreground sm:block">
+            {exercises.length} {t("exercises").toLowerCase()} · {totalSets}{" "}
+            {totalSets === 1 ? "set" : "sets"}
+          </div>
+          <Button type="submit" disabled={isPending} className="min-w-40 gap-2">
+            {isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : isEditing ? (
+              <Save className="size-4" />
+            ) : (
+              <Dumbbell className="size-4" />
+            )}
+            {isEditing ? t('plan_update') : t('plan_create')}
+          </Button>
+        </div>
       </div>
     </form>
   );

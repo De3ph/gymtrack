@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Weight, Repeat, Timer } from "lucide-react";
 import { WorkoutPlanSet } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
@@ -57,11 +56,12 @@ export function PlanSetInput({
   /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const addSet = () => {
+    const lastSet = setsWithIds[setsWithIds.length - 1];
     const newSet: PlanSetWithId = {
-      weight: 0,
-      weightUnit: "kg",
-      reps: 10,
-      restTime: 60,
+      weight: lastSet ? lastSet.weight : 0,
+      weightUnit: lastSet ? lastSet.weightUnit : "kg",
+      reps: lastSet ? lastSet.reps : 10,
+      restTime: lastSet ? lastSet.restTime : 60,
       id: `set-${Date.now()}`
     };
     const newSetsWithIds = [...setsWithIds, newSet];
@@ -83,66 +83,84 @@ export function PlanSetInput({
     onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
+  const colLabel = "flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground";
+
   return (
     <div className={cn("space-y-2", className)}>
-      {setsWithIds.map((set, index) => (
-        <div key={set.id} className="flex flex-wrap items-center gap-2 p-3 border rounded-md bg-background">
-          <div className="flex items-center gap-1 min-w-[60px]">
-            <span className="text-sm font-medium">{t('set_number', { number: index + 1 })}</span>
-          </div>
-          <div className="flex items-center gap-1 min-w-[80px]">
-            <Field>
-              <FieldLabel className="text-xs">{t('weight')}</FieldLabel>
+      {setsWithIds.length > 0 && (
+        <div className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] gap-2 px-2 pb-1 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]">
+          <span className={cn(colLabel, "justify-start")}>{t('label')}</span>
+          <span className={cn(colLabel, "justify-center")}>
+            <Weight className="size-3" /> {t('weight')}
+          </span>
+          <span className={cn(colLabel, "justify-center")}>
+            <Repeat className="size-3" /> {t('reps')}
+          </span>
+          <span className={cn(colLabel, "justify-center")}>
+            <Timer className="size-3" /> {t('rest')}
+          </span>
+          <span />
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        {setsWithIds.map((set, index) => (
+          <div
+            key={set.id}
+            className="group grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 rounded-lg border bg-background px-2 py-1.5 transition-colors hover:border-primary/40 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]"
+          >
+            <span className="flex justify-start text-sm font-medium tabular-nums text-muted-foreground">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div className="flex justify-center">
               <Input
                 type="number" step="0.5" min="0"
                 value={set.weight}
                 onChange={(e) => updateSet(set.id, "weight", parseFloat(e.target.value) || 0)}
                 disabled={disabled}
-                className="w-16" placeholder="0"
+                className="h-8 w-full max-w-20 text-center tabular-nums" placeholder="0"
               />
-            </Field>
-          </div>
-          <div className="flex items-center gap-1 min-w-[70px]">
-            <Field>
-              <FieldLabel className="text-xs">{t('reps')}</FieldLabel>
+            </div>
+            <div className="flex justify-center">
               <Input
                 type="number" min="1"
                 value={set.reps}
                 onChange={(e) => updateSet(set.id, "reps", parseInt(e.target.value) || 1)}
                 disabled={disabled}
-                className="w-16" placeholder={t('reps')}
+                className="h-8 w-full max-w-20 text-center tabular-nums" placeholder="—"
               />
-            </Field>
-          </div>
-          <div className="flex items-center gap-1 min-w-[90px]">
-            <Field>
-              <FieldLabel className="text-xs">{t('rest')}</FieldLabel>
+            </div>
+            <div className="flex justify-center">
               <Input
                 type="number" min="0" step="15"
                 value={set.restTime}
                 onChange={(e) => updateSet(set.id, "restTime", parseInt(e.target.value) || 0)}
                 disabled={disabled}
-                className="w-16" placeholder={t('rest')}
+                className="h-8 w-full max-w-20 text-center tabular-nums" placeholder="—"
               />
-            </Field>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="button" variant="ghost" size="icon-sm"
+                onClick={() => removeSet(set.id)}
+                disabled={disabled || setsWithIds.length === 1}
+                className="h-8 w-8 text-muted-foreground opacity-60 transition-opacity hover:text-destructive group-hover:opacity-100"
+                aria-label={t('remove')}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
           </div>
-          <Button
-            type="button" variant="outline" size="sm"
-            onClick={() => removeSet(set.id)}
-            disabled={disabled}
-            className="text-red-600 hover:text-red-700 ml-auto"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      ))}
+        ))}
+      </div>
+
       <Button
         type="button" variant="outline" size="sm"
         onClick={addSet}
         disabled={disabled}
-        className="w-full"
+        className="w-full border-dashed text-muted-foreground hover:border-primary/50 hover:text-primary"
       >
-        <Plus className="w-4 h-4 mr-1" /> {t('add')}
+        <Plus className="size-4 mr-1" /> {t('add')}
       </Button>
     </div>
   );

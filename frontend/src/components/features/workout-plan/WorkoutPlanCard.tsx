@@ -15,6 +15,7 @@ interface WorkoutPlanCardProps {
   onDelete?: (plan: WorkoutPlan) => void;
   onAssign?: (plan: WorkoutPlan) => void;
   onStart?: (plan: WorkoutPlan) => void;
+  onView?: (plan: WorkoutPlan) => void;
 }
 
 export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
@@ -24,6 +25,7 @@ export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
   onDelete,
   onAssign,
   onStart,
+  onView,
 }: WorkoutPlanCardProps) {
   const t = useTranslations("trainer.workout_plans");
   const tAthlete = useTranslations("athlete.workout_plans");
@@ -57,6 +59,19 @@ export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
           )}
           {role === "athlete-owner" && (
             <>
+              {onView ? (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => onView(plan)}
+                >
+                  <Eye className="h-4 w-4" />
+                  <span className="sr-only">{tAthlete("view_plan")}</span>
+                </Button>
+              ) : (
+                <PlanViewDialog plan={plan} />
+              )}
               {onEdit && (
                 <Button
                   size="sm"
@@ -80,6 +95,19 @@ export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
           )}
           {role === "trainer" && (
             <>
+              {onView ? (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => onView(plan)}
+                >
+                  <Eye className="h-4 w-4" />
+                  <span className="sr-only">{t("view") ?? tAthlete("view_plan")}</span>
+                </Button>
+              ) : (
+                <PlanViewDialog plan={plan} />
+              )}
               {onEdit && (
                 <Button
                   size="sm"
