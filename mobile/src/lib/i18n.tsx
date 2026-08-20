@@ -10,7 +10,7 @@ type Locale = "en" | "tr";
 
 interface I18nContextValue {
   locale: Locale;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextValue>({
@@ -26,14 +26,18 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     const msg = messages[locale] ?? messages.en;
     return {
       locale,
-      t: (key: string) => {
+      t: (key: string, params?: Record<string, string | number>) => {
         const keys = key.split(".");
         let result: unknown = msg;
         for (const k of keys) {
           if (typeof result !== "object" || result === null) return key;
           result = (result as Record<string, unknown>)[k];
         }
-        return typeof result === "string" ? result : key;
+        if (typeof result !== "string") return key;
+        if (!params) return result;
+        return result.replace(/\{(\w+)\}/g, (match, name: string) =>
+          params[name] != null ? String(params[name]) : match
+        );
       },
     };
   }, [locale]);
