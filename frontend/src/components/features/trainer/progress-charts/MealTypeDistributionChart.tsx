@@ -17,7 +17,7 @@ import {
 import { MealStats } from "@/types"
 import { useTranslations } from "next-intl"
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--amber-600)"]
 
 interface MealTypeDistributionChartProps {
   mealStats: MealStats

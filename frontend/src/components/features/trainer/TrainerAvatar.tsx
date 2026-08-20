@@ -52,14 +52,14 @@ export function TrainerAvatar({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke='#e7e5e4'
+          stroke='var(--border)'
           strokeWidth={4}
         />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke='#d93535'
+          stroke='var(--primary)'
           strokeWidth={4}
           strokeDasharray={circ}
           strokeDashoffset={strokeDashoffset}
@@ -68,7 +68,7 @@ export function TrainerAvatar({
       </svg>
 
       {isAvailable && (
-        <span className='absolute bottom-1 right-1 z-10 h-3 w-3 rounded-full bg-[#14b8a6] ring-2 ring-[#fafaf9]' />
+        <span className='absolute bottom-1 right-1 z-10 h-3 w-3 rounded-full bg-teal-500 ring-2 ring-background dark:bg-teal-400' />
       )}
 
       <div

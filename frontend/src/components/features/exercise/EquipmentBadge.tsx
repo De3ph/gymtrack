@@ -17,8 +17,8 @@ export function EquipmentBadge({
   const baseClasses = "inline-flex items-center rounded-full font-medium";
   
   const variantClasses = {
-    default: "px-3 py-1 text-sm bg-blue-100 text-blue-800",
-    small: "px-2 py-0.5 text-xs bg-blue-100 text-blue-800"
+    default: "px-3 py-1 text-sm bg-accent/10 text-accent dark:bg-accent/15",
+    small: "px-2 py-0.5 text-xs bg-accent/10 text-accent dark:bg-accent/15"
   };
 
   return (

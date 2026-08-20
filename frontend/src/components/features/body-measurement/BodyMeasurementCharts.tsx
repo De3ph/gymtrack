@@ -32,20 +32,20 @@ interface BodyMeasurementChartsProps {
   onFilterChange?: (filter: BodyMeasurementFilter) => void;
 }
 
+/** Body-part line colors — all from system ramps (chart-* + extensions) */
 const COLORS = [
-  "#2563eb",
-  "#dc2626",
-  "#16a34a",
-  "#9333ea",
-  "#ea580c",
-  "#0891b2",
-  "#db2777",
-  "#65a30d",
-  "#7c3aed",
-  "#0d9488",
-  "#facc15",
-  "#f43f5e",
-  "#1d4ed8"
+  "var(--chart-1)",      // red
+  "var(--chart-2)",      // teal
+  "var(--chart-3)",      // amber
+  "var(--teal-700)",
+  "var(--amber-700)",
+  "var(--red-400)",
+  "var(--stone-600)",
+  "var(--teal-800)",
+  "var(--amber-200)",
+  "var(--red-800)",
+  "var(--stone-400)",
+  "var(--teal-900)",
 ];
 
 interface ChartDataPoint {
@@ -192,7 +192,7 @@ export function BodyMeasurementCharts({
               <Line
                 type="monotone"
                 dataKey="weight"
-                stroke="#2563eb"
+                stroke="var(--chart-1)"
                 strokeWidth={2}
                 dot={{ r: 3 }}
                 activeDot={{ r: 5 }}
@@ -231,7 +231,7 @@ export function BodyMeasurementCharts({
                 <Line
                   type="monotone"
                   dataKey="bodyFatPct"
-                  stroke="#dc2626"
+                  stroke="var(--chart-2)"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   activeDot={{ r: 5 }}

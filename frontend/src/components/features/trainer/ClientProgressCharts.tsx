@@ -35,35 +35,35 @@ export function ClientProgressCharts({ workoutStats, mealStats }: ClientProgress
   const chartConfig = {
     volume: {
       label: tStats('volume_label'),
-      color: "#8884d8",
+      color: "var(--chart-1)",
     },
     workouts: {
       label: tStats('workouts_label'),
-      color: "#82ca9d",
+      color: "var(--chart-2)",
     },
     calories: {
       label: tStats('calories_label'),
-      color: "#8884d8",
+      color: "var(--chart-1)",
     },
     protein: {
       label: tStats('protein_label'),
-      color: "#82ca9d",
+      color: "var(--chart-2)",
     },
     carbs: {
       label: tStats('carbs_label'),
-      color: "#ffc658",
+      color: "var(--chart-3)",
     },
     fats: {
       label: tStats('fats_label'),
-      color: "#ff8042",
+      color: "var(--amber-600)",
     },
     totalSets: {
       label: tStats('total_sets_label'),
-      color: "#8884d8",
+      color: "var(--chart-1)",
     },
     totalReps: {
       label: tStats('total_reps_label'),
-      color: "#82ca9d",
+      color: "var(--chart-2)",
     },
   } satisfies ChartConfig
 
