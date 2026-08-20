@@ -3,4 +3,3 @@ import { MyWorkoutPlansScreen } from "@/components/features/workout-plan/MyWorko
 export default function AthleteWorkoutPlansPage() {
   return <MyWorkoutPlansScreen />;
 }
-

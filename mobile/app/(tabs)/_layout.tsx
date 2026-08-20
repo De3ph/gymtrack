@@ -1,17 +1,17 @@
 import { Tabs } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import Colors from "@/constants/Colors";
-import { useColorScheme } from "@/components/useColorScheme";
+import { useThemeColors } from "@/components/useThemeColors";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const c = useThemeColors();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
+        tabBarActiveTintColor: c.accent,
+        tabBarInactiveTintColor: c.tabIconDefault,
         headerShown: useClientOnlyValue(false, true),
       }}
     >
