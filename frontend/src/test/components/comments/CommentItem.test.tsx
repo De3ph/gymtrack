@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CommentItem } from '@/components/features/comments/CommentItem'
 import { commentApi } from '@/lib/api'
@@ -35,9 +34,9 @@ const mockComment: Comment = {
 
 describe('CommentItem', () => {
   let queryClient: QueryClient
-  let mockUpdate: any
-  let mockDelete: any
-  let mockAuth: any
+  let mockUpdate: Mock
+  let mockDelete: Mock
+  let mockAuth: Mock
 
   beforeEach(() => {
     vi.clearAllMocks()

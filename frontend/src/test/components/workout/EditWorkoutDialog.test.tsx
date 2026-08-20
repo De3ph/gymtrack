@@ -1,9 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { EditWorkoutDialog } from '@/components/features/workout/EditWorkoutDialog'
-import { workoutApi } from '@/lib/api'
 import type { Workout } from '@/types'
 
 vi.mock('@/lib/api', () => ({

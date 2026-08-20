@@ -1,5 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CommentThread } from '@/components/features/comments/CommentThread'
@@ -44,7 +43,6 @@ const mockComments: Comment[] = [
 describe('CommentThread', () => {
   let queryClient: QueryClient
   const mockGet = vi.mocked(commentApi.getByTarget)
-  const mockCreate = vi.mocked(commentApi.create)
 
   beforeEach(() => {
     vi.clearAllMocks()

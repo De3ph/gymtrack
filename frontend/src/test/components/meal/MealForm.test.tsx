@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MealForm } from '@/components/features/meal/MealForm'
 import { mealApi } from '@/lib/api'
@@ -22,7 +22,7 @@ vi.mock('date-fns', () => ({
 
 describe('MealForm', () => {
   let queryClient: QueryClient
-  let mockCreate: any
+  let mockCreate: Mock
 
   beforeEach(() => {
     vi.clearAllMocks()

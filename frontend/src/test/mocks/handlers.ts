@@ -1,5 +1,45 @@
 import { http, HttpResponse } from 'msw'
-import { User, Workout, Meal } from '@/types'
+import {
+  User,
+  Workout,
+  Meal,
+  WorkoutExercise,
+  UserRole,
+  UserProfile,
+  MealType,
+  FoodItem,
+} from '@/types'
+
+// Request body shapes for mocked endpoints
+interface RegisterRequestBody {
+  email: string
+  role: UserRole
+  profile: Partial<UserProfile>
+}
+
+interface LoginRequestBody {
+  email: string
+  password: string
+}
+
+interface UpdateProfileRequestBody {
+  profile: Partial<UserProfile>
+}
+
+interface WorkoutRequestBody {
+  date: string
+  exercises: WorkoutExercise[]
+}
+
+interface MealRequestBody {
+  date: string
+  mealType: MealType
+  items: FoodItem[]
+}
+
+interface AcceptInvitationRequestBody {
+  code: string
+}
 
 // Mock data
 const mockUsers: User[] = [
@@ -82,7 +122,7 @@ const mockMeals: Meal[] = [
 export const handlers = [
   // Auth endpoints
   http.post('/api/auth/register', async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as RegisterRequestBody
     // Mock successful registration
     return HttpResponse.json({
       user: {
@@ -96,7 +136,7 @@ export const handlers = [
   }),
 
   http.post('/api/auth/login', async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as LoginRequestBody
     const user = mockUsers.find(u => u.email === body.email)
 
     if (!user) {
@@ -122,7 +162,7 @@ export const handlers = [
   }),
 
   http.put('/api/users/me', async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as UpdateProfileRequestBody
     return HttpResponse.json({
       ...mockUsers[0],
       profile: { ...mockUsers[0].profile, ...body.profile }
@@ -135,7 +175,7 @@ export const handlers = [
   }),
 
   http.post('/api/workouts', async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as WorkoutRequestBody
     const newWorkout: Workout = {
       workoutId: 3,
       ...body,
@@ -157,7 +197,7 @@ export const handlers = [
   }),
 
   http.put('/api/workouts/:id', async ({ params, request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as WorkoutRequestBody
     const workout = mockWorkouts.find(w => w.workoutId === Number(params.id))
     if (!workout) {
       return HttpResponse.json(
@@ -189,7 +229,7 @@ export const handlers = [
   }),
 
   http.post('/api/meals', async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as MealRequestBody
     const newMeal: Meal = {
       mealId: 3,
       ...body,
@@ -210,7 +250,7 @@ export const handlers = [
   }),
 
   http.put('/api/meals/:id', async ({ params, request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as MealRequestBody
     const meal = mockMeals.find(m => m.mealId === Number(params.id))
     if (!meal) {
       return HttpResponse.json(
@@ -244,7 +284,7 @@ export const handlers = [
   }),
 
   http.post('/api/relationships/accept', async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as AcceptInvitationRequestBody
     if (body.code === 'ABC12345') {
       return HttpResponse.json({
         relationshipId: 1,

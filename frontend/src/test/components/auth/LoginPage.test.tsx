@@ -1,10 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRouter } from 'next/navigation'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import LoginPage from '@/app/[locale]/(auth)/login/page'
-import { useAuthStore } from '@/stores/authStore'
-import { server } from '@/test/mocks/server'
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
@@ -24,9 +22,7 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-      ; (useRouter as any).mockReturnValue({
-        push: mockPush,
-      })
+      ; vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
   })
 
   it('renders login form correctly', () => {

@@ -4,6 +4,7 @@ import { authApi, userApi } from '@/lib/api'
 import { tokenService } from '@/lib/token-service'
 import { server } from '@/test/mocks/server'
 import { http, HttpResponse } from 'msw'
+import type { User } from '@/types'
 
 vi.mock('@/lib/api', () => ({
   authApi: {
@@ -112,7 +113,7 @@ describe('AuthStore', () => {
   it('should logout and clear auth state', async () => {
     tokenService.setTokens('some-token', 'refresh-token')
     useAuthStore.setState({
-      user: { userId: 'user-1' } as any,
+      user: { userId: 'user-1' } as unknown as User,
       token: 'some-token',
       isAuthenticated: true,
       isLoading: false,
@@ -219,7 +220,7 @@ describe('AuthStore', () => {
   it('should handle auth error with 401 status', () => {
     tokenService.setTokens('some-token', 'refresh-token')
     useAuthStore.setState({
-      user: { userId: 1 } as any,
+      user: { userId: 1 } as unknown as User,
       token: 'some-token',
       isAuthenticated: true,
       isLoading: false,

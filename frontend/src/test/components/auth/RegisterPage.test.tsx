@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import RegisterPage from '@/app/[locale]/(auth)/register/page'
 import { authApi } from '@/lib/api'
-import { useAuthStore } from '@/stores/authStore'
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
@@ -25,7 +24,7 @@ vi.mock('@/lib/api', () => ({
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-      ; (useRouter as any).mockReturnValue({ push: mockPush })
+      ; vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
   })
 
   it('renders registration form with all fields', () => {

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WorkoutForm } from '@/components/features/workout/WorkoutForm'
 import { workoutApi } from '@/lib/api'
@@ -13,7 +13,7 @@ vi.mock('@/lib/api', () => ({
 
 describe('WorkoutForm', () => {
   let queryClient: QueryClient
-  let mockCreate: any
+  let mockCreate: Mock
 
   beforeEach(() => {
     vi.clearAllMocks()

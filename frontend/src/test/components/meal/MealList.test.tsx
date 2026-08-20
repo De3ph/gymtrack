@@ -26,13 +26,6 @@ const mockMeals: Meal[] = [
   },
 ]
 
-const oldMeal: Meal = {
-  ...mockMeals[0],
-  mealId: 2,
-  createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
-  updatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
-}
-
 describe('MealList', () => {
   let queryClient: QueryClient
 

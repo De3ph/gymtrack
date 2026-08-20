@@ -76,7 +76,9 @@ describe('AcceptInvitationDialog', () => {
 
   it('shows success state when invitation accepted', async () => {
     const user = userEvent.setup()
-    vi.mocked(relationshipApi.acceptInvitation).mockResolvedValue({} as any)
+    vi.mocked(relationshipApi.acceptInvitation).mockResolvedValue(
+      {} as Awaited<ReturnType<typeof relationshipApi.acceptInvitation>>,
+    )
 
     render(<AcceptInvitationDialog />)
 

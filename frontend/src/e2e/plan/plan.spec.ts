@@ -4,7 +4,7 @@ import {
   testMuscleGroups,
   testEquipment,
   testExercises,
-} from "../helpers/mock-athlete";
+} from '../helpers/mock-athlete';
 import { ROUTES } from "@/lib/routes";
 
 const ATHLETE_ID = "1";
