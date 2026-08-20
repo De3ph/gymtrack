@@ -173,7 +173,8 @@
       "minutes": "minutes",
       "hours": "hours"
     },
-    "not_set": "Not set"
+    "not_set": "Not set",
+    "deleted_user": "Deleted user"
   },
   "auth": {
     "login": {
@@ -281,6 +282,14 @@
     "logout": {
       "confirm": "Are you sure you want to logout?",
       "button": "Logout"
+    },
+    "restore_account": {
+      "title": "Restore Account",
+      "description": "Your account was deleted. You can restore it within 30 days of deletion.",
+      "button": "Restore Account",
+      "error_expired": "The restore period has expired. Your account has been permanently deleted.",
+      "success_title": "Account Restored",
+      "success_message": "Welcome back {username}. Love to see you again :)"
     }
   },
   "dashboard": {
@@ -906,6 +915,19 @@
     },
     "validation": {
       "field_required": "This field is required"
+    },
+    "delete_account": {
+      "title": "Delete Account",
+      "description": "Permanently delete your account and all associated data. This action can be reversed within 30 days.",
+      "password_label": "Confirm Password",
+      "password_placeholder": "Enter your password to confirm",
+      "confirm": "Delete My Account",
+      "cancel": "Cancel",
+      "error_wrong_password": "Incorrect password. Please try again.",
+      "error_admin_forbidden": "Admin accounts cannot be deleted.",
+      "success_title": "Account Deleted",
+      "success_description": "Your account has been scheduled for deletion. You can restore it within 30 days by logging in.",
+      "restore_info": "You could restore your account within 30 days via login. After 30 days, your account will be deleted completely."
     }
   },
   "athlete": {

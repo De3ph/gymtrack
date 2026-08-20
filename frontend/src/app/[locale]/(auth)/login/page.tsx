@@ -8,6 +8,9 @@ import { motion } from "motion/react";
 import { type LoginFormData } from "@/lib/validations/auth";
 import { useAuthStore } from "@/stores/authStore";
 import { ROUTES } from "@/lib/routes";
+import { authApi } from "@/lib/api";
+import { tokenService } from "@/lib/token-service";
+import { toast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -36,8 +39,12 @@ export default function LoginPage() {
   const { login } = useAuthStore();
   const t = useTranslations("auth.login");
   const tCommon = useTranslations("common");
+  const tRestore = useTranslations("auth.restore_account");
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showRestore, setShowRestore] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -55,11 +62,44 @@ export default function LoginPage() {
         const errorMessage =
           err instanceof Error ? err.message : tCommon("errors.generic");
         setError(errorMessage);
+        if (errorMessage === "account has been deleted") {
+          setShowRestore(true);
+        } else {
+          setShowRestore(false);
+        }
       } finally {
         setIsLoading(false);
       }
     },
   });
+
+  const handleRestore = async () => {
+    const identifier = form.getFieldValue("identifier");
+    const password = form.getFieldValue("password");
+    if (!identifier || !password) return;
+
+    setIsRestoring(true);
+    setRestoreError(null);
+    try {
+      const response = await authApi.restoreAccount({ identifier, password });
+      const { accessToken, refreshToken } = response;
+      tokenService.setTokens(accessToken, refreshToken);
+      await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken, refreshToken }),
+      });
+      toast.add({
+        type: "success",
+        title: tRestore("success_message", { username: response.user.username }),
+      });
+      router.push(ROUTES.DASHBOARD);
+    } catch (err: unknown) {
+      setRestoreError(err instanceof Error ? err.message : "Restore failed");
+    } finally {
+      setIsRestoring(false);
+    }
+  };
 
   return (
     <motion.div
@@ -86,6 +126,30 @@ export default function LoginPage() {
           className="mb-8 border-l-2 border-destructive bg-destructive/5 px-4 py-3"
         >
           <p className="text-sm font-medium text-destructive">{error}</p>
+        </motion.div>
+      )}
+
+      {showRestore && (
+        <motion.div
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="mb-8 border-l-2 border-primary bg-primary/5 px-4 py-3"
+        >
+          <p className="text-sm font-medium text-foreground">
+            {tRestore("description")}
+          </p>
+          {restoreError && (
+            <p className="mt-2 text-sm text-destructive">{restoreError}</p>
+          )}
+          <Button
+            variant="outline"
+            className="mt-3"
+            onClick={handleRestore}
+            disabled={isRestoring}
+          >
+            {isRestoring ? <Spinner className="mr-2 h-4 w-4" /> : null}
+            {tRestore("button")}
+          </Button>
         </motion.div>
       )}
 

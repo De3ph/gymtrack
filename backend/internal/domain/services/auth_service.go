@@ -66,6 +66,7 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
 		Role:         req.Role,
+		Status:       models.UserStatusActive,
 		Profile:      req.Profile,
 	}
 
@@ -106,6 +107,26 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 		return nil, ErrInvalidCredentials
 	}
 
+	// Check account status
+	switch user.Status {
+	case models.UserStatusDeleted:
+		if user.DeletedAt == nil || s.clock.Now().After(user.DeletedAt.Add(30*24*time.Hour)) {
+			return nil, ErrAccountDeleted
+		}
+		if err := s.userRepo.RestoreUser(ctx, user.UserID); err != nil {
+			return nil, fmt.Errorf("failed to auto-restore account: %w", err)
+		}
+		user, err = s.userRepo.GetUserByID(ctx, user.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve restored user: %w", err)
+		}
+	case models.UserStatusActive:
+		// proceed normally
+	default:
+		// suspended, banned, or any other non-active status
+		return nil, ErrAccountInactive
+	}
+
 	// Generate tokens
 	userIDStr := strconv.Itoa(user.UserID)
 	accessToken, err := s.generateToken(userIDStr, user.Role, TokenTypeAccess, time.Hour)
@@ -116,6 +137,69 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 	refreshToken, err := s.generateToken(userIDStr, user.Role, TokenTypeRefresh, time.Hour*24*7)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
+	}
+
+	return &LoginResponse{
+		User:         user,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+// RestoreAccount restores a deleted account if within the 30-day grace period
+func (s *AuthService) RestoreAccount(ctx context.Context, identifier, password string) (*LoginResponse, error) {
+	var user *models.User
+	var err error
+
+	if strings.Contains(identifier, "@") {
+		user, err = s.userRepo.GetUserByEmail(ctx, identifier)
+	} else {
+		user, err = s.userRepo.GetUserByUsername(ctx, identifier)
+	}
+
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrInvalidCredentials
+		}
+		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	}
+	if user == nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	if user.Status != models.UserStatusDeleted {
+		return nil, NewServiceError("account is not in deleted state", "ACCOUNT_NOT_DELETED")
+	}
+
+	if user.DeletedAt == nil {
+		return nil, ErrAccountDeleted
+	}
+	if s.clock.Now().After(user.DeletedAt.Add(30 * 24 * time.Hour)) {
+		return nil, NewServiceError("restore period expired", "RESTORE_EXPIRED")
+	}
+
+	if err := s.userRepo.RestoreUser(ctx, user.UserID); err != nil {
+		return nil, fmt.Errorf("failed to restore account: %w", err)
+	}
+
+	userIDStr := strconv.Itoa(user.UserID)
+	accessToken, err := s.generateToken(userIDStr, user.Role, TokenTypeAccess, time.Hour)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate access token: %w", err)
+	}
+
+	refreshToken, err := s.generateToken(userIDStr, user.Role, TokenTypeRefresh, time.Hour*24*7)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
+	}
+
+	user, err = s.userRepo.GetUserByID(ctx, user.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve restored user: %w", err)
 	}
 
 	return &LoginResponse{

@@ -175,7 +175,8 @@
       "minutes": "dakika",
       "hours": "saat"
     },
-    "not_set": "Belirtilmemiş"
+    "not_set": "Belirtilmemiş",
+    "deleted_user": "Silinmiş kullanıcı"
   },
   "auth": {
     "login": {
@@ -282,6 +283,14 @@
     "logout": {
       "confirm": "Çıkış yapmak istediğinizden emin misiniz?",
       "button": "Çıkış Yap"
+    },
+    "restore_account": {
+      "title": "Hesabı Geri Yükle",
+      "description": "Hesabınız silindi. Silinme tarihinden itibaren 30 gün içinde geri yükleyebilirsiniz.",
+      "button": "Hesabı Geri Yükle",
+      "error_expired": "Geri yükleme süresi doldu. Hesabınız kalıcı olarak silinmiştir.",
+      "success_title": "Hesap Geri Yüklendi",
+      "success_message": "Tekrar hoş geldin {username}. Seni tekrar görmek güzel :)"
     }
   },
   "dashboard": {
@@ -907,6 +916,19 @@
     },
     "validation": {
       "field_required": "Bu alan zorunludur"
+    },
+    "delete_account": {
+      "title": "Hesabı Sil",
+      "description": "Hesabınızı ve ilişkili tüm verileri kalıcı olarak silin. Bu işlem 30 gün içinde geri alınabilir.",
+      "password_label": "Şifreyi Onayla",
+      "password_placeholder": "Onaylamak için şifrenizi girin",
+      "confirm": "Hesabımı Sil",
+      "cancel": "İptal",
+      "error_wrong_password": "Yanlış şifre. Lütfen tekrar deneyin.",
+      "error_admin_forbidden": "Yönetici hesapları silinemez.",
+      "success_title": "Hesap Silindi",
+      "success_description": "Hesabınız silinmek üzere planlandı. 30 gün içinde giriş yaparak geri yükleyebilirsiniz.",
+      "restore_info": "Hesabınızı 30 gün içinde giriş yaparak geri yükleyebilirsiniz. 30 gün sonra hesabınız kalıcı olarak silinir."
     }
   },
   "athlete": {

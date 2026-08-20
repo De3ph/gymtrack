@@ -1,0 +1,278 @@
+package services
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/utils"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+const testJWTSecret = "test-secret-must-be-at-least-32-chars-long"
+
+func newTestAuthService(repo *fakeUserRepo, clock utils.Clock) *AuthService {
+	return NewAuthService(repo, testJWTSecret, clock)
+}
+
+// --- AuthService.Login tests ---
+
+func TestAuthService_Login_DeletedUser_AutoRestore(t *testing.T) {
+	repo := newFakeUserRepo()
+	now := time.Now().UTC()
+	clock := utils.NewFakeClock(now)
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "deletedlogin", "deletedlogin@example.com", "password123", models.RoleAthlete)
+	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+	// Within 30-day window — should auto-restore on login.
+	clock.Set(now.Add(5 * 24 * time.Hour))
+
+	resp, err := svc.Login(ctx, LoginRequest{
+		Identifier: "deletedlogin@example.com",
+		Password:   "password123",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.NotEmpty(t, resp.AccessToken)
+	assert.NotEmpty(t, resp.RefreshToken)
+	assert.Equal(t, "deletedlogin", resp.User.Username)
+
+	restored, err := repo.GetUserByID(ctx, user.UserID)
+	require.NoError(t, err)
+	assert.Equal(t, models.UserStatusActive, restored.Status)
+	assert.Nil(t, restored.DeletedAt)
+}
+
+func TestAuthService_Login_DeletedUser_Expired(t *testing.T) {
+	repo := newFakeUserRepo()
+	now := time.Now().UTC()
+	clock := utils.NewFakeClock(now)
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "deletedexpired", "deletedexpired@example.com", "password123", models.RoleAthlete)
+	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+	// Past 30-day window — should reject with ACCOUNT_DELETED.
+	clock.Set(now.Add(31 * 24 * time.Hour))
+
+	_, err := svc.Login(ctx, LoginRequest{
+		Identifier: "deletedexpired@example.com",
+		Password:   "password123",
+	})
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "ACCOUNT_DELETED", svcErr.Code)
+}
+
+func TestAuthService_Login_SuspendedUser(t *testing.T) {
+	repo := newFakeUserRepo()
+	clock := utils.NewFakeClock(time.Now().UTC())
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "suspended", "suspended@example.com", "password123", models.RoleAthlete)
+	// Manually set status to suspended.
+	user.Status = models.UserStatusSuspended
+	require.NoError(t, repo.UpdateUser(ctx, user))
+
+	_, err := svc.Login(ctx, LoginRequest{
+		Identifier: "suspended@example.com",
+		Password:   "password123",
+	})
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "ACCOUNT_INACTIVE", svcErr.Code)
+}
+
+func TestAuthService_Login_BannedUser(t *testing.T) {
+	repo := newFakeUserRepo()
+	clock := utils.NewFakeClock(time.Now().UTC())
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "banned", "banned@example.com", "password123", models.RoleAthlete)
+	user.Status = models.UserStatusBanned
+	require.NoError(t, repo.UpdateUser(ctx, user))
+
+	_, err := svc.Login(ctx, LoginRequest{
+		Identifier: "banned@example.com",
+		Password:   "password123",
+	})
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "ACCOUNT_INACTIVE", svcErr.Code)
+}
+
+func TestAuthService_Login_ActiveUser_Success(t *testing.T) {
+	repo := newFakeUserRepo()
+	clock := utils.NewFakeClock(time.Now().UTC())
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	seedUser(t, repo, "activeuser", "active@example.com", "password123", models.RoleAthlete)
+
+	resp, err := svc.Login(ctx, LoginRequest{
+		Identifier: "active@example.com",
+		Password:   "password123",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.NotEmpty(t, resp.AccessToken)
+	assert.NotEmpty(t, resp.RefreshToken)
+	assert.Equal(t, "activeuser", resp.User.Username)
+}
+
+func TestAuthService_Login_WrongPassword(t *testing.T) {
+	repo := newFakeUserRepo()
+	clock := utils.NewFakeClock(time.Now().UTC())
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	seedUser(t, repo, "wrongpw", "wrongpw@example.com", "realpassword", models.RoleAthlete)
+
+	_, err := svc.Login(ctx, LoginRequest{
+		Identifier: "wrongpw@example.com",
+		Password:   "wrongpassword",
+	})
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "INVALID_CREDENTIALS", svcErr.Code)
+}
+
+func TestAuthService_Login_ByUsername(t *testing.T) {
+	repo := newFakeUserRepo()
+	clock := utils.NewFakeClock(time.Now().UTC())
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	seedUser(t, repo, "byusername", "byusername@example.com", "password123", models.RoleTrainer)
+
+	resp, err := svc.Login(ctx, LoginRequest{
+		Identifier: "byusername",
+		Password:   "password123",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "byusername", resp.User.Username)
+}
+
+// --- AuthService.RestoreAccount tests ---
+
+func TestAuthService_RestoreAccount_Success(t *testing.T) {
+	repo := newFakeUserRepo()
+	now := time.Now().UTC()
+	clock := utils.NewFakeClock(now)
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "restoreme", "restoreme@example.com", "mypassword", models.RoleAthlete)
+
+	// Soft-delete the user.
+	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+	// Verify deleted.
+	got, err := repo.GetUserByID(ctx, user.UserID)
+	require.NoError(t, err)
+	assert.Equal(t, models.UserStatusDeleted, got.Status)
+
+	// Restore within 30-day window (10 days after deletion).
+	clock.Set(now.Add(10 * 24 * time.Hour))
+
+	resp, err := svc.RestoreAccount(ctx, "restoreme@example.com", "mypassword")
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.NotEmpty(t, resp.AccessToken)
+	assert.NotEmpty(t, resp.RefreshToken)
+
+	// Verify user is active again.
+	restored, err := repo.GetUserByID(ctx, user.UserID)
+	require.NoError(t, err)
+	assert.Equal(t, models.UserStatusActive, restored.Status)
+	assert.Nil(t, restored.DeletedAt)
+}
+
+func TestAuthService_RestoreAccount_Expired(t *testing.T) {
+	repo := newFakeUserRepo()
+	now := time.Now().UTC()
+	clock := utils.NewFakeClock(now)
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "expiredrestore", "expired@example.com", "mypassword", models.RoleAthlete)
+
+	// Soft-delete the user.
+	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+	// Advance clock past 30-day grace period.
+	clock.Set(now.Add(31 * 24 * time.Hour))
+
+	_, err := svc.RestoreAccount(ctx, "expired@example.com", "mypassword")
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "RESTORE_EXPIRED", svcErr.Code)
+}
+
+func TestAuthService_RestoreAccount_WrongPassword(t *testing.T) {
+	repo := newFakeUserRepo()
+	now := time.Now().UTC()
+	clock := utils.NewFakeClock(now)
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "restorewrongpw", "restorewrongpw@example.com", "realpassword", models.RoleAthlete)
+	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+	clock.Set(now.Add(5 * 24 * time.Hour))
+
+	_, err := svc.RestoreAccount(ctx, "restorewrongpw@example.com", "wrongpassword")
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "INVALID_CREDENTIALS", svcErr.Code)
+}
+
+func TestAuthService_RestoreAccount_NotDeleted(t *testing.T) {
+	repo := newFakeUserRepo()
+	now := time.Now().UTC()
+	clock := utils.NewFakeClock(now)
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	seedUser(t, repo, "notdeleted", "notdeleted@example.com", "password123", models.RoleAthlete)
+
+	_, err := svc.RestoreAccount(ctx, "notdeleted@example.com", "password123")
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "ACCOUNT_NOT_DELETED", svcErr.Code)
+}
+
+func TestAuthService_RestoreAccount_ByUsername(t *testing.T) {
+	repo := newFakeUserRepo()
+	now := time.Now().UTC()
+	clock := utils.NewFakeClock(now)
+	svc := newTestAuthService(repo, clock)
+	ctx := context.Background()
+
+	user := seedUser(t, repo, "restorebyuser", "restorebyuser@example.com", "mypassword", models.RoleAthlete)
+	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+	clock.Set(now.Add(5 * 24 * time.Hour))
+
+	resp, err := svc.RestoreAccount(ctx, "restorebyuser", "mypassword")
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "restorebyuser", resp.User.Username)
+}
