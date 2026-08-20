@@ -11,7 +11,6 @@ import {
 import { ROUTES } from "@/lib/routes";
 import { User } from "@/types";
 import {
-  CalendarDays,
   Dumbbell,
   User as UserIcon,
   UtensilsCrossed,
@@ -45,12 +44,6 @@ export function QuickActionsPanel({ activeTrainer }: QuickActionsPanelProps) {
           label={tAthlete("log_meal")}
           description={tAthlete("log_meal_description")}
           onClick={() => router.push(ROUTES.ATHLETE_MEALS)}
-        />
-        <DashboardActionButton
-          icon={<CalendarDays className="h-4 w-4" />}
-          label={tAthlete("calendar")}
-          description={tAthlete("calendar_description")}
-          onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
         />
         {activeTrainer ? (
           <DashboardActionButton
