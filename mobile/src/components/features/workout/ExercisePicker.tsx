@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { exerciseApi } from "@/api/exerciseApi";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface Exercise {
   exerciseId: number;
@@ -28,7 +30,10 @@ interface ExercisePickerProps {
 }
 
 export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerProps) {
+  const c = useThemeColors();
   const [search, setSearch] = useState("");
+
+  const styles = createStyles(c);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["exercises"],
@@ -73,7 +78,7 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
           value={search}
           onChangeText={setSearch}
           placeholder="Search exercises..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={c.textTertiary}
           autoCapitalize="none"
           autoCorrect={false}
           clearButtonMode="while-editing"
@@ -81,7 +86,7 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
 
         {isLoading ? (
           <View style={styles.center}>
-            <ActivityIndicator size="large" color="#2563eb" />
+            <ActivityIndicator size="large" color={c.accent} />
           </View>
         ) : isError ? (
           <View style={styles.center}>
@@ -126,60 +131,62 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#e5e7eb",
-    backgroundColor: "#fff",
-  },
-  closeBtn: { width: 60 },
-  closeText: { fontSize: 15, color: "#2563eb", fontWeight: "600" },
-  title: { fontSize: 17, fontWeight: "700", color: "#111827" },
-  searchInput: {
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: "#111827",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  listContent: { padding: 16, paddingTop: 4 },
-  exerciseRow: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    marginBottom: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 0.5,
-    borderColor: "#e5e7eb",
-  },
-  exerciseInfo: { flex: 1 },
-  exerciseName: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  exerciseCategory: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginTop: 2,
-    textTransform: "capitalize",
-  },
-  chevron: { fontSize: 16, color: "#9ca3af", marginLeft: 8 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  emptyText: { fontSize: 15, color: "#6b7280" },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 12,
+      borderBottomWidth: 0.5,
+      borderBottomColor: c.border,
+      backgroundColor: c.card,
+    },
+    closeBtn: { width: 60 },
+    closeText: { fontSize: 15, color: c.accent, fontWeight: "600" },
+    title: { fontSize: 17, fontWeight: "700", color: c.text },
+    searchInput: {
+      backgroundColor: c.card,
+      marginHorizontal: 16,
+      marginTop: 12,
+      marginBottom: 8,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: c.text,
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+    },
+    listContent: { padding: 16, paddingTop: 4 },
+    exerciseRow: {
+      backgroundColor: c.card,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+      marginBottom: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderWidth: 0.5,
+      borderColor: c.border,
+    },
+    exerciseInfo: { flex: 1 },
+    exerciseName: { fontSize: 15, fontWeight: "600", color: c.text },
+    exerciseCategory: {
+      fontSize: 12,
+      color: c.textSecondary,
+      marginTop: 2,
+      textTransform: "capitalize",
+    },
+    chevron: { fontSize: 16, color: c.textTertiary, marginLeft: 8 },
+    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    emptyText: { fontSize: 15, color: c.textSecondary },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+  });
+}

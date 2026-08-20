@@ -11,12 +11,17 @@ import { useQuery } from "@tanstack/react-query";
 import { workoutApi } from "@/api/workoutApi";
 import { useI18n } from "@/lib/i18n";
 import { CommentSection } from "@/components/features/comments/CommentSection";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 import type { Workout } from "@/types";
 
 export function WorkoutDetailScreen() {
+  const c = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useI18n();
+
+  const styles = createStyles(c);
 
   const { data, isLoading, isError, refetch } = useQuery<Workout>({
     queryKey: ["workout", id],
@@ -27,7 +32,7 @@ export function WorkoutDetailScreen() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={c.accent} />
       </View>
     );
   }
@@ -93,56 +98,58 @@ export function WorkoutDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  container: { padding: 20, paddingBottom: 48 },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f9fafb",
-  },
-  headerBar: { marginBottom: 8 },
-  backButton: { paddingVertical: 6, alignSelf: "flex-start" },
-  backText: { fontSize: 16, color: "#2563eb", fontWeight: "600" },
-  dateText: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  exerciseCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 0.5,
-    borderColor: "#e5e7eb",
-  },
-  exName: { fontSize: 16, fontWeight: "600", color: "#111827" },
-  exNotes: { fontSize: 13, color: "#6b7280", marginTop: 4, fontStyle: "italic" },
-  setRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 6,
-  },
-  setNumber: { fontSize: 13, color: "#9ca3af", width: 28 },
-  setDetail: { fontSize: 14, color: "#374151", fontWeight: "500" },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-  },
-  retryText: { color: "#fff", fontWeight: "600" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    container: { padding: 20, paddingBottom: 48 },
+    center: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: c.background,
+    },
+    headerBar: { marginBottom: 8 },
+    backButton: { paddingVertical: 6, alignSelf: "flex-start" },
+    backText: { fontSize: 16, color: c.accent, fontWeight: "600" },
+    dateText: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: c.text,
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: c.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+      marginBottom: 12,
+    },
+    exerciseCard: {
+      backgroundColor: c.card,
+      borderRadius: 10,
+      padding: 14,
+      marginBottom: 8,
+      borderWidth: 0.5,
+      borderColor: c.border,
+    },
+    exName: { fontSize: 16, fontWeight: "600", color: c.text },
+    exNotes: { fontSize: 13, color: c.textTertiary, marginTop: 4, fontStyle: "italic" },
+    setRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 6,
+    },
+    setNumber: { fontSize: 13, color: c.textTertiary, width: 28 },
+    setDetail: { fontSize: 14, color: c.textBody, fontWeight: "500" },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retryButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      backgroundColor: c.accent,
+      borderRadius: 8,
+    },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+  });
+}

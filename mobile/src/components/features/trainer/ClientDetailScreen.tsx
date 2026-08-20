@@ -11,12 +11,17 @@ import {
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { trainerClientApi } from "@/api/trainerClientApi";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 type Tab = "overview" | "workouts" | "meals" | "measurements";
 
 export function ClientDetailScreen() {
+  const c = useThemeColors();
   const { username } = useLocalSearchParams<{ username: string }>();
   const [tab, setTab] = useState<Tab>("overview");
+
+  const styles = createStyles(c);
 
   const { data: stats, isLoading: loadingStats, isError: statsError, refetch: refetchStats } = useQuery({
     queryKey: ["clientStats", username],
@@ -65,7 +70,7 @@ export function ClientDetailScreen() {
       </View>
 
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
       ) : isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load</Text>
@@ -122,24 +127,26 @@ export function ClientDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  tabBar: { flexDirection: "row", backgroundColor: "#fff", borderBottomWidth: 0.5, borderBottomColor: "#e5e7eb" },
-  tab: { flex: 1, paddingVertical: 14, alignItems: "center" },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: "#2563eb" },
-  tabText: { fontSize: 13, fontWeight: "600", color: "#6b7280", textTransform: "capitalize" },
-  tabTextActive: { color: "#2563eb" },
-  content: { padding: 16 },
-  statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  statCard: { flex: 1, minWidth: "45%", backgroundColor: "#fff", borderRadius: 12, padding: 16, alignItems: "center", borderWidth: 0.5, borderColor: "#e5e7eb" },
-  statValue: { fontSize: 24, fontWeight: "800", color: "#2563eb" },
-  statLabel: { fontSize: 12, fontWeight: "600", color: "#6b7280", marginTop: 4 },
-  listCard: { backgroundColor: "#fff", borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: "#e5e7eb" },
-  listTitle: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  listSub: { fontSize: 13, color: "#6b7280", marginTop: 3 },
-  emptyText: { textAlign: "center", color: "#6b7280", fontSize: 14, marginTop: 40 },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    center: { flex: 1, justifyContent: "center", alignItems: "center" },
+    tabBar: { flexDirection: "row", backgroundColor: c.card, borderBottomWidth: 0.5, borderBottomColor: c.border },
+    tab: { flex: 1, paddingVertical: 14, alignItems: "center" },
+    tabActive: { borderBottomWidth: 2, borderBottomColor: c.accent },
+    tabText: { fontSize: 13, fontWeight: "600", color: c.textSecondary, textTransform: "capitalize" },
+    tabTextActive: { color: c.accent },
+    content: { padding: 16 },
+    statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    statCard: { flex: 1, minWidth: "45%", backgroundColor: c.card, borderRadius: 12, padding: 16, alignItems: "center", borderWidth: 0.5, borderColor: c.border },
+    statValue: { fontSize: 24, fontWeight: "800", color: c.accent },
+    statLabel: { fontSize: 12, fontWeight: "600", color: c.textSecondary, marginTop: 4 },
+    listCard: { backgroundColor: c.card, borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: c.border },
+    listTitle: { fontSize: 15, fontWeight: "600", color: c.text },
+    listSub: { fontSize: 13, color: c.textSecondary, marginTop: 3 },
+    emptyText: { textAlign: "center", color: c.textSecondary, fontSize: 14, marginTop: 40 },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+  });
+}

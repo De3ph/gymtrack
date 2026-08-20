@@ -12,10 +12,14 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
 import { useRouter } from "expo-router";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 export function MyTrainerScreen() {
+  const c = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const styles = createStyles(c);
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["myTrainer"],
     queryFn: () => relationshipApi.getMyTrainer(),
@@ -47,7 +51,7 @@ export function MyTrainerScreen() {
     if (showSuccess && !isFetching) setShowSuccess(false);
   }, [showSuccess, isFetching]);
 
-  if (isLoading || showSuccess) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
+  if (isLoading || showSuccess) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
   if (isError || !data) return (
     <View style={styles.center}>
       <Text style={styles.emptyText}>No trainer assigned yet</Text>
@@ -58,7 +62,7 @@ export function MyTrainerScreen() {
           value={inviteCode}
           onChangeText={setInviteCode}
           placeholder="Enter 8-character code"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={c.textTertiary}
           maxLength={8}
           autoCapitalize="characters"
           autoCorrect={false}
@@ -69,7 +73,7 @@ export function MyTrainerScreen() {
           disabled={!inviteCode.trim() || accepting}
         >
           {accepting ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator color={c.onAccent} size="small" />
           ) : (
             <Text style={styles.acceptText}>Accept Invitation</Text>
           )}
@@ -117,40 +121,42 @@ export function MyTrainerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  container: { padding: 24, paddingBottom: 48 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  header: { alignItems: "center", marginBottom: 24 },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: "#2563eb", alignItems: "center", justifyContent: "center", marginBottom: 12 },
-  avatarText: { color: "#fff", fontSize: 32, fontWeight: "800" },
-  name: { fontSize: 24, fontWeight: "700", color: "#111827", marginBottom: 6 },
-  bio: { fontSize: 14, color: "#6b7280", textAlign: "center" },
-  section: { backgroundColor: "#fff", borderRadius: 12, padding: 16, marginBottom: 16 },
-  sectionTitle: { fontSize: 14, fontWeight: "700", color: "#6b7280", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
-  tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  tag: { backgroundColor: "#dbeafe", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  tagText: { fontSize: 12, fontWeight: "600", color: "#1d4ed8" },
-  dangerSection: { marginTop: 8 },
-  terminateButton: { paddingVertical: 14, borderRadius: 8, borderWidth: 1.5, borderColor: "#ef4444", alignItems: "center" },
-  terminateText: { fontSize: 15, fontWeight: "700", color: "#ef4444" },
-  emptyText: { fontSize: 16, color: "#6b7280", marginBottom: 12 },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-  inviteSection: {
-    width: "100%", maxWidth: 320, backgroundColor: "#fff", borderRadius: 12,
-    padding: 16, marginBottom: 16, borderWidth: 1, borderColor: "#e5e7eb",
-  },
-  inviteLabel: { fontSize: 14, fontWeight: "600", color: "#374151", marginBottom: 10, textAlign: "center" },
-  inviteInput: {
-    backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#d1d5db",
-    borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18,
-    color: "#111827", textAlign: "center", letterSpacing: 4, fontWeight: "700",
-    marginBottom: 12,
-  },
-  acceptButton: {
-    backgroundColor: "#7c3aed", paddingVertical: 12, borderRadius: 8, alignItems: "center",
-  },
-  acceptButtonDisabled: { backgroundColor: "#c4b5fd" },
-  acceptText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    container: { padding: 24, paddingBottom: 48 },
+    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
+    header: { alignItems: "center", marginBottom: 24 },
+    avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: c.accent, alignItems: "center", justifyContent: "center", marginBottom: 12 },
+    avatarText: { color: c.onAccent, fontSize: 32, fontWeight: "800" },
+    name: { fontSize: 24, fontWeight: "700", color: c.text, marginBottom: 6 },
+    bio: { fontSize: 14, color: c.textSecondary, textAlign: "center" },
+    section: { backgroundColor: c.card, borderRadius: 12, padding: 16, marginBottom: 16 },
+    sectionTitle: { fontSize: 14, fontWeight: "700", color: c.textSecondary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
+    tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+    tag: { backgroundColor: c.accentSurface, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    tagText: { fontSize: 12, fontWeight: "600", color: c.accentOnLight },
+    dangerSection: { marginTop: 8 },
+    terminateButton: { paddingVertical: 14, borderRadius: 8, borderWidth: 1.5, borderColor: c.danger, alignItems: "center" },
+    terminateText: { fontSize: 15, fontWeight: "700", color: c.danger },
+    emptyText: { fontSize: 16, color: c.textSecondary, marginBottom: 12 },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+    inviteSection: {
+      width: "100%", maxWidth: 320, backgroundColor: c.card, borderRadius: 12,
+      padding: 16, marginBottom: 16, borderWidth: 1, borderColor: c.border,
+    },
+    inviteLabel: { fontSize: 14, fontWeight: "600", color: c.textBody, marginBottom: 10, textAlign: "center" },
+    inviteInput: {
+      backgroundColor: c.background, borderWidth: 1, borderColor: c.borderStrong,
+      borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18,
+      color: c.text, textAlign: "center", letterSpacing: 4, fontWeight: "700",
+      marginBottom: 12,
+    },
+    acceptButton: {
+      backgroundColor: c.invite, paddingVertical: 12, borderRadius: 8, alignItems: "center",
+    },
+    acceptButtonDisabled: { backgroundColor: c.inviteDisabled },
+    acceptText: { color: c.onAccent, fontWeight: "700", fontSize: 14 },
+  });
+}

@@ -10,6 +10,8 @@ import {
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { workoutPlanApi } from "@/api/workoutPlanApi";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface Plan {
   planId?: number;
@@ -19,7 +21,9 @@ interface Plan {
 }
 
 export function MyWorkoutPlansScreen() {
+  const c = useThemeColors();
   const router = useRouter();
+  const styles = createStyles(c);
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["myPlans"],
     queryFn: () => workoutPlanApi.getMyPlans(),
@@ -42,7 +46,7 @@ export function MyWorkoutPlansScreen() {
   return (
     <View style={styles.flex}>
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
       ) : isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load plans</Text>
@@ -62,16 +66,18 @@ export function MyWorkoutPlansScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  list: { padding: 16, gap: 12 },
-  card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: "#e5e7eb" },
-  planName: { fontSize: 16, fontWeight: "700", color: "#111827", marginBottom: 4 },
-  planDesc: { fontSize: 13, color: "#6b7280", marginBottom: 6 },
-  exerciseCount: { fontSize: 12, fontWeight: "600", color: "#2563eb" },
-  emptyText: { fontSize: 15, color: "#6b7280" },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
+    list: { padding: 16, gap: 12 },
+    card: { backgroundColor: c.card, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: c.border },
+    planName: { fontSize: 16, fontWeight: "700", color: c.text, marginBottom: 4 },
+    planDesc: { fontSize: 13, color: c.textSecondary, marginBottom: 6 },
+    exerciseCount: { fontSize: 12, fontWeight: "600", color: c.accent },
+    emptyText: { fontSize: 15, color: c.textSecondary },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+  });
+}

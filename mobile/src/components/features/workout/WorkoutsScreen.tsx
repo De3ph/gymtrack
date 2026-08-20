@@ -21,6 +21,8 @@ import { workoutApi } from "@/api/workoutApi"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Workout, WorkoutListResponse } from "@/types"
 import { ExercisePicker } from "./ExercisePicker"
+import { useThemeColors } from "@/components/useThemeColors"
+import type { ThemeColors } from "@/constants/Colors"
 
 interface NewSet {
   id: string
@@ -107,7 +109,9 @@ function WorkoutCard({
   onEdit,
   onDelete
 }: WorkoutCardProps) {
+  const c = useThemeColors()
   const { t } = useI18n()
+  const styles = createStyles(c)
   const exerciseCount = workout.exercises?.length ?? 0
   const totalSets =
     workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length ?? 0), 0) ?? 0
@@ -160,9 +164,11 @@ function WorkoutCard({
 }
 
 export function WorkoutsScreen() {
+  const c = useThemeColors()
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const router = useRouter()
+  const styles = createStyles(c)
 
   const openDetail = useCallback((w: Workout) => {
     if (w.workoutId == null) return
@@ -436,7 +442,7 @@ export function WorkoutsScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color='#2563eb' />
+        <ActivityIndicator size='large' color={c.accent} />
         <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     )
@@ -522,7 +528,7 @@ export function WorkoutsScreen() {
               value={newDate}
               onChangeText={setNewDate}
               placeholder='YYYY-MM-DD'
-              placeholderTextColor='#9ca3af'
+              placeholderTextColor={c.textTertiary}
               autoCapitalize='none'
               editable={!editingWorkout}
             />
@@ -550,7 +556,7 @@ export function WorkoutsScreen() {
                     value={ex.name}
                     onChangeText={(v) => updateExerciseName(ex.id, v)}
                     placeholder={t("workout.form.exercise.name.label")}
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={c.textTertiary}
                   />
                   <TouchableOpacity
                     style={styles.browseButton}
@@ -566,7 +572,7 @@ export function WorkoutsScreen() {
                   value={ex.notes}
                   onChangeText={(v) => updateExerciseNotes(ex.id, v)}
                   placeholder={t("workout.form.exercise.notes")}
-                  placeholderTextColor='#9ca3af'
+                  placeholderTextColor={c.textTertiary}
                   multiline
                 />
 
@@ -583,7 +589,7 @@ export function WorkoutsScreen() {
                       value={s.weight}
                       onChangeText={(v) => updateSetWeight(ex.id, s.id, v)}
                       placeholder={t("workout.form.exercise.sets.weight")}
-                      placeholderTextColor='#9ca3af'
+                      placeholderTextColor={c.textTertiary}
                       keyboardType='numeric'
                     />
                     <TextInput
@@ -591,7 +597,7 @@ export function WorkoutsScreen() {
                       value={s.reps}
                       onChangeText={(v) => updateSetReps(ex.id, s.id, v)}
                       placeholder={t("workout.form.exercise.sets.reps")}
-                      placeholderTextColor='#9ca3af'
+                      placeholderTextColor={c.textTertiary}
                       keyboardType='numeric'
                     />
                     {ex.sets.length > 1 && (
@@ -664,221 +670,223 @@ export function WorkoutsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9fafb" },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-    backgroundColor: "#f9fafb"
-  },
-  loadingText: { marginTop: 12, fontSize: 15, color: "#6b7280" },
-  errorText: {
-    fontSize: 15,
-    color: "#ef4444",
-    textAlign: "center",
-    marginBottom: 16
-  },
-  retryButton: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8
-  },
-  retryButtonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    centered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24,
+      backgroundColor: c.background
+    },
+    loadingText: { marginTop: 12, fontSize: 15, color: c.textSecondary },
+    errorText: {
+      fontSize: 15,
+      color: c.danger,
+      textAlign: "center",
+      marginBottom: 16
+    },
+    retryButton: {
+      backgroundColor: c.accent,
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      borderRadius: 8
+    },
+    retryButtonText: { color: c.onAccent, fontSize: 15, fontWeight: "600" },
 
-  listContent: { padding: 16, paddingBottom: 100 },
-  emptyListContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16
-  },
+    listContent: { padding: 16, paddingBottom: 100 },
+    emptyListContent: {
+      flexGrow: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 16
+    },
 
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2
-  },
-  cardDate: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 6
-  },
-  cardStats: { flexDirection: "row", alignItems: "center" },
-  cardStat: { fontSize: 14, color: "#6b7280" },
-  cardStatDivider: { fontSize: 14, color: "#d1d5db", marginHorizontal: 8 },
-  cardActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 16,
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6"
-  },
-  cardActionButton: { paddingVertical: 4, paddingHorizontal: 8 },
-  cardActionEdit: { fontSize: 14, fontWeight: "600", color: "#2563eb" },
-  cardActionDelete: { fontSize: 14, fontWeight: "600", color: "#ef4444" },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.06,
+      shadowRadius: 4,
+      elevation: 2
+    },
+    cardDate: {
+      fontSize: 17,
+      fontWeight: "600",
+      color: c.text,
+      marginBottom: 6
+    },
+    cardStats: { flexDirection: "row", alignItems: "center" },
+    cardStat: { fontSize: 14, color: c.textSecondary },
+    cardStatDivider: { fontSize: 14, color: c.borderStrong, marginHorizontal: 8 },
+    cardActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 16,
+      marginTop: 12,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor: c.surfaceSubtle
+    },
+    cardActionButton: { paddingVertical: 4, paddingHorizontal: 8 },
+    cardActionEdit: { fontSize: 14, fontWeight: "600", color: c.accent },
+    cardActionDelete: { fontSize: 14, fontWeight: "600", color: c.danger },
 
-  emptyCard: { alignItems: "center", paddingVertical: 40 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyText: { fontSize: 16, color: "#6b7280", textAlign: "center" },
+    emptyCard: { alignItems: "center", paddingVertical: 40 },
+    emptyIcon: { fontSize: 48, marginBottom: 12 },
+    emptyText: { fontSize: 16, color: c.textSecondary, textAlign: "center" },
 
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#2563eb",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6
-  },
-  fabText: { fontSize: 28, color: "#fff", lineHeight: 30 },
+    fab: {
+      position: "absolute",
+      bottom: 24,
+      right: 24,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: c.accent,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 6
+    },
+    fabText: { fontSize: 28, color: c.onAccent, lineHeight: 30 },
 
-  modalOverlay: { flex: 1, backgroundColor: "#f9fafb" },
-  modalScroll: { flex: 1 },
-  modalContent: { padding: 20, paddingBottom: 40 },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 20
-  },
+    modalOverlay: { flex: 1, backgroundColor: c.background },
+    modalScroll: { flex: 1 },
+    modalContent: { padding: 20, paddingBottom: 40 },
+    modalTitle: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: c.text,
+      marginBottom: 20
+    },
 
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 6,
-    marginTop: 12
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: "#111827",
-    backgroundColor: "#fff",
-    marginBottom: 8
-  },
-  textInputDisabled: {
-    backgroundColor: "#f3f4f6",
-    color: "#9ca3af"
-  },
-  notesInput: { minHeight: 60, textAlignVertical: "top" },
+    fieldLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: c.text,
+      marginBottom: 6,
+      marginTop: 12
+    },
+    textInput: {
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: c.text,
+      backgroundColor: c.card,
+      marginBottom: 8
+    },
+    textInputDisabled: {
+      backgroundColor: c.surfaceSubtle,
+      color: c.textTertiary
+    },
+    notesInput: { minHeight: 60, textAlignVertical: "top" },
 
-  exerciseBlock: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    padding: 14,
-    marginTop: 12,
-    backgroundColor: "#fff"
-  },
-  exerciseHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8
-  },
-  exerciseTitle: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  removeLink: { fontSize: 14, color: "#ef4444", fontWeight: "500" },
-  nameRow: { flexDirection: "row", gap: 8, alignItems: "center" },
-  nameInput: { flex: 1 },
-  browseButton: {
-    backgroundColor: "#2563eb", paddingHorizontal: 14, paddingVertical: 12,
-    borderRadius: 8,
-  },
-  browseText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+    exerciseBlock: {
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: 10,
+      padding: 14,
+      marginTop: 12,
+      backgroundColor: c.card
+    },
+    exerciseHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8
+    },
+    exerciseTitle: { fontSize: 15, fontWeight: "600", color: c.text },
+    removeLink: { fontSize: 14, color: c.danger, fontWeight: "500" },
+    nameRow: { flexDirection: "row", gap: 8, alignItems: "center" },
+    nameInput: { flex: 1 },
+    browseButton: {
+      backgroundColor: c.accent, paddingHorizontal: 14, paddingVertical: 12,
+      borderRadius: 8,
+    },
+    browseText: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
 
-  setsLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#374151",
-    marginTop: 8,
-    marginBottom: 6
-  },
-  setRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 4
-  },
-  setNumber: {
-    fontSize: 13,
-    color: "#6b7280",
-    width: 40
-  },
-  setInput: { flex: 1, marginBottom: 0 },
-  addSetButton: {
-    paddingVertical: 8,
-    marginTop: 4
-  },
-  addSetButtonText: { fontSize: 14, color: "#2563eb", fontWeight: "500" },
+    setsLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.textBody,
+      marginTop: 8,
+      marginBottom: 6
+    },
+    setRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 4
+    },
+    setNumber: {
+      fontSize: 13,
+      color: c.textSecondary,
+      width: 40
+    },
+    setInput: { flex: 1, marginBottom: 0 },
+    addSetButton: {
+      paddingVertical: 8,
+      marginTop: 4
+    },
+    addSetButtonText: { fontSize: 14, color: c.accent, fontWeight: "500" },
 
-  addExerciseButton: {
-    borderWidth: 1,
-    borderColor: "#2563eb",
-    borderStyle: "dashed",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: 16
-  },
-  addExerciseButtonText: {
-    fontSize: 15,
-    color: "#2563eb",
-    fontWeight: "600"
-  },
+    addExerciseButton: {
+      borderWidth: 1,
+      borderColor: c.accent,
+      borderStyle: "dashed",
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: "center",
+      marginTop: 16
+    },
+    addExerciseButtonText: {
+      fontSize: 15,
+      color: c.accent,
+      fontWeight: "600"
+    },
 
-  errorBanner: {
-    backgroundColor: "#fef2f2",
-    borderWidth: 1,
-    borderColor: "#fecaca",
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 16
-  },
-  errorBannerText: { fontSize: 14, color: "#ef4444" },
+    errorBanner: {
+      backgroundColor: c.dangerSurface,
+      borderWidth: 1,
+      borderColor: c.dangerBorder,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 16
+    },
+    errorBannerText: { fontSize: 14, color: c.danger },
 
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-    marginTop: 24
-  },
-  cancelButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db"
-  },
-  cancelButtonText: { fontSize: 15, color: "#6b7280", fontWeight: "600" },
-  submitButton: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8
-  },
-  submitButtonDisabled: { opacity: 0.5 },
-  submitButtonText: { fontSize: 15, color: "#fff", fontWeight: "600" }
-})
+    modalActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 12,
+      marginTop: 24
+    },
+    cancelButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: c.borderStrong
+    },
+    cancelButtonText: { fontSize: 15, color: c.textSecondary, fontWeight: "600" },
+    submitButton: {
+      backgroundColor: c.accent,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8
+    },
+    submitButtonDisabled: { opacity: 0.5 },
+    submitButtonText: { fontSize: 15, color: c.onAccent, fontWeight: "600" }
+  })
+}

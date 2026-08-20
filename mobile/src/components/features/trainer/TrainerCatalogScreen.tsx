@@ -12,6 +12,8 @@ import {
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { trainerCatalogApi } from "@/api/trainerCatalogApi";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface TrainerItem {
   userId?: number;
@@ -20,8 +22,11 @@ interface TrainerItem {
 }
 
 export function TrainerCatalogScreen() {
+  const c = useThemeColors();
   const router = useRouter();
   const [search, setSearch] = useState("");
+
+  const styles = createStyles(c);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["trainers", search],
@@ -63,12 +68,12 @@ export function TrainerCatalogScreen() {
           value={search}
           onChangeText={setSearch}
           placeholder="Search by specialization..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={c.textTertiary}
         />
       </View>
 
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
       ) : isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load trainers</Text>
@@ -90,24 +95,26 @@ export function TrainerCatalogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  searchBar: { padding: 16, backgroundColor: "#fff", borderBottomWidth: 0.5, borderBottomColor: "#e5e7eb" },
-  searchInput: { backgroundColor: "#f3f4f6", borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, fontSize: 15, color: "#111827" },
-  list: { padding: 16, gap: 12 },
-  card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: "#e5e7eb" },
-  cardHeader: { flexDirection: "row", gap: 12, marginBottom: 10 },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#2563eb", alignItems: "center", justifyContent: "center" },
-  avatarText: { color: "#fff", fontSize: 20, fontWeight: "700" },
-  cardInfo: { flex: 1 },
-  trainerName: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  bio: { fontSize: 13, color: "#6b7280", marginTop: 3 },
-  tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  tag: { backgroundColor: "#dbeafe", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  tagText: { fontSize: 11, fontWeight: "600", color: "#1d4ed8" },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-  emptyText: { fontSize: 15, color: "#6b7280" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
+    searchBar: { padding: 16, backgroundColor: c.card, borderBottomWidth: 0.5, borderBottomColor: c.border },
+    searchInput: { backgroundColor: c.surfaceSubtle, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, fontSize: 15, color: c.text },
+    list: { padding: 16, gap: 12 },
+    card: { backgroundColor: c.card, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: c.border },
+    cardHeader: { flexDirection: "row", gap: 12, marginBottom: 10 },
+    avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: c.accent, alignItems: "center", justifyContent: "center" },
+    avatarText: { color: c.onAccent, fontSize: 20, fontWeight: "700" },
+    cardInfo: { flex: 1 },
+    trainerName: { fontSize: 16, fontWeight: "700", color: c.text },
+    bio: { fontSize: 13, color: c.textSecondary, marginTop: 3 },
+    tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+    tag: { backgroundColor: c.accentSurface, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+    tagText: { fontSize: 11, fontWeight: "600", color: c.accentOnLight },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+    emptyText: { fontSize: 15, color: c.textSecondary },
+  });
+}

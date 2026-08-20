@@ -12,6 +12,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
 import { workoutPlanApi } from "@/api/workoutPlanApi";
 import { useState } from "react";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface Athlete {
   userId?: number;
@@ -33,8 +35,11 @@ interface Props {
 }
 
 export function AssignClientModal({ visible, onClose, planId, onAssigned }: Props) {
+  const c = useThemeColors();
   const queryClient = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  const styles = createStyles(c);
 
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -121,7 +126,7 @@ export function AssignClientModal({ visible, onClose, planId, onAssigned }: Prop
           </View>
 
           {isLoading ? (
-            <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>
+            <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
           ) : isError ? (
             <View style={styles.center}>
               <Text style={styles.errorText}>Failed to load clients</Text>
@@ -147,7 +152,7 @@ export function AssignClientModal({ visible, onClose, planId, onAssigned }: Prop
                 disabled={selectedIds.size === 0 || assigning}
               >
                 {assigning ? (
-                  <ActivityIndicator color="#fff" size="small" />
+                  <ActivityIndicator color={c.onAccent} size="small" />
                 ) : (
                   <Text style={styles.assignText}>Assign ({selectedIds.size})</Text>
                 )}
@@ -161,39 +166,41 @@ export function AssignClientModal({ visible, onClose, planId, onAssigned }: Prop
 }
 
 
-const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
-  content: { backgroundColor: "#fff", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight: "80%" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  title: { fontSize: 20, fontWeight: "700", color: "#111827" },
-  closeBtn: { fontSize: 20, color: "#6b7280", padding: 4 },
-  center: { alignItems: "center", padding: 32 },
-  errorText: { fontSize: 14, color: "#ef4444", marginBottom: 12 },
-  retryBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-  emptyText: { fontSize: 14, color: "#6b7280" },
-  list: { gap: 8 },
-  clientItem: {
-    backgroundColor: "#f9fafb", borderRadius: 10, padding: 14,
-    borderWidth: 1.5, borderColor: "transparent",
-  },
-  clientItemSelected: { borderColor: "#2563eb", backgroundColor: "#eff6ff" },
-  checkRow: { flexDirection: "row", alignItems: "center" },
-  checkbox: {
-    width: 24, height: 24, borderRadius: 6, borderWidth: 2,
-    borderColor: "#d1d5db", marginRight: 12,
-    alignItems: "center", justifyContent: "center",
-  },
-  checkboxChecked: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  checkmark: { color: "#fff", fontSize: 14, fontWeight: "700" },
-  clientInfo: { flex: 1 },
-  clientName: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  clientSub: { fontSize: 13, color: "#6b7280", marginTop: 1 },
-  assignBtn: {
-    marginTop: 16, backgroundColor: "#2563eb", borderRadius: 10,
-    paddingVertical: 14, alignItems: "center",
-  },
-  assignBtnDisabled: { backgroundColor: "#93c5fd" },
-  assignText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+    content: { backgroundColor: c.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight: "80%" },
+    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+    title: { fontSize: 20, fontWeight: "700", color: c.text },
+    closeBtn: { fontSize: 20, color: c.textSecondary, padding: 4 },
+    center: { alignItems: "center", padding: 32 },
+    errorText: { fontSize: 14, color: c.danger, marginBottom: 12 },
+    retryBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600", fontSize: 13 },
+    emptyText: { fontSize: 14, color: c.textSecondary },
+    list: { gap: 8 },
+    clientItem: {
+      backgroundColor: c.background, borderRadius: 10, padding: 14,
+      borderWidth: 1.5, borderColor: "transparent",
+    },
+    clientItemSelected: { borderColor: c.accent, backgroundColor: c.accentSurface },
+    checkRow: { flexDirection: "row", alignItems: "center" },
+    checkbox: {
+      width: 24, height: 24, borderRadius: 6, borderWidth: 2,
+      borderColor: c.borderStrong, marginRight: 12,
+      alignItems: "center", justifyContent: "center",
+    },
+    checkboxChecked: { backgroundColor: c.accent, borderColor: c.accent },
+    checkmark: { color: c.onAccent, fontSize: 14, fontWeight: "700" },
+    clientInfo: { flex: 1 },
+    clientName: { fontSize: 15, fontWeight: "600", color: c.text },
+    clientSub: { fontSize: 13, color: c.textSecondary, marginTop: 1 },
+    assignBtn: {
+      marginTop: 16, backgroundColor: c.accent, borderRadius: 10,
+      paddingVertical: 14, alignItems: "center",
+    },
+    assignBtnDisabled: { backgroundColor: c.accentDisabled },
+    assignText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
+  });
+}
 

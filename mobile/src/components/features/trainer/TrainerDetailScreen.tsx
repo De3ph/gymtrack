@@ -17,6 +17,8 @@ import { coachingRequestApi } from "@/api/coachingRequestApi";
 import { availabilityApi } from "@/api/availabilityApi";
 import { useAuthStore } from "@/stores/authStore";
 import { StarRatingInput } from "./StarRatingInput";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface TrainerData {
   userId?: number;
@@ -31,6 +33,7 @@ interface ReviewItem {
 }
 
 export function TrainerDetailScreen() {
+  const c = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
@@ -39,6 +42,8 @@ export function TrainerDetailScreen() {
   const [rating, setRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
+
+  const styles = createStyles(c);
 
   const { data: trainer, isLoading, isError, refetch } = useQuery({
     queryKey: ["trainer", id],
@@ -79,7 +84,7 @@ export function TrainerDetailScreen() {
     onError: (err: Error) => Alert.alert("Error", err.message),
   });
 
-  if (isLoading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
+  if (isLoading) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
   if (isError || !trainer) return (
     <View style={styles.center}>
       <Text style={styles.errorText}>Failed to load trainer</Text>
@@ -142,7 +147,7 @@ export function TrainerDetailScreen() {
                 value={reviewComment}
                 onChangeText={setReviewComment}
                 placeholder="Add a comment (optional)..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={c.textTertiary}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
@@ -156,7 +161,7 @@ export function TrainerDetailScreen() {
                   onPress={() => submitReview()}
                   disabled={!id || rating === 0 || submittingReview}
                 >
-                  {submittingReview ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendBtnText}>Submit Review</Text>}
+                  {submittingReview ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.sendBtnText}>Submit Review</Text>}
                 </TouchableOpacity>
               </View>
             </View>
@@ -172,11 +177,11 @@ export function TrainerDetailScreen() {
         <View style={styles.actionSection}>
           {showRequestForm ? (
             <View style={styles.requestForm}>
-              <TextInput style={styles.messageInput} value={message} onChangeText={setMessage} placeholder="Add a message (optional)..." placeholderTextColor="#9ca3af" multiline numberOfLines={3} textAlignVertical="top" />
+              <TextInput style={styles.messageInput} value={message} onChangeText={setMessage} placeholder="Add a message (optional)..." placeholderTextColor={c.textTertiary} multiline numberOfLines={3} textAlignVertical="top" />
               <View style={styles.formButtons}>
                 <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowRequestForm(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.sendBtn} onPress={() => sendRequest()} disabled={sending}>
-                  {sending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendBtnText}>Send Request</Text>}
+                  {sending ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.sendBtnText}>Send Request</Text>}
                 </TouchableOpacity>
               </View>
             </View>
@@ -191,39 +196,41 @@ export function TrainerDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  container: { padding: 24, paddingBottom: 48 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: { alignItems: "center", marginBottom: 24 },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: "#2563eb", alignItems: "center", justifyContent: "center", marginBottom: 12 },
-  avatarText: { color: "#fff", fontSize: 32, fontWeight: "800" },
-  name: { fontSize: 24, fontWeight: "700", color: "#111827", marginBottom: 6 },
-  bio: { fontSize: 14, color: "#6b7280", textAlign: "center" },
-  section: { backgroundColor: "#fff", borderRadius: 12, padding: 16, marginBottom: 16 },
-  sectionTitle: { fontSize: 14, fontWeight: "700", color: "#6b7280", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
-  tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  tag: { backgroundColor: "#dbeafe", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  tagText: { fontSize: 12, fontWeight: "600", color: "#1d4ed8" },
-  slotText: { fontSize: 14, color: "#111827", paddingVertical: 3 },
-  reviewCard: { paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: "#e5e7eb" },
-  rating: { fontSize: 14, color: "#f59e0b", letterSpacing: 1, marginBottom: 4 },
-  reviewComment: { fontSize: 14, color: "#374151" },
-  actionSection: { marginTop: 8 },
-  requestButton: { backgroundColor: "#2563eb", paddingVertical: 14, borderRadius: 10, alignItems: "center" },
-  requestText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  requestForm: { gap: 12 },
-  messageInput: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#d1d5db", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: "#111827", minHeight: 80, textAlignVertical: "top" },
-  formButtons: { flexDirection: "row", gap: 10 },
-  cancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: "#d1d5db", alignItems: "center" },
-  cancelBtnText: { fontSize: 14, fontWeight: "600", color: "#6b7280" },
-  sendBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
-  sendBtnText: { fontSize: 14, fontWeight: "600", color: "#fff" },
-  sendBtnDisabled: { backgroundColor: "#9ca3af" },
-  reviewForm: { gap: 12 },
-  reviewButton: { backgroundColor: "#f59e0b", paddingVertical: 14, borderRadius: 10, alignItems: "center" },
-  reviewText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    container: { padding: 24, paddingBottom: 48 },
+    center: { flex: 1, justifyContent: "center", alignItems: "center" },
+    header: { alignItems: "center", marginBottom: 24 },
+    avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: c.accent, alignItems: "center", justifyContent: "center", marginBottom: 12 },
+    avatarText: { color: c.onAccent, fontSize: 32, fontWeight: "800" },
+    name: { fontSize: 24, fontWeight: "700", color: c.text, marginBottom: 6 },
+    bio: { fontSize: 14, color: c.textSecondary, textAlign: "center" },
+    section: { backgroundColor: c.card, borderRadius: 12, padding: 16, marginBottom: 16 },
+    sectionTitle: { fontSize: 14, fontWeight: "700", color: c.textSecondary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
+    tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+    tag: { backgroundColor: c.accentSurface, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    tagText: { fontSize: 12, fontWeight: "600", color: c.accentOnLight },
+    slotText: { fontSize: 14, color: c.text, paddingVertical: 3 },
+    reviewCard: { paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: c.border },
+    rating: { fontSize: 14, color: c.warning, letterSpacing: 1, marginBottom: 4 },
+    reviewComment: { fontSize: 14, color: c.textBody },
+    actionSection: { marginTop: 8 },
+    requestButton: { backgroundColor: c.accent, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
+    requestText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
+    requestForm: { gap: 12 },
+    messageInput: { backgroundColor: c.card, borderWidth: 1, borderColor: c.borderStrong, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: c.text, minHeight: 80, textAlignVertical: "top" },
+    formButtons: { flexDirection: "row", gap: 10 },
+    cancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: c.borderStrong, alignItems: "center" },
+    cancelBtnText: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
+    sendBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.accent, alignItems: "center" },
+    sendBtnText: { fontSize: 14, fontWeight: "600", color: c.onAccent },
+    sendBtnDisabled: { backgroundColor: c.textTertiary },
+    reviewForm: { gap: 12 },
+    reviewButton: { backgroundColor: c.warning, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
+    reviewText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+  });
+}

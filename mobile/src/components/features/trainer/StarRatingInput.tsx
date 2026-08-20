@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface StarRatingInputProps {
   value: number;
@@ -21,8 +23,11 @@ export function StarRatingInput({
   disabled = false,
   label,
 }: StarRatingInputProps) {
+  const c = useThemeColors();
   const [hover, setHover] = useState(0);
   const display = hover || value;
+
+  const styles = createStyles(c);
 
   return (
     <View style={styles.wrap}>
@@ -46,7 +51,7 @@ export function StarRatingInput({
               <Text
                 style={[
                   styles.star,
-                  { fontSize: size, color: filled ? "#f59e0b" : "#d1d5db" },
+                  { fontSize: size, color: filled ? c.warning : c.borderStrong },
                   disabled && styles.disabled,
                 ]}
               >
@@ -60,10 +65,12 @@ export function StarRatingInput({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { gap: 6 },
-  label: { fontSize: 14, fontWeight: "600", color: "#374151" },
-  row: { flexDirection: "row", gap: 4 },
-  star: { fontWeight: "800" },
-  disabled: { opacity: 0.5 },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    wrap: { gap: 6 },
+    label: { fontSize: 14, fontWeight: "600", color: c.textBody },
+    row: { flexDirection: "row", gap: 4 },
+    star: { fontWeight: "800" },
+    disabled: { opacity: 0.5 },
+  });
+}

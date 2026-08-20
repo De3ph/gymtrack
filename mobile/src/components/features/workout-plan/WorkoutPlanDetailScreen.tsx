@@ -14,6 +14,8 @@ import { workoutPlanApi } from "@/api/workoutPlanApi";
 import { useAuthStore } from "@/stores/authStore";
 import { AssignClientModal } from "./AssignClientModal";
 import { useState } from "react";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface PlanDetail {
   planId?: number;
@@ -23,11 +25,14 @@ interface PlanDetail {
 }
 
 export function WorkoutPlanDetailScreen() {
+  const c = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const user = useAuthStore((s) => s.user);
   const isTrainer = user?.role === "trainer";
+
+  const styles = createStyles(c);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -90,7 +95,7 @@ export function WorkoutPlanDetailScreen() {
     setIsEditing(false);
   };
 
-  if (isLoading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
+  if (isLoading) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
   if (isError || !data) return (
     <View style={styles.center}>
       <Text style={styles.errorText}>Failed to load plan</Text>
@@ -109,14 +114,14 @@ export function WorkoutPlanDetailScreen() {
             value={editName}
             onChangeText={setEditName}
             placeholder="Plan name"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={c.textTertiary}
           />
           <TextInput
             style={[styles.input, styles.textArea]}
             value={editDescription}
             onChangeText={setEditDescription}
             placeholder="Description (optional)"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={c.textTertiary}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
@@ -126,7 +131,7 @@ export function WorkoutPlanDetailScreen() {
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.saveBtn} onPress={() => savePlan()} disabled={saving || !editName.trim()}>
-              {saving ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.saveText}>Save</Text>}
+              {saving ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.saveText}>Save</Text>}
             </TouchableOpacity>
           </View>
         </>
@@ -146,7 +151,7 @@ export function WorkoutPlanDetailScreen() {
             <Text style={styles.assignButtonText}>Assign</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.deleteButton} onPress={handleDelete} disabled={deleting}>
-            {deleting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.deleteButtonText}>Delete</Text>}
+            {deleting ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.deleteButtonText}>Delete</Text>}
           </TouchableOpacity>
         </View>
       )}
@@ -169,31 +174,33 @@ export function WorkoutPlanDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#f9fafb" },
-  container: { padding: 24, paddingBottom: 48 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, fontWeight: "700", color: "#111827", marginBottom: 8 },
-  desc: { fontSize: 14, color: "#6b7280", marginBottom: 20 },
-  sectionTitle: { fontSize: 14, fontWeight: "700", color: "#6b7280", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, marginTop: 8 },
-  exerciseCard: { backgroundColor: "#fff", borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: "#e5e7eb" },
-  exName: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  exDetail: { fontSize: 13, color: "#6b7280", marginTop: 3 },
-  errorText: { fontSize: 15, color: "#ef4444", marginBottom: 12 },
-  retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#2563eb", borderRadius: 8 },
-  retryText: { color: "#fff", fontWeight: "600" },
-  actions: { flexDirection: "row", gap: 10, marginBottom: 16, marginTop: 8 },
-  editButton: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
-  editButtonText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  assignButton: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: "#059669", alignItems: "center" },
-  assignButtonText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  deleteButton: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: "#ef4444", alignItems: "center" },
-  deleteButtonText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  input: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#d1d5db", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: "#111827", marginBottom: 10 },
-  textArea: { minHeight: 70, paddingTop: 10 },
-  editButtons: { flexDirection: "row", gap: 10, marginBottom: 16 },
-  cancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: "#d1d5db", alignItems: "center" },
-  cancelText: { fontSize: 14, fontWeight: "600", color: "#6b7280" },
-  saveBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
-  saveText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-});
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    container: { padding: 24, paddingBottom: 48 },
+    center: { flex: 1, justifyContent: "center", alignItems: "center" },
+    title: { fontSize: 24, fontWeight: "700", color: c.text, marginBottom: 8 },
+    desc: { fontSize: 14, color: c.textSecondary, marginBottom: 20 },
+    sectionTitle: { fontSize: 14, fontWeight: "700", color: c.textSecondary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, marginTop: 8 },
+    exerciseCard: { backgroundColor: c.card, borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: c.border },
+    exName: { fontSize: 15, fontWeight: "600", color: c.text },
+    exDetail: { fontSize: 13, color: c.textSecondary, marginTop: 3 },
+    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
+    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryText: { color: c.onAccent, fontWeight: "600" },
+    actions: { flexDirection: "row", gap: 10, marginBottom: 16, marginTop: 8 },
+    editButton: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: c.accent, alignItems: "center" },
+    editButtonText: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
+    assignButton: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: c.success, alignItems: "center" },
+    assignButtonText: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
+    deleteButton: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: c.danger, alignItems: "center" },
+    deleteButtonText: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
+    input: { backgroundColor: c.card, borderWidth: 1, borderColor: c.borderStrong, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: c.text, marginBottom: 10 },
+    textArea: { minHeight: 70, paddingTop: 10 },
+    editButtons: { flexDirection: "row", gap: 10, marginBottom: 16 },
+    cancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: c.borderStrong, alignItems: "center" },
+    cancelText: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
+    saveBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.accent, alignItems: "center" },
+    saveText: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
+  });
+}
