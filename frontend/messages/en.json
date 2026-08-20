@@ -374,6 +374,12 @@
         "fallback_name": "Exercise {number}"
       },
       "add_exercise": "Add Exercise",
+      "plan": {
+        "label": "Load from plan",
+        "placeholder": "Select a saved plan...",
+        "empty": "No saved plans",
+        "loaded": "Loaded exercises from {name}"
+      },
       "submit": "Log Workout",
       "submitting": "Saving...",
       "validation": {
@@ -989,6 +995,7 @@
         "calfLeft": "Calf (L)",
         "calfRight": "Calf (R)"
       },
+      "invalid": "Enter a numeric value",
       "notes": {
         "label": "Notes",
         "optional": "optional",

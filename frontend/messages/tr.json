@@ -375,6 +375,12 @@
         "fallback_name": "Egzersiz {number}"
       },
       "add_exercise": "Egzersiz Ekle",
+      "plan": {
+        "label": "Plandan yükle",
+        "placeholder": "Kayıtlı bir plan seç...",
+        "empty": "Kayıtlı plan yok",
+        "loaded": "{name} planından egzersizler yüklendi"
+      },
       "submit": "Antrenman Kaydet",
       "submitting": "Kaydediliyor...",
       "validation": {
@@ -990,6 +996,7 @@
         "calfLeft": "Baldır (Sol)",
         "calfRight": "Baldır (Sağ)"
       },
+      "invalid": "Sayısal bir değer girin",
       "notes": {
         "label": "Notlar",
         "optional": "opsiyonel",
