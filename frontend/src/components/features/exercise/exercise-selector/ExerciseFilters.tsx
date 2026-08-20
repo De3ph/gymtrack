@@ -60,7 +60,7 @@ export function ExerciseFilters({
   );
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
       <Select
         items={muscleGroupItems}
         value={selectedMuscleGroup ? String(selectedMuscleGroup) : ""}

@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import dayjs from "dayjs";
+import dayjs, { formatDate } from "@/lib/i18n/dayjs";
 import {
   Edit2,
   Trash2,

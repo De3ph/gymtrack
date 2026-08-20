@@ -48,7 +48,7 @@ export function ClientTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
-      <TabsList className="mb-4 flex-wrap">
+      <TabsList className="mb-4 flex-wrap" variant="line">
         <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
         <TabsTrigger value="workouts">
           {t("workouts")} ({workouts.length})

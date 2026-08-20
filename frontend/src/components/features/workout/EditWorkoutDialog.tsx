@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { FieldLabel } from "@/components/ui/field";
 import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
+import { Workout, ExerciseSet } from "@/types";
 import {
   createWorkoutWithPerSetSchema,
   WorkoutWithPerSetFormData,
@@ -117,7 +117,6 @@ export function EditWorkoutDialog({
   // Reset form and clear error when workout changes
   React.useEffect(() => {
     if (workout && open) {
-      setError(null); // Clear any previous errors
       form.reset({
         date: dayjs(workout.date).toDate(),
         workoutTime: formatDate(workout.date, "HH:mm"),

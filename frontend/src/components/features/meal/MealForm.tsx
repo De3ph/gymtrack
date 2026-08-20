@@ -29,12 +29,14 @@ import { createMealSchema } from "@/lib/validations/meal";
 
 interface MealFormProps {
   onSuccess?: () => void;
+  onClear?: () => void;
 }
 
-export function MealForm({ onSuccess }: MealFormProps) {
+export function MealForm({ onSuccess, onClear }: MealFormProps) {
   const queryClient = useQueryClient();
   const t = useTranslations("meal");
   const tValidation = useTranslations("meal.form.validation");
+  const tCommon = useTranslations("common.actions");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   const mealSchema = React.useMemo(
@@ -354,16 +356,8 @@ export function MealForm({ onSuccess }: MealFormProps) {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        )}
-      </form.Field>
-
-      <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
-        <form.Field name="items" mode="array">
-          {(field) => (
             <Button
               type="button"
-              variant="outline"
               onClick={() =>
                 field.pushValue({
                   food: "",
@@ -372,12 +366,26 @@ export function MealForm({ onSuccess }: MealFormProps) {
                   macros: { protein: 0, carbs: 0, fats: 0 },
                 })
               }
-              className="w-full md:w-auto"
+              className="w-full"
             >
               <Plus className="mr-2 h-4 w-4" /> {t("form.add_food_item")}
             </Button>
-          )}
-        </form.Field>
+          </div>
+        )}
+      </form.Field>
+
+      <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            form.reset();
+            onClear?.();
+          }}
+          className="w-full md:w-auto"
+        >
+          {tCommon("clear")}
+        </Button>
         <Button
           type="submit"
           disabled={isPending}

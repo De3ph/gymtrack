@@ -3,16 +3,11 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { formatDate } from "@/lib/i18n/dayjs";
+import dayjs, { formatDate } from "@/lib/i18n/dayjs";
 import { useTranslations } from "next-intl";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { workoutApi } from "@/lib/api";
 import { WorkoutExercise, ExerciseSet } from "@/types";
 

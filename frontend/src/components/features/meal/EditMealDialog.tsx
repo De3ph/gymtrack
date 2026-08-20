@@ -30,7 +30,7 @@ import { mealApi } from "@/lib/api"
 import { ApiErrorHandler } from "@/lib/error-handler"
 import { DATE_FORMATS } from "@/lib/constants"
 import { Meal } from "@/types"
-import type { MealFormData, FoodItemFormData } from "@/lib/validations/meal"
+import type { MealFormData } from "@/lib/validations/meal"
 import { createMealSchema } from "@/lib/validations/meal"
 
 interface EditMealDialogProps {
@@ -81,7 +81,6 @@ export function EditMealDialog({
   React.useEffect(() => {
     if (meal) {
       const mealDate = dayjs(meal.date)
-      setSubmitError(null)
       form.setFieldValue("date", mealDate.toDate())
       form.setFieldValue("mealTime", mealDate.format("HH:mm"))
       form.setFieldValue("mealType", meal.mealType as "breakfast")

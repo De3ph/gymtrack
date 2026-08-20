@@ -2,7 +2,7 @@
 
 import { Eye } from "lucide-react";
 import { Fragment, useState } from "react";
-import { WorkoutPlan, WorkoutPlanSet } from "@/types";
+import { WorkoutPlan } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,15 +18,6 @@ import { Separator } from "@/components/ui/separator";
 interface PlanViewDialogProps {
   plan: WorkoutPlan;
   label?: string;
-}
-
-function formatSets(
-  t: (key: string, params?: any) => string,
-  sets: WorkoutPlanSet[],
-): string {
-  const count = sets.length;
-  const reps = sets.map((s) => s.reps).join(",");
-  return t("set_format", { count, reps });
 }
 
 export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
@@ -73,7 +64,10 @@ export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
                       {exercise.name}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {formatSets(t, exercise.sets)}
+                      {t("set_format", {
+                        count: exercise.sets.length,
+                        reps: exercise.sets.map((s) => s.reps).join(","),
+                      })}
                     </p>
                   </div>
                   {exercise.notes && (

@@ -18,11 +18,11 @@ import { ApiErrorHandler } from "@/lib/error-handler";
 import { BODY_PARTS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { revalidateBodyMeasurementsCache } from "@/lib/actions/cache";
+import { BodyMeasurement, BodyMeasurementPart } from "@/types";
 import {
-  BodyMeasurement,
-  BodyMeasurementPart
-} from "@/types";
-import { bodyMeasurementSchema, BodyMeasurementFormData } from "@/lib/validations/bodyMeasurement";
+  bodyMeasurementSchema,
+  BodyMeasurementFormData,
+} from "@/lib/validations/bodyMeasurement";
 
 interface BodyMeasurementFormProps {
   initialMeasurement?: BodyMeasurement;
@@ -30,10 +30,13 @@ interface BodyMeasurementFormProps {
   onClear?: () => void;
 }
 
+const sanitizeNumericInput = (raw: string): string =>
+  raw.replace(/[^\d.]/g, "");
+
 const buildEmptyParts = (): Record<string, BodyMeasurementPart> => ({});
 
 const formatPartsForApi = (
-  parts: Record<string, BodyMeasurementPart> | undefined
+  parts: Record<string, BodyMeasurementPart> | undefined,
 ): Record<string, BodyMeasurementPart> => {
   const out: Record<string, BodyMeasurementPart> = {};
   if (!parts) return out;
@@ -48,7 +51,7 @@ const formatPartsForApi = (
 export function BodyMeasurementForm({
   initialMeasurement,
   onSuccess,
-  onClear
+  onClear,
 }: BodyMeasurementFormProps) {
   const queryClient = useQueryClient();
   const t = useTranslations("athlete.measurements");
@@ -64,6 +67,9 @@ export function BodyMeasurementForm({
     return {};
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [partErrors, setPartErrors] = useState<Record<string, string | null>>(
+    {},
+  );
 
   const form = useForm({
     defaultValues: {
@@ -79,15 +85,15 @@ export function BodyMeasurementForm({
       parts: (initialMeasurement?.parts
         ? (initialMeasurement.parts as Record<string, BodyMeasurementPart>)
         : buildEmptyParts()) as Record<string, BodyMeasurementPart>,
-      notes: initialMeasurement?.notes ?? ""
+      notes: initialMeasurement?.notes ?? "",
     } as BodyMeasurementFormData,
     validators: {
-      onSubmit: bodyMeasurementSchema
+      onSubmit: bodyMeasurementSchema,
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
       saveMeasurement(value);
-    }
+    },
   });
 
   const { mutate: saveMeasurement, isPending } = useMutation({
@@ -99,10 +105,13 @@ export function BodyMeasurementForm({
         weightUnit: data.weightUnit,
         bodyFatPct: data.bodyFatPct,
         parts: formatPartsForApi(data.parts),
-        notes: data.notes
+        notes: data.notes,
       };
       if (initialMeasurement) {
-        return bodyMeasurementApi.update(initialMeasurement.measurementId, payload);
+        return bodyMeasurementApi.update(
+          initialMeasurement.measurementId,
+          payload,
+        );
       }
       return bodyMeasurementApi.create(payload);
     },
@@ -113,13 +122,14 @@ export function BodyMeasurementForm({
       queryClient.invalidateQueries({ queryKey: ["client-measurements"] });
       form.reset();
       setPartInputs({});
+      setPartErrors({});
       if (onSuccess) onSuccess();
     },
     onError: (error) => {
       const errorMessage = ApiErrorHandler.handle(error);
       setSubmitError(errorMessage);
       console.error("Failed to save body measurement:", errorMessage);
-    }
+    },
   });
 
   const { mutate: fetchPrevious, isPending: isFetchingPrevious } = useMutation({
@@ -134,20 +144,21 @@ export function BodyMeasurementForm({
         weightUnit: latest.weightUnit,
         bodyFatPct: latest.bodyFatPct ?? undefined,
         parts: nextParts,
-        notes: ""
+        notes: "",
       });
       const map: Record<string, string> = {};
       for (const [k, v] of Object.entries(nextParts)) {
         map[k] = String(v.value ?? "");
       }
       setPartInputs(map);
+      setPartErrors({});
       setSubmitError(null);
     },
     onError: (error) => {
       const errorMessage = ApiErrorHandler.handle(error);
       setSubmitError(errorMessage);
       console.error("Failed to fetch previous measurement:", errorMessage);
-    }
+    },
   });
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -156,10 +167,16 @@ export function BodyMeasurementForm({
   };
 
   const handlePartInputChange = (key: string, raw: string) => {
-    setPartInputs((prev) => ({ ...prev, [key]: raw }));
+    setPartInputs((prev) => ({ ...prev, [key]: sanitizeNumericInput(raw) }));
   };
 
-  const handlePartBlur = (field: { state: { value: Record<string, BodyMeasurementPart> | undefined }; handleChange: (v: Record<string, BodyMeasurementPart>) => void }, key: string) => {
+  const handlePartBlur = (
+    field: {
+      state: { value: Record<string, BodyMeasurementPart> | undefined };
+      handleChange: (v: Record<string, BodyMeasurementPart>) => void;
+    },
+    key: string,
+  ) => {
     const raw = partInputs[key] ?? "";
     const num = parseFloat(raw);
     const current: Record<string, BodyMeasurementPart> =
@@ -168,8 +185,13 @@ export function BodyMeasurementForm({
       const next = { ...current };
       delete next[key];
       field.handleChange(next);
+      setPartErrors((prev) => ({
+        ...prev,
+        [key]: raw.trim() === "" ? null : t("parts.invalid"),
+      }));
     } else {
       field.handleChange({ ...current, [key]: { value: num } });
+      setPartErrors((prev) => ({ ...prev, [key]: null }));
     }
   };
 
@@ -189,7 +211,7 @@ export function BodyMeasurementForm({
         selector={(state) => ({
           canSubmit: state.canSubmit,
           isSubmitting: state.isSubmitting,
-          formErrors: state.errors
+          formErrors: state.errors,
         })}
       >
         {({ formErrors }) =>
@@ -204,7 +226,8 @@ export function BodyMeasurementForm({
                   <li key={i}>
                     {typeof err === "string"
                       ? err
-                      : (err as { message?: string })?.message ?? "Invalid input"}
+                      : ((err as { message?: string })?.message ??
+                        "Invalid input")}
                   </li>
                 ))}
               </ul>
@@ -221,7 +244,9 @@ export function BodyMeasurementForm({
               <>
                 <DatePicker
                   value={field.state.value}
-                  onChange={(d) => { if (d) field.handleChange(d); }}
+                  onChange={(d) => {
+                    if (d) field.handleChange(d);
+                  }}
                   onBlur={field.handleBlur}
                   id="measurement-date"
                   aria-invalid={!field.state.meta.isValid}
@@ -251,15 +276,21 @@ export function BodyMeasurementForm({
           </form.Field>
         </div>
         <div className="flex flex-col space-y-2">
-          <FieldLabel htmlFor="measurement-weight">{t("weight.label")}</FieldLabel>
-          <form.Field name="weight">
+          <FieldLabel htmlFor="measurement-weight">
+            {t("weight.label")}
+          </FieldLabel>
+          <form.Field
+            name="weight"
+            validators={{ onBlur: bodyMeasurementSchema.shape.weight }}
+          >
             {(field) => (
               <>
                 <Input
                   value={field.state.value || ""}
-                  onChange={(e) =>
-                    field.handleChange(parseFloat(e.target.value) || 0)
-                  }
+                  onChange={(e) => {
+                    const clean = sanitizeNumericInput(e.target.value);
+                    field.handleChange(clean === "" ? 0 : parseFloat(clean));
+                  }}
                   onBlur={field.handleBlur}
                   type="number"
                   step="0.1"
@@ -296,19 +327,25 @@ export function BodyMeasurementForm({
 
       <div className="flex flex-col space-y-2">
         <FieldLabel htmlFor="measurement-bodyfat">
-          {t("body_fat.label")} <span className="text-muted-foreground">({t("body_fat.optional")})</span>
+          {t("body_fat.label")}{" "}
+          <span className="text-muted-foreground">
+            ({t("body_fat.optional")})
+          </span>
         </FieldLabel>
-        <form.Field name="bodyFatPct">
+        <form.Field
+          name="bodyFatPct"
+          validators={{ onBlur: bodyMeasurementSchema.shape.bodyFatPct }}
+        >
           {(field) => (
             <>
               <Input
                 value={field.state.value ?? ""}
                 onChange={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
+                  const clean = sanitizeNumericInput(e.target.value);
+                  if (clean === "") {
                     field.handleChange(undefined);
                   } else {
-                    const n = parseFloat(raw);
+                    const n = parseFloat(clean);
                     field.handleChange(Number.isFinite(n) ? n : undefined);
                   }
                 }}
@@ -331,7 +368,9 @@ export function BodyMeasurementForm({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <FieldLabel>{t("parts.label")}</FieldLabel>
-          <span className="text-xs text-muted-foreground">{t("parts.hint")}</span>
+          <span className="text-xs text-muted-foreground">
+            {t("parts.hint")}
+          </span>
         </div>
         <Card>
           <CardContent className="pt-6">
@@ -339,27 +378,31 @@ export function BodyMeasurementForm({
               {(field) => (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {BODY_PARTS.map((part) => (
-                    <div
-                      key={part.key}
-                      className="flex items-center gap-2 min-w-0"
-                    >
-                      <label
-                        htmlFor={`part-${part.key}`}
-                        className="text-sm font-medium w-24 shrink-0 truncate"
-                      >
-                        {t(`parts.${part.labelKey}`)}
-                      </label>
-                      <Input
-                        id={`part-${part.key}`}
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        placeholder="cm"
-                        value={partInputs[part.key] ?? ""}
-                        onChange={(e) =>
-                          handlePartInputChange(part.key, e.target.value)
+                    <div key={part.key} className="flex flex-col gap-1 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <label
+                          htmlFor={`part-${part.key}`}
+                          className="text-sm font-medium w-24 shrink-0 truncate"
+                        >
+                          {t(`parts.${part.labelKey}`)}
+                        </label>
+                        <Input
+                          id={`part-${part.key}`}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          placeholder="cm"
+                          value={partInputs[part.key] ?? ""}
+                          onChange={(e) =>
+                            handlePartInputChange(part.key, e.target.value)
+                          }
+                          onBlur={() => handlePartBlur(field, part.key)}
+                        />
+                      </div>
+                      <FieldError
+                        errors={
+                          partErrors[part.key] ? [partErrors[part.key]] : []
                         }
-                        onBlur={() => handlePartBlur(field, part.key)}
                       />
                     </div>
                   ))}
@@ -372,7 +415,8 @@ export function BodyMeasurementForm({
 
       <div className="flex flex-col space-y-2">
         <FieldLabel htmlFor="measurement-notes">
-          {t("notes.label")} <span className="text-muted-foreground">({t("notes.optional")})</span>
+          {t("notes.label")}{" "}
+          <span className="text-muted-foreground">({t("notes.optional")})</span>
         </FieldLabel>
         <form.Field name="notes">
           {(field) => (
@@ -400,6 +444,7 @@ export function BodyMeasurementForm({
           onClick={() => {
             form.reset();
             setPartInputs({});
+            setPartErrors({});
             onClear?.();
           }}
           className="w-full md:w-auto"
