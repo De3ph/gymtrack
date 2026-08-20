@@ -87,9 +87,9 @@ export default function RegisterPage() {
   }, [form])
 
   useEffect(() => {
-    ;(window as any).__registerForm = form
+    ;(window as unknown as { __registerForm?: typeof form }).__registerForm = form
     return () => {
-      delete (window as any).__registerForm
+      delete (window as unknown as { __registerForm?: typeof form }).__registerForm
     }
   }, [form])
 

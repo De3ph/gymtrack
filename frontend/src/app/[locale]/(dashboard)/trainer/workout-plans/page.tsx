@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { WorkoutPlanList } from "@/components/features/workout-plan/WorkoutPlanList";
-import { WorkoutPlanForm } from "@/components/features/workout-plan/WorkoutPlanForm";
+import { WorkoutPlanFormDialog } from "@/components/features/workout-plan/WorkoutPlanFormDialog";
 import { AssignPlanDialog } from "@/components/features/workout-plan/AssignPlanDialog";
 import { WorkoutPlan } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
@@ -119,7 +119,7 @@ export default function TrainerWorkoutPlansPage() {
       </div>
 
       {/* Create/Edit Dialog */}
-      <Dialog
+      <WorkoutPlanFormDialog
         open={showCreateForm || !!editingPlan}
         onOpenChange={(open) => {
           if (!open) {
@@ -127,20 +127,12 @@ export default function TrainerWorkoutPlansPage() {
             setEditingPlan(null);
           }
         }}
-      >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingPlan ? t("edit") : t("create")}</DialogTitle>
-          </DialogHeader>
-          <WorkoutPlanForm
-            plan={editingPlan || undefined}
-            onSuccess={() => {
-              setShowCreateForm(false);
-              setEditingPlan(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+        plan={editingPlan || undefined}
+        onSuccess={() => {
+          setShowCreateForm(false);
+          setEditingPlan(null);
+        }}
+      />
 
       {/* Assign Dialog */}
       {assigningPlan && (

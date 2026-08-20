@@ -17,20 +17,20 @@ import {
 import { useTranslations } from "next-intl";
 import { Workout, WorkoutExercise } from "@/types";
 
-
 interface WorkoutsClientProps {
   initialWorkout?: Workout;
   planId: string | null;
 }
 
-export function WorkoutsClient({ initialWorkout, planId }: WorkoutsClientProps) {
+export function WorkoutsClient({
+  initialWorkout,
+  planId,
+}: WorkoutsClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("log");
   const t = useTranslations("athlete.workouts");
-
-
 
   const handleClear = () => {
     if (planId) {
@@ -53,7 +53,7 @@ export function WorkoutsClient({ initialWorkout, planId }: WorkoutsClientProps) 
         onValueChange={setActiveTab}
         value={activeTab}
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 mb-2" variant="line">
           <TabsTrigger value="log">{t("log_tab")}</TabsTrigger>
           <TabsTrigger value="list">{t("list_tab")}</TabsTrigger>
           <TabsTrigger value="calendar">{t("calendar_tab")}</TabsTrigger>

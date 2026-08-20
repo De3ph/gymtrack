@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, useCallback } from "react"
 import { trainerCatalogApi } from "@/lib/api"
 import { TrainerWithProfile } from "@/types"
 import { Input } from "@/components/ui/input"
@@ -22,7 +22,7 @@ import { X } from "lucide-react"
 
 export default function TrainerCatalogPage() {
   const [trainers, setTrainers] = useState<TrainerWithProfile[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     specialization: "",
     location: "",
@@ -33,12 +33,7 @@ export default function TrainerCatalogPage() {
   const t = useTranslations("athlete.trainers")
   const tCommon = useTranslations("common")
 
-  useEffect(() => {
-    loadTopTrainers()
-  }, [])
-
-  const loadTopTrainers = async () => {
-    setLoading(true)
+  const loadTopTrainers = useCallback(async () => {
     try {
       const response = await trainerCatalogApi.searchTrainers({
         limit: 20,
@@ -49,7 +44,14 @@ export default function TrainerCatalogPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const start = async () => {
+      await loadTopTrainers();
+    };
+    void start();
+  }, [loadTopTrainers])
 
   const searchTrainers = async () => {
     setLoading(true)

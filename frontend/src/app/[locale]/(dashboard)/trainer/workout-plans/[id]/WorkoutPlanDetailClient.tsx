@@ -12,12 +12,11 @@ import { ArrowLeft, UserPlus } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { WorkoutPlan, WorkoutPlanAssignment, WorkoutPlanExercise, WorkoutPlanSet } from "@/types";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface WorkoutPlanDetailClientProps {
-  plan: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  assignments: any[];
+  plan: WorkoutPlan;
+  assignments: WorkoutPlanAssignment[];
   planId: string;
 }
 
@@ -82,11 +81,11 @@ export function WorkoutPlanDetailClient({ plan, assignments, planId }: WorkoutPl
               </CardHeader>
               <CardContent>
                 <ul className="space-y-4">
-                  {plan.exercises.map((ex: any, i: number) => (
+                  {plan.exercises.map((ex: WorkoutPlanExercise, i: number) => (
                     <li key={ex.exerciseId} className="border-b pb-3 last:border-0">
                       <p className="font-medium">{i + 1}. {ex.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {t('exercise_detail', { count: ex.sets.length, weights: ex.sets.map((s: any) => `${s.weight}${s.weightUnit}`).join(", ") })}
+                        {t('exercise_detail', { count: ex.sets.length, weights: ex.sets.map((s: WorkoutPlanSet) => `${s.weight}${s.weightUnit}`).join(", ") })}
                       </p>
                       {ex.notes && (
                         <p className="text-sm text-muted-foreground mt-1">{ex.notes}</p>

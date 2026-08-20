@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import dayjs from "dayjs";
 import { trainerCatalogApi, availabilityApi, reviewApi } from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
 import {
   TrainerWithProfile,
   TrainerAvailability,
@@ -26,9 +27,10 @@ export default function TrainerProfilePage() {
   const [availability, setAvailability] = useState<TrainerAvailability[]>([]);
   const [reviews, setReviews] = useState<TrainerReview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState("");
+  const { user } = useAuthStore();
+  const currentUserId = user?.userId ? String(user.userId) : "";
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     try {
       const [trainerData, availabilityData, reviewsData] = await Promise.all([
         trainerCatalogApi.getTrainerProfile(trainerId),
@@ -41,22 +43,19 @@ export default function TrainerProfilePage() {
     } catch (error) {
       console.error("Failed to fetch trainer data:", error);
     }
-  };
+  }, [trainerId]);
 
   useEffect(() => {
-    // Get current user ID from localStorage or context
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        setCurrentUserId(user.userId || user.id);
-      } catch (e) {
-        console.error("Failed to parse user data:", e);
-      }
-    }
-
-    refreshData().finally(() => setLoading(false));
-  }, [trainerId]);
+    let active = true;
+    const start = async () => {
+      await refreshData();
+      if (active) setLoading(false);
+    };
+    void start();
+    return () => {
+      active = false;
+    };
+  }, [refreshData]);
 
   const renderStars = (rating: number) => {
     return "★".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));

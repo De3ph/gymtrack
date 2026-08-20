@@ -103,7 +103,7 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 mb-2" variant="line">
           <TabsTrigger value="log">{t("log_tab")}</TabsTrigger>
           <TabsTrigger value="list">{t("list_tab")}</TabsTrigger>
           <TabsTrigger value="charts">{t("charts_tab")}</TabsTrigger>

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { WorkoutPlanCard } from "@/components/features/workout-plan/WorkoutPlanCard";
-import { WorkoutPlanForm } from "@/components/features/workout-plan/WorkoutPlanForm";
+import { WorkoutPlanFormDialog } from "@/components/features/workout-plan/WorkoutPlanFormDialog";
 import { MyWorkoutPlans } from "@/components/features/workout-plan/MyWorkoutPlans";
 import { WorkoutPlan } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
@@ -115,7 +115,7 @@ export default function AthleteWorkoutPlansPage() {
       </section>
 
       {/* Create/Edit Dialog */}
-      <Dialog
+      <WorkoutPlanFormDialog
         open={showCreateForm || !!editingPlan}
         onOpenChange={(open) => {
           if (!open) {
@@ -123,22 +123,13 @@ export default function AthleteWorkoutPlansPage() {
             setEditingPlan(null);
           }
         }}
-      >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingPlan ? t("edit") : t("create")}</DialogTitle>
-          </DialogHeader>
-          <WorkoutPlanForm
-            plan={editingPlan || undefined}
-            namespace="athlete.workout_plans"
-            onSuccess={() => {
-              setShowCreateForm(false);
-              setEditingPlan(null);
-              queryClient.invalidateQueries({ queryKey: ["my-workout-plans"] });
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+        plan={editingPlan || undefined}
+        namespace="athlete.workout_plans"
+        onSuccess={() => {
+          setShowCreateForm(false);
+          setEditingPlan(null);
+        }}
+      />
 
       {/* Delete Confirmation */}
       <Dialog

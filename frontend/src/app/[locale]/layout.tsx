@@ -2,14 +2,15 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { Inter, Geist_Mono } from "next/font/google";
+import { Inter, Noto_Sans, Geist_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import { Providers } from "./providers";
 import "../globals.css";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const notoSans = Noto_Sans({ subsets: ["latin"], variable: "--font-noto-sans" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   title: "GymTrack - Fitness Tracking for Trainers & Athletes",
@@ -42,7 +43,7 @@ export default function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable, geistMono.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn(inter.variable, notoSans.variable, geistMono.variable)} suppressHydrationWarning>
       <head>
         <template
           dangerouslySetInnerHTML={{
