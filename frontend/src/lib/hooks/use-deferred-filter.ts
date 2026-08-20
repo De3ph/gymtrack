@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 
 /**
  * Shared filter-bar state: keeps a `pending` copy that only flushes to the
@@ -16,11 +16,15 @@ export function useDeferredFilter<T>(
   onChange: (next: T) => void,
 ) {
   const [pending, setPending] = useState<T>(value);
+  const [syncedValue, setSyncedValue] = useState<T>(value);
 
-  // Reset pending copy when the parent pushes a new value.
-  useEffect(() => {
+  // Reset pending copy when the parent pushes a new value. We adjust state
+  // during render (guarded by a previous-value check) instead of calling
+  // setState in an effect, which avoids cascading re-renders.
+  if (value !== syncedValue) {
+    setSyncedValue(value);
     setPending(value);
-  }, [value]);
+  }
 
   const isDirty = Object.keys(pending as Record<string, unknown>).some(
     (key) => (pending as Record<string, unknown>)[key] !== (value as Record<string, unknown>)[key],

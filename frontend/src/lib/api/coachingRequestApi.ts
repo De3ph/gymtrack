@@ -1,5 +1,5 @@
 import api from "./api-client"
-import { MessageResponse } from "@/types"
+import { MessageResponse, Relationship } from "@/types"
 
 export const coachingRequestApi = {
   createCoachingRequest: async (data: {
@@ -25,7 +25,7 @@ export const coachingRequestApi = {
   },
 
   acceptRequest: async (requestId: number) => {
-    return api.put<{ message: string; relationship: any }>(
+    return api.put<{ message: string; relationship: Relationship }>(
       `/coaching-requests/${requestId}/accept`,
       {}
     )

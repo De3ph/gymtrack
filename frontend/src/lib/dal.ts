@@ -197,7 +197,7 @@ export async function getTrainerProfileCached(
   cacheLife({ revalidate: 300, expire: 3600 })
   cacheTag('trainer-profile')
   const result = await serverFetch<Record<string, unknown>>(
-    '/trainer-catalog/my-profile',
+    '/trainers/me/profile',
     accessToken,
   )
   return result as unknown as TrainerProfile

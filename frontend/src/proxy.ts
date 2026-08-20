@@ -1,7 +1,7 @@
 ﻿import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
-import { decrypt, updateSession, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME } from './lib/session';
+import { decrypt, updateSession, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME, type SessionPayload } from './lib/session';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -57,12 +57,12 @@ function isTrainerRoute(pathname: string): boolean {
 // separate keys list (decryptCacheOrder) as a FIFO queue because re-setting an
 // existing key would otherwise move it to the end of the Map's iteration
 // order — FIFO semantics must be preserved explicitly.
-const decryptCache = new Map<string, { payload: any; exp: number }>();
+const decryptCache = new Map<string, { payload: SessionPayload; exp: number }>();
 const decryptCacheOrder: string[] = [];
 const DECRYPT_CACHE_MAX = 1000;
 const DECRYPT_TTL_MS = 500;
 
-async function cachedDecrypt(cookie: string): Promise<any> {
+async function cachedDecrypt(cookie: string): Promise<SessionPayload | null> {
   const hit = decryptCache.get(cookie);
   if (hit && hit.exp > Date.now()) return hit.payload;
   const payload = await decrypt(cookie);
