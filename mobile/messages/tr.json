@@ -102,7 +102,8 @@
       "remove": "Kaldır",
       "view_client": "Danışanı Gör",
       "apply_filters": "Filtreleri Uygula",
-      "clear": "Temizle"
+      "clear": "Temizle",
+      "title": "İşlemler"
     },
     "navigation": {
       "dashboard": "Panel",
@@ -114,7 +115,7 @@
       "meals": "Öğünler",
       "measurements": "Ölçümler",
       "clients": "Danışanlar",
-      "trainer": "Antrenör",
+      "trainers": "Antrenörler",
       "athlete": "Sporcu",
       "workout_plans": "Antrenman Planları",
       "toggle_menu": "Gezinme menüsünü aç/kapat"
@@ -122,9 +123,7 @@
     "status": {
       "available": "Yeni Danışanlar için Müsait",
       "unavailable": "Müsait Değil",
-      "active": "Aktif",
-      "inactive": "Pasif",
-      "pending": "Beklemede"
+      "active": "Aktif"
     },
     "errors": {
       "generic": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
@@ -140,7 +139,8 @@
       "failed_load_workout_plan": "Antrenman planı yüklenemedi",
       "failed_load_body_measurements": "Vücut ölçümleri yüklenemedi",
       "failed_load_trainer_profile": "Antrenör profili yüklenemedi",
-      "unexpected_error": "Beklenmeyen bir hata oluştu"
+      "unexpected_error": "Beklenmeyen bir hata oluştu",
+      "title": "Hata"
     },
     "loading": "Yükleniyor...",
     "search": {
@@ -172,7 +172,10 @@
       "minutes": "dakika",
       "hours": "saat"
     },
-    "not_set": "Belirtilmemiş"
+    "not_set": "Belirtilmemiş",
+    "success": "Başarılı",
+    "ok": "Tamam",
+    "all": "Tümü"
   },
   "auth": {
     "login": {
@@ -274,7 +277,8 @@
       "submit": "Hesap Oluştur",
       "submitting": "Hesap oluşturuluyor...",
       "has_account": "Zaten hesabınız var mı?",
-      "sign_in": "Giriş Yapın"
+      "sign_in": "Giriş Yapın",
+      "cancel": "İptal"
     },
     "logout": {
       "confirm": "Çıkış yapmak istediğinizden emin misiniz?",
@@ -326,7 +330,8 @@
     "auth_required": {
       "title": "Giriş gerekli",
       "description": "Panelini açmak için lütfen giriş yap."
-    }
+    },
+    "quick_actions": "Hızlı İşlemler"
   },
   "workout": {
     "title": "Antrenmanlar",
@@ -369,7 +374,9 @@
           "label": "Dinlenme (sn)",
           "placeholder": "örn., 60"
         },
-        "fallback_name": "Egzersiz {number}"
+        "fallback_name": "Egzersiz {number}",
+        "notes": "Notlar (isteğe bağlı)",
+        "browse": "Gözat"
       },
       "add_exercise": "Egzersiz Ekle",
       "submit": "Antrenman Kaydet",
@@ -439,6 +446,9 @@
     },
     "pagination": {
       "count": "{count, plural, =0 {Antrenman yok} =1 {1 antrenman} other {# antrenman}}"
+    },
+    "detail": {
+      "load_failed": "Antrenman yüklenemedi"
     }
   },
   "meal": {
@@ -549,6 +559,9 @@
     },
     "pagination": {
       "count": "{count, plural, =0 {Öğün yok} =1 {1 öğün} other {# öğün}}"
+    },
+    "detail": {
+      "load_failed": "Yemek yüklenemedi"
     }
   },
   "admin": {
@@ -580,7 +593,8 @@
         "thighRight": "Uyluk (Sağ)",
         "calfLeft": "Baldır (Sol)",
         "calfRight": "Baldır (Sağ)"
-      }
+      },
+      "load_failed": "Yüklenemedi"
     },
     "charts": {
       "loading": "Grafikler yükleniyor...",
@@ -612,6 +626,17 @@
     },
     "pagination": {
       "count": "{count, plural, =0 {Ölçüm yok} =1 {1 ölçüm} other {# ölçüm}}"
+    },
+    "form": {
+      "weight_label": "Ağırlık (kg)",
+      "body_fat_label": "Vücut Yağı %",
+      "notes_label": "Notlar",
+      "parts_label": "Vücut Ölçüleri (cm)",
+      "notes_placeholder": "İsteğe bağlı...",
+      "validation": {
+        "invalid_number": "Ağırlık ve vücut yağı negatif olmayan sayılar olmalı",
+        "part_invalid": "{part} negatif olmayan bir sayı olmalı"
+      }
     }
   },
   "trainer": {
@@ -661,7 +686,8 @@
       "all_clients": "Tüm Danışanlar",
       "active": "Aktif",
       "inactive": "Pasif",
-      "pending": "Beklemede"
+      "pending": "Beklemede",
+      "load_failed": "Müşteriler yüklenemedi"
     },
     "requests": {
       "title": "Koçluk İstekleri",
@@ -725,7 +751,8 @@
       "relationship_details": "İlişki Detayları",
       "status": "Durum",
       "connected_since": "Bağlantı Tarihi",
-      "relationship_id": "İlişki ID"
+      "relationship_id": "İlişki ID",
+      "load_failed": "Yüklenemedi"
     },
     "profile": {
       "title": "Antrenör Profili",
@@ -761,6 +788,11 @@
         "saving": "Kaydediliyor...",
         "cancel": "İptal",
         "edit_profile": "Profili Düzenle"
+      },
+      "validation": {
+        "name_min_length": "İsim en az 2 karakter olmalı",
+        "bio_max_length": "Biyografi en fazla 500 karakter olmalı",
+        "hourly_rate": "Saatlik ücret pozitif bir sayı olmalı"
       }
     },
     "availability": {
@@ -769,7 +801,16 @@
       "saved_success": "Müsaitlik durumu başarıyla kaydedildi!",
       "save_failed": "Müsaitlik durumu kaydedilemedi",
       "to_label": "ile",
-      "remove_slot": "X"
+      "remove_slot": "X",
+      "load_failed": "Müsaitlik yüklenemedi",
+      "empty": "Müsaitlik ayarlanmamış",
+      "edit": "Müsaitliği Düzenle",
+      "set": "Müsaitlik Ata",
+      "add_slot": "Saat Ekle",
+      "slot": "Saat {number}",
+      "delete_slot_title": "Saat Sil",
+      "delete_slot_confirm": "Bu müsaitlik saatini kaldırsın mı?",
+      "delete_failed": "Saat silinemedi"
     },
     "catalog": {
       "specializations": "Uzmanlıklar",
@@ -789,7 +830,9 @@
       "expires_at": "{time} saatinde sona eriyor",
       "instructions_text": "Talimatlar:",
       "generate_new_code": "Yeni Kod Oluştur",
-      "error_fallback": "Davet kodu oluşturulamadı"
+      "error_fallback": "Davet kodu oluşturulamadı",
+      "share_message": "Bu kodu sporcunla paylaş:\n\n{code}\n\nSon kullanma: {date}",
+      "expires_default": "7 gün"
     },
     "charts": {
       "nutrition_trends": {
@@ -862,7 +905,37 @@
       "plan_not_found": "Plan bulunamadı",
       "exercise_detail": "{sets} set, {reps} tekrar",
       "no_clients_yet": "Henüz danışan yok",
-      "athlete_label": "Sporcu"
+      "athlete_label": "Sporcu",
+      "load_failed": "Plan yüklenemedi",
+      "assign_success_title": "Atandı",
+      "assign_success_message": "Antrenman planı başarıyla atandı",
+      "assign_failed": "Plan atanamadı",
+      "select_title": "Seçim",
+      "select_message": "En az bir sporcu seç",
+      "update_failed": "Plan güncellenemedi",
+      "delete_failed": "Plan silinemedi",
+      "delete_confirm_detail": "Bu işlem geri alınamaz. Bu plan silinsin mi?",
+      "delete_confirm_list": "Bu antrenman planı silinsin mi?",
+      "sets_label": "Setler",
+      "set_number": "Set {number}",
+      "weight": "Ağırlık",
+      "reps": "Tekrar",
+      "rest": "Dinlenme (sn)",
+      "add_set": "Set Ekle",
+      "remove": "Kaldır",
+      "browse": "Gözat",
+      "submit": "Plan Oluştur",
+      "submitting": "Kaydediliyor...",
+      "cancel": "İptal",
+      "validation": {
+        "name_required": "Plan adı zorunludur",
+        "exercises_min_one": "En az bir egzersiz gerekli",
+        "exercise_name_required": "Egzersiz adı zorunludur",
+        "sets_min_one": "En az bir set gerekli",
+        "reps_min_one": "Tekrar en az 1 olmalı",
+        "weight_non_negative": "Ağırlık negatif olamaz",
+        "rest_non_negative": "Dinlenme süresi negatif olamaz"
+      }
     }
   },
   "profile": {
@@ -884,7 +957,8 @@
       "height": "Boy",
       "fitness_goals": "Fitness Hedefleri",
       "certifications": "Sertifikalar",
-      "specializations": "Uzmanlıklar"
+      "specializations": "Uzmanlıklar",
+      "bio": "Biyografi"
     },
     "units": {
       "kg": "kg",
@@ -1012,7 +1086,12 @@
       "loading": "Antrenör detayları yükleniyor...",
       "not_found_or_access": "Antrenör bulunamadı veya bu profillere erişim izniniz yok.",
       "view_workouts": "Antrenmanlarımı Gör",
-      "view_meals": "Öğünlerimi Gör"
+      "view_meals": "Öğünlerimi Gör",
+      "terminate_button": "İlişkiyi Sonlandır",
+      "terminate_title": "İlişkiyi Sonlandır",
+      "terminate_message": "Emin misiniz?",
+      "terminate_confirm": "Sonlandır",
+      "terminating": "Sonlandırılıyor..."
     },
     "invitation": {
       "title": "Antrenör ile Bağlan",
@@ -1024,7 +1103,11 @@
       "submit": "Antrenör ile Bağlan",
       "success": "Antrenörünüzle başarıyla bağlantı kurdunuz!",
       "error_invalid_chars": "Davet kodu yalnızca harf ve rakam içermelidir",
-      "error_length": "Davet kodu tam olarak 8 karakter olmalıdır ({count}/8)"
+      "error_length": "Davet kodu tam olarak 8 karakter olmalıdır ({count}/8)",
+      "have_code": "Davet kodunuz mu var?",
+      "accept_button": "Daveti Kabul Et",
+      "accepted_message": "Davet kabul edildi! Artık eğitmeninle bağlantıdasın.",
+      "accept_failed": "Davet kabul edilemedi"
     },
     "requests": {
       "title": "Koçluk İsteklerim",
@@ -1063,7 +1146,16 @@
         "no_reviews": "Henüz yorum yok",
         "availability_title": "Müsaitlik",
         "no_availability": "Müsaitlik ayarlanmamış",
-        "request_coaching": "Koçluk Talep Et"
+        "request_coaching": "Koçluk Talep Et",
+        "languages": "Diller",
+        "languages_placeholder": "örn. İngilizce, İspanyolca",
+        "not_set": "Belirtilmemiş",
+        "available": "Yeni danışanlar için müsait",
+        "load_failed": "Eğitmen yüklenemedi",
+        "rate_this_trainer": "Bu Eğitmene Puan Ver",
+        "request_message_placeholder": "Mesaj ekle (isteğe bağlı)...",
+        "request_sent": "İstek Gönderildi",
+        "review_submitted": "Yorum Gönderildi"
       },
       "eyebrow": "KOÇUNU BUL",
       "headline": "Hedeflerine uygun koçu seç.",
@@ -1072,7 +1164,9 @@
       "years_exp": "yıl",
       "open_only": "Sadece müsait",
       "empty_title": "Eşleşen antrenör yok",
-      "empty_desc": "Daha fazla koç görmek için filtreleri gevşet veya aramayı temizle."
+      "empty_desc": "Daha fazla koç görmek için filtreleri gevşet veya aramayı temizle.",
+      "load_failed": "Eğitmenler yüklenemedi",
+      "search_placeholder": "Uzmanlığa göre ara..."
     },
     "workout_plans": {
       "title": "Antrenman Planlarım",
@@ -1081,7 +1175,8 @@
       "view_plan": "Planı Görüntüle",
       "start_workout": "Antrenmana Başla",
       "exercises": "egzersiz",
-      "set_format": "{count} set, {reps} tekrar"
+      "set_format": "{count} set, {reps} tekrar",
+      "load_failed": "Planlar yüklenemedi"
     },
     "profile": {
       "title": "Sporcu Profili",
@@ -1159,7 +1254,8 @@
       "rejecting": "Reddediliyor...",
       "request_accepted": "Talep Kabul Edildi!",
       "accepted_description": "Artık antrenörünüzle çalışmaya başlayabilirsiniz.",
-      "rejected_description": "Bu talep antrenör tarafından reddedildi. Yeni bir talep gönderebilir veya başka antrenörler arayabilirsiniz."
+      "rejected_description": "Bu talep antrenör tarafından reddedildi. Yeni bir talep gönderebilir veya başka antrenörler arayabilirsiniz.",
+      "load_failed": "İstekler yüklenemedi"
     }
   },
   "exercise": {
@@ -1191,7 +1287,14 @@
       "description": "Antrenmanınıza eklemek için egzersizleri ara ve filtreleyin",
       "loading": "Egzersiz verileri yükleniyor...",
       "error": "Egzersiz verileri yüklenirken hata oluştu. Lütfen tekrar deneyin.",
-      "search_placeholder": "Egzersiz ara..."
+      "search_placeholder": "Egzersiz ara...",
+      "catalog_title": "Egzersiz Kataloğu",
+      "load_failed": "Egzersizler yüklenemedi",
+      "connection_hint": "Bağlantını kontrol et ve tekrar dene",
+      "no_matching": "Eşleşen egzersiz yok",
+      "no_matching_hint": "Farklı bir isim veya kategori dene",
+      "no_exercises": "Henüz egzersiz yok",
+      "no_exercises_hint": "Kataloğa eklendiklerinde egzersizler burada görünür"
     }
   },
   "review": {

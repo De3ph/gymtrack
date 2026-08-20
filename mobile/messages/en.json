@@ -102,7 +102,8 @@
       "remove": "Remove",
       "view_client": "View Client",
       "apply_filters": "Apply Filters",
-      "clear": "Clear"
+      "clear": "Clear",
+      "title": "Actions"
     },
     "navigation": {
       "dashboard": "Dashboard",
@@ -114,7 +115,7 @@
       "meals": "Meals",
       "measurements": "Measurements",
       "clients": "Clients",
-      "trainer": "Trainer",
+      "trainers": "Trainers",
       "athlete": "Athlete",
       "workout_plans": "Workout Plans",
       "toggle_menu": "Toggle navigation menu"
@@ -138,7 +139,8 @@
       "failed_load_workout_plan": "Failed to load workout plan",
       "failed_load_body_measurements": "Failed to load body measurements",
       "failed_load_trainer_profile": "Failed to load trainer profile",
-      "unexpected_error": "An unexpected error occurred"
+      "unexpected_error": "An unexpected error occurred",
+      "title": "Error"
     },
     "loading": "Loading...",
     "search": {
@@ -170,7 +172,10 @@
       "minutes": "minutes",
       "hours": "hours"
     },
-    "not_set": "Not set"
+    "not_set": "Not set",
+    "success": "Success",
+    "ok": "OK",
+    "all": "All"
   },
   "auth": {
     "login": {
@@ -325,7 +330,8 @@
     "auth_required": {
       "title": "Sign in required",
       "description": "Please sign in to open your dashboard."
-    }
+    },
+    "quick_actions": "Quick Actions"
   },
   "workout": {
     "title": "Workouts",
@@ -368,7 +374,9 @@
           "label": "Rest (sec)",
           "placeholder": "e.g., 60"
         },
-        "fallback_name": "Exercise {number}"
+        "fallback_name": "Exercise {number}",
+        "notes": "Notes (optional)",
+        "browse": "Browse"
       },
       "add_exercise": "Add Exercise",
       "submit": "Log Workout",
@@ -438,6 +446,9 @@
     },
     "pagination": {
       "count": "{count, plural, =0 {No workouts} =1 {1 workout} other {# workouts}}"
+    },
+    "detail": {
+      "load_failed": "Failed to load workout"
     }
   },
   "meal": {
@@ -548,6 +559,9 @@
     },
     "pagination": {
       "count": "{count, plural, =0 {No meals} =1 {1 meal} other {# meals}}"
+    },
+    "detail": {
+      "load_failed": "Failed to load meal"
     }
   },
   "admin": {
@@ -579,7 +593,8 @@
         "thighRight": "Thigh (R)",
         "calfLeft": "Calf (L)",
         "calfRight": "Calf (R)"
-      }
+      },
+      "load_failed": "Failed to load"
     },
     "charts": {
       "loading": "Loading charts...",
@@ -611,6 +626,17 @@
     },
     "pagination": {
       "count": "{count, plural, =0 {No measurements} =1 {1 measurement} other {# measurements}}"
+    },
+    "form": {
+      "weight_label": "Weight (kg)",
+      "body_fat_label": "Body Fat %",
+      "notes_label": "Notes",
+      "parts_label": "Body Parts (cm)",
+      "notes_placeholder": "Optional...",
+      "validation": {
+        "invalid_number": "Weight and body fat must be non-negative numbers",
+        "part_invalid": "{part} must be a non-negative number"
+      }
     }
   },
   "trainer": {
@@ -660,7 +686,8 @@
       "goals": "Goals",
       "client_since": "Client since",
       "unknown_athlete": "Unknown Athlete",
-      "this_athlete": "this athlete"
+      "this_athlete": "this athlete",
+      "load_failed": "Failed to load clients"
     },
     "requests": {
       "title": "Coaching Requests",
@@ -724,7 +751,8 @@
       "relationship_details": "Relationship Details",
       "status": "Status",
       "connected_since": "Connected Since",
-      "relationship_id": "Relationship ID"
+      "relationship_id": "Relationship ID",
+      "load_failed": "Failed to load"
     },
     "profile": {
       "title": "Trainer Profile",
@@ -760,6 +788,11 @@
         "saving": "Saving...",
         "cancel": "Cancel",
         "edit_profile": "Edit Profile"
+      },
+      "validation": {
+        "name_min_length": "Name must be at least 2 characters",
+        "bio_max_length": "Bio must be 500 characters or fewer",
+        "hourly_rate": "Hourly rate must be a positive number"
       }
     },
     "availability": {
@@ -768,7 +801,16 @@
       "saved_success": "Availability saved successfully!",
       "save_failed": "Failed to save availability",
       "to_label": "to",
-      "remove_slot": "X"
+      "remove_slot": "X",
+      "load_failed": "Failed to load availability",
+      "empty": "No availability set",
+      "edit": "Edit Availability",
+      "set": "Set Availability",
+      "add_slot": "Add Slot",
+      "slot": "Slot {number}",
+      "delete_slot_title": "Delete Slot",
+      "delete_slot_confirm": "Remove this availability slot?",
+      "delete_failed": "Failed to delete slot"
     },
     "catalog": {
       "specializations": "Specializations",
@@ -788,7 +830,9 @@
       "expires_at": "at {time}",
       "instructions_text": "Instructions:",
       "generate_new_code": "Generate New Code",
-      "error_fallback": "Failed to generate invitation code"
+      "error_fallback": "Failed to generate invitation code",
+      "share_message": "Share this code with your athlete:\n\n{code}\n\nExpires: {date}",
+      "expires_default": "7 days"
     },
     "charts": {
       "nutrition_trends": {
@@ -861,7 +905,37 @@
       "plan_not_found": "Plan not found",
       "exercise_detail": "{sets} sets, {reps} reps",
       "no_clients_yet": "No clients yet",
-      "athlete_label": "Athlete"
+      "athlete_label": "Athlete",
+      "load_failed": "Failed to load plan",
+      "assign_success_title": "Assigned",
+      "assign_success_message": "Workout plan assigned successfully",
+      "assign_failed": "Failed to assign plan",
+      "select_title": "Select",
+      "select_message": "Select at least one athlete",
+      "update_failed": "Failed to update plan",
+      "delete_failed": "Failed to delete plan",
+      "delete_confirm_detail": "This action cannot be undone. Delete this plan?",
+      "delete_confirm_list": "Delete this workout plan?",
+      "sets_label": "Sets",
+      "set_number": "Set {number}",
+      "weight": "Weight",
+      "reps": "Reps",
+      "rest": "Rest (sec)",
+      "add_set": "Add Set",
+      "remove": "Remove",
+      "browse": "Browse",
+      "submit": "Create Plan",
+      "submitting": "Saving...",
+      "cancel": "Cancel",
+      "validation": {
+        "name_required": "Plan name is required",
+        "exercises_min_one": "At least one exercise is required",
+        "exercise_name_required": "Exercise name is required",
+        "sets_min_one": "At least one set is required",
+        "reps_min_one": "Reps must be at least 1",
+        "weight_non_negative": "Weight cannot be negative",
+        "rest_non_negative": "Rest time cannot be negative"
+      }
     }
   },
   "profile": {
@@ -883,7 +957,8 @@
       "height": "Height",
       "fitness_goals": "Fitness Goals",
       "certifications": "Certifications",
-      "specializations": "Specializations"
+      "specializations": "Specializations",
+      "bio": "Bio"
     },
     "units": {
       "kg": "kg",
@@ -1011,7 +1086,12 @@
       "loading": "Loading trainer details...",
       "not_found_or_access": "Trainer not found or you don't have access to view this profile.",
       "view_workouts": "View My Workouts",
-      "view_meals": "View My Meals"
+      "view_meals": "View My Meals",
+      "terminate_button": "Terminate Relationship",
+      "terminate_title": "Terminate Relationship",
+      "terminate_message": "Are you sure?",
+      "terminate_confirm": "Terminate",
+      "terminating": "Terminating..."
     },
     "invitation": {
       "title": "Connect with Trainer",
@@ -1023,7 +1103,11 @@
       "submit": "Connect with Trainer",
       "success": "Successfully connected with your trainer!",
       "error_invalid_chars": "Invitation code must contain only letters and numbers",
-      "error_length": "Invitation code must be exactly 8 characters ({count}/8)"
+      "error_length": "Invitation code must be exactly 8 characters ({count}/8)",
+      "have_code": "Have an invite code?",
+      "accept_button": "Accept Invitation",
+      "accepted_message": "Invitation accepted! You are now connected with your trainer.",
+      "accept_failed": "Failed to accept invitation"
     },
     "requests": {
       "title": "My Coaching Requests",
@@ -1066,7 +1150,12 @@
         "no_reviews": "No reviews yet",
         "availability_title": "Availability",
         "no_availability": "No availability set",
-        "request_coaching": "Request Coaching"
+        "request_coaching": "Request Coaching",
+        "load_failed": "Failed to load trainer",
+        "rate_this_trainer": "Rate This Trainer",
+        "request_message_placeholder": "Add a message (optional)...",
+        "request_sent": "Request Sent",
+        "review_submitted": "Review Submitted"
       },
       "eyebrow": "FIND YOUR COACH",
       "headline": "Pick the coach who fits your goals.",
@@ -1075,7 +1164,9 @@
       "years_exp": "y",
       "open_only": "Open only",
       "empty_title": "No trainers match",
-      "empty_desc": "Loosen a filter or clear search to see more coaches."
+      "empty_desc": "Loosen a filter or clear search to see more coaches.",
+      "load_failed": "Failed to load trainers",
+      "search_placeholder": "Search by specialization..."
     },
     "workout_plans": {
       "title": "My Workout Plans",
@@ -1084,7 +1175,8 @@
       "view_plan": "View Plan",
       "start_workout": "Start Workout",
       "exercises": "exercises",
-      "set_format": "{count} set, {reps} reps"
+      "set_format": "{count} set, {reps} reps",
+      "load_failed": "Failed to load plans"
     },
     "profile": {
       "title": "Athlete Profile",
@@ -1162,7 +1254,8 @@
       "rejecting": "Rejecting...",
       "request_accepted": "Request Accepted!",
       "accepted_description": "You can now start working with your trainer.",
-      "rejected_description": "This request was declined by the trainer. You can try sending a new request or look for other trainers."
+      "rejected_description": "This request was declined by the trainer. You can try sending a new request or look for other trainers.",
+      "load_failed": "Failed to load requests"
     }
   },
   "exercise": {
@@ -1194,7 +1287,14 @@
       "description": "Search and filter exercises to add to your workout",
       "loading": "Loading exercise data...",
       "error": "Error loading exercise data. Please try again.",
-      "search_placeholder": "Search exercises..."
+      "search_placeholder": "Search exercises...",
+      "catalog_title": "Exercise Catalog",
+      "load_failed": "Couldn't load exercises",
+      "connection_hint": "Check your connection and try again",
+      "no_matching": "No matching exercises",
+      "no_matching_hint": "Try a different name or category",
+      "no_exercises": "No exercises yet",
+      "no_exercises_hint": "Exercises appear here once added to the catalog"
     }
   },
   "review": {
