@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useThemeColors } from "@/components/useThemeColors";
 import type { ThemeColors } from "@/constants/Colors";
 
@@ -32,12 +32,12 @@ export function StarRatingInput({
   return (
     <View style={styles.wrap}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={styles.row} onTouchEnd={() => setHover(0)}>
+      <View style={styles.row}>
         {Array.from({ length: MAX_RATING }, (_, i) => {
           const star = i + 1;
           const filled = star <= display;
           return (
-            <TouchableOpacity
+            <Pressable
               key={star}
               onPress={() => !disabled && onChange(star)}
               onPressIn={() => !disabled && setHover(star)}
@@ -48,16 +48,19 @@ export function StarRatingInput({
               accessibilityLabel={`${star} star${star > 1 ? "s" : ""}`}
               accessibilityState={{ selected: star === value, disabled }}
             >
-              <Text
-                style={[
-                  styles.star,
-                  { fontSize: size, color: filled ? c.warning : c.borderStrong },
-                  disabled && styles.disabled,
-                ]}
-              >
-                ★
-              </Text>
-            </TouchableOpacity>
+              {({ pressed }) => (
+                <Text
+                  style={[
+                    styles.star,
+                    { fontSize: size, color: filled ? c.warning : c.borderStrong },
+                    disabled && styles.disabled,
+                    pressed && !disabled && styles.pressed,
+                  ]}
+                >
+                  ★
+                </Text>
+              )}
+            </Pressable>
           );
         })}
       </View>
@@ -72,5 +75,6 @@ function createStyles(c: ThemeColors) {
     row: { flexDirection: "row", gap: 4 },
     star: { fontWeight: "800" },
     disabled: { opacity: 0.5 },
+    pressed: { opacity: 0.7 },
   });
 }

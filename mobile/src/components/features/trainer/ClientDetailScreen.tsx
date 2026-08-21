@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Pressable,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { trainerClientApi } from "@/api/trainerClientApi";
@@ -59,13 +59,54 @@ export function ClientDetailScreen() {
     if (measurementsError) refetchMeasurements();
   };
 
+  const workoutItems = useMemo(() => {
+    return (workouts as { workouts?: { workoutId?: number; date?: string; exercises?: unknown[] }[] })?.workouts ?? [];
+  }, [workouts]);
+
+  const mealItems = useMemo(() => {
+    return (meals as { meals?: { mealId?: number; date?: string; mealType?: string; items?: unknown[] }[] })?.meals ?? [];
+  }, [meals]);
+
+  const measurementItems = useMemo(() => {
+    return (measurements as { measurements?: { measurementId?: number; date?: string; weight?: number }[] })?.measurements ?? [];
+  }, [measurements]);
+
+  const renderWorkoutItem = useCallback(({ item }: { item: { workoutId?: number; date?: string; exercises?: unknown[] } }) => (
+    <View style={styles.listCard}>
+      <Text style={styles.listTitle}>{item.date}</Text>
+      <Text style={styles.listSub}>{item.exercises?.length ?? 0} exercises</Text>
+    </View>
+  ), []);
+
+  const renderMealItem = useCallback(({ item }: { item: { mealId?: number; date?: string; mealType?: string; items?: unknown[] } }) => (
+    <View style={styles.listCard}>
+      <Text style={styles.listTitle}>{item.mealType} - {item.date}</Text>
+      <Text style={styles.listSub}>{item.items?.length ?? 0} items</Text>
+    </View>
+  ), []);
+
+  const renderMeasurementItem = useCallback(({ item }: { item: { measurementId?: number; date?: string; weight?: number } }) => (
+    <View style={styles.listCard}>
+      <Text style={styles.listTitle}>{item.date}</Text>
+      <Text style={styles.listSub}>{item.weight ? `${item.weight} kg` : "N/A"}</Text>
+    </View>
+  ), []);
+
+  const keyExtractorWorkout = useCallback((item: { workoutId?: number; date?: string }) => String(item.workoutId ?? ""), []);
+  const keyExtractorMeal = useCallback((item: { mealId?: number; date?: string }) => String(item.mealId ?? ""), []);
+  const keyExtractorMeasurement = useCallback((item: { measurementId?: number; date?: string }) => String(item.measurementId ?? ""), []);
+
   return (
     <View style={styles.flex}>
       <View style={styles.tabBar}>
         {tabs.map((t) => (
-          <TouchableOpacity key={t} style={[styles.tab, tab === t && styles.tabActive]} onPress={() => setTab(t)}>
+          <Pressable
+            key={t}
+            style={[styles.tab, tab === t && styles.tabActive]}
+            onPress={() => setTab(t)}
+          >
             <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>{t}</Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </View>
 
@@ -74,9 +115,9 @@ export function ClientDetailScreen() {
       ) : isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load</Text>
-          <TouchableOpacity onPress={refetchFailed} style={styles.retryButton}>
+          <Pressable onPress={refetchFailed} style={styles.retryButton}>
             <Text style={styles.retryText}>Retry</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
@@ -89,34 +130,31 @@ export function ClientDetailScreen() {
             </View>
           )}
           {tab === "workouts" && (
-            <FlatList
-              data={(workouts as { workouts?: { workoutId?: number; date?: string; exercises?: unknown[] }[] })?.workouts ?? []}
-              keyExtractor={(item) => String(item.workoutId ?? "")}
-              renderItem={({ item }) => (
-                <View style={styles.listCard}><Text style={styles.listTitle}>{item.date}</Text><Text style={styles.listSub}>{item.exercises?.length ?? 0} exercises</Text></View>
-              )}
+            <FlashList
+              data={workoutItems}
+              keyExtractor={keyExtractorWorkout}
+              renderItem={renderWorkoutItem}
+              
               scrollEnabled={false}
               ListEmptyComponent={<Text style={styles.emptyText}>No workouts</Text>}
             />
           )}
           {tab === "meals" && (
-            <FlatList
-              data={(meals as { meals?: { mealId?: number; date?: string; mealType?: string; items?: unknown[] }[] })?.meals ?? []}
-              keyExtractor={(item) => String(item.mealId ?? "")}
-              renderItem={({ item }) => (
-                <View style={styles.listCard}><Text style={styles.listTitle}>{item.mealType} - {item.date}</Text><Text style={styles.listSub}>{item.items?.length ?? 0} items</Text></View>
-              )}
+            <FlashList
+              data={mealItems}
+              keyExtractor={keyExtractorMeal}
+              renderItem={renderMealItem}
+              
               scrollEnabled={false}
               ListEmptyComponent={<Text style={styles.emptyText}>No meals</Text>}
             />
           )}
           {tab === "measurements" && (
-            <FlatList
-              data={(measurements as { measurements?: { measurementId?: number; date?: string; weight?: number }[] })?.measurements ?? []}
-              keyExtractor={(item) => String(item.measurementId ?? "")}
-              renderItem={({ item }) => (
-                <View style={styles.listCard}><Text style={styles.listTitle}>{item.date}</Text><Text style={styles.listSub}>{item.weight ? `${item.weight} kg` : "N/A"}</Text></View>
-              )}
+            <FlashList
+              data={measurementItems}
+              keyExtractor={keyExtractorMeasurement}
+              renderItem={renderMeasurementItem}
+              
               scrollEnabled={false}
               ListEmptyComponent={<Text style={styles.emptyText}>No measurements</Text>}
             />

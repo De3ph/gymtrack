@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { trainerCatalogApi } from "@/api/trainerCatalogApi";
@@ -33,32 +33,45 @@ export function TrainerCatalogScreen() {
     queryFn: () => trainerCatalogApi.searchTrainers(search ? { specialization: search } : undefined),
   });
 
-  const trainers: TrainerItem[] = (data as { trainers?: TrainerItem[] })?.trainers ?? [];
+  const trainers = useMemo(() => {
+    const result = data as { trainers?: TrainerItem[] };
+    return result.trainers ?? [];
+  }, [data]);
 
-  const renderTrainer = ({ item }: { item: TrainerItem }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => router.push(`/trainer-catalog/${item.userId}`)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{(item.username ?? "?")[0].toUpperCase()}</Text>
+  const renderTrainer = useCallback(
+    ({ item }: { item: TrainerItem }) => (
+      <Pressable
+        style={styles.card}
+        onPress={() => router.push(`/trainer-catalog/${item.userId}`)}
+      >
+        <View style={styles.cardHeader}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{(item.username ?? "?")[0].toUpperCase()}</Text>
+          </View>
+          <View style={styles.cardInfo}>
+            <Text style={styles.trainerName}>{item.profile?.name ?? item.username}</Text>
+            {item.profile?.bio ? (
+              <Text style={styles.bio} numberOfLines={2}>
+                {item.profile.bio}
+              </Text>
+            ) : null}
+          </View>
         </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.trainerName}>{item.profile?.name ?? item.username}</Text>
-          {item.profile?.bio ? <Text style={styles.bio} numberOfLines={2}>{item.profile.bio}</Text> : null}
-        </View>
-      </View>
-      {item.profile?.specializations ? (
-        <View style={styles.tags}>
-          {String(item.profile.specializations).split(",").map((s, i) => (
-            <View key={i} style={styles.tag}><Text style={styles.tagText}>{s.trim()}</Text></View>
-          ))}
-        </View>
-      ) : null}
-    </TouchableOpacity>
+        {item.profile?.specializations ? (
+          <View style={styles.tags}>
+            {String(item.profile.specializations).split(",").map((s, i) => (
+              <View key={i} style={styles.tag}>
+                <Text style={styles.tagText}>{s.trim()}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+      </Pressable>
+    ),
+    [router]
   );
+
+  const keyExtractor = useCallback((item: TrainerItem) => String(item.userId ?? ""), []);
 
   return (
     <View style={styles.flex}>
@@ -73,19 +86,22 @@ export function TrainerCatalogScreen() {
       </View>
 
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={c.accent} />
+        </View>
       ) : isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load trainers</Text>
-          <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}>
+          <Pressable onPress={() => refetch()} style={styles.retryButton}>
             <Text style={styles.retryText}>Retry</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={trainers}
-          keyExtractor={(item) => String(item.userId ?? "")}
+          keyExtractor={keyExtractor}
           renderItem={renderTrainer}
+          
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           ListEmptyComponent={<View style={styles.center}><Text style={styles.emptyText}>No trainers found</Text></View>}

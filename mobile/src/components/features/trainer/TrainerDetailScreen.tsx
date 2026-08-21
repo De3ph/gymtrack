@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Alert,
   TextInput,
@@ -63,16 +63,21 @@ export function TrainerDetailScreen() {
     enabled: !!id,
   });
 
-  const { mutate: sendRequest, isPending: sending } = useMutation({
-    mutationFn: () => coachingRequestApi.createCoachingRequest({ trainerId: Number(id), message: message.trim() || undefined }),
-    onSuccess: () => { Alert.alert("Request Sent"); setShowRequestForm(false); setMessage(""); },
+  const { mutate: sendRequestMutate, isPending: sending } = useMutation({
+    mutationFn: (data: { trainerId: number; message?: string }) =>
+      coachingRequestApi.createCoachingRequest(data),
+    onSuccess: () => {
+      Alert.alert("Request Sent");
+      setShowRequestForm(false);
+      setMessage("");
+    },
     onError: (err: Error) => Alert.alert("Error", err.message),
   });
 
-  const { mutate: submitReview, isPending: submittingReview } = useMutation({
-    mutationFn: () => {
+  const { mutate: submitReviewMutate, isPending: submittingReview } = useMutation({
+    mutationFn: (data: { rating: number; comment?: string }) => {
       if (!id) return Promise.reject(new Error("Trainer ID is missing"));
-      return reviewApi.createReview(id, { rating, comment: reviewComment.trim() || undefined });
+      return reviewApi.createReview(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews", id] });
@@ -88,13 +93,33 @@ export function TrainerDetailScreen() {
   if (isError || !trainer) return (
     <View style={styles.center}>
       <Text style={styles.errorText}>Failed to load trainer</Text>
-      <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></TouchableOpacity>
+      <Pressable onPress={() => refetch()} style={styles.retryButton}>
+        <Text style={styles.retryText}>Retry</Text>
+      </Pressable>
     </View>
   );
 
   const tData = trainer as TrainerData;
-  const reviews: ReviewItem[] = (reviewsData as { reviews?: ReviewItem[] })?.reviews ?? [];
-  const slots = (availData as { slots?: { dayOfWeek: string; startTime: string; endTime: string }[] })?.slots ?? [];
+  const reviews = useMemo(() => {
+    return (reviewsData as { reviews?: ReviewItem[] })?.reviews ?? [];
+  }, [reviewsData]);
+
+  const slots = useMemo(() => {
+    return availData?.slots?.map(slot => ({
+      dayOfWeek: String(slot.dayOfWeek),
+      startTime: slot.startTime || "",
+      endTime: slot.endTime || ""
+    })) ?? [];
+  }, [availData]);
+
+  const handleSendRequest = () => {
+    if (!id) return;
+    sendRequestMutate({ trainerId: Number(id), message: message.trim() || undefined });
+  };
+
+  const handleSubmitReview = () => {
+    submitReviewMutate({ rating, comment: reviewComment.trim() || undefined });
+  };
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
@@ -153,22 +178,38 @@ export function TrainerDetailScreen() {
                 textAlignVertical="top"
               />
               <View style={styles.formButtons}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowReviewForm(false); setRating(0); setReviewComment(""); }}>
+                <Pressable
+                  style={[styles.cancelBtn, submittingReview && styles.buttonDisabled]}
+                  onPress={() => {
+                    if (!submittingReview) {
+                      setShowReviewForm(false);
+                      setRating(0);
+                      setReviewComment("");
+                    }
+                  }}
+                >
                   <Text style={styles.cancelBtnText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </Pressable>
+                <Pressable
                   style={[styles.sendBtn, rating === 0 && styles.sendBtnDisabled]}
-                  onPress={() => submitReview()}
+                  onPress={handleSubmitReview}
                   disabled={!id || rating === 0 || submittingReview}
                 >
-                  {submittingReview ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.sendBtnText}>Submit Review</Text>}
-                </TouchableOpacity>
+                  {submittingReview ? (
+                    <ActivityIndicator color={c.onAccent} size="small" />
+                  ) : (
+                    <Text style={styles.sendBtnText}>Submit Review</Text>
+                  )}
+                </Pressable>
               </View>
             </View>
           ) : (
-            <TouchableOpacity style={styles.reviewButton} onPress={() => setShowReviewForm(true)}>
+            <Pressable
+              style={styles.reviewButton}
+              onPress={() => setShowReviewForm(true)}
+            >
               <Text style={styles.reviewText}>Rate This Trainer</Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       )}
@@ -177,18 +218,47 @@ export function TrainerDetailScreen() {
         <View style={styles.actionSection}>
           {showRequestForm ? (
             <View style={styles.requestForm}>
-              <TextInput style={styles.messageInput} value={message} onChangeText={setMessage} placeholder="Add a message (optional)..." placeholderTextColor={c.textTertiary} multiline numberOfLines={3} textAlignVertical="top" />
+              <TextInput
+                style={styles.messageInput}
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Add a message (optional)..."
+                placeholderTextColor={c.textTertiary}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
               <View style={styles.formButtons}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowRequestForm(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.sendBtn} onPress={() => sendRequest()} disabled={sending}>
-                  {sending ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.sendBtnText}>Send Request</Text>}
-                </TouchableOpacity>
+                <Pressable
+                  style={[styles.cancelBtn, sending && styles.buttonDisabled]}
+                  onPress={() => {
+                    if (!sending) {
+                      setShowRequestForm(false);
+                    }
+                  }}
+                >
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.sendBtn}
+                  onPress={handleSendRequest}
+                  disabled={sending}
+                >
+                  {sending ? (
+                    <ActivityIndicator color={c.onAccent} size="small" />
+                  ) : (
+                    <Text style={styles.sendBtnText}>Send Request</Text>
+                  )}
+                </Pressable>
               </View>
             </View>
           ) : (
-            <TouchableOpacity style={styles.requestButton} onPress={() => setShowRequestForm(true)}>
+            <Pressable
+              style={styles.requestButton}
+              onPress={() => setShowRequestForm(true)}
+            >
               <Text style={styles.requestText}>Request Coaching</Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       )}
@@ -229,6 +299,7 @@ function createStyles(c: ThemeColors) {
     reviewForm: { gap: 12 },
     reviewButton: { backgroundColor: c.warning, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
     reviewText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
+    buttonDisabled: { opacity: 0.5 },
     errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
     retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
     retryText: { color: c.onAccent, fontWeight: "600" },

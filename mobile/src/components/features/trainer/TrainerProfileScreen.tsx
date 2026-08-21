@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -34,21 +34,31 @@ export function TrainerProfileScreen() {
     queryFn: () => trainerCatalogApi.getMyProfile(),
   });
 
-  const p = (profile as { profile?: { name?: string; bio?: string; hourlyRate?: number; certifications?: string; specializations?: string } })?.profile;
+  const p = useMemo(() => {
+    return (profile as { profile?: { name?: string; bio?: string; hourlyRate?: number; certifications?: string; specializations?: string } })?.profile;
+  }, [profile]);
 
   const { data: availData, isLoading: loadingAvail, isError: availError, refetch: refetchAvail } = useQuery({
     queryKey: ["myAvailability"],
     queryFn: () => availabilityApi.getMyAvailability(),
   });
 
-  const serverSlots: AvailabilitySlot[] =
-    (availData as { slots?: AvailabilitySlot[] })?.slots ?? [];
+  const serverSlots = useMemo(() => {
+    return (availData as { slots?: AvailabilitySlot[] })?.slots ?? [];
+  }, [availData]);
 
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [name, setName] = useState(p?.name ?? "");
   const [bio, setBio] = useState(p?.bio ?? "");
   const [hourlyRate, setHourlyRate] = useState(String(p?.hourlyRate ?? ""));
+
+  // Keep local edits in sync with state
+  useEffect(() => {
+    setName(p?.name ?? "");
+    setBio(p?.bio ?? "");
+    setHourlyRate(String(p?.hourlyRate ?? ""));
+  }, [p]);
 
   const [editingAvail, setEditingAvail] = useState(false);
   const [availSlots, setAvailSlots] = useState<AvailabilitySlot[]>([]);
@@ -61,14 +71,14 @@ export function TrainerProfileScreen() {
     }
   }, [availData, editingAvail]);
 
-  const startEditAvail = () => {
+  const startEditAvail = useCallback(() => {
     setAvailSlots(
       serverSlots.length > 0
         ? serverSlots.map((s) => ({ ...s }))
         : [{ dayOfWeek: 1, startTime: "09:00", endTime: "17:00" }]
     );
     setEditingAvail(true);
-  };
+  }, [serverSlots]);
 
   const { mutate: save, isPending: saving } = useMutation({
     mutationFn: (data: Record<string, unknown>) => trainerCatalogApi.updateTrainerProfile(data),
@@ -81,7 +91,7 @@ export function TrainerProfileScreen() {
     },
   });
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = useCallback(() => {
     setError("");
     const trimmedName = name.trim();
     const trimmedBio = bio.trim();
@@ -107,7 +117,7 @@ export function TrainerProfileScreen() {
       bio: trimmedBio,
       hourlyRate: hourlyRate.trim() !== "" ? Number(hourlyRate) : undefined,
     });
-  };
+  }, [name, bio, hourlyRate, save]);
 
   const { mutate: saveAvail, isPending: savingAvail } = useMutation({
     mutationFn: (slots: { dayOfWeek: number; startTime: string; endTime: string }[]) =>
@@ -133,54 +143,57 @@ export function TrainerProfileScreen() {
     },
   });
 
+  const updateSlot = useCallback((index: number, field: string, value: string | number) => {
+    setAvailSlots((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, [field]: value } : s))
+    );
+  }, []);
+
+  const addSlot = useCallback(() => {
+    setAvailSlots((prev) => [
+      ...prev,
+      { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" },
+    ]);
+  }, []);
+
+  const removeSlot = useCallback(
+    (index: number) => {
+      const slot = availSlots[index];
+      if (slot.availabilityId != null) {
+        Alert.alert("Delete Slot", "Remove this availability slot?", [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => deleteSlot(slot.availabilityId!),
+          },
+        ]);
+      } else {
+        setAvailSlots((prev) => prev.filter((_, i) => i !== index));
+      }
+    },
+    [availSlots, deleteSlot]
+  );
+
   if (loadingProfile || loadingAvail) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
 
   if (profileError) return (
     <View style={styles.center}>
       <Text style={styles.loadErrorText}>Failed to load trainer profile</Text>
-      <TouchableOpacity onPress={() => refetchProfile()} style={styles.retryButton}>
+      <Pressable onPress={() => refetchProfile()} style={styles.retryButton}>
         <Text style={styles.retryText}>Retry</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 
   if (availError) return (
     <View style={styles.center}>
       <Text style={styles.loadErrorText}>Failed to load availability</Text>
-      <TouchableOpacity onPress={() => refetchAvail()} style={styles.retryButton}>
+      <Pressable onPress={() => refetchAvail()} style={styles.retryButton}>
         <Text style={styles.retryText}>Retry</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
-
-  const updateSlot = (index: number, field: string, value: string | number) => {
-    setAvailSlots((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, [field]: value } : s))
-    );
-  };
-
-  const addSlot = () => {
-    setAvailSlots((prev) => [
-      ...prev,
-      { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" },
-    ]);
-  };
-
-  const removeSlot = (index: number) => {
-    const slot = availSlots[index];
-    if (slot.availabilityId != null) {
-      Alert.alert("Delete Slot", "Remove this availability slot?", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => deleteSlot(slot.availabilityId!),
-        },
-      ]);
-    } else {
-      setAvailSlots((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
@@ -195,14 +208,44 @@ export function TrainerProfileScreen() {
           <Text style={styles.label}>Name</Text>
           <TextInput style={styles.input} value={name} onChangeText={setName} placeholderTextColor={c.textTertiary} />
           <Text style={styles.label}>Bio</Text>
-          <TextInput style={[styles.input, styles.textArea]} value={bio} onChangeText={setBio} multiline numberOfLines={4} textAlignVertical="top" placeholderTextColor={c.textTertiary} />
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            value={bio}
+            onChangeText={setBio}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            placeholderTextColor={c.textTertiary}
+          />
           <Text style={styles.label}>Hourly Rate</Text>
-          <TextInput style={styles.input} value={hourlyRate} onChangeText={setHourlyRate} keyboardType="numeric" placeholderTextColor={c.textTertiary} />
+          <TextInput
+            style={styles.input}
+            value={hourlyRate}
+            onChangeText={setHourlyRate}
+            keyboardType="numeric"
+            placeholderTextColor={c.textTertiary}
+          />
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => { setEditing(false); setError(""); }}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile} disabled={saving}>
-              {saving ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.saveText}>Save</Text>}
-            </TouchableOpacity>
+            <Pressable
+              style={styles.cancelBtn}
+              onPress={() => {
+                setEditing(false);
+                setError("");
+              }}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.saveBtn, saving && styles.buttonDisabled]}
+              onPress={handleSaveProfile}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color={c.onAccent} size="small" />
+              ) : (
+                <Text style={styles.saveText}>Save</Text>
+              )}
+            </Pressable>
           </View>
         </View>
       ) : (
@@ -210,15 +253,18 @@ export function TrainerProfileScreen() {
           <View style={styles.row}><Text style={styles.label}>Name</Text><Text style={styles.value}>{p?.name || "Not set"}</Text></View>
           <View style={styles.row}><Text style={styles.label}>Bio</Text><Text style={styles.value}>{p?.bio || "Not set"}</Text></View>
           <View style={styles.row}><Text style={styles.label}>Rate</Text><Text style={styles.value}>{p?.hourlyRate ? `${p.hourlyRate}/hr` : "Not set"}</Text></View>
-          <TouchableOpacity style={styles.editBtn} onPress={() => {
-            setName(p?.name ?? "");
-            setBio(p?.bio ?? "");
-            setHourlyRate(String(p?.hourlyRate ?? ""));
-            setError("");
-            setEditing(true);
-          }}>
+          <Pressable
+            style={styles.editBtn}
+            onPress={() => {
+              setName(p?.name ?? "");
+              setBio(p?.bio ?? "");
+              setHourlyRate(String(p?.hourlyRate ?? ""));
+              setError("");
+              setEditing(true);
+            }}
+          >
             <Text style={styles.editText}>Edit Profile</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
@@ -229,19 +275,22 @@ export function TrainerProfileScreen() {
             <View key={i} style={styles.availSlot}>
               <View style={styles.availHeader}>
                 <Text style={styles.availLabel}>Slot {i + 1}</Text>
-                <TouchableOpacity onPress={() => removeSlot(i)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Pressable
+                  onPress={() => removeSlot(i)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
                   <Text style={styles.removeBtn}>✕</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
               <View style={styles.dayRow}>
                 {DAY_NAMES.map((d, di) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={di}
                     style={[styles.dayBtn, slot.dayOfWeek === di && styles.dayBtnActive]}
                     onPress={() => updateSlot(i, "dayOfWeek", di)}
                   >
                     <Text style={[styles.dayText, slot.dayOfWeek === di && styles.dayTextActive]}>{d}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
               <View style={styles.timeRow}>
@@ -263,16 +312,27 @@ export function TrainerProfileScreen() {
               </View>
             </View>
           ))}
-          <TouchableOpacity style={styles.addSlotBtn} onPress={addSlot}>
+          <Pressable style={styles.addSlotBtn} onPress={addSlot}>
             <Text style={styles.addSlotText}>+ Add Slot</Text>
-          </TouchableOpacity>
+          </Pressable>
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => setEditingAvail(false)}>
+            <Pressable
+              style={styles.cancelBtn}
+              onPress={() => setEditingAvail(false)}
+            >
               <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn} onPress={() => saveAvail(availSlots)} disabled={savingAvail}>
-              {savingAvail ? <ActivityIndicator color={c.onAccent} size="small" /> : <Text style={styles.saveText}>Save</Text>}
-            </TouchableOpacity>
+            </Pressable>
+            <Pressable
+              style={[styles.saveBtn, savingAvail && styles.buttonDisabled]}
+              onPress={() => saveAvail(availSlots)}
+              disabled={savingAvail}
+            >
+              {savingAvail ? (
+                <ActivityIndicator color={c.onAccent} size="small" />
+              ) : (
+                <Text style={styles.saveText}>Save</Text>
+              )}
+            </Pressable>
           </View>
         </View>
       ) : serverSlots.length > 0 ? (
@@ -283,16 +343,16 @@ export function TrainerProfileScreen() {
               <Text style={styles.availTime}>{slot.startTime} – {slot.endTime}</Text>
             </View>
           ))}
-          <TouchableOpacity style={styles.editBtn} onPress={startEditAvail}>
+          <Pressable style={styles.editBtn} onPress={startEditAvail}>
             <Text style={styles.editText}>Edit Availability</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       ) : (
         <View style={styles.card}>
           <Text style={styles.emptyAvail}>No availability set</Text>
-          <TouchableOpacity style={styles.editBtn} onPress={startEditAvail}>
+          <Pressable style={styles.editBtn} onPress={startEditAvail}>
             <Text style={styles.editText}>Set Availability</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
     </ScrollView>
@@ -322,6 +382,7 @@ function createStyles(c: ThemeColors) {
     cancelText: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
     saveBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.accent, alignItems: "center" },
     saveText: { color: c.onAccent, fontWeight: "600", fontSize: 14 },
+    buttonDisabled: { opacity: 0.5 },
     editBtn: { marginTop: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: c.accent, alignItems: "center" },
     editText: { fontSize: 14, fontWeight: "600", color: c.accent },
     sectionTitle: { fontSize: 20, fontWeight: "700", color: c.text, marginTop: 28, marginBottom: 12 },

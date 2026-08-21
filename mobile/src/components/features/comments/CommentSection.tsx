@@ -1,16 +1,16 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Alert,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
 import { commentApi } from "@/api/commentApi";
@@ -36,7 +36,7 @@ export function CommentSection({
   const { user } = useAuthStore();
   const currentUserId = user?.userId;
 
-  const styles = createStyles(c);
+  const styles = useMemo(() => createStyles(c), [c]);
 
   const queryKey = ["comments", targetType, String(targetId)];
 
@@ -51,13 +51,13 @@ export function CommentSection({
     enabled: !!targetId,
   });
 
-  const comments: Comment[] = data?.comments ?? [];
+  const comments = useMemo(() => data?.comments ?? [], [data]);
 
   const [draft, setDraft] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const createMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => commentApi.create(payload),
+    mutationFn: (payload: Omit<Comment, "commentId" | "createdAt" | "updatedAt">) => commentApi.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       setDraft("");
@@ -86,8 +86,10 @@ export function CommentSection({
     }
     createMutation.mutate({
       targetType,
-      targetId: String(targetId),
+      targetId: Number(targetId),
       content,
+      authorId: user?.userId ?? 0,
+      authorRole: (user?.role === "admin" ? "athlete" : user?.role) ?? "athlete",
     });
   }, [draft, createMutation, targetType, targetId, t]);
 
@@ -142,15 +144,14 @@ export function CommentSection({
             </Text>
           ) : null}
           {!readOnly && isOwn && (
-            <TouchableOpacity
+            <Pressable
               style={styles.deleteLink}
               onPress={() => handleDelete(item)}
-              activeOpacity={0.7}
             >
               <Text style={styles.deleteLinkText}>
                 {t("comment.item.delete")}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       );
@@ -159,7 +160,7 @@ export function CommentSection({
   );
 
   const keyExtractor = useCallback(
-    (item: Comment) => String(item.commentId ?? item.createdAt ?? ""),
+    (item: Comment) => String(item.commentId ?? item.createdAt ?? Date.now().toString()),
     []
   );
 
@@ -181,18 +182,19 @@ export function CommentSection({
           <Text style={styles.errorText}>
             {(error as Error)?.message || t("comment.list.load_failed")}
           </Text>
-          <TouchableOpacity
+          <Pressable
             onPress={() => refetch()}
             style={styles.retryButton}
           >
             <Text style={styles.retryText}>{t("common.actions.retry")}</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={comments}
           renderItem={renderComment}
           keyExtractor={keyExtractor}
+          
           scrollEnabled={false}
           ListEmptyComponent={
             <Text style={styles.emptyText}>
@@ -213,21 +215,19 @@ export function CommentSection({
             placeholderTextColor={c.textTertiary}
             multiline
           />
-          <TouchableOpacity
+          <Pressable
             style={[
               styles.submitButton,
               createMutation.isPending && styles.submitButtonDisabled,
             ]}
-            onPress={handleSubmit}
-            disabled={createMutation.isPending}
-            activeOpacity={0.7}
+            onPress={createMutation.isPending ? undefined : handleSubmit}
           >
             <Text style={styles.submitButtonText}>
               {createMutation.isPending
                 ? t("comment.form.submitting")
                 : t("comment.form.submit")}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 

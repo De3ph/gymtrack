@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Alert,
   TextInput,
@@ -51,6 +51,24 @@ export function MyTrainerScreen() {
     if (showSuccess && !isFetching) setShowSuccess(false);
   }, [showSuccess, isFetching]);
 
+  const handleAcceptInvite = useCallback(() => {
+    if (inviteCode.trim()) {
+      acceptInvite(inviteCode.trim());
+    }
+  }, [inviteCode, acceptInvite]);
+
+  const handleTerminate = useCallback(() => {
+    Alert.alert("Terminate Relationship", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Terminate", style: "destructive", onPress: () => {
+        const trainer = (data as { trainer?: { relationshipId?: number } })?.trainer;
+        if (trainer?.relationshipId) {
+          terminate(trainer.relationshipId);
+        }
+      }},
+    ]);
+  }, [data, terminate]);
+
   if (isLoading || showSuccess) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
   if (isError || !data) return (
     <View style={styles.center}>
@@ -67,9 +85,12 @@ export function MyTrainerScreen() {
           autoCapitalize="characters"
           autoCorrect={false}
         />
-        <TouchableOpacity
-          style={[styles.acceptButton, (!inviteCode.trim() || accepting) && styles.acceptButtonDisabled]}
-          onPress={() => acceptInvite(inviteCode.trim())}
+        <Pressable
+          style={[
+            styles.acceptButton,
+            (!inviteCode.trim() || accepting) && styles.acceptButtonDisabled
+          ]}
+          onPress={handleAcceptInvite}
           disabled={!inviteCode.trim() || accepting}
         >
           {accepting ? (
@@ -77,9 +98,9 @@ export function MyTrainerScreen() {
           ) : (
             <Text style={styles.acceptText}>Accept Invitation</Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
-      <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></TouchableOpacity>
+      <Pressable onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></Pressable>
     </View>
   );
 
@@ -104,18 +125,13 @@ export function MyTrainerScreen() {
         </View>
       ) : null}
       <View style={styles.dangerSection}>
-        <TouchableOpacity
-          style={styles.terminateButton}
-          onPress={() => {
-            Alert.alert("Terminate Relationship", "Are you sure?", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Terminate", style: "destructive", onPress: () => trainer.relationshipId && terminate(trainer.relationshipId) },
-            ]);
-          }}
+        <Pressable
+          style={[styles.terminateButton, terminating && styles.buttonDisabled]}
+          onPress={handleTerminate}
           disabled={terminating}
         >
           <Text style={styles.terminateText}>{terminating ? "Terminating..." : "Terminate Relationship"}</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -142,6 +158,7 @@ function createStyles(c: ThemeColors) {
     emptyText: { fontSize: 16, color: c.textSecondary, marginBottom: 12 },
     retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
     retryText: { color: c.onAccent, fontWeight: "600" },
+    buttonDisabled: { opacity: 0.5 },
     inviteSection: {
       width: "100%", maxWidth: 320, backgroundColor: c.card, borderRadius: 12,
       padding: 16, marginBottom: 16, borderWidth: 1, borderColor: c.border,

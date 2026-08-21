@@ -1,13 +1,14 @@
+import React, { useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Pressable,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
@@ -30,7 +31,10 @@ export function ClientsScreen() {
     queryFn: () => relationshipApi.getMyClients(),
   });
 
-  const clients: Client[] = (data as { clients?: Client[] })?.clients ?? [];
+  const clients = useMemo(() => {
+    const result = data as { clients?: Client[] };
+    return result.clients ?? [];
+  }, [data]);
 
   const { mutate: generateCode, isPending: generating } = useMutation({
     mutationFn: () => relationshipApi.generateInvitation(),
@@ -48,10 +52,9 @@ export function ClientsScreen() {
   });
 
   const renderItem = ({ item }: { item: Client }) => (
-    <TouchableOpacity
+    <Pressable
       style={styles.card}
       onPress={() => router.push(`/trainer/client/${item.username}`)}
-      activeOpacity={0.7}
     >
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>{(item.username ?? "?")[0].toUpperCase()}</Text>
@@ -60,8 +63,10 @@ export function ClientsScreen() {
         <Text style={styles.clientName}>{item.profile?.name || item.username}</Text>
         <Text style={styles.clientUsername}>@{item.username}</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
+
+  const keyExtractor = (item: Client) => String(item.userId ?? Date.now().toString());
 
   return (
     <View style={styles.flex}>
@@ -70,28 +75,27 @@ export function ClientsScreen() {
       ) : isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load clients</Text>
-          <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></TouchableOpacity>
+          <Pressable onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></Pressable>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={clients}
-          keyExtractor={(item) => String(item.userId ?? "")}
+          keyExtractor={keyExtractor}
           renderItem={renderItem}
+          
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           ListHeaderComponent={
-            <TouchableOpacity
-              style={styles.inviteButton}
-              onPress={() => generateCode()}
-              disabled={generating}
-              activeOpacity={0.7}
+            <Pressable
+              style={[styles.inviteButton, generating && styles.buttonDisabled]}
+              onPress={generating ? undefined : () => generateCode()}
             >
               {generating ? (
                 <ActivityIndicator color={c.onAccent} size="small" />
               ) : (
                 <Text style={styles.inviteText}>Generate Invite Code</Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           }
           ListEmptyComponent={<View style={styles.center}><Text style={styles.emptyText}>No clients yet</Text></View>}
         />
@@ -119,5 +123,6 @@ function createStyles(c: ThemeColors) {
       alignItems: "center", marginBottom: 12,
     },
     inviteText: { color: c.onAccent, fontWeight: "700", fontSize: 15 },
+    buttonDisabled: { opacity: 0.5 },
   });
 }
