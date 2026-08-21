@@ -1,15 +1,16 @@
 import { apiRequest } from "./client";
+import type { User } from "@/types";
 
 export const trainerCatalogApi = {
   searchTrainers: (params?: Record<string, string>) =>
-    apiRequest("/trainers", { params }),
+    apiRequest<{ trainers: User[] }>("/trainers", { params }),
 
   getTrainerProfile: (id: string) =>
-    apiRequest(`/trainers/${id}`),
+    apiRequest<User>(`/trainers/${id}`),
 
   getMyProfile: () =>
-    apiRequest("/trainers/me/profile"),
+    apiRequest<User>("/trainers/me/profile"),
 
-  updateTrainerProfile: (data: Record<string, unknown>) =>
-    apiRequest("/trainers/me/profile", { method: "PUT", body: data }),
+  updateTrainerProfile: (data: Partial<Omit<User, "userId" | "createdAt" | "updatedAt" | "role">>) =>
+    apiRequest<User>("/trainers/me/profile", { method: "PUT", body: data }),
 };

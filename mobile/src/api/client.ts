@@ -71,7 +71,7 @@ export async function apiRequest<T = unknown>(
     }
 
     if (response.status === 204) return undefined as T;
-    return response.json();
+    return response.json() as T;
   } finally {
     clearTimeout(timeoutId);
   }

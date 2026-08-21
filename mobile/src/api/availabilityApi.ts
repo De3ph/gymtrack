@@ -1,18 +1,19 @@
 import { apiRequest } from "./client";
+import type { TrainerAvailability } from "@/types";
 
 export const availabilityApi = {
   getMyAvailability: () =>
-    apiRequest("/trainers/me/availability"),
+    apiRequest<{ slots: TrainerAvailability[] }>("/trainers/me/availability"),
 
-  setMyAvailability: (slots: Record<string, unknown>[]) =>
-    apiRequest("/trainers/me/availability", {
+  setMyAvailability: (slots: TrainerAvailability[]) =>
+    apiRequest<{ slots: TrainerAvailability[] }>("/trainers/me/availability", {
       method: "PUT",
       body: slots,
     }),
 
   getTrainerAvailability: (trainerId: string) =>
-    apiRequest(`/trainers/${trainerId}/availability`),
+    apiRequest<{ slots: TrainerAvailability[] }>(`/trainers/${trainerId}/availability`),
 
   deleteSlot: (slotId: string) =>
-    apiRequest(`/trainers/me/availability/${slotId}`, { method: "DELETE" }),
+    apiRequest<void>(`/trainers/me/availability/${slotId}`, { method: "DELETE" }),
 };

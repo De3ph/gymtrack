@@ -1,21 +1,22 @@
 import { apiRequest } from "./client";
+import type { Relationship } from "@/types";
 
 export const relationshipApi = {
   generateInvitation: () =>
-    apiRequest("/relationships/invite", { method: "POST", body: {} }),
+    apiRequest<{ code: string; expiresAt: string }>("/relationships/invite", { method: "POST", body: {} }),
 
   getMyClients: () =>
-    apiRequest("/relationships/my-clients"),
+    apiRequest<{ clients: Relationship[] }>("/relationships/my-clients"),
 
   getClientDetails: (username: string) =>
-    apiRequest(`/relationships/client/${username}`),
+    apiRequest<Relationship>(`/relationships/client/${username}`),
 
   acceptInvitation: (code: string) =>
-    apiRequest("/relationships/accept", { method: "POST", body: { code } }),
+    apiRequest<Relationship>("/relationships/accept", { method: "POST", body: { code } }),
 
   getMyTrainer: () =>
-    apiRequest("/relationships/my-trainer"),
+    apiRequest<Relationship>("/relationships/my-trainer"),
 
   terminateRelationship: (relationshipId: string | number) =>
-    apiRequest(`/relationships/${relationshipId}`, { method: "DELETE" }),
+    apiRequest<void>(`/relationships/${relationshipId}`, { method: "DELETE" }),
 };

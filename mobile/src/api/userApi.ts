@@ -1,8 +1,9 @@
 import { apiRequest } from "./client";
+import type { User } from "@/types";
 
 export const userApi = {
-  getCurrentUser: () => apiRequest("/users/me"),
+  getCurrentUser: () => apiRequest<User>("/users/me"),
 
-  updateCurrentUser: (data: Record<string, unknown>) =>
-    apiRequest("/users/me", { method: "PUT", body: data }),
+  updateCurrentUser: (data: Partial<Omit<User, "userId" | "createdAt" | "updatedAt">>) =>
+    apiRequest<User>("/users/me", { method: "PUT", body: data }),
 };

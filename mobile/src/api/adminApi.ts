@@ -1,35 +1,36 @@
 import { apiRequest } from "./client";
+import type { User, Comment } from "@/types";
 
 export const adminApi = {
-  getDashboardStats: () => apiRequest("/admin/stats"),
+  getDashboardStats: () => apiRequest<{ userCount: number; workoutCount: number; mealCount: number }>("/admin/stats"),
 
   getUsers: (params?: Record<string, string>) =>
-    apiRequest("/admin/users", { params }),
+    apiRequest<{ users: User[] }>("/admin/users", { params }),
 
   getUserDetail: (userId: string) =>
-    apiRequest(`/admin/users/${userId}`),
+    apiRequest<User>(`/admin/users/${userId}`),
 
   changePassword: (oldPassword: string, newPassword: string) =>
-    apiRequest("/admin/profile/password", {
+    apiRequest<void>("/admin/profile/password", {
       method: "PUT",
       body: { oldPassword, newPassword },
     }),
 
   updateUserRole: (userId: string, role: string) =>
-    apiRequest(`/admin/users/${userId}/role`, {
+    apiRequest<User>(`/admin/users/${userId}/role`, {
       method: "PUT",
       body: { role },
     }),
 
   updateUserStatus: (userId: string, status: string) =>
-    apiRequest(`/admin/users/${userId}/status`, {
+    apiRequest<User>(`/admin/users/${userId}/status`, {
       method: "PUT",
       body: { status },
     }),
 
   getComments: (params?: Record<string, string>) =>
-    apiRequest("/admin/comments", { params }),
+    apiRequest<{ comments: Comment[] }>("/admin/comments", { params }),
 
   deleteComment: (commentId: number) =>
-    apiRequest(`/admin/comments/${commentId}`, { method: "DELETE" }),
+    apiRequest<void>(`/admin/comments/${commentId}`, { method: "DELETE" }),
 };

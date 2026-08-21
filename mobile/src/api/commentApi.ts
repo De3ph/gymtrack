@@ -1,20 +1,21 @@
 import { apiRequest } from "./client";
+import type { Comment } from "@/types";
 
 export const commentApi = {
   getByTarget: (
     targetType: "workout" | "meal",
     targetId: string | number
   ) =>
-    apiRequest("/comments", {
+    apiRequest<{ comments: Comment[] }>("/comments", {
       params: { targetType, targetId: String(targetId) },
     }),
 
-  create: (data: Record<string, unknown>) =>
-    apiRequest("/comments", { method: "POST", body: data }),
+  create: (data: Omit<Comment, "commentId" | "createdAt" | "updatedAt">) =>
+    apiRequest<Comment>("/comments", { method: "POST", body: data }),
 
-  update: (id: string | number, data: Record<string, unknown>) =>
-    apiRequest(`/comments/${id}`, { method: "PUT", body: data }),
+  update: (id: string | number, data: Partial<Omit<Comment, "commentId" | "createdAt" | "updatedAt">>) =>
+    apiRequest<Comment>(`/comments/${id}`, { method: "PUT", body: data }),
 
   delete: (id: string | number) =>
-    apiRequest(`/comments/${id}`, { method: "DELETE" }),
+    apiRequest<void>(`/comments/${id}`, { method: "DELETE" }),
 };

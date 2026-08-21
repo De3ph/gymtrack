@@ -1,31 +1,32 @@
 import { apiRequest } from "./client";
+import type { WorkoutPlan } from "@/types";
 
 export const workoutPlanApi = {
-  create: (data: Record<string, unknown>) =>
-    apiRequest("/workout-plans", { method: "POST", body: data }),
+  create: (data: Omit<WorkoutPlan, "planId" | "createdAt" | "updatedAt">) =>
+    apiRequest<WorkoutPlan>("/workout-plans", { method: "POST", body: data }),
 
-  getAll: () => apiRequest("/workout-plans"),
+  getAll: () => apiRequest<{ plans: WorkoutPlan[] }>("/workout-plans"),
 
   getById: (id: string | number) =>
-    apiRequest(`/workout-plans/${id}`),
+    apiRequest<WorkoutPlan>(`/workout-plans/${id}`),
 
-  update: (id: string | number, data: Record<string, unknown>) =>
-    apiRequest(`/workout-plans/${id}`, { method: "PUT", body: data }),
+  update: (id: string | number, data: Partial<Omit<WorkoutPlan, "planId" | "createdAt" | "updatedAt">>) =>
+    apiRequest<WorkoutPlan>(`/workout-plans/${id}`, { method: "PUT", body: data }),
 
   delete: (id: string | number) =>
-    apiRequest(`/workout-plans/${id}`, { method: "DELETE" }),
+    apiRequest<void>(`/workout-plans/${id}`, { method: "DELETE" }),
 
-  assign: (id: string | number, data: Record<string, unknown>) =>
-    apiRequest(`/workout-plans/${id}/assign`, { method: "POST", body: data }),
+  assign: (id: string | number, data: { athleteId: number; startDate?: string; endDate?: string }) =>
+    apiRequest<void>(`/workout-plans/${id}/assign`, { method: "POST", body: data }),
 
   getAssignments: (id: string | number) =>
-    apiRequest(`/workout-plans/${id}/assignments`),
+    apiRequest<{ assignments: { id: number; athleteId: number; startDate: string; endDate?: string }[] }>(`/workout-plans/${id}/assignments`),
 
-  getMyPlans: () => apiRequest("/workout-plans/assigned"),
+  getMyPlans: () => apiRequest<{ plans: WorkoutPlan[] }>("/workout-plans/assigned"),
 
   startWorkout: (id: string | number) =>
-    apiRequest(`/workout-plans/${id}/start`, { method: "POST", body: {} }),
+    apiRequest<void>(`/workout-plans/${id}/start`, { method: "POST", body: {} }),
 
   getClientPlans: (username: string) =>
-    apiRequest(`/clients/${username}/workout-plans`),
+    apiRequest<{ plans: WorkoutPlan[] }>(`/clients/${username}/workout-plans`),
 };

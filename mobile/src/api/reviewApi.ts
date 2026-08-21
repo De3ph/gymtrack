@@ -1,24 +1,25 @@
 import { apiRequest } from "./client";
+import type { TrainerReview } from "@/types";
 
 export const reviewApi = {
   createReview: (
     trainerId: string | number,
-    data: { rating: number; comment?: string }
+    data: Omit<TrainerReview, "reviewId" | "createdAt" | "updatedAt" | "trainerId" | "athleteId">
   ) =>
-    apiRequest(`/trainers/${trainerId}/reviews`, {
+    apiRequest<TrainerReview>(`/trainers/${trainerId}/reviews`, {
       method: "POST",
       body: data,
     }),
 
   getTrainerReviews: (trainerId: string | number) =>
-    apiRequest(`/trainers/${trainerId}/reviews`),
+    apiRequest<{ reviews: TrainerReview[] }>(`/trainers/${trainerId}/reviews`),
 
   updateReview: (
     reviewId: string | number,
-    data: { rating: number; comment?: string }
+    data: Partial<Omit<TrainerReview, "reviewId" | "createdAt" | "updatedAt" | "trainerId" | "athleteId">>
   ) =>
-    apiRequest(`/reviews/${reviewId}`, { method: "PUT", body: data }),
+    apiRequest<TrainerReview>(`/reviews/${reviewId}`, { method: "PUT", body: data }),
 
   deleteReview: (reviewId: string | number) =>
-    apiRequest(`/reviews/${reviewId}`, { method: "DELETE" }),
+    apiRequest<void>(`/reviews/${reviewId}`, { method: "DELETE" }),
 };
