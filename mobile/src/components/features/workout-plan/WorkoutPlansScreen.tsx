@@ -14,6 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutPlanApi } from "@/api/workoutPlanApi";
+import { useAuthStore } from "@/stores/authStore";
 import { useThemeColors } from "@/components/useThemeColors";
 import type { ThemeColors } from "@/constants/Colors";
 
@@ -28,6 +29,7 @@ export function WorkoutPlansScreen() {
   const c = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
   const styles = createStyles(c);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
@@ -39,7 +41,7 @@ export function WorkoutPlansScreen() {
   });
 
   const { mutate: createPlan, isPending: creating } = useMutation({
-    mutationFn: () => workoutPlanApi.create({ name: newName, description: newDesc, exercises: [] }),
+    mutationFn: () => workoutPlanApi.create({ creatorId: user?.userId ?? 0, name: newName, description: newDesc, exercises: [] }),
     onSuccess: () => {
       setShowCreate(false);
       setNewName("");

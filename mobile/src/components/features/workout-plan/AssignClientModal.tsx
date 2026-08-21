@@ -11,7 +11,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
 import { workoutPlanApi } from "@/api/workoutPlanApi";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useThemeColors } from "@/components/useThemeColors";
 import type { ThemeColors } from "@/constants/Colors";
 
@@ -49,8 +49,8 @@ export function AssignClientModal({ visible, onClose, planId, onAssigned }: Prop
   });
 
   const { mutate: assignPlan, isPending: assigning } = useMutation({
-    mutationFn: (athleteIds: string[]) =>
-      workoutPlanApi.assign(planId, { athleteIds }),
+    mutationFn: (athleteId: number) =>
+      workoutPlanApi.assign(planId, { athleteId }),
     onSuccess: () => {
       Alert.alert("Assigned", "Workout plan assigned successfully");
       setSelectedIds(new Set());
@@ -63,8 +63,21 @@ export function AssignClientModal({ visible, onClose, planId, onAssigned }: Prop
     },
   });
 
-  const clients: ClientItem[] =
-    (data as { clients?: ClientItem[] })?.clients ?? [];
+  const clients: ClientItem[] = useMemo(() => {
+    return data?.clients?.map(client => ({
+      relationship: {
+        relationshipId: client.relationshipId,
+        athleteId: client.athleteId,
+        trainerId: client.trainerId,
+        status: client.status
+      },
+      athlete: {
+        athleteId: client.athleteId,
+        name: `Athlete ${client.athleteId}`,
+        username: `athlete${client.athleteId}`
+      }
+    })) ?? [];
+  }, [data]);
 
   const toggleClient = (athleteId: number) => {
     setSelectedIds((prev) => {
@@ -80,7 +93,9 @@ export function AssignClientModal({ visible, onClose, planId, onAssigned }: Prop
       Alert.alert("Select", "Select at least one athlete");
       return;
     }
-    assignPlan(Array.from(selectedIds).map(String));
+    Array.from(selectedIds).forEach(athleteId => {
+      assignPlan(athleteId);
+    });
   };
 
   const handleClose = () => {

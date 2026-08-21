@@ -49,9 +49,22 @@ export function WorkoutPlanDetailScreen() {
   const { mutate: savePlan, isPending: saving } = useMutation({
     mutationFn: () =>
       workoutPlanApi.update(id!, {
+        creatorId: user?.userId ?? 0,
         name: editName,
         description: editDescription,
-        exercises: editExercises,
+        exercises: editExercises.map((ex, index) => ({
+          exerciseId: 0, // This should be set properly
+          name: ex.name || "",
+          sets: Array(ex.sets || 0).fill(0).map(() => ({
+            setId: "",
+            weight: ex.weight || 0,
+            weightUnit: "kg",
+            reps: ex.reps || 0,
+            restTime: 60
+          })),
+          notes: "",
+          order: index
+        })),
       }),
     onSuccess: () => {
       setIsEditing(false);
@@ -83,11 +96,15 @@ export function WorkoutPlanDetailScreen() {
   };
 
   const handleEdit = () => {
-    const plan = data as PlanDetail;
-    if (!plan) return;
-    setEditName(plan.name ?? "");
-    setEditDescription(plan.description ?? "");
-    setEditExercises(plan.exercises ? plan.exercises.map((e) => ({ ...e })) : []);
+    if (!data) return;
+    setEditName(data.name ?? "");
+    setEditDescription(data.description ?? "");
+    setEditExercises(data.exercises?.map((e) => ({
+      name: e.name,
+      sets: e.sets?.length,
+      reps: e.sets?.[0]?.reps,
+      weight: e.sets?.[0]?.weight,
+    })) ?? []);
     setIsEditing(true);
   };
 
@@ -103,7 +120,17 @@ export function WorkoutPlanDetailScreen() {
     </View>
   );
 
-  const plan = data as PlanDetail;
+  const plan: PlanDetail = {
+    planId: data.planId,
+    name: data.name,
+    description: data.description,
+    exercises: data.exercises?.map(ex => ({
+      name: ex.name,
+      sets: ex.sets?.length,
+      reps: ex.sets?.[0]?.reps,
+      weight: ex.sets?.[0]?.weight
+    })) ?? []
+  };
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
