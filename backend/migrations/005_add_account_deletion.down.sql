@@ -1,0 +1,4 @@
+DROP INDEX IF EXISTS idx_users_deleted_at;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_status_check;
+ALTER TABLE users ADD CONSTRAINT users_status_check CHECK (status IN ('active', 'suspended', 'banned'));
+ALTER TABLE users DROP COLUMN IF EXISTS deleted_at;

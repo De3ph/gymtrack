@@ -72,6 +72,15 @@ export type CreateExerciseRequest = components["schemas"]["handlers.CreateExerci
 export type CreateBodyMeasurementRequest = components["schemas"]["handlers.CreateBodyMeasurementRequest"];
 export type UpdateBodyMeasurementRequest = components["schemas"]["handlers.UpdateBodyMeasurementRequest"];
 
+export interface DeleteAccountRequest {
+  password: string;
+}
+
+export interface RestoreAccountRequest {
+  identifier: string;
+  password: string;
+}
+
 // --- Response / handler types ---
 export type UserResponse = components["schemas"]["handlers.UserResponse"];
 export type ClientStats = components["schemas"]["handlers.ClientStats"];

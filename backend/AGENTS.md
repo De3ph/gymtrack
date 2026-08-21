@@ -6,17 +6,23 @@
 |---|---|
 | `go run cmd/server/main.go` | Start server on port 8080 |
 | `go build -o server.exe cmd/server/main.go` | Build binary |
+| `go run cmd/migrate/main.go` | Apply SQL migrations (`backend/migrations/001`–`005`) |
+| `go run cmd/ensure-schema/main.go` | Verify the database schema is in sync |
 | `go test ./...` | Run all tests |
 | `go test ./internal/infrastructure/persistence/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
 | `go run cmd/seed/main.go` | Seed mock data: 30 workouts + 30 meals for `de3ph` (password `1234567890`) |
 
 **No hot-reload** — stop and restart after every edit, or use a tool like `air`.
 
-## Dependencies (Go 1.24, module `gymtrack-backend`)
+## Dependencies (Go 1.25, module `gymtrack-backend`)
 
 - **Web**: `github.com/gin-gonic/gin` + `gin-contrib/cors`
 - **DB**: `github.com/jackc/pgx/v5` (PostgreSQL)
 - **Auth**: `github.com/golang-jwt/jwt/v5` + `golang.org/x/crypto`
+- **DI**: `go.uber.org/fx` v1.24 (composition root in `internal/app/module.go`)
+- **Cache**: `github.com/patrickmn/go-cache` (in-memory adapters in `infrastructure/cache`)
+- **Metrics**: `github.com/prometheus/client_golang` (HTTP metrics middleware)
+- **Logging**: `go.uber.org/zap`
 - **Docs**: `github.com/swaggo/swag` + `gin-swagger` (Swagger UI at `/swagger/*`)
 - **Validation**: `github.com/go-playground/validator/v10`
 - **Config**: `github.com/joho/godotenv` (loads `.env`)
@@ -25,11 +31,13 @@
 ## Architecture (layered)
 
 ```
-cmd/server/main.go         — DI wiring, router setup, startup
+cmd/server/main.go         — Thin entry point: fx.New(app.Module).Run()
 internal/
+  app/
+    module.go              — uber-go/fx DI composition root (all providers/invokes)
   api/
     handlers/              — 14 handlers, thin HTTP layer (parse req → call service → respond)
-    middleware/             — auth_middleware.go, admin_middleware.go
+    middleware/            — auth, admin, rate-limit, body-limit, metrics
     routes/                — 12 route files, grouped by domain
   config/                  — Config struct, PostgreSQL connection pool, seed data
   domain/
@@ -39,10 +47,12 @@ internal/
     services/              — 15 service implementations with business logic
   infrastructure/
     persistence/
-      postgres/            — 15 repository implementations (PostgreSQL)
+      postgres/            — PostgreSQL repository implementations
       repository.go        — RepositoryFactory creating all repositories
-  testutils/               — Mock helpers (mocks.go, testutils.go)
-  utils/                   — clock.go (RealClock interface for testable time)
+    cache/                 — In-memory cache adapters (gocache) + Prometheus metrics
+    log/                   — Zap logger setup
+  testutils/               — Mock helpers (mocks.go, testutils.go, migrations/)
+  utils/                   — clock.go (Clock interface + RealClock for testable time)
 ```
 
 ## Database (PostgreSQL)
@@ -72,14 +82,14 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 
 - Base path: `/api`
 - Auth: Bearer token in `Authorization` header. Validated by `middleware.JWTAuthMiddleware()`.
-- CORS: Allow origins `localhost:3000`, `localhost:3001`. Methods: GET, POST, PUT, DELETE, OPTIONS.
-- Role middleware: `middleware.RoleMiddleware()` checks user role from JWT claims.
+- CORS: Allow origins `http://localhost:3000`, `http://127.0.0.1:3000`, `http://localhost:3001`, `http://127.0.0.1:3001` (the code uses a `[IP_ADDRESS]` placeholder that resolves to the LAN IP). Methods: GET, POST, PUT, DELETE, OPTIONS. `AllowCredentials: true`.
+- Role checks: middleware enforces roles (e.g., admin) from JWT claims.
 - Swagger UI: `http://localhost:8080/swagger/index.html`
 
 ## Key patterns to follow
 
 - **Handler → Service → Repository**: Handlers parse requests and return responses. Services contain business logic. Repositories do data access. No business logic in handlers.
-- **Constructor injection**: Services receive repository interfaces; handlers receive service interfaces. All wiring is explicit in `main.go`.
+- **Constructor injection**: Services receive repository interfaces; handlers receive service interfaces. All wiring is in `internal/app/module.go` via uber-go/fx.
 - **Repository Factory**: Use `persistence.RepositoryFactory` to create all repositories from a single `pgxpool.Pool`. The factory is provided via uber/fx and individual repositories are extracted via accessor methods.
 - **DTO layer**: Currently handlers parse raw JSON into domain models directly (no separate DTO package) — but the convention is to use request/response types in handler files. Model after `body_measurement_handler.go` or `workout_handler.go`.
 - **Error handling**: Domain errors in `internal/domain/errors/` are `var` sentinel errors. Handlers do `errors.Is(err, domainerrors.ErrNotFound)` type switching (see `workout_handler.go` pattern).
@@ -87,8 +97,7 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 
 ## Known gaps
 
-- Invitation service still uses Couchbase (not migrated to PostgreSQL).
-- No E2E test suite. Repository-level tests exist but integration with the full HTTP layer is untested.
-- `SeedAllData()` in `config/seed_data.go` is commented out in `main.go` -- uncomment if needed for development.
-- Schema managed via `backend/migrations/001_initial_schema.up.sql` -- no migration tool (e.g., golang-migrate) yet.
-- JSONB columns (`workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises`) are untyped `[]byte` in Go code; no struct deserialization layer.
+- No E2E test suite. Repository-level and unit tests exist, but integration across the full HTTP layer is limited.
+- Schema is managed by hand-written SQL migrations in `backend/migrations/` (`001`–`005`), applied via `go run ./cmd/migrate`. No off-the-shelf migration library (e.g., golang-migrate).
+- JSONB columns (`workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises`) are stored as untyped `[]byte` in Go; there is no struct deserialization layer over them.
+- PostgreSQL is the sole persistence backend; Couchbase references remain only in historical `doc.go` comments.

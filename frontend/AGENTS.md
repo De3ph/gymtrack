@@ -4,7 +4,7 @@
 
 | Command | Action |
 |---|---|
-| `pnpm dev` | Dev server (`next dev --webpack`, **not** turbopack) |
+| `pnpm dev` | Dev server via `next dev` (Turbopack is the default bundler in Next 16) |
 | `pnpm build` | Production build |
 | `pnpm lint` | ESLint (extends `eslint-config-next` core-web-vitals + TypeScript) |
 | `pnpm test` | Vitest watch mode |
@@ -39,8 +39,8 @@
 ## UI & styling
 
 - **Tailwind CSS v4** with CSS-based configuration in `src/app/globals.css`. Use `@tailwindcss/postcss` (v4 PostCSS plugin).
-- **shadcn/ui** with `base-vega` style, `lucide` icons. Config in `components.json` — aliases: `@/components/ui`, `@/lib/utils`, `@/hooks`.
-- **Component structure**: `src/components/ui/` (38 shadcn primitives), `src/components/features/` (14 domain modules: athlete, trainer, workout, meal, comments, etc.).
+- **shadcn/ui** using the `base-vega` registry (primitives built on `@base-ui/react`) with `lucide` icons. Config in `components.json` — aliases: `@/components/ui`, `@/lib/utils`, `@/hooks`.
+- **Component structure**: `src/components/ui/` (42 shadcn/ui primitives), `src/components/features/` (13 feature modules: athlete, trainer, workout, meal, comments, etc.).
 - **Animation**: `tw-animate-css` + `motion` (framer-motion successor) via the `motion` npm package.
 
 ## Component conventions
@@ -68,8 +68,9 @@ All under `src/app/[locale]/`:
 ```
 (auth)/login, /register
 (dashboard)/
-  athlete/workouts, /meals, /measurements, /trainers, /my-trainer, /requests, /workout-plans
-  trainer/clients, /profile, /requests, /workout-plans
-  admin/
+  dashboard/                 # role-aware home
+  athlete/workouts, /meals, /measurements, /trainers, /trainers/[id], /my-trainer, /my-trainer/[id], /requests, /workout-plans
+  trainer/clients, /client/[username], /profile, /requests, /workout-plans, /workout-plans/[id]
+  admin/users, /users/[id], /profile, /moderation
   profile/
 ```

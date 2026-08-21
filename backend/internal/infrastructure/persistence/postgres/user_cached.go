@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/sync/singleflight"
 
@@ -112,4 +113,53 @@ func (r *CachedUserRepository) GetAllUsersFiltered(ctx context.Context, role str
 
 func (r *CachedUserRepository) CountUsers(ctx context.Context, role string, search string) (int, error) {
 	return r.inner.CountUsers(ctx, role, search)
+}
+
+func (r *CachedUserRepository) SoftDeleteUser(ctx context.Context, userID int) error {
+	user, err := r.inner.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	err = r.inner.SoftDeleteUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+	r.cache.Invalidate("user:id:" + strconv.Itoa(userID))
+	r.cache.Invalidate("user:email:" + strings.ToLower(user.Email))
+	r.cache.Invalidate("user:username:" + strings.ToLower(user.Username))
+	return nil
+}
+
+func (r *CachedUserRepository) RestoreUser(ctx context.Context, userID int) error {
+	user, err := r.inner.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	err = r.inner.RestoreUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+	r.cache.Invalidate("user:id:" + strconv.Itoa(userID))
+	r.cache.Invalidate("user:email:" + strings.ToLower(user.Email))
+	r.cache.Invalidate("user:username:" + strings.ToLower(user.Username))
+	return nil
+}
+
+func (r *CachedUserRepository) GetUsersReadyForHardDelete(ctx context.Context, before time.Time) ([]int, error) {
+	return r.inner.GetUsersReadyForHardDelete(ctx, before)
+}
+
+func (r *CachedUserRepository) HardDeleteUser(ctx context.Context, userID int) error {
+	user, err := r.inner.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	err = r.inner.HardDeleteUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+	r.cache.Invalidate("user:id:" + strconv.Itoa(userID))
+	r.cache.Invalidate("user:email:" + strings.ToLower(user.Email))
+	r.cache.Invalidate("user:username:" + strings.ToLower(user.Username))
+	return nil
 }

@@ -16,5 +16,9 @@ export const authApi = {
 
     logout: async () => {
         return api.post<MessageResponse>("/auth/logout", {})
+    },
+
+    restoreAccount: async (data: { identifier: string; password: string }) => {
+        return api.post<LoginResponse>("/auth/restore", data)
     }
 }

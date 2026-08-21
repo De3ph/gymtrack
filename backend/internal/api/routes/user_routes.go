@@ -12,5 +12,6 @@ func UserRoutes(router *gin.RouterGroup, userHandler *handlers.UserHandler, auth
 	{
 		user.GET("/me", userHandler.GetCurrentUser)
 		user.PUT("/me", userHandler.UpdateCurrentUser)
+		user.DELETE("/me", userHandler.DeleteCurrentUser)
 	}
 }

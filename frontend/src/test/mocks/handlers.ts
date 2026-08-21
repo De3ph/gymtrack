@@ -169,6 +169,42 @@ export const handlers = [
     })
   }),
 
+  http.delete('http://localhost:8080/api/users/me', async ({ request }) => {
+    const body = await request.json() as { password: string }
+    if (body.password === 'correct123') {
+      return HttpResponse.json({ message: 'Account deleted successfully' })
+    }
+    return HttpResponse.json(
+      { error: 'invalid password' },
+      { status: 401 }
+    )
+  }),
+
+  http.post('http://localhost:8080/api/auth/restore', async ({ request }) => {
+    const body = await request.json() as { identifier: string; password: string }
+    if (body.identifier === 'deleted@test.com' && body.password === 'correct123') {
+      return HttpResponse.json({
+        message: 'Account restored successfully',
+        accessToken: 'restored-access-token',
+        refreshToken: 'restored-refresh-token',
+        user: {
+          userId: 1,
+          username: 'testuser',
+          email: 'deleted@test.com',
+          role: 'athlete',
+          status: 'active',
+          profile: {},
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+        },
+      })
+    }
+    return HttpResponse.json(
+      { error: 'restore period expired' },
+      { status: 403 }
+    )
+  }),
+
   // Workout endpoints
   http.get('/api/workouts', () => {
     return HttpResponse.json(mockWorkouts)

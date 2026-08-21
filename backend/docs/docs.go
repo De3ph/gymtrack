@@ -314,6 +314,18 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "handlers.DeleteAccountRequest": {
+                "properties": {
+                    "password": {
+                        "example": "password123",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "password"
+                ],
+                "type": "object"
+            },
             "handlers.ExerciseStat": {
                 "properties": {
                     "maxWeight": {
@@ -458,6 +470,23 @@ const docTemplate = `{
                     "password",
                     "role",
                     "username"
+                ],
+                "type": "object"
+            },
+            "handlers.RestoreAccountRequest": {
+                "properties": {
+                    "identifier": {
+                        "example": "test@example.com",
+                        "type": "string"
+                    },
+                    "password": {
+                        "example": "password123",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "identifier",
+                    "password"
                 ],
                 "type": "object"
             },
@@ -1221,6 +1250,9 @@ const docTemplate = `{
                     "createdAt": {
                         "type": "string"
                     },
+                    "deletedAt": {
+                        "type": "string"
+                    },
                     "email": {
                         "type": "string"
                     },
@@ -1266,6 +1298,9 @@ const docTemplate = `{
             "models.User": {
                 "properties": {
                     "createdAt": {
+                        "type": "string"
+                    },
+                    "deletedAt": {
                         "type": "string"
                     },
                     "email": {
@@ -1397,13 +1432,15 @@ const docTemplate = `{
                 "enum": [
                     "active",
                     "suspended",
-                    "banned"
+                    "banned",
+                    "deleted"
                 ],
                 "type": "string",
                 "x-enum-varnames": [
                     "UserStatusActive",
                     "UserStatusSuspended",
-                    "UserStatusBanned"
+                    "UserStatusBanned",
+                    "UserStatusDeleted"
                 ]
             },
             "models.WeightUnit": {
@@ -2480,6 +2517,92 @@ const docTemplate = `{
                 "summary": "Update user status (Admin only)",
                 "tags": [
                     "Admin"
+                ]
+            }
+        },
+        "/auth/restore": {
+            "post": {
+                "description": "Restore a soft-deleted account within the 30-day grace period",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/handlers.RestoreAccountRequest",
+                                        "summary": "request",
+                                        "description": "Restore account request"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Restore account request",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Account restored successfully"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Invalid request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Invalid credentials"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Account not deleted / Restore period expired"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Internal server error"
+                    }
+                },
+                "summary": "Restore deleted account",
+                "tags": [
+                    "Auth"
                 ]
             }
         },
@@ -5327,7 +5450,7 @@ const docTemplate = `{
                                 }
                             }
                         },
-                        "description": "Success\" {\"pendingInvitations\": []models.Invitation, \"activeTrainer\": map[string]interface{}{\"relationship\": models.Relationship, \"trainer\": models.User}}"
+                        "description": "Success\" {\"pendingInvitations\": []models.Invitation, \"activeTrainer\": map[string]any{\"relationship\": models.Relationship, \"trainer\": models.User}}"
                     },
                     "401": {
                         "content": {
@@ -6458,6 +6581,97 @@ const docTemplate = `{
             }
         },
         "/users/me": {
+            "delete": {
+                "description": "Soft-delete the authenticated user's account. Admin accounts cannot be deleted. Requires password confirmation.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/handlers.DeleteAccountRequest",
+                                        "summary": "request",
+                                        "description": "Delete account request"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Delete account request",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Account deleted successfully"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Invalid request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Admin accounts cannot be deleted / Account already deleted"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Internal server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete current user account",
+                "tags": [
+                    "Users"
+                ]
+            },
             "get": {
                 "description": "Retrieve profile information for the authenticated user",
                 "requestBody": {

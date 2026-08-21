@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"testing"
+	"time"
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -238,5 +239,104 @@ func TestPostgresUserRepository(t *testing.T) {
 		assert.True(t, fetched.Profile.IsAvailableForNewClients)
 		assert.Equal(t, []string{"English", "Spanish"}, fetched.Profile.Languages)
 		assert.Equal(t, []int{1, 2, 3}, fetched.Profile.ClientList)
+	})
+
+	t.Run("SoftDeleteUser", func(t *testing.T) {
+		user := &models.User{
+			Username:     "softdelete_user",
+			Email:        "softdelete@example.com",
+			PasswordHash: "hashedpassword",
+			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
+			Profile:      models.UserProfile{Name: "Soft Delete User"},
+		}
+		require.NoError(t, repo.CreateUser(ctx, user))
+
+		err := repo.SoftDeleteUser(ctx, user.UserID)
+		require.NoError(t, err)
+
+		fetched, err := repo.GetUserByID(ctx, user.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, models.UserStatusDeleted, fetched.Status)
+		assert.NotNil(t, fetched.DeletedAt, "deleted_at should be set after soft delete")
+	})
+
+	t.Run("SoftDeleteUser_NotFound", func(t *testing.T) {
+		err := repo.SoftDeleteUser(ctx, 999999)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
+	})
+
+	t.Run("RestoreUser", func(t *testing.T) {
+		user := &models.User{
+			Username:     "restore_user",
+			Email:        "restore@example.com",
+			PasswordHash: "hashedpassword",
+			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
+			Profile:      models.UserProfile{Name: "Restore User"},
+		}
+		require.NoError(t, repo.CreateUser(ctx, user))
+		require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+		err := repo.RestoreUser(ctx, user.UserID)
+		require.NoError(t, err)
+
+		fetched, err := repo.GetUserByID(ctx, user.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, models.UserStatusActive, fetched.Status)
+		assert.Nil(t, fetched.DeletedAt, "deleted_at should be NULL after restore")
+	})
+
+	t.Run("RestoreUser_NotFound", func(t *testing.T) {
+		err := repo.RestoreUser(ctx, 999999)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
+	})
+
+	t.Run("GetUsersReadyForHardDelete", func(t *testing.T) {
+		user := &models.User{
+			Username:     "harddelete_candidate",
+			Email:        "harddelete_candidate@example.com",
+			PasswordHash: "hashedpassword",
+			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
+			Profile:      models.UserProfile{Name: "Hard Delete Candidate"},
+		}
+		require.NoError(t, repo.CreateUser(ctx, user))
+		require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
+
+		ids, err := repo.GetUsersReadyForHardDelete(ctx, time.Now().Add(1*time.Hour))
+		require.NoError(t, err)
+		assert.Contains(t, ids, user.UserID)
+
+		ids, err = repo.GetUsersReadyForHardDelete(ctx, time.Now().Add(-24*time.Hour))
+		require.NoError(t, err)
+		assert.NotContains(t, ids, user.UserID)
+	})
+
+	t.Run("HardDeleteUser", func(t *testing.T) {
+		user := &models.User{
+			Username:     "harddelete_user",
+			Email:        "harddelete@example.com",
+			PasswordHash: "hashedpassword",
+			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
+			Profile:      models.UserProfile{Name: "Hard Delete User"},
+		}
+		require.NoError(t, repo.CreateUser(ctx, user))
+
+		err := repo.HardDeleteUser(ctx, user.UserID)
+		require.NoError(t, err)
+
+		_, err = repo.GetUserByID(ctx, user.UserID)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
+	})
+
+	t.Run("HardDeleteUser_NotFound", func(t *testing.T) {
+		err := repo.HardDeleteUser(ctx, 999999)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 	})
 }

@@ -19,8 +19,11 @@ func handleServiceError(c *gin.Context, err error) bool {
 		return false
 	}
 	switch svcErr.Code {
-	case "FORBIDDEN":
+	case "FORBIDDEN", "ACCOUNT_DELETED", "ADMIN_DELETE_FORBIDDEN", "ACCOUNT_INACTIVE",
+		"ACCOUNT_NOT_DELETED", "RESTORE_EXPIRED":
 		c.JSON(http.StatusForbidden, gin.H{"error": svcErr.Message})
+	case "INVALID_CREDENTIALS":
+		c.JSON(http.StatusUnauthorized, gin.H{"error": svcErr.Message})
 	case "VALIDATION", "INVALID_DATE", "INVALID_PASSWORD",
 		"SELF_ROLE_CHANGE", "LAST_ADMIN":
 		c.JSON(http.StatusBadRequest, gin.H{"error": svcErr.Message})

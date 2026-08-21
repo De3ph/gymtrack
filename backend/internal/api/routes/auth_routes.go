@@ -15,5 +15,6 @@ func AuthRoutes(router *gin.RouterGroup, authHandler *handlers.AuthHandler) {
 		auth.POST("/login", authHandler.Login)
 		auth.POST("/refresh", authHandler.RefreshToken)
 		auth.POST("/logout", authHandler.Logout)
+		auth.POST("/restore", authHandler.RestoreAccount)
 	}
 }

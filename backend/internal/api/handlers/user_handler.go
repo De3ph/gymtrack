@@ -8,15 +8,18 @@ import (
 	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type UserHandler struct {
 	userService *services.UserService
+	validator   *validator.Validate
 }
 
 func NewUserHandler(userService *services.UserService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
+		validator:   validator.New(),
 	}
 }
 
@@ -132,4 +135,57 @@ func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+type DeleteAccountRequest struct {
+	Password string `json:"password" validate:"required" example:"password123"`
+}
+
+// DeleteCurrentUser godoc
+// @Summary Delete current user account
+// @Description Soft-delete the authenticated user's account. Admin accounts cannot be deleted. Requires password confirmation.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body handlers.DeleteAccountRequest true "Delete account request"
+// @Success 200 {object} map[string]string "Account deleted successfully"
+// @Failure 400 {object} map[string]any "Invalid request"
+// @Failure 401 {object} map[string]any "Unauthorized"
+// @Failure 403 {object} map[string]any "Admin accounts cannot be deleted / Account already deleted"
+// @Failure 500 {object} map[string]any "Internal server error"
+// @Router /users/me [delete]
+func (h *UserHandler) DeleteCurrentUser(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in context"})
+		return
+	}
+
+	var req DeleteAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	userIDInt, err := strconv.Atoi(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		return
+	}
+
+	if err := h.userService.DeleteAccount(c.Request.Context(), userIDInt, req.Password); err != nil {
+		if handleServiceError(c, err) {
+			return
+		}
+		handleInternalError(c, err, "failed to delete account")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
 }

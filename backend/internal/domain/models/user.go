@@ -18,6 +18,7 @@ const (
 	UserStatusActive    UserStatus = "active"
 	UserStatusSuspended UserStatus = "suspended"
 	UserStatusBanned    UserStatus = "banned"
+	UserStatusDeleted   UserStatus = "deleted"
 )
 
 type UserProfile struct {
@@ -54,4 +55,5 @@ type User struct {
 	Profile      UserProfile `json:"profile"`
 	CreatedAt    time.Time   `json:"createdAt"`
 	UpdatedAt    time.Time   `json:"updatedAt"`
+	DeletedAt    *time.Time  `json:"deletedAt,omitempty"`
 }

@@ -890,6 +890,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore deleted account
+         * @description Restore a soft-deleted account within the 30-day grace period
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Restore account request */
+            requestBody: {
+                content: {
+                    "application/json": Record<string, never> | components["schemas"]["handlers.RestoreAccountRequest"];
+                };
+            };
+            responses: {
+                /** @description Account restored successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Invalid credentials */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Account not deleted / Restore period expired */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clients/{id}/meals": {
         parameters: {
             query?: never;
@@ -3483,7 +3573,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Success" {"pendingInvitations": []models.Invitation, "activeTrainer": map[string]interface{}{"relationship": models.Relationship, "trainer": models.User}} */
+                /** @description Success" {"pendingInvitations": []models.Invitation, "activeTrainer": map[string]any{"relationship": models.Relationship, "trainer": models.User}} */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -4659,7 +4749,81 @@ export interface paths {
             };
         };
         post?: never;
-        delete?: never;
+        /**
+         * Delete current user account
+         * @description Soft-delete the authenticated user's account. Admin accounts cannot be deleted. Requires password confirmation.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Delete account request */
+            requestBody: {
+                content: {
+                    "application/json": Record<string, never> | components["schemas"]["handlers.DeleteAccountRequest"];
+                };
+            };
+            responses: {
+                /** @description Account deleted successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Admin accounts cannot be deleted / Account already deleted */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -4758,6 +4922,10 @@ export interface components {
             date: string;
             exercises: components["schemas"]["models.WorkoutExercise"][];
         };
+        "handlers.DeleteAccountRequest": {
+            /** @example password123 */
+            password: string;
+        };
         "handlers.ExerciseStat": {
             maxWeight?: number;
             name?: string;
@@ -4807,6 +4975,12 @@ export interface components {
             role: "trainer" | "athlete";
             /** @example johndoe */
             username: string;
+        };
+        "handlers.RestoreAccountRequest": {
+            /** @example test@example.com */
+            identifier: string;
+            /** @example password123 */
+            password: string;
         };
         "handlers.UpdateBodyMeasurementRequest": {
             bodyFatPct?: number;
@@ -5058,6 +5232,7 @@ export interface components {
         "models.TrainerWithProfile": {
             averageRating?: number;
             createdAt?: string;
+            deletedAt?: string;
             email: string;
             passwordHash?: string;
             profile?: components["schemas"]["models.TrainerProfile"];
@@ -5073,6 +5248,7 @@ export interface components {
         };
         "models.User": {
             createdAt?: string;
+            deletedAt?: string;
             email: string;
             passwordHash?: string;
             profile?: components["schemas"]["models.UserProfile"];
@@ -5117,7 +5293,7 @@ export interface components {
         /** @enum {string} */
         "models.UserRole": "trainer" | "athlete" | "admin" | "trainer" | "athlete" | "admin";
         /** @enum {string} */
-        "models.UserStatus": "active" | "suspended" | "banned";
+        "models.UserStatus": "active" | "suspended" | "banned" | "deleted";
         /** @enum {string} */
         "models.WeightUnit": "kg" | "lbs" | "kg" | "lbs" | "kg" | "lbs" | "kg" | "lbs" | "kg" | "lbs";
         "models.Workout": {

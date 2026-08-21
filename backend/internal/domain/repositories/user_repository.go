@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"gymtrack-backend/internal/domain/models"
 )
@@ -16,4 +17,8 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user *models.User) error
 	GetAllUsersFiltered(ctx context.Context, role string, search string, limit, offset int) ([]*models.User, error)
 	CountUsers(ctx context.Context, role string, search string) (int, error)
+	SoftDeleteUser(ctx context.Context, userID int) error
+	RestoreUser(ctx context.Context, userID int) error
+	GetUsersReadyForHardDelete(ctx context.Context, before time.Time) ([]int, error)
+	HardDeleteUser(ctx context.Context, userID int) error
 }

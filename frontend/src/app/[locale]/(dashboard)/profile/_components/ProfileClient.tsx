@@ -18,6 +18,7 @@ import { DetailSection } from "@/components/ui/detail-section";
 import { InfoRow } from "@/components/ui/info-row";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { DeleteAccountSection } from "./DeleteAccountSection";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   User as UserIcon,
@@ -581,6 +582,11 @@ export function ProfileClient() {
           trainerSection={trainerSection}
         />
       )}
+
+      <Separator className="my-8" />
+      <div className="mx-auto max-w-2xl">
+        <DeleteAccountSection />
+      </div>
     </>
   );
 }

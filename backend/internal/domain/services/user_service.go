@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -59,4 +60,47 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, userID int, profile
 	}
 
 	return user, nil
+}
+
+func (s *UserService) DeleteAccount(ctx context.Context, userID int, password string) error {
+	user, err := s.userRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("failed to retrieve user: %w", err)
+	}
+	if user == nil {
+		return ErrUserNotFound
+	}
+
+	// Block admin self-deletion
+	if user.Role == models.RoleAdmin {
+		return ErrAccountCannotBeDeleted
+	}
+
+	// Block already-deleted accounts
+	if user.Status == models.UserStatusDeleted {
+		return ErrAccountDeleted
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return ErrInvalidCredentials
+	}
+
+	if err := s.userRepo.SoftDeleteUser(ctx, userID); err != nil {
+		return fmt.Errorf("failed to delete account: %w", err)
+	}
+
+	return nil
+}
+
+func (s *UserService) RestoreUser(ctx context.Context, userID int) error {
+	if err := s.userRepo.RestoreUser(ctx, userID); err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("failed to restore account: %w", err)
+	}
+	return nil
 }

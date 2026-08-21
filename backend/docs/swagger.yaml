@@ -209,6 +209,14 @@ components:
       - date
       - exercises
       type: object
+    handlers.DeleteAccountRequest:
+      properties:
+        password:
+          example: password123
+          type: string
+      required:
+      - password
+      type: object
     handlers.ExerciseStat:
       properties:
         maxWeight:
@@ -309,6 +317,18 @@ components:
       - password
       - role
       - username
+      type: object
+    handlers.RestoreAccountRequest:
+      properties:
+        identifier:
+          example: test@example.com
+          type: string
+        password:
+          example: password123
+          type: string
+      required:
+      - identifier
+      - password
       type: object
     handlers.UpdateBodyMeasurementRequest:
       properties:
@@ -853,6 +873,8 @@ components:
           type: number
         createdAt:
           type: string
+        deletedAt:
+          type: string
         email:
           type: string
         passwordHash:
@@ -885,6 +907,8 @@ components:
     models.User:
       properties:
         createdAt:
+          type: string
+        deletedAt:
           type: string
         email:
           type: string
@@ -981,11 +1005,13 @@ components:
       - active
       - suspended
       - banned
+      - deleted
       type: string
       x-enum-varnames:
       - UserStatusActive
       - UserStatusSuspended
       - UserStatusBanned
+      - UserStatusDeleted
     models.WeightUnit:
       enum:
       - kg
@@ -1661,6 +1687,59 @@ paths:
       summary: Update user status (Admin only)
       tags:
       - Admin
+  /auth/restore:
+    post:
+      description: Restore a soft-deleted account within the 30-day grace period
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: object
+              - $ref: '#/components/schemas/handlers.RestoreAccountRequest'
+                description: Restore account request
+                summary: request
+        description: Restore account request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Account restored successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Invalid request
+        "401":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Invalid credentials
+        "403":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Account not deleted / Restore period expired
+        "500":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Internal server error
+      summary: Restore deleted account
+      tags:
+      - Auth
   /clients/{id}/meals:
     get:
       description: Retrieve paginated meal history for a specific client (trainers
@@ -3485,8 +3564,7 @@ paths:
                 additionalProperties: {}
                 type: object
           description: 'Success" {"pendingInvitations": []models.Invitation, "activeTrainer":
-            map[string]interface{}{"relationship": models.Relationship, "trainer":
-            models.User}}'
+            map[string]any{"relationship": models.Relationship, "trainer": models.User}}'
         "401":
           content:
             application/json:
@@ -4132,6 +4210,62 @@ paths:
       tags:
       - Trainers
   /users/me:
+    delete:
+      description: Soft-delete the authenticated user's account. Admin accounts cannot
+        be deleted. Requires password confirmation.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: object
+              - $ref: '#/components/schemas/handlers.DeleteAccountRequest'
+                description: Delete account request
+                summary: request
+        description: Delete account request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+          description: Account deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Invalid request
+        "401":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Admin accounts cannot be deleted / Account already deleted
+        "500":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: Delete current user account
+      tags:
+      - Users
     get:
       description: Retrieve profile information for the authenticated user
       requestBody:

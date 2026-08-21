@@ -29,6 +29,13 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
+	// New users are active by default. Defaulting here keeps the repository
+	// safe against callers that construct a User without an explicit status,
+	// since the users_status_check constraint only allows known values.
+	if user.Status == "" {
+		user.Status = models.UserStatusActive
+	}
+
 	profileJSON, err := MarshalToJSONB(user.Profile)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user profile: %w", err)
@@ -59,7 +66,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 
 func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
 		FROM users
 		WHERE email = $1`
 
@@ -76,6 +83,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 		&profileRaw,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -94,7 +102,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 
 func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
 		FROM users
 		WHERE LOWER(username) = LOWER($1)`
 
@@ -111,6 +119,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 		&profileRaw,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -129,7 +138,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 
 func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
 		FROM users
 		WHERE user_id = $1`
 
@@ -146,6 +155,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 		&profileRaw,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -164,7 +174,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 
 func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
 		FROM users
 		ORDER BY created_at DESC`
 
@@ -189,6 +199,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.Use
 			&profileRaw,
 			&user.CreatedAt,
 			&user.UpdatedAt,
+			&user.DeletedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
@@ -244,7 +255,7 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 
 func (r *PostgresUserRepository) GetAllUsersFiltered(ctx context.Context, role, search string, limit, offset int) ([]*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at
+		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
 		FROM users
 		WHERE ($1 = '' OR role = $1)
 		  AND ($2 = '' OR username ILIKE '%' || $2 || '%' OR email ILIKE '%' || $2 || '%')
@@ -291,6 +302,7 @@ func (r *PostgresUserRepository) scanUserRows(rows pgx.Rows) ([]*models.User, er
 			&profileRaw,
 			&user.CreatedAt,
 			&user.UpdatedAt,
+			&user.DeletedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
@@ -308,6 +320,63 @@ func (r *PostgresUserRepository) scanUserRows(rows pgx.Rows) ([]*models.User, er
 	}
 
 	return users, nil
+}
+
+func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, userID int) error {
+	query := `UPDATE users SET status = 'deleted', deleted_at = NOW(), updated_at = NOW() WHERE user_id = $1`
+	tag, err := r.pool.Exec(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to soft-delete user: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *PostgresUserRepository) RestoreUser(ctx context.Context, userID int) error {
+	query := `UPDATE users SET status = 'active', deleted_at = NULL, updated_at = NOW() WHERE user_id = $1`
+	tag, err := r.pool.Exec(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to restore user: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *PostgresUserRepository) GetUsersReadyForHardDelete(ctx context.Context, before time.Time) ([]int, error) {
+	query := `SELECT user_id FROM users WHERE deleted_at < $1 ORDER BY deleted_at`
+	rows, err := r.pool.Query(ctx, query, before)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users for hard delete: %w", err)
+	}
+	defer rows.Close()
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("failed to scan user_id: %w", err)
+		}
+		ids = append(ids, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return ids, nil
+}
+
+func (r *PostgresUserRepository) HardDeleteUser(ctx context.Context, userID int) error {
+	query := `DELETE FROM users WHERE user_id = $1`
+	tag, err := r.pool.Exec(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to hard-delete user: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
 }
 
 // Compile-time check that PostgresUserRepository implements UserRepository.

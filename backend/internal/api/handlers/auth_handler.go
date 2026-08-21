@@ -26,11 +26,11 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 }
 
 type RegisterRequest struct {
-	Username string      `json:"username" validate:"required,min=3,max=30,alphanum" example:"johndoe"`
-	Email    string      `json:"email" validate:"required,email" example:"test@example.com"`
-	Password string      `json:"password" validate:"required,min=8" example:"password123"`
-	Role     string      `json:"role" validate:"required,oneof=trainer athlete" example:"athlete"`
-	Profile  any `json:"profile"`
+	Username string `json:"username" validate:"required,min=3,max=30,alphanum" example:"johndoe"`
+	Email    string `json:"email" validate:"required,email" example:"test@example.com"`
+	Password string `json:"password" validate:"required,min=8" example:"password123"`
+	Role     string `json:"role" validate:"required,oneof=trainer athlete" example:"athlete"`
+	Profile  any    `json:"profile"`
 }
 
 // Register godoc
@@ -215,10 +215,65 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Failure 401 {object} map[string]any "Unauthorized"
 // @Failure 500 {object} map[string]any "Internal Server Error"
 func (h *AuthHandler) Logout(c *gin.Context) {
-	// In a stateless JWT implementation, logout is typically handled client-side
-	// by removing the token from storage. However, we can add token blacklisting
-	// if needed in the future for immediate invalidation.
-
 	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
 
+type RestoreAccountRequest struct {
+	Identifier string `json:"identifier" validate:"required" example:"test@example.com"`
+	Password   string `json:"password" validate:"required" example:"password123"`
+}
+
+// RestoreAccount godoc
+// @Summary Restore deleted account
+// @Description Restore a soft-deleted account within the 30-day grace period
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body handlers.RestoreAccountRequest true "Restore account request"
+// @Success 200 {object} map[string]any "Account restored successfully"
+// @Failure 400 {object} map[string]any "Invalid request"
+// @Failure 401 {object} map[string]any "Invalid credentials"
+// @Failure 403 {object} map[string]any "Account not deleted / Restore period expired"
+// @Failure 500 {object} map[string]any "Internal server error"
+// @Router /auth/restore [post]
+func (h *AuthHandler) RestoreAccount(c *gin.Context) {
+	var req RestoreAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	response, err := h.authService.RestoreAccount(ctx, req.Identifier, req.Password)
+	if err != nil {
+		if handleServiceError(c, err) {
+			return
+		}
+		handleInternalError(c, err, "failed to restore account")
+		return
+	}
+
+	userResponse := UserResponse{
+		UserID:    response.User.UserID,
+		Username:  response.User.Username,
+		Email:     response.User.Email,
+		Role:      response.User.Role,
+		Profile:   response.User.Profile,
+		CreatedAt: response.User.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: response.User.UpdatedAt.Format(time.RFC3339),
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Account restored successfully",
+		"accessToken":  response.AccessToken,
+		"refreshToken": response.RefreshToken,
+		"user":         userResponse,
+	})
+}

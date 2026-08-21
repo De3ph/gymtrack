@@ -59,6 +59,9 @@ var (
 	ErrMealNotFound            = NewServiceError("meal not found", "MEAL_NOT_FOUND")
 	ErrWorkoutPlanNotFound     = NewServiceError("workout plan not found", "WORKOUT_PLAN_NOT_FOUND")
 	ErrBodyMeasurementNotFound = NewServiceError("body measurement not found", "BODY_MEASUREMENT_NOT_FOUND")
+	ErrAccountDeleted          = NewServiceError("account has been deleted", "ACCOUNT_DELETED")
+	ErrAccountCannotBeDeleted  = NewServiceError("admin accounts cannot be deleted", "ADMIN_DELETE_FORBIDDEN")
+	ErrAccountInactive         = NewServiceError("account is not active", "ACCOUNT_INACTIVE")
 )
 
 // ServiceError represents a business logic error with a code
