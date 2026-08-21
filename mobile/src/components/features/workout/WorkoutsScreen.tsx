@@ -1,58 +1,58 @@
-﻿import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity,
+  Pressable,
   Modal,
   TextInput,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ListRenderItemInfo,
-  Alert
-} from "react-native"
-import { useRouter, type Href } from "expo-router"
-import { useI18n } from "@/lib/i18n"
-import { workoutApi } from "@/api/workoutApi"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { Workout, WorkoutListResponse } from "@/types"
-import { ExercisePicker } from "./ExercisePicker"
-import { useThemeColors } from "@/components/useThemeColors"
-import type { ThemeColors } from "@/constants/Colors"
+  Alert,
+} from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { useRouter, type Href } from "expo-router";
+import { useI18n } from "@/lib/i18n";
+import { workoutApi } from "@/api/workoutApi";
+import { useAuthStore } from "@/stores/authStore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Workout, WorkoutListResponse } from "@/types";
+import { ExercisePicker } from "./ExercisePicker";
+import { useThemeColors } from "@/components/useThemeColors";
+import type { ThemeColors } from "@/constants/Colors";
 
 interface NewSet {
-  id: string
-  reps: string
-  weight: string
+  id: string;
+  reps: string;
+  weight: string;
 }
 
 interface NewExercise {
-  id: string
-  name: string
-  notes: string
-  pickedExerciseId?: number
-  sets: NewSet[]
+  id: string;
+  name: string;
+  notes: string;
+  pickedExerciseId?: number;
+  sets: NewSet[];
 }
 
-let exerciseCounter = 0
-let setCounter = 0
+let exerciseCounter = 0;
+let setCounter = 0;
 
 function nextExerciseId(): string {
-  exerciseCounter += 1
-  return "ex-" + String(exerciseCounter)
+  exerciseCounter += 1;
+  return "ex-" + String(exerciseCounter);
 }
 
 function nextSetId(): string {
-  setCounter += 1
-  return "set-" + String(setCounter)
+  setCounter += 1;
+  return "set-" + String(setCounter);
 }
 
 function createEmptySet(): NewSet {
-  return { id: nextSetId(), reps: "", weight: "" }
+  return { id: nextSetId(), reps: "", weight: "" };
 }
 
 function createEmptyExercise(): NewExercise {
@@ -60,24 +60,24 @@ function createEmptyExercise(): NewExercise {
     id: nextExerciseId(),
     name: "",
     notes: "",
-    sets: [createEmptySet()]
-  }
+    sets: [createEmptySet()],
+  };
 }
 
 function todayString(): string {
-  const d = new Date()
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, "0")
-  const dd = String(d.getDate()).padStart(2, "0")
-  return yyyy + "-" + mm + "-" + dd
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return yyyy + "-" + mm + "-" + dd;
 }
 
 /** Returns true if the item was created within the last 24 hours */
 function canEdit(createdAt?: string): boolean {
-  if (!createdAt) return false
-  const created = new Date(createdAt).getTime()
-  const now = Date.now()
-  return now - created < 24 * 60 * 60 * 1000
+  if (!createdAt) return false;
+  const created = new Date(createdAt).getTime();
+  const now = Date.now();
+  return now - created < 24 * 60 * 60 * 1000;
 }
 
 /** Convert a Workout's exercises to the editable NewExercise[] shape */
@@ -89,186 +89,195 @@ function workoutToExercises(workout: Workout): NewExercise[] {
     sets: (ex.sets ?? []).map((s) => ({
       id: nextSetId(),
       reps: String(s.reps ?? ""),
-      weight: String(s.weight ?? "")
-    }))
-  }))
+      weight: String(s.weight ?? ""),
+    })),
+  }));
 }
 
 interface WorkoutCardProps {
-  workout: Workout
-  editable: boolean
-  onOpen: (workout: Workout) => void
-  onEdit: (workout: Workout) => void
-  onDelete: (workout: Workout) => void
+  workout: Workout;
+  editable: boolean;
+  onOpen: (workout: Workout) => void;
+  onEdit: (workout: Workout) => void;
+  onDelete: (workout: Workout) => void;
 }
 
-function WorkoutCard({
-  workout,
-  editable,
-  onOpen,
-  onEdit,
-  onDelete
-}: WorkoutCardProps) {
-  const c = useThemeColors()
-  const { t } = useI18n()
-  const styles = createStyles(c)
-  const exerciseCount = workout.exercises?.length ?? 0
-  const totalSets =
-    workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length ?? 0), 0) ?? 0
+const WorkoutCard = React.memo(
+  ({ workout, editable, onOpen, onEdit, onDelete }: WorkoutCardProps) => {
+    const c = useThemeColors();
+    const { t } = useI18n();
+    const styles = useMemo(() => createStyles(c), [c]);
+    const exerciseCount = workout.exercises?.length ?? 0;
+    const totalSets =
+      workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length ?? 0), 0) ?? 0;
 
-  const formattedDate = new Date(workout.date).toLocaleDateString(undefined, {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  })
+    const formattedDate = new Date(workout.date).toLocaleDateString(undefined, {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
-  return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onOpen(workout)}
-      activeOpacity={0.85}
-    >
-      <Text style={styles.cardDate}>{formattedDate}</Text>
-      <View style={styles.cardStats}>
-        <Text style={styles.cardStat}>
-          {String(exerciseCount) + " " + t("workout.list.exercises")}
-        </Text>
-        <Text style={styles.cardStatDivider}>|</Text>
-        <Text style={styles.cardStat}>{String(totalSets) + " sets"}</Text>
-      </View>
-      {editable && (
-        <View style={styles.cardActions}>
-          <TouchableOpacity
-            style={styles.cardActionButton}
-            onPress={() => onEdit(workout)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.cardActionEdit}>
-              {t("common.actions.edit")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.cardActionButton}
-            onPress={() => onDelete(workout)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.cardActionDelete}>
-              {t("common.actions.delete")}
-            </Text>
-          </TouchableOpacity>
+    return (
+      <Pressable
+        style={styles.card}
+        onPress={() => onOpen(workout)}
+      >
+        <Text style={styles.cardDate}>{formattedDate}</Text>
+        <View style={styles.cardStats}>
+          <Text style={styles.cardStat}>
+            {String(exerciseCount) + " " + t("workout.list.exercises")}
+          </Text>
+          <Text style={styles.cardStatDivider}>|</Text>
+          <Text style={styles.cardStat}>{String(totalSets) + " sets"}</Text>
         </View>
-      )}
-    </TouchableOpacity>
-  )
+        {editable && (
+          <View style={styles.cardActions}>
+            <Pressable
+              style={styles.cardActionButton}
+              onPress={() => onEdit(workout)}
+            >
+              <Text style={styles.cardActionEdit}>
+                {t("common.actions.edit")}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.cardActionButton}
+              onPress={() => onDelete(workout)}
+            >
+              <Text style={styles.cardActionDelete}>
+                {t("common.actions.delete")}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+      </Pressable>
+    );
+  }
+);
+
+function resetExerciseAndSetCounters() {
+  exerciseCounter = 0;
+  setCounter = 0;
 }
 
 export function WorkoutsScreen() {
-  const c = useThemeColors()
-  const { t } = useI18n()
-  const queryClient = useQueryClient()
-  const router = useRouter()
-  const styles = createStyles(c)
+  const c = useThemeColors();
+  const { t } = useI18n();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const styles = useMemo(() => createStyles(c), [c]);
 
-  const openDetail = useCallback((w: Workout) => {
-    if (w.workoutId == null) return
-    router.push(("/workouts/" + String(w.workoutId)) as Href)
-  }, [router])
+  const openDetail = useCallback(
+    (w: Workout) => {
+      if (w.workoutId == null) return;
+      router.push(("/workouts/" + String(w.workoutId)) as Href);
+    },
+    [router]
+  );
 
   const { data, isLoading, isError, error, refetch, isRefetching } =
     useQuery<WorkoutListResponse>({
       queryKey: ["workouts", "list"],
-      queryFn: () => workoutApi.getAll() as Promise<WorkoutListResponse>
-    })
+      queryFn: () => workoutApi.getAll() as Promise<WorkoutListResponse>,
+    });
 
-  const workouts: Workout[] = data?.workouts ?? []
+  const workouts = useMemo(() => data?.workouts ?? [], [data]);
 
   // --- modal state (shared for create & edit) ---
-  const [modalVisible, setModalVisible] = useState(false)
-  const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null)
-  const [newDate, setNewDate] = useState(todayString)
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
+  const [newDate, setNewDate] = useState(todayString);
   const [newExercises, setNewExercises] = useState<NewExercise[]>([
-    createEmptyExercise()
-  ])
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [pickerVisible, setPickerVisible] = useState(false)
-  const [pickingForExId, setPickingForExId] = useState<string | null>(null)
+    createEmptyExercise(),
+  ]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickingForExId, setPickingForExId] = useState<string | null>(null);
 
-  const openPickerFor = (exId: string) => {
-    setPickingForExId(exId)
-    setPickerVisible(true)
-  }
+  const openPickerFor = useCallback((exId: string) => {
+    setPickingForExId(exId);
+    setPickerVisible(true);
+  }, []);
 
-  const handleExerciseSelect = (exercise: { name: string; exerciseId: number; category?: string }) => {
-    if (pickingForExId) {
-      updateExerciseName(pickingForExId, exercise.name)
-      if (exercise.exerciseId != null) {
-        updateExercisePickedId(pickingForExId, exercise.exerciseId)
+  const handleExerciseSelect = useCallback(
+    (exercise: { name: string; exerciseId: number; category?: string }) => {
+      if (pickingForExId) {
+        updateExerciseName(pickingForExId, exercise.name);
+        if (exercise.exerciseId != null) {
+          updateExercisePickedId(pickingForExId, exercise.exerciseId);
+        }
       }
-    }
-  }
+    },
+    [pickingForExId]
+  );
 
   // --- create mutation ---
   const createMutation = useMutation({
-    mutationFn: (data: Record<string, unknown>) => workoutApi.create(data),
+    mutationFn: (data: Omit<Workout, "workoutId" | "createdAt" | "updatedAt">) => workoutApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] })
-      closeModalAndReset()
+      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] });
+      closeModalAndReset();
     },
     onError: (err: Error) => {
-      setSubmitError(err.message || t("common.errors.generic"))
-    }
-  })
+      setSubmitError(err.message || t("common.errors.generic"));
+    },
+  });
 
   // --- update mutation ---
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Record<string, unknown> }) =>
       workoutApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] })
-      closeModalAndReset()
+      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] });
+      closeModalAndReset();
     },
     onError: (err: Error) => {
-      setSubmitError(err.message || t("common.errors.generic"))
-    }
-  })
+      setSubmitError(err.message || t("common.errors.generic"));
+    },
+  });
 
   // --- delete mutation ---
   const deleteMutation = useMutation({
     mutationFn: (id: number) => workoutApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] })
+      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] });
     },
     onError: (err: Error) => {
-      Alert.alert(t("common.errors.generic"), err.message)
-    }
-  })
+      Alert.alert(t("common.errors.generic"), err.message);
+    },
+  });
 
-  const isPending = createMutation.isPending || updateMutation.isPending
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   // --- open create modal ---
   const openCreateModal = useCallback(() => {
-    setEditingWorkout(null)
-    setNewDate(todayString())
-    setNewExercises([createEmptyExercise()])
-    setSubmitError(null)
-    setModalVisible(true)
-  }, [])
+    resetExerciseAndSetCounters();
+    setEditingWorkout(null);
+    setNewDate(todayString());
+    setNewExercises([createEmptyExercise()]);
+    setSubmitError(null);
+    setModalVisible(true);
+  }, []);
 
   // --- open edit modal ---
-  const openEditModal = useCallback((workout: Workout) => {
-    setEditingWorkout(workout)
-    setNewDate(workout.date)
-    setNewExercises(workoutToExercises(workout))
-    setSubmitError(null)
-    setModalVisible(true)
-  }, [])
+  const openEditModal = useCallback(
+    (workout: Workout) => {
+      setEditingWorkout(workout);
+      setNewDate(workout.date);
+      setNewExercises(workoutToExercises(workout));
+      setSubmitError(null);
+      setModalVisible(true);
+    },
+    []
+  );
 
   // --- handle delete ---
   const handleDelete = useCallback(
     (workout: Workout) => {
-      const id = workout.workoutId
-      if (id == null) return
+      const id = workout.workoutId;
+      if (id == null) return;
       Alert.alert(
         t("workout.delete_dialog.title"),
         t("workout.delete_dialog.description"),
@@ -277,150 +286,159 @@ export function WorkoutsScreen() {
           {
             text: t("workout.delete_dialog.confirm"),
             style: "destructive",
-            onPress: () => deleteMutation.mutate(id)
-          }
+            onPress: () => deleteMutation.mutate(id),
+          },
         ]
-      )
+      );
     },
     [t, deleteMutation]
-  )
+  );
 
   const closeModalAndReset = useCallback(() => {
-    setModalVisible(false)
-    setEditingWorkout(null)
-    setNewDate(todayString())
-    setNewExercises([createEmptyExercise()])
-    setSubmitError(null)
-  }, [])
+    setModalVisible(false);
+    setEditingWorkout(null);
+    setNewDate(todayString());
+    setNewExercises([createEmptyExercise()]);
+    setSubmitError(null);
+  }, []);
 
-  const updateExerciseName = (exId: string, name: string) => {
+  const updateExerciseName = useCallback((exId: string, name: string) => {
     setNewExercises((prev) =>
       prev.map((ex) => (ex.id === exId ? { ...ex, name } : ex))
-    )
-  }
+    );
+  }, []);
 
-  const updateExerciseNotes = (exId: string, notes: string) => {
+  const updateExerciseNotes = useCallback((exId: string, notes: string) => {
     setNewExercises((prev) =>
       prev.map((ex) => (ex.id === exId ? { ...ex, notes } : ex))
-    )
-  }
+    );
+  }, []);
 
-  const updateExercisePickedId = (exId: string, pickedExerciseId: number) => {
+  const updateExercisePickedId = useCallback((exId: string, pickedExerciseId: number) => {
     setNewExercises((prev) =>
       prev.map((ex) => (ex.id === exId ? { ...ex, pickedExerciseId } : ex))
-    )
-  }
+    );
+  }, []);
 
-  const addExercise = () => {
-    setNewExercises((prev) => [...prev, createEmptyExercise()])
-  }
+  const addExercise = useCallback(() => {
+    setNewExercises((prev) => [...prev, createEmptyExercise()]);
+  }, []);
 
-  const removeExercise = (exId: string) => {
-    setNewExercises((prev) => prev.filter((ex) => ex.id !== exId))
-    if (pickingForExId === exId) setPickingForExId(null)
-  }
+  const removeExercise = useCallback((exId: string) => {
+    setNewExercises((prev) => prev.filter((ex) => ex.id !== exId));
+    if (pickingForExId === exId) setPickingForExId(null);
+  }, [pickingForExId]);
 
-  const addSet = (exId: string) => {
+  const addSet = useCallback((exId: string) => {
     setNewExercises((prev) =>
       prev.map((ex) =>
         ex.id === exId ? { ...ex, sets: [...ex.sets, createEmptySet()] } : ex
       )
-    )
-  }
+    );
+  }, []);
 
-  const removeSet = (exId: string, setId: string) => {
+  const removeSet = useCallback((exId: string, setId: string) => {
     setNewExercises((prev) =>
       prev.map((ex) =>
         ex.id === exId
           ? { ...ex, sets: ex.sets.filter((s) => s.id !== setId) }
           : ex
       )
-    )
-  }
+    );
+  }, []);
 
-  const updateSetReps = (exId: string, setId: string, reps: string) => {
+  const updateSetReps = useCallback((exId: string, setId: string, reps: string) => {
     setNewExercises((prev) =>
       prev.map((ex) =>
         ex.id === exId
           ? {
               ...ex,
-              sets: ex.sets.map((s) => (s.id === setId ? { ...s, reps } : s))
+              sets: ex.sets.map((s) => (s.id === setId ? { ...s, reps } : s)),
             }
           : ex
       )
-    )
-  }
+    );
+  }, []);
 
-  const updateSetWeight = (exId: string, setId: string, weight: string) => {
-    setNewExercises((prev) =>
-      prev.map((ex) =>
-        ex.id === exId
-          ? {
-              ...ex,
-              sets: ex.sets.map((s) => (s.id === setId ? { ...s, weight } : s))
-            }
-          : ex
-      )
-    )
-  }
+  const updateSetWeight = useCallback(
+    (exId: string, setId: string, weight: string) => {
+      setNewExercises((prev) =>
+        prev.map((ex) =>
+          ex.id === exId
+            ? {
+                ...ex,
+                sets: ex.sets.map((s) =>
+                  s.id === setId ? { ...s, weight } : s
+                ),
+              }
+            : ex
+        )
+      );
+    },
+    []
+  );
 
-  const handleSubmit = () => {
-    setSubmitError(null)
+  const handleSubmit = useCallback(() => {
+    setSubmitError(null);
 
     if (!newDate.trim()) {
-      setSubmitError(t("workout.form.validation.date_required"))
-      return
+      setSubmitError(t("workout.form.validation.date_required"));
+      return;
     }
 
-    const validExercises = newExercises.filter((ex) => ex.name.trim() !== "")
+    const validExercises = newExercises.filter((ex) => ex.name.trim() !== "");
     if (validExercises.length === 0) {
-      setSubmitError(t("workout.form.validation.exercises_min_one"))
-      return
+      setSubmitError(t("workout.form.validation.exercises_min_one"));
+      return;
     }
 
     for (const ex of validExercises) {
       if (ex.sets.length === 0) {
-        setSubmitError(t("workout.form.validation.sets_min_one"))
-        return
+        setSubmitError(t("workout.form.validation.sets_min_one"));
+        return;
       }
       for (const s of ex.sets) {
         if (!s.reps.trim() || isNaN(Number(s.reps)) || Number(s.reps) < 1) {
-          setSubmitError(t("workout.form.validation.reps_min_one"))
-          return
+          setSubmitError(t("workout.form.validation.reps_min_one"));
+          return;
         }
         if (
           s.weight.trim() &&
           (isNaN(Number(s.weight)) || Number(s.weight) < 0)
         ) {
-          setSubmitError(t("workout.form.validation.weight_non_negative"))
-          return
+          setSubmitError(t("workout.form.validation.weight_non_negative"));
+          return;
         }
       }
     }
 
-    const payload: Record<string, unknown> = {
+    const payload: Omit<Workout, "workoutId" | "createdAt" | "updatedAt"> = {
+      athleteId: user?.userId ?? 0,
       date: newDate,
       exercises: validExercises.map((ex) => ({
         exerciseId: ex.pickedExerciseId ?? 0,
         name: ex.name.trim(),
         notes: ex.notes.trim() || undefined,
         sets: ex.sets.map((s) => ({
+          setId: "",
           weight: s.weight.trim() ? Number(s.weight) : 0,
           weightUnit: "kg",
-          reps: Number(s.reps)
-        }))
-      }))
-    }
+          reps: Number(s.reps),
+          restTime: 60,
+          completed: false,
+        })),
+      })),
+    };
 
     if (editingWorkout?.workoutId != null) {
-      updateMutation.mutate({ id: editingWorkout.workoutId, data: payload })
+      updateMutation.mutate({ id: editingWorkout.workoutId, data: payload });
     } else {
-      createMutation.mutate(payload)
+      createMutation.mutate(payload);
     }
-  }
+  }, [newDate, newExercises, editingWorkout, t, createMutation, updateMutation]);
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<Workout>) => (
+    ({ item }: { item: Workout }) => (
       <WorkoutCard
         workout={item}
         editable={canEdit(item.createdAt)}
@@ -430,22 +448,22 @@ export function WorkoutsScreen() {
       />
     ),
     [openDetail, openEditModal, handleDelete]
-  )
+  );
 
   const keyExtractor = useCallback(
     (item: Workout) => String(item.workoutId ?? item.date),
     []
-  )
+  );
 
-  const setNumberLabel = t("workout.form.exercise.sets.set_number")
+  const setNumberLabel = t("workout.form.exercise.sets.set_number");
 
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color={c.accent} />
+        <ActivityIndicator size="large" color={c.accent} />
         <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
-    )
+    );
   }
 
   if (isError && workouts.length === 0) {
@@ -454,25 +472,25 @@ export function WorkoutsScreen() {
         <Text style={styles.errorText}>
           {(error as Error)?.message || t("common.errors.generic")}
         </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+        <Pressable style={styles.retryButton} onPress={() => refetch()}>
           <Text style={styles.retryButtonText}>
             {t("common.actions.retry")}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
-    )
+    );
   }
 
   const modalTitle = editingWorkout
     ? t("workout.edit_dialog.title")
-    : t("workout.form.title")
+    : t("workout.form.title");
   const submitLabel = editingWorkout
     ? t("workout.edit_dialog.save_changes")
-    : t("workout.form.submit")
+    : t("workout.form.submit");
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlashList
         data={workouts}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
@@ -492,18 +510,17 @@ export function WorkoutsScreen() {
         }
       />
 
-      <TouchableOpacity
+      <Pressable
         style={styles.fab}
         onPress={openCreateModal}
-        activeOpacity={0.8}
       >
         <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <Modal
         visible={modalVisible}
-        animationType='slide'
-        presentationStyle='pageSheet'
+        animationType="slide"
+        presentationStyle="pageSheet"
         onRequestClose={closeModalAndReset}
       >
         <KeyboardAvoidingView
@@ -513,7 +530,7 @@ export function WorkoutsScreen() {
           <ScrollView
             style={styles.modalScroll}
             contentContainerStyle={styles.modalContent}
-            keyboardShouldPersistTaps='handled'
+            keyboardShouldPersistTaps="handled"
           >
             <Text style={styles.modalTitle}>{modalTitle}</Text>
 
@@ -523,13 +540,13 @@ export function WorkoutsScreen() {
             <TextInput
               style={[
                 styles.textInput,
-                editingWorkout && styles.textInputDisabled
+                editingWorkout && styles.textInputDisabled,
               ]}
               value={newDate}
               onChangeText={setNewDate}
-              placeholder='YYYY-MM-DD'
+              placeholder="YYYY-MM-DD"
               placeholderTextColor={c.textTertiary}
-              autoCapitalize='none'
+              autoCapitalize="none"
               editable={!editingWorkout}
             />
 
@@ -542,11 +559,11 @@ export function WorkoutsScreen() {
                       String(exIdx + 1)}
                   </Text>
                   {newExercises.length > 1 && (
-                    <TouchableOpacity onPress={() => removeExercise(ex.id)}>
+                    <Pressable onPress={() => removeExercise(ex.id)}>
                       <Text style={styles.removeLink}>
                         {t("common.actions.remove")}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   )}
                 </View>
 
@@ -558,13 +575,12 @@ export function WorkoutsScreen() {
                     placeholder={t("workout.form.exercise.name.label")}
                     placeholderTextColor={c.textTertiary}
                   />
-                  <TouchableOpacity
+                  <Pressable
                     style={styles.browseButton}
                     onPress={() => openPickerFor(ex.id)}
-                    activeOpacity={0.7}
                   >
                     <Text style={styles.browseText}>Browse</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
 
                 <TextInput
@@ -590,7 +606,7 @@ export function WorkoutsScreen() {
                       onChangeText={(v) => updateSetWeight(ex.id, s.id, v)}
                       placeholder={t("workout.form.exercise.sets.weight")}
                       placeholderTextColor={c.textTertiary}
-                      keyboardType='numeric'
+                      keyboardType="numeric"
                     />
                     <TextInput
                       style={[styles.textInput, styles.setInput]}
@@ -598,35 +614,35 @@ export function WorkoutsScreen() {
                       onChangeText={(v) => updateSetReps(ex.id, s.id, v)}
                       placeholder={t("workout.form.exercise.sets.reps")}
                       placeholderTextColor={c.textTertiary}
-                      keyboardType='numeric'
+                      keyboardType="numeric"
                     />
                     {ex.sets.length > 1 && (
-                      <TouchableOpacity onPress={() => removeSet(ex.id, s.id)}>
+                      <Pressable onPress={() => removeSet(ex.id, s.id)}>
                         <Text style={styles.removeLink}>X</Text>
-                      </TouchableOpacity>
+                      </Pressable>
                     )}
                   </View>
                 ))}
 
-                <TouchableOpacity
+                <Pressable
                   style={styles.addSetButton}
                   onPress={() => addSet(ex.id)}
                 >
                   <Text style={styles.addSetButtonText}>
                     + {t("workout.form.exercise.sets.label")}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             ))}
 
-            <TouchableOpacity
+            <Pressable
               style={styles.addExerciseButton}
               onPress={addExercise}
             >
               <Text style={styles.addExerciseButtonText}>
                 + {t("workout.form.add_exercise")}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
 
             {submitError ? (
               <View style={styles.errorBanner}>
@@ -635,27 +651,22 @@ export function WorkoutsScreen() {
             ) : null}
 
             <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={closeModalAndReset}
-                disabled={isPending}
+              <Pressable
+                style={[styles.cancelButton, isPending && styles.buttonDisabled]}
+                onPress={isPending ? undefined : closeModalAndReset}
               >
                 <Text style={styles.cancelButtonText}>
                   {t("common.actions.cancel")}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  isPending && styles.submitButtonDisabled
-                ]}
-                onPress={handleSubmit}
-                disabled={isPending}
+              </Pressable>
+              <Pressable
+                style={[styles.submitButton, isPending && styles.submitButtonDisabled]}
+                onPress={isPending ? undefined : handleSubmit}
               >
                 <Text style={styles.submitButtonText}>
                   {isPending ? t("workout.form.submitting") : submitLabel}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -667,7 +678,7 @@ export function WorkoutsScreen() {
         onSelect={handleExerciseSelect}
       />
     </View>
-  )
+  );
 }
 
 function createStyles(c: ThemeColors) {
@@ -678,20 +689,20 @@ function createStyles(c: ThemeColors) {
       justifyContent: "center",
       alignItems: "center",
       padding: 24,
-      backgroundColor: c.background
+      backgroundColor: c.background,
     },
     loadingText: { marginTop: 12, fontSize: 15, color: c.textSecondary },
     errorText: {
       fontSize: 15,
       color: c.danger,
       textAlign: "center",
-      marginBottom: 16
+      marginBottom: 16,
     },
     retryButton: {
       backgroundColor: c.accent,
       paddingHorizontal: 24,
       paddingVertical: 10,
-      borderRadius: 8
+      borderRadius: 8,
     },
     retryButtonText: { color: c.onAccent, fontSize: 15, fontWeight: "600" },
 
@@ -700,7 +711,7 @@ function createStyles(c: ThemeColors) {
       flexGrow: 1,
       justifyContent: "center",
       alignItems: "center",
-      padding: 16
+      padding: 16,
     },
 
     card: {
@@ -712,13 +723,13 @@ function createStyles(c: ThemeColors) {
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.06,
       shadowRadius: 4,
-      elevation: 2
+      elevation: 2,
     },
     cardDate: {
       fontSize: 17,
       fontWeight: "600",
       color: c.text,
-      marginBottom: 6
+      marginBottom: 6,
     },
     cardStats: { flexDirection: "row", alignItems: "center" },
     cardStat: { fontSize: 14, color: c.textSecondary },
@@ -730,7 +741,7 @@ function createStyles(c: ThemeColors) {
       marginTop: 12,
       paddingTop: 10,
       borderTopWidth: 1,
-      borderTopColor: c.surfaceSubtle
+      borderTopColor: c.surfaceSubtle,
     },
     cardActionButton: { paddingVertical: 4, paddingHorizontal: 8 },
     cardActionEdit: { fontSize: 14, fontWeight: "600", color: c.accent },
@@ -754,7 +765,7 @@ function createStyles(c: ThemeColors) {
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.2,
       shadowRadius: 6,
-      elevation: 6
+      elevation: 6,
     },
     fabText: { fontSize: 28, color: c.onAccent, lineHeight: 30 },
 
@@ -765,7 +776,7 @@ function createStyles(c: ThemeColors) {
       fontSize: 22,
       fontWeight: "700",
       color: c.text,
-      marginBottom: 20
+      marginBottom: 20,
     },
 
     fieldLabel: {
@@ -773,7 +784,7 @@ function createStyles(c: ThemeColors) {
       fontWeight: "600",
       color: c.text,
       marginBottom: 6,
-      marginTop: 12
+      marginTop: 12,
     },
     textInput: {
       borderWidth: 1,
@@ -784,11 +795,11 @@ function createStyles(c: ThemeColors) {
       fontSize: 15,
       color: c.text,
       backgroundColor: c.card,
-      marginBottom: 8
+      marginBottom: 8,
     },
     textInputDisabled: {
       backgroundColor: c.surfaceSubtle,
-      color: c.textTertiary
+      color: c.textTertiary,
     },
     notesInput: { minHeight: 60, textAlignVertical: "top" },
 
@@ -798,20 +809,22 @@ function createStyles(c: ThemeColors) {
       borderRadius: 10,
       padding: 14,
       marginTop: 12,
-      backgroundColor: c.card
+      backgroundColor: c.card,
     },
     exerciseHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 8
+      marginBottom: 8,
     },
     exerciseTitle: { fontSize: 15, fontWeight: "600", color: c.text },
     removeLink: { fontSize: 14, color: c.danger, fontWeight: "500" },
     nameRow: { flexDirection: "row", gap: 8, alignItems: "center" },
     nameInput: { flex: 1 },
     browseButton: {
-      backgroundColor: c.accent, paddingHorizontal: 14, paddingVertical: 12,
+      backgroundColor: c.accent,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
       borderRadius: 8,
     },
     browseText: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
@@ -821,23 +834,19 @@ function createStyles(c: ThemeColors) {
       fontWeight: "600",
       color: c.textBody,
       marginTop: 8,
-      marginBottom: 6
+      marginBottom: 6,
     },
     setRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
-      marginBottom: 4
+      marginBottom: 4,
     },
-    setNumber: {
-      fontSize: 13,
-      color: c.textSecondary,
-      width: 40
-    },
+    setNumber: { fontSize: 13, color: c.textSecondary, width: 40 },
     setInput: { flex: 1, marginBottom: 0 },
     addSetButton: {
       paddingVertical: 8,
-      marginTop: 4
+      marginTop: 4,
     },
     addSetButtonText: { fontSize: 14, color: c.accent, fontWeight: "500" },
 
@@ -848,12 +857,12 @@ function createStyles(c: ThemeColors) {
       borderRadius: 10,
       paddingVertical: 14,
       alignItems: "center",
-      marginTop: 16
+      marginTop: 16,
     },
     addExerciseButtonText: {
       fontSize: 15,
       color: c.accent,
-      fontWeight: "600"
+      fontWeight: "600",
     },
 
     errorBanner: {
@@ -862,7 +871,7 @@ function createStyles(c: ThemeColors) {
       borderColor: c.dangerBorder,
       borderRadius: 8,
       padding: 12,
-      marginTop: 16
+      marginTop: 16,
     },
     errorBannerText: { fontSize: 14, color: c.danger },
 
@@ -870,23 +879,24 @@ function createStyles(c: ThemeColors) {
       flexDirection: "row",
       justifyContent: "flex-end",
       gap: 12,
-      marginTop: 24
+      marginTop: 24,
     },
     cancelButton: {
       paddingHorizontal: 20,
       paddingVertical: 12,
       borderRadius: 8,
       borderWidth: 1,
-      borderColor: c.borderStrong
+      borderColor: c.borderStrong,
     },
     cancelButtonText: { fontSize: 15, color: c.textSecondary, fontWeight: "600" },
     submitButton: {
       backgroundColor: c.accent,
       paddingHorizontal: 24,
       paddingVertical: 12,
-      borderRadius: 8
+      borderRadius: 8,
     },
     submitButtonDisabled: { opacity: 0.5 },
-    submitButtonText: { fontSize: 15, color: c.onAccent, fontWeight: "600" }
-  })
+    submitButtonText: { fontSize: 15, color: c.onAccent, fontWeight: "600" },
+    buttonDisabled: { opacity: 0.5 },
+  });
 }

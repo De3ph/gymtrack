@@ -1,14 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Modal,
-  FlatList,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { exerciseApi } from "@/api/exerciseApi";
 import { useThemeColors } from "@/components/useThemeColors";
@@ -57,6 +57,29 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
     );
   }, [data, search]);
 
+  const renderExerciseItem = useCallback(
+    ({ item }: { item: Exercise }) => (
+      <Pressable
+        style={styles.exerciseRow}
+        onPress={() => {
+          onSelect(item);
+          onClose();
+        }}
+      >
+        <View style={styles.exerciseInfo}>
+          <Text style={styles.exerciseName}>{item.name}</Text>
+          {item.category ? (
+            <Text style={styles.exerciseCategory}>{item.category}</Text>
+          ) : null}
+        </View>
+        <Text style={styles.chevron}>{">"}</Text>
+      </Pressable>
+    ),
+    [onClose, onSelect]
+  );
+
+  const keyExtractor = useCallback((item: Exercise) => String(item.exerciseId), []);
+
   return (
     <Modal
       visible={visible}
@@ -66,9 +89,9 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
     >
       <View style={styles.flex}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+          <Pressable onPress={onClose} style={styles.closeBtn}>
             <Text style={styles.closeText}>Close</Text>
-          </TouchableOpacity>
+          </Pressable>
           <Text style={styles.title}>Exercise Catalog</Text>
           <View style={styles.closeBtn} />
         </View>
@@ -91,32 +114,15 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
         ) : isError ? (
           <View style={styles.center}>
             <Text style={styles.errorText}>Failed to load exercises</Text>
-            <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}>
+            <Pressable onPress={() => refetch()} style={styles.retryButton}>
               <Text style={styles.retryText}>Retry</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         ) : (
-          <FlatList
+          <FlashList
             data={exercises}
-            keyExtractor={(item) => String(item.exerciseId)}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.exerciseRow}
-                onPress={() => {
-                  onSelect(item);
-                  onClose();
-                }}
-                activeOpacity={0.6}
-              >
-                <View style={styles.exerciseInfo}>
-                  <Text style={styles.exerciseName}>{item.name}</Text>
-                  {item.category ? (
-                    <Text style={styles.exerciseCategory}>{item.category}</Text>
-                  ) : null}
-                </View>
-                <Text style={styles.chevron}>{">"}</Text>
-              </TouchableOpacity>
-            )}
+            renderItem={renderExerciseItem}
+            keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={
               <View style={styles.center}>
@@ -186,7 +192,12 @@ function createStyles(c: ThemeColors) {
     center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
     errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
     emptyText: { fontSize: 15, color: c.textSecondary },
-    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
+    retryButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      backgroundColor: c.accent,
+      borderRadius: 8,
+    },
     retryText: { color: c.onAccent, fontWeight: "600" },
   });
 }

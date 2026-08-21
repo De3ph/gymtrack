@@ -3,7 +3,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -41,12 +41,9 @@ export function WorkoutDetailScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Failed to load workout</Text>
-        <TouchableOpacity
-          onPress={() => refetch()}
-          style={styles.retryButton}
-        >
+        <Pressable onPress={() => refetch()} style={styles.retryButton}>
           <Text style={styles.retryText}>Retry</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -62,15 +59,11 @@ export function WorkoutDetailScreen() {
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
       <View style={styles.headerBar}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backText}>
             {"\u2039"} {t("common.actions.back")}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <Text style={styles.dateText}>{formattedDate}</Text>
