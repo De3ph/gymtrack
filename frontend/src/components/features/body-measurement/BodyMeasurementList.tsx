@@ -15,6 +15,7 @@ import { bodyMeasurementApi } from "@/lib/api";
 import { PAGINATION } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { BodyMeasurement } from "@/types";
+import { useMeasurementListStore } from "@/stores/measurement-list-store";
 import { BodyMeasurementFilterBar } from "./BodyMeasurementFilterBar";
 import { BodyMeasurementListItem } from "./BodyMeasurementListItem";
 import { EditBodyMeasurementDialog } from "./EditBodyMeasurementDialog";
@@ -35,8 +36,6 @@ interface BodyMeasurementListProps {
   onPageChange?: (page: number) => void;
 }
 
-const EMPTY_FILTER: BodyMeasurementFilter = {};
-
 export function BodyMeasurementList({
   measurements: propMeasurements,
   readOnly = false,
@@ -48,25 +47,23 @@ export function BodyMeasurementList({
 }: BodyMeasurementListProps) {
   const t = useTranslations("body_measurement.list");
   const tPagination = useTranslations("body_measurement.pagination");
+  const measurementListStore = useMeasurementListStore();
 
-  const [internalFilter, setInternalFilter] = React.useState<BodyMeasurementFilter>(EMPTY_FILTER);
-  const [internalPage, setInternalPage] = React.useState(1);
-
-  const filter = filterProp ?? internalFilter;
-  const page = pageProp ?? internalPage;
+  const filter = filterProp ?? measurementListStore.filter;
+  const page = pageProp ?? measurementListStore.page;
 
   const handleFilterChange = (next: BodyMeasurementFilter) => {
     if (onFilterChange) {
       onFilterChange(next);
     } else {
-      setInternalFilter(next);
-      setInternalPage(1);
+      // setFilter resets page to 1 inside the store.
+      measurementListStore.setFilter(next);
     }
   };
 
   const handlePageChange = (next: number) => {
     if (onPageChange) onPageChange(next);
-    else setInternalPage(next);
+    else measurementListStore.setPage(next);
   };
 
   const [editing, setEditing] = React.useState<BodyMeasurement | null>(null);

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { mealApi } from "@/lib/api";
+import { useCalendarStore } from "@/stores/calendar-store";
 import { DailyNutritionSummary } from "./DailyNutritionSummary";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl"
@@ -18,9 +19,8 @@ const CalendarGrid = dynamic(
 export function MealCalendar() {
   const t = useTranslations("meal.calendar")
   const tCard = useTranslations("meal.card")
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
-    dayjs().toDate(),
-  );
+  const { activeDate: selectedDate, setActiveDate: setSelectedDate } =
+    useCalendarStore();
 
   const { data: mealsData, isLoading } = useQuery({
     queryKey: ["meals"],
@@ -80,7 +80,9 @@ export function MealCalendar() {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <CalendarGrid
           selectedDate={selectedDate}
-          onSelect={setSelectedDate}
+          onSelect={(d) => {
+            if (d) setSelectedDate(d);
+          }}
           mealDays={mealDays}
         />
 

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/pagination";
 import { mealApi } from "@/lib/api"
 import { Meal } from "@/types"
+import { useMealListStore } from "@/stores/meal-list-store"
 import { EditMealDialog } from "./EditMealDialog"
 import { MealCard } from "./MealCard"
 import { MealFilterBar } from "./MealFilterBar"
@@ -36,8 +37,6 @@ interface MealListProps {
   onPageChange?: (page: number) => void
 }
 
-const EMPTY_FILTER: MealFilter = {};
-
 export function MealList({
   meals: propMeals,
   readOnly = false,
@@ -49,25 +48,23 @@ export function MealList({
   const t = useTranslations("meal")
   const tPagination = useTranslations("meal.pagination")
   const queryClient = useQueryClient()
+  const mealListStore = useMealListStore()
 
-  const [internalFilter, setInternalFilter] = React.useState<MealFilter>(EMPTY_FILTER);
-  const [internalPage, setInternalPage] = React.useState(1);
-
-  const filter = filterProp ?? internalFilter;
-  const page = pageProp ?? internalPage;
+  const filter = filterProp ?? mealListStore.filter;
+  const page = pageProp ?? mealListStore.page;
 
   const handleFilterChange = (next: MealFilter) => {
     if (onFilterChange) {
       onFilterChange(next);
     } else {
-      setInternalFilter(next);
-      setInternalPage(1);
+      // setFilter resets page to 1 inside the store.
+      mealListStore.setFilter(next);
     }
   };
 
   const handlePageChange = (next: number) => {
     if (onPageChange) onPageChange(next);
-    else setInternalPage(next);
+    else mealListStore.setPage(next);
   };
 
   const [editingMeal, setEditingMeal] = React.useState<Meal | null>(null)

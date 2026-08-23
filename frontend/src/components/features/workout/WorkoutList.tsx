@@ -12,6 +12,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { workoutApi } from "@/lib/api";
+import { useWorkoutListStore } from "@/stores/workout-list-store";
 import { EditWorkoutDialog } from "./EditWorkoutDialog";
 import { DeleteWorkoutDialog } from "./DeleteWorkoutDialog";
 import { WorkoutFilterBar } from "./WorkoutFilterBar";
@@ -34,8 +35,6 @@ interface WorkoutListProps {
   onPageChange?: (page: number) => void;
 }
 
-const EMPTY_FILTER: WorkoutFilter = {};
-
 export function WorkoutList({
   workouts: propWorkouts,
   readOnly = false,
@@ -46,26 +45,23 @@ export function WorkoutList({
 }: WorkoutListProps) {
   const t = useTranslations("workout.list");
   const tPagination = useTranslations("workout.pagination");
+  const workoutListStore = useWorkoutListStore();
 
-  const [internalFilter, setInternalFilter] =
-    React.useState<WorkoutFilter>(EMPTY_FILTER);
-  const [internalPage, setInternalPage] = React.useState(1);
-
-  const filter = filterProp ?? internalFilter;
-  const page = pageProp ?? internalPage;
+  const filter = filterProp ?? workoutListStore.filter;
+  const page = pageProp ?? workoutListStore.page;
 
   const handleFilterChange = (next: WorkoutFilter) => {
     if (onFilterChange) {
       onFilterChange(next);
     } else {
-      setInternalFilter(next);
-      setInternalPage(1);
+      // setFilter resets page to 1 inside the store.
+      workoutListStore.setFilter(next);
     }
   };
 
   const handlePageChange = (next: number) => {
     if (onPageChange) onPageChange(next);
-    else setInternalPage(next);
+    else workoutListStore.setPage(next);
   };
 
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<

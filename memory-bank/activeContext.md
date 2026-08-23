@@ -1,5 +1,26 @@
 # Active Context
 
+## Zustand Migration (implemented) — `plans/zustand-migration.md`
+Implemented the "survive navigation" store migration: list filter/pagination and the shared calendar date now persist across route/tab switches. Auth (`authStore`) and React Query server-state untouched.
+
+### New store files (`frontend/src/stores/`)
+- `list-ui-store.ts` — generic `createListUiStore<TFilter>(initialFilter)` factory (`filter`/`page`/`setFilter` (resets page→1)/`setPage`/`reset`).
+- `meal-list-store.ts` → `useMealListStore`
+- `workout-list-store.ts` → `useWorkoutListStore`
+- `measurement-list-store.ts` → `useMeasurementListStore`
+- `calendar-store.ts` → `useCalendarStore` (`activeDate`/`viewMonth` + setters)
+- `exercise-catalog-store.ts` → `useExerciseCatalogStore` (searchQuery/muscleGroup/equipment + setters)
+
+### Modified components (7)
+- `MealList.tsx` / `WorkoutList.tsx` / `BodyMeasurementList.tsx` — uncontrolled fallback now store-backed; controlled props (`filter`/`onFilterChange`/`page`/`onPageChange`) API kept intact.
+- `MeasurementsClient.tsx` (athlete /measurements) — replaced local `useState` filter/page with `useMeasurementListStore` so measurements survive navigation (list + charts stay in sync).
+- `MealCalendar.tsx` / `WorkoutCalendar.tsx` — `selectedDate`/`currentMonth` now from the shared `useCalendarStore`; typed `onSelect` wrapped with `if (d)` guard (store setter takes a required Date).
+- `ExerciseSelector.tsx` — search/muscleGroup/equipment filters now store-backed; removed the reset-on-select so the last filter persists across dialog reopenings (per verification #4). "Clear filters" button still resets.
+
+### Verification
+- `pnpm test:run WorkoutList.test.tsx WorkoutCalendar.test.tsx` → WorkoutList 6/6 PASS. WorkoutCalendar 2 pre-existing failures unchanged (dynamic calendar-grid skeleton hides `title`; active date renders today via store — unrelated to migration).
+- `pnpm exec tsc --noEmit` → only pre-existing project wide errors (113); none reference the 7 edited regions or the 6 new store files.
+
 ## Current Focus
 Mobile G1-G8 review fixes implemented (2026-08-02) — see "Mobile Review Fixes" below. (Prior: frontend auth checklist fixes.)
 

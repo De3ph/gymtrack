@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { workoutApi } from "@/lib/api";
+import { useCalendarStore } from "@/stores/calendar-store";
 import { WorkoutExercise, ExerciseSet } from "@/types";
 
 const CalendarGrid = dynamic(
@@ -17,12 +18,12 @@ const CalendarGrid = dynamic(
 );
 
 export function WorkoutCalendar() {
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
-    dayjs().toDate(),
-  );
-  const [currentMonth, setCurrentMonth] = React.useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  );
+  const {
+    activeDate: selectedDate,
+    viewMonth: currentMonth,
+    setActiveDate: setSelectedDate,
+    setViewMonth: setCurrentMonth,
+  } = useCalendarStore();
 
   const t = useTranslations("workout.calendar");
   const tList = useTranslations("workout.list");
@@ -49,7 +50,9 @@ export function WorkoutCalendar() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <CalendarGrid
         selectedDate={selectedDate}
-        onSelect={setSelectedDate}
+        onSelect={(d) => {
+          if (d) setSelectedDate(d);
+        }}
         currentMonth={currentMonth}
         onMonthChange={setCurrentMonth}
         workoutDays={workoutDays}

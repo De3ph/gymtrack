@@ -18,6 +18,7 @@ import {
   BodyMeasurementFilter,
   BodyMeasurementList
 } from "@/components/features/body-measurement/BodyMeasurementList";
+import { useMeasurementListStore } from "@/stores/measurement-list-store";
 
 const BodyMeasurementCharts = dynamic(
   () => import("@/components/features/body-measurement/BodyMeasurementCharts").then(m => m.BodyMeasurementCharts),
@@ -26,25 +27,24 @@ const BodyMeasurementCharts = dynamic(
 import { BodyMeasurement } from "@/types";
 import { useTranslations } from "next-intl";
 
-const EMPTY_FILTER: BodyMeasurementFilter = {};
-
 interface MeasurementsClientProps {
   latest: BodyMeasurement | null;
 }
 
 export function MeasurementsClient({ latest }: MeasurementsClientProps) {
   const [activeTab, setActiveTab] = useState("log");
-  const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState<BodyMeasurementFilter>(EMPTY_FILTER);
   const t = useTranslations("athlete.measurements");
   const queryClient = useQueryClient();
   const justSubmittedRef = useRef(false);
-
+  // Back filter/page with the shared store so they survive route/tab switches.
+  const measurementListStore = useMeasurementListStore();
+  const filter = measurementListStore.filter;
+  const page = measurementListStore.page;
 
   const handleFilterChange = useCallback((next: BodyMeasurementFilter) => {
-    setFilter(next);
-    setPage(1);
-  }, []);
+    // setFilter resets page to 1 inside the store.
+    measurementListStore.setFilter(next);
+  }, [measurementListStore]);
 
   useEffect(() => {
     if (!justSubmittedRef.current) return;
@@ -133,7 +133,7 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
             filter={filter}
             onFilterChange={handleFilterChange}
             page={page}
-            onPageChange={setPage}
+            onPageChange={measurementListStore.setPage}
           />
         </TabsContent>
 

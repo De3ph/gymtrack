@@ -7,6 +7,7 @@ import { Search, Dumbbell, SearchX, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { exerciseApi } from "@/lib/api";
+import { useExerciseCatalogStore } from "@/stores/exercise-catalog-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,13 +38,15 @@ export function ExerciseSelector({
 }: ExerciseSelectorProps) {
   const t = useTranslations("exercise");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<
-    number | undefined
-  >();
-  const [selectedEquipment, setSelectedEquipment] = useState<
-    number | undefined
-  >();
+  // Catalog filter persists across dialog reopenings via the shared store.
+  const {
+    searchQuery,
+    selectedMuscleGroup,
+    selectedEquipment,
+    setSearchQuery,
+    setSelectedMuscleGroup,
+    setSelectedEquipment,
+  } = useExerciseCatalogStore();
 
   // Defer the search query so the input stays responsive while expensive
   // search/filter operations derive from it (rerender-use-deferred-value).
@@ -94,10 +97,8 @@ export function ExerciseSelector({
     (exercise: ExerciseLibrary) => {
       onSelect(exercise);
       setIsDialogOpen(false);
-      // Reset filters
-      setSearchQuery("");
-      setSelectedMuscleGroup(undefined);
-      setSelectedEquipment(undefined);
+      // NOTE: catalog filters intentionally persist in `useExerciseCatalogStore`
+      // so the athlete's last search/filters are restored on the next open.
     },
     [onSelect],
   );
