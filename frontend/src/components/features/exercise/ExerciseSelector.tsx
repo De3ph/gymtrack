@@ -226,7 +226,7 @@ export function ExerciseSelector({
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  <ItemGroup className="gap-0 border border-border">
+                  <ItemGroup className="gap-2 border border-border">
                     {exercises.map((exercise) => (
                       <motion.div key={exercise.exerciseId} {...exerciseReveal}>
                         <Item
@@ -237,7 +237,7 @@ export function ExerciseSelector({
                               type="button"
                               onClick={() => handleSelect(exercise)}
                               className={cn(
-                                "rounded-none border-0 border-b border-border text-left last:border-b-0",
+                                "gap-2 *:rounded-none border-x-0 border-b-2 border-border text-left last:border-b-0",
                               )}
                             />
                           }

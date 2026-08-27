@@ -2,13 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import dynamic from "next/dynamic";
 import { mealApi, workoutApi } from "@/lib/api";
 import { Meal, Workout } from "@/types";
@@ -22,7 +16,7 @@ import { DashboardEvent, DashboardEventList } from "./DashboardEventList";
 
 const CalendarGrid = dynamic(
   () => import("./CalendarGrid").then((m) => m.CalendarGrid),
-  { ssr: false, loading: () => <Skeleton className="h-[350px] w-full rounded-2xl" /> },
+  { ssr: false, loading: () => <Skeleton className="h-[350px] w-full rounded-none" /> },
 );
 
 interface CombinedTrainingCalendarProps {
@@ -96,20 +90,25 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
   }
 
   return (
-    <Card className="overflow-hidden rounded-[1.5rem]">
-      <CardHeader className="gap-1 border-b border-border pb-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>{t("description")}</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleToday}>
-            {tDate("today")}
-          </Button>
+    <div className="border border-border bg-card">
+      <header className="flex flex-col gap-4 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <div className="space-y-1">
+          <h2 className="font-sans text-base font-medium leading-tight text-foreground">
+            {t("title")}
+          </h2>
+          <p className="font-sans text-sm leading-6 text-muted-foreground">{t("description")}</p>
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
-        <div className="flex justify-center rounded-2xl bg-muted/30 p-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleToday}
+          className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
+        >
+          {tDate("today")}
+        </Button>
+      </header>
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)] lg:divide-x lg:divide-border">
+        <div className="p-6">
           <CalendarGrid
             selectedDate={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
@@ -119,12 +118,13 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
             mealDates={mealDates}
           />
         </div>
-        <div className="space-y-4 rounded-2xl bg-muted/30 p-4">
+        <div className="space-y-4 border-t border-border p-6 lg:border-t-0">
           <div className="flex flex-wrap gap-2">
-            <Legend icon={<CalendarDays className="h-3.5 w-3.5" />} label={t("workout")} />
-            <Legend icon={<UtensilsCrossed className="h-3.5 w-3.5" />} label={t("meal")} />
+            <Legend icon={<CalendarDays className="size-3.5" aria-hidden="true" />} label={t("workout")} />
+            <Legend icon={<UtensilsCrossed className="size-3.5" aria-hidden="true" />} label={t("meal")} />
           </div>
-          <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
+          <Separator />
+          <div className="max-h-[500px] overflow-y-auto">
             {isRefetching ? (
               <EventsSkeleton />
             ) : (
@@ -132,64 +132,62 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
             )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 function CalendarSkeleton() {
   return (
-    <Card className="overflow-hidden rounded-[1.5rem]">
-      <CardHeader className="gap-1 border-b border-border pb-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-60" />
-          </div>
-          <Skeleton className="h-9 w-20 rounded-md" />
+    <div className="border border-border bg-card">
+      <header className="flex flex-col gap-2 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-40 rounded-none" />
+          <Skeleton className="h-4 w-60 rounded-none" />
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
-        <div className="flex justify-center rounded-2xl bg-muted/30 p-4">
-          <div className="space-y-3">
+        <Skeleton className="h-8 w-20 rounded-none" />
+      </header>
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)] lg:divide-x lg:divide-border">
+        <div className="p-6">
+          <div className="space-y-3 border border-border p-4">
             <div className="flex items-center justify-between">
-              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-32 rounded-none" />
               <div className="flex gap-1">
-                <Skeleton className="size-8 rounded-md" />
-                <Skeleton className="size-8 rounded-md" />
+                <Skeleton className="size-8 rounded-none" />
+                <Skeleton className="size-8 rounded-none" />
               </div>
             </div>
             <div className="grid grid-cols-7 gap-1">
               {Array.from({ length: 35 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-square rounded-md" />
+                <Skeleton key={i} className="aspect-square rounded-none" />
               ))}
             </div>
           </div>
         </div>
-        <div className="space-y-4 rounded-2xl bg-muted/30 p-4">
+        <div className="space-y-4 p-6">
           <div className="flex gap-2">
-            <Skeleton className="h-7 w-20 rounded-full" />
-            <Skeleton className="h-7 w-16 rounded-full" />
+            <Skeleton className="h-7 w-20 rounded-none" />
+            <Skeleton className="h-7 w-16 rounded-none" />
           </div>
           <EventsSkeleton />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 function EventsSkeleton() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-0 divide-y divide-border border border-border">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex items-start gap-4 rounded-2xl border border-border bg-card p-4">
-          <Skeleton className="size-10 shrink-0 rounded-2xl" />
+        <div key={i} className="flex items-start gap-4 p-4">
+          <Skeleton className="size-8 shrink-0 rounded-none" />
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex items-center gap-3">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-5 w-12 rounded-full" />
+              <Skeleton className="h-4 w-28 rounded-none" />
+              <Skeleton className="h-5 w-12 rounded-none" />
             </div>
-            <Skeleton className="h-3.5 w-44" />
+            <Skeleton className="h-3.5 w-44 rounded-none" />
           </div>
         </div>
       ))}
@@ -223,7 +221,7 @@ function mealToEvent(meal: Meal): DashboardEvent {
 
 function Legend({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground">
+    <span className="inline-flex items-center gap-2 border border-border bg-background px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
       {icon}
       {label}
     </span>

@@ -37,9 +37,6 @@ export function WorkoutPlanFormDialog({
           <DialogTitle className="text-lg">
             {plan ? t("edit") : t("create")}
           </DialogTitle>
-          <DialogDescription className="text-sm">
-            {t("description")}
-          </DialogDescription>
         </DialogHeader>
         <div className="px-6 py-6">
           <WorkoutPlanForm

@@ -289,8 +289,7 @@
       "description": "Hesabınız silindi. Silinme tarihinden itibaren 30 gün içinde geri yükleyebilirsiniz.",
       "button": "Hesabı Geri Yükle",
       "error_expired": "Geri yükleme süresi doldu. Hesabınız kalıcı olarak silinmiştir.",
-      "success_title": "Hesap Geri Yüklendi",
-      "success_message": "Tekrar hoş geldin {username}. Seni tekrar görmek güzel :)"
+      "success_title": "Hesap Geri Yüklendi"
     }
   },
   "dashboard": {
@@ -927,8 +926,7 @@
       "error_wrong_password": "Yanlış şifre. Lütfen tekrar deneyin.",
       "error_admin_forbidden": "Yönetici hesapları silinemez.",
       "success_title": "Hesap Silindi",
-      "success_description": "Hesabınız silinmek üzere planlandı. 30 gün içinde giriş yaparak geri yükleyebilirsiniz.",
-      "restore_info": "Hesabınızı 30 gün içinde giriş yaparak geri yükleyebilirsiniz. 30 gün sonra hesabınız kalıcı olarak silinir."
+      "success_description": "Hesabınız silinmek üzere planlandı. 30 gün içinde giriş yaparak geri yükleyebilirsiniz."
     }
   },
   "athlete": {
@@ -1109,7 +1107,6 @@
     },
     "workout_plans": {
       "title": "Antrenman Planlarım",
-      "description": "Kendi antrenman planlarınızı oluşturun ve yönetin veya antrenörünüzün atadığı planları görüntüleyin",
       "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!",
       "view_plan": "Planı Görüntüle",
       "start_workout": "Antrenmana Başla",

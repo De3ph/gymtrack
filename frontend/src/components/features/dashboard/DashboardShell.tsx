@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { motion, LazyMotion, domAnimation } from "motion/react";
+import { motion } from "motion/react";
 import { ReactNode } from "react";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
@@ -23,17 +23,16 @@ export function DashboardShell({ eyebrow, title, description, children }: Dashbo
     >
       <motion.section
         variants={fadeInUp}
-        className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-6 shadow-sm md:p-10"
+        className="border border-border bg-card px-6 py-6 sm:px-8 sm:py-8"
       >
-        <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-primary/10 blur-3xl md:h-72 md:w-72" />
-        <div className="relative space-y-4 max-w-3xl">
-          <div className="inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+        <div className="max-w-3xl space-y-4">
+          <span className="inline-flex items-center border border-border bg-background px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {eyebrow}
-          </div>
-          <h1 className="font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+          </span>
+          <h1 className="font-mono text-4xl font-normal leading-[1.05] tracking-[-0.04em] text-foreground sm:text-5xl">
             {title}
           </h1>
-          <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+          <p className="max-w-2xl font-sans text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
             {description}
           </p>
         </div>
@@ -56,27 +55,27 @@ export function DashboardMetric({ label, value, hint, className }: DashboardMetr
     <motion.div
       variants={fadeInUp}
       className={cn(
-        "rounded-2xl border border-border bg-card p-5 shadow-xs ring-1 ring-foreground/5",
+        "border border-border bg-card px-6 py-6 sm:px-8 sm:py-8",
         className,
       )}
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-3 font-heading text-4xl font-semibold tracking-tight text-foreground">
+      <p className="mt-3 font-mono text-4xl font-normal leading-tight tracking-tight text-foreground">
         {value}
       </p>
-      {hint && <p className="mt-2 text-sm text-muted-foreground">{hint}</p>}
+      {hint && <p className="mt-2 font-sans text-sm leading-6 text-muted-foreground">{hint}</p>}
     </motion.div>
   );
 }
 
 export function DashboardMetricSkeleton() {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-xs ring-1 ring-foreground/5">
-      <Skeleton className="h-3.5 w-20" />
-      <Skeleton className="mt-3 h-10 w-16" />
-      <Skeleton className="mt-2 h-4 w-36" />
+    <div className="border border-border bg-card px-6 py-6 sm:px-8 sm:py-8">
+      <Skeleton className="h-3 w-20 rounded-none" />
+      <Skeleton className="mt-3 h-10 w-16 rounded-none" />
+      <Skeleton className="mt-2 h-4 w-36 rounded-none" />
     </div>
   );
 }

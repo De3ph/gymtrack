@@ -20,50 +20,18 @@ func newTestAuthService(repo *fakeUserRepo, clock utils.Clock) *AuthService {
 
 // --- AuthService.Login tests ---
 
-func TestAuthService_Login_DeletedUser_AutoRestore(t *testing.T) {
+func TestAuthService_Login_DeletedUser(t *testing.T) {
 	repo := newFakeUserRepo()
-	now := time.Now().UTC()
-	clock := utils.NewFakeClock(now)
+	clock := utils.NewFakeClock(time.Now().UTC())
 	svc := newTestAuthService(repo, clock)
 	ctx := context.Background()
 
 	user := seedUser(t, repo, "deletedlogin", "deletedlogin@example.com", "password123", models.RoleAthlete)
+	// Simulate soft-delete.
 	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
-
-	// Within 30-day window — should auto-restore on login.
-	clock.Set(now.Add(5 * 24 * time.Hour))
-
-	resp, err := svc.Login(ctx, LoginRequest{
-		Identifier: "deletedlogin@example.com",
-		Password:   "password123",
-	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	assert.NotEmpty(t, resp.AccessToken)
-	assert.NotEmpty(t, resp.RefreshToken)
-	assert.Equal(t, "deletedlogin", resp.User.Username)
-
-	restored, err := repo.GetUserByID(ctx, user.UserID)
-	require.NoError(t, err)
-	assert.Equal(t, models.UserStatusActive, restored.Status)
-	assert.Nil(t, restored.DeletedAt)
-}
-
-func TestAuthService_Login_DeletedUser_Expired(t *testing.T) {
-	repo := newFakeUserRepo()
-	now := time.Now().UTC()
-	clock := utils.NewFakeClock(now)
-	svc := newTestAuthService(repo, clock)
-	ctx := context.Background()
-
-	user := seedUser(t, repo, "deletedexpired", "deletedexpired@example.com", "password123", models.RoleAthlete)
-	require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
-
-	// Past 30-day window — should reject with ACCOUNT_DELETED.
-	clock.Set(now.Add(31 * 24 * time.Hour))
 
 	_, err := svc.Login(ctx, LoginRequest{
-		Identifier: "deletedexpired@example.com",
+		Identifier: "deletedlogin@example.com",
 		Password:   "password123",
 	})
 	require.Error(t, err)

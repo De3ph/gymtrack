@@ -3,8 +3,9 @@
 import * as React from "react";
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import { MessageSquare, Loader2 } from "lucide-react"
+import { MessageSquare } from "lucide-react"
 
+import { Spinner } from "@/components/ui/spinner"
 import { commentApi } from "@/lib/api"
 import { CommentList } from "./CommentList"
 import { CommentForm } from "./CommentForm"
@@ -42,8 +43,8 @@ export function CommentThread({
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-6 text-muted-foreground'>
-        <Loader2 className='h-5 w-5 animate-spin' />
+      <div className="flex items-center justify-center py-6">
+        <Spinner />
       </div>
     )
   }
@@ -58,8 +59,8 @@ export function CommentThread({
 
   return (
     <div className='space-y-3'>
-      <div className='flex items-center gap-2 text-sm font-medium text-muted-foreground'>
-        <MessageSquare className='h-4 w-4' />
+      <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        <MessageSquare className="size-4" aria-hidden="true" />
         <span>{t("list.comments_count", { count: comments.length })}</span>
       </div>
       <CommentList

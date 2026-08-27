@@ -288,8 +288,7 @@
       "description": "Your account was deleted. You can restore it within 30 days of deletion.",
       "button": "Restore Account",
       "error_expired": "The restore period has expired. Your account has been permanently deleted.",
-      "success_title": "Account Restored",
-      "success_message": "Welcome back {username}. Love to see you again :)"
+      "success_title": "Account Restored"
     }
   },
   "dashboard": {
@@ -926,8 +925,7 @@
       "error_wrong_password": "Incorrect password. Please try again.",
       "error_admin_forbidden": "Admin accounts cannot be deleted.",
       "success_title": "Account Deleted",
-      "success_description": "Your account has been scheduled for deletion. You can restore it within 30 days by logging in.",
-      "restore_info": "You could restore your account within 30 days via login. After 30 days, your account will be deleted completely."
+      "success_description": "Your account has been scheduled for deletion. You can restore it within 30 days by logging in."
     }
   },
   "athlete": {
@@ -1112,7 +1110,6 @@
     },
     "workout_plans": {
       "title": "My Workout Plans",
-      "description": "Create and manage your own workout plans, or view plans assigned by your trainer",
       "empty": "You don't have any workout plans yet. Ask your trainer to create one!",
       "view_plan": "View Plan",
       "start_workout": "Start Workout",

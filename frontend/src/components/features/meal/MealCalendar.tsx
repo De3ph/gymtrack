@@ -3,7 +3,6 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { mealApi } from "@/lib/api";
 import { useCalendarStore } from "@/stores/calendar-store";
@@ -13,7 +12,7 @@ import { useTranslations } from "next-intl"
 
 const CalendarGrid = dynamic(
   () => import("./CalendarGrid").then((m) => m.CalendarGrid),
-  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full" /> },
+  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full rounded-none" /> },
 );
 
 export function MealCalendar() {
@@ -42,42 +41,42 @@ export function MealCalendar() {
 
   if (isLoading) {
     return (
-      <div className='space-y-6'>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("loading_meals")}</CardTitle>
-          </CardHeader>
-          <CardContent className='p-4 space-y-4'>
+      <div className="space-y-6">
+        <div className="border border-border">
+          <header className="border-b border-border px-6 py-4">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("loading_meals")}</h3>
+          </header>
+          <div className="space-y-4 p-6">
             {[...Array(2)].map((_, i) => (
-              <div
+              <Skeleton
                 key={i}
-                className='h-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse'
+                className="h-48 w-full rounded-none"
               />
             ))}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("loading_details")}</CardTitle>
-          </CardHeader>
-          <CardContent className='p-4 space-y-4'>
+          </div>
+        </div>
+        <div className="border border-border">
+          <header className="border-b border-border px-6 py-4">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("loading_details")}</h3>
+          </header>
+          <div className="space-y-4 p-6">
             {[...Array(3)].map((_, i) => (
-              <div
+              <Skeleton
                 key={i}
-                className='h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse'
+                className="h-12 w-full rounded-none"
               />
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {selectedDate && <DailyNutritionSummary date={dayjs(selectedDate)} />}
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <CalendarGrid
           selectedDate={selectedDate}
           onSelect={(d) => {
@@ -86,40 +85,42 @@ export function MealCalendar() {
           mealDays={mealDays}
         />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>
+        <div className="border border-border">
+          <header className="border-b border-border px-6 py-4">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               {selectedDate
                 ? dayjs(selectedDate).format("MMM D, YYYY")
                 : t("select_date")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </header>
+          <div className="p-6">
             {selectedDayMeals.length > 0 ? (
-              <div className='space-y-4'>
+              <ul className="divide-y divide-border">
                 {selectedDayMeals.map((meal) => (
-                  <div
+                  <li
                     key={meal.mealId}
-                    className='border-b last:border-0 pb-2'
+                    className="py-3 first:pt-0 last:pb-0"
                   >
-                    <div className='font-semibold capitalize'>
-                      {meal.mealType} - {dayjs(meal.date).format("LT")}
+                    <div className="font-mono text-xs uppercase tracking-[0.18em] text-foreground capitalize">
+                      {meal.mealType} · {dayjs(meal.date).format("HH:mm")}
                     </div>
-                    <ul className='list-disc pl-5 mt-2 text-sm'>
+                    <ul className="mt-2 space-y-1">
                       {meal.items.map((item, idx) => (
-                        <li key={idx}>
-                          {item.food} ({item.quantity}) - {item.calories} {tCard('kcal')}
+                        <li key={idx} className="flex items-baseline gap-2 font-mono text-xs leading-6 text-muted-foreground">
+                          <span className="text-foreground">{item.food}</span>
+                          <span>({item.quantity})</span>
+                          <span className="ml-auto tabular-nums">{item.calories} {tCard('kcal')}</span>
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className='text-muted-foreground'>{t("no_meals")}</p>
+              <p className="font-mono text-xs leading-6 text-muted-foreground">{t("no_meals")}</p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -1,7 +1,6 @@
 "use client";
 
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
 
@@ -14,18 +13,22 @@ interface CalendarGridProps {
 export function CalendarGrid({ selectedDate, onSelect, mealDays }: CalendarGridProps) {
   const t = useTranslations("meal.calendar");
   return (
-    <Card>
-      <CardHeader><CardTitle>{t("title")}</CardTitle></CardHeader>
-      <CardContent className="flex justify-center">
+    <div className="border border-border">
+      <header className="border-b border-border px-6 py-4">
+        <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {t("title")}
+        </h3>
+      </header>
+      <div className="flex justify-center p-6">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={onSelect}
           modifiers={{ meal: mealDays.map((d) => dayjs(d).toDate()) }}
-          modifiersClassNames={{ meal: "font-bold text-primary underline" }}
-          className="rounded-md border"
+          modifiersClassNames={{ meal: "font-medium text-primary underline" }}
+          className="rounded-none border border-border"
         />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -1,68 +1,45 @@
 "use client";
 
 import { DashboardActionButton } from "@/components/features/dashboard/DashboardActionButton";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
-import { User } from "@/types";
-import {
-  Dumbbell,
-  User as UserIcon,
-  UtensilsCrossed,
-} from "lucide-react";
+import { CalendarDays, Dumbbell, UtensilsCrossed } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
-interface QuickActionsPanelProps {
-  activeTrainer?: User | null;
-}
-
-export function QuickActionsPanel({ activeTrainer }: QuickActionsPanelProps) {
+export function QuickActionsPanel() {
   const router = useRouter();
   const tAthlete = useTranslations("athlete.dashboard");
 
   return (
-    <Card className="rounded-[1.5rem]">
-      <CardHeader>
-        <CardTitle>{tAthlete("quick_title")}</CardTitle>
-        <CardDescription>{tAthlete("quick_description")}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-3">
+    <div className="border border-border bg-card">
+      <header className="border-b border-border px-6 py-4 sm:px-8">
+        <h2 className="font-sans text-base font-medium leading-tight text-foreground">
+          {tAthlete("quick_title")}
+        </h2>
+        <p className="mt-1 font-sans text-sm leading-6 text-muted-foreground">
+          {tAthlete("quick_description")}
+        </p>
+      </header>
+      <div className="grid gap-3 p-6 sm:px-8">
         <DashboardActionButton
-          icon={<Dumbbell className="h-4 w-4" />}
+          icon={<Dumbbell className="size-4" aria-hidden="true" />}
           label={tAthlete("log_workout")}
           description={tAthlete("log_workout_description")}
           onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
         />
         <DashboardActionButton
-          icon={<UtensilsCrossed className="h-4 w-4" />}
+          icon={<UtensilsCrossed className="size-4" aria-hidden="true" />}
           label={tAthlete("log_meal")}
           description={tAthlete("log_meal_description")}
           onClick={() => router.push(ROUTES.ATHLETE_MEALS)}
         />
-        {activeTrainer ? (
-          <DashboardActionButton
-            icon={<UserIcon className="h-4 w-4" />}
-            label={activeTrainer.profile.name}
-            description={tAthlete("trainer_connected_description")}
-            onClick={() =>
-              router.push(`/athlete/my-trainer/${activeTrainer.userId}`)
-            }
-          />
-        ) : (
-          <DashboardActionButton
-            icon={<UserIcon className="h-4 w-4" />}
-            label={tAthlete("find_trainer")}
-            description={tAthlete("find_trainer_description")}
-            onClick={() => router.push(ROUTES.ATHLETE_TRAINERS)}
-          />
-        )}
-      </CardContent>
-    </Card>
+        <DashboardActionButton
+          icon={<CalendarDays className="size-4" aria-hidden="true" />}
+          label={tAthlete("calendar")}
+          description={tAthlete("calendar_description")}
+          onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
+        />
+      </div>
+    </div>
   );
 }

@@ -14,6 +14,8 @@ import {
   PaginationNext,
   PaginationPrevious
 } from "@/components/ui/pagination";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
 import { mealApi } from "@/lib/api"
 import { Meal } from "@/types"
 import { useMealListStore } from "@/stores/meal-list-store"
@@ -116,7 +118,12 @@ export function MealList({
   }
 
   if (isLoading && isSelfFetching) {
-    return <div>{t("list.loading")}</div>
+    return (
+      <div className="flex items-center gap-2 border border-border px-6 py-8 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        <Spinner aria-hidden="true" />
+        {t("list.loading")}
+      </div>
+    )
   }
 
   const meals = propMeals || data?.meals || []
@@ -135,9 +142,13 @@ export function MealList({
     return (
       <div className="space-y-4">
         {filterBar}
-        <div className='text-center p-8 text-muted-foreground'>
-          {t("list.no_meals")}
-        </div>
+        <Empty className="rounded-none border border-border">
+          <EmptyHeader>
+            <EmptyTitle className="font-mono text-sm uppercase tracking-[0.18em] font-normal text-foreground">
+              {t("list.no_meals")}
+            </EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       </div>
     )
   }
@@ -147,18 +158,18 @@ export function MealList({
       {filterBar}
 
       {isSelfFetching && totalCount > 0 && (
-        <div className="text-xs text-muted-foreground">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {tPagination("count", { count: totalCount })}
         </div>
       )}
 
       <motion.div
-        className='space-y-4'
+        className="space-y-4"
         variants={staggerContainer}
-        initial='hidden'
-        animate='visible'
+        initial="hidden"
+        animate="visible"
       >
-        <AnimatePresence mode='popLayout'>
+        <AnimatePresence mode="popLayout">
           {meals.map((meal) => (
             <MealCard
               key={meal.mealId}

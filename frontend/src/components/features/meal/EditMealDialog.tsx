@@ -3,21 +3,13 @@
 import * as React from "react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Field, FieldLabel } from "@/components/ui/field"
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem
-} from "@/components/ui/combobox"
-import { Card, CardContent } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import {
   Dialog,
   DialogContent,
@@ -25,13 +17,13 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog"
-import { FieldInfo } from "@/components/ui/form-field"
 import { mealApi } from "@/lib/api"
 import { ApiErrorHandler } from "@/lib/error-handler"
-import { DATE_FORMATS } from "@/lib/constants"
 import { Meal } from "@/types"
 import type { MealFormData } from "@/lib/validations/meal"
 import { createMealSchema } from "@/lib/validations/meal"
+import { FoodItemCard } from "./FoodItemCard"
+import { EditMealHeader } from "./EditMealHeader"
 
 interface EditMealDialogProps {
   meal: Meal | null
@@ -141,20 +133,22 @@ export function EditMealDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-3xl max-h-[90vh] overflow-y-auto'>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-none border border-border shadow-none">
         <DialogHeader>
-          <DialogTitle>{t("edit_dialog.title")}</DialogTitle>
-          <DialogDescription>{t("edit_dialog.description")}</DialogDescription>
+          <DialogTitle className="font-mono text-xs uppercase tracking-[0.18em] text-foreground font-normal">{t("edit_dialog.title")}</DialogTitle>
+          <DialogDescription className="text-sm leading-6 text-muted-foreground">{t("edit_dialog.description")}</DialogDescription>
         </DialogHeader>
 
         {submitError && (
           <div
             role="alert"
-            className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-md"
+            className="border border-destructive/20 bg-destructive/10 p-3 font-mono text-xs leading-4 text-destructive rounded-none"
           >
             {submitError}
           </div>
         )}
+
+        <Separator />
 
         <form
           onSubmit={(e) => {
@@ -162,221 +156,36 @@ export function EditMealDialog({
             setSubmitError(null)
             form.handleSubmit()
           }}
-          className='space-y-6 mt-4'
+          className="space-y-6 mt-4"
         >
-          <div className='flex flex-col space-y-2'>
-            <FieldLabel htmlFor='date'>{t("form.date_time_label")}</FieldLabel>
-            <div className='flex flex-wrap gap-4'>
-              <form.Field name='date'>
-                {(field) => (
-                  <Input
-                    value={dayjs(field.state.value).format(DATE_FORMATS.DATE_ONLY)}
-                    onChange={(e) =>
-                      field.handleChange(dayjs(e.target.value).toDate())
-                    }
-                    onBlur={field.handleBlur}
-                    type='date'
-                    id='date'
-                    className='w-full md:w-[180px]'
-                  />
-                )}
-              </form.Field>
-              <form.Field name='mealTime'>
-                {(field) => (
-                  <div className="space-y-2">
-                    <Input
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      type='time'
-                      id='mealTime'
-                      className='w-full md:w-[120px]'
-                    />
-                    <FieldInfo field={field} />
-                  </div>
-                )}
-              </form.Field>
-              <form.Field name='mealType'>
-                {(field) => (
-                  <Combobox>
-                    <ComboboxInput
-                      value={field.state.value}
-                      onChange={(e) =>
-                        field.handleChange(
-                          (e.target.value ?? "breakfast") as Parameters<typeof field.handleChange>[0]
-                        )
-                      }
-                    />
-                    <ComboboxContent>
-                      <ComboboxList>
-                        <ComboboxItem value='breakfast'>
-                          {t("form.meal_type.breakfast")}
-                        </ComboboxItem>
-                        <ComboboxItem value='lunch'>
-                          {t("form.meal_type.lunch")}
-                        </ComboboxItem>
-                        <ComboboxItem value='dinner'>
-                          {t("form.meal_type.dinner")}
-                        </ComboboxItem>
-                        <ComboboxItem value='snack'>
-                          {t("form.meal_type.snack")}
-                        </ComboboxItem>
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                )}
-              </form.Field>
-            </div>
-          </div>
+          <EditMealHeader form={form} t={t} />
 
-          <form.Field name='items' mode='array'>
+          <form.Field name="items" mode="array">
             {(field) => (
-              <div className='space-y-4'>
+              <div className="space-y-4">
                 {field.state.value.map((_, index) => (
-                  <Card key={index} className='relative'>
-                    <Button
-                      type='button'
-                      variant='ghost'
-                      size='icon'
-                      className='absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive'
-                      onClick={() => field.removeValue(index)}
-                      disabled={field.state.value.length === 1}
-                    >
-                      <Trash2 className='h-4 w-4' />
-                    </Button>
-                    <CardContent className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                      <div className='space-y-2 col-span-2'>
-                        <FieldLabel>{t("form.food_name_label")}</FieldLabel>
-                        <form.Field name={`items[${index}].food`}>
-                          {(subField) => (
-                            <Field>
-                              <Input
-                                data-testid="edit-meal-food"
-                                value={subField.state.value}
-                                onChange={(e) =>
-                                  subField.handleChange(e.target.value)
-                                }
-                                onBlur={subField.handleBlur}
-                                placeholder={t("form.food.placeholder")}
-                              />
-                              <FieldInfo field={subField} />
-                            </Field>
-                          )}
-                        </form.Field>
-                      </div>
-
-                      <div className='space-y-2'>
-                        <FieldLabel>{t("form.quantity.label")}</FieldLabel>
-                        <form.Field name={`items[${index}].quantity`}>
-                          {(subField) => (
-                            <Field>
-                              <Input
-                                data-testid="edit-meal-quantity"
-                                value={subField.state.value}
-                                onChange={(e) =>
-                                  subField.handleChange(e.target.value)
-                                }
-                                onBlur={subField.handleBlur}
-                                placeholder={t("form.quantity.placeholder")}
-                              />
-                              <FieldInfo field={subField} />
-                            </Field>
-                          )}
-                        </form.Field>
-                      </div>
-
-                      <div className='space-y-2'>
-                        <FieldLabel>{t("form.calories.label")}</FieldLabel>
-                        <form.Field name={`items[${index}].calories`}>
-                          {(subField) => (
-                            <Input
-                              value={subField.state.value}
-                              onChange={(e) =>
-                                subField.handleChange(Number(e.target.value))
-                              }
-                              onBlur={subField.handleBlur}
-                              type='number'
-                              placeholder={t("form.calories.placeholder")}
-                            />
-                          )}
-                        </form.Field>
-                      </div>
-
-                      <div className='space-y-2 col-span-full'>
-                        <FieldLabel>{t("form.macros.label")}</FieldLabel>
-                        <div className='grid grid-cols-3 gap-2'>
-                          <div>
-                            <FieldLabel className='text-xs text-muted-foreground'>
-                              {t("form.macros.protein")}
-                            </FieldLabel>
-                            <form.Field name={`items[${index}].macros.protein`}>
-                              {(subField) => (
-                                <Input
-                                  value={subField.state.value}
-                                  onChange={(e) =>
-                                    subField.handleChange(
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  onBlur={subField.handleBlur}
-                                  type='number'
-                                />
-                              )}
-                            </form.Field>
-                          </div>
-                          <div>
-                            <FieldLabel className='text-xs text-muted-foreground'>
-                              {t("form.macros.carbs")}
-                            </FieldLabel>
-                            <form.Field name={`items[${index}].macros.carbs`}>
-                              {(subField) => (
-                                <Input
-                                  value={subField.state.value}
-                                  onChange={(e) =>
-                                    subField.handleChange(
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  onBlur={subField.handleBlur}
-                                  type='number'
-                                />
-                              )}
-                            </form.Field>
-                          </div>
-                          <div>
-                            <FieldLabel className='text-xs text-muted-foreground'>
-                              {t("form.macros.fats")}
-                            </FieldLabel>
-                            <form.Field name={`items[${index}].macros.fats`}>
-                              {(subField) => (
-                                <Input
-                                  value={subField.state.value}
-                                  onChange={(e) =>
-                                    subField.handleChange(
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  onBlur={subField.handleBlur}
-                                  type='number'
-                                />
-                              )}
-                            </form.Field>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <FoodItemCard
+                    key={index}
+                    form={form}
+                    index={index}
+                    onRemove={() => field.removeValue(index)}
+                    canRemove={field.state.value.length > 1}
+                    t={t}
+                    testIdPrefix="edit-meal"
+                  />
                 ))}
               </div>
             )}
           </form.Field>
 
-          <div className='flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0'>
-            <form.Field name='items' mode='array'>
+          <Separator />
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+            <form.Field name="items" mode="array">
               {(field) => (
                 <Button
-                  type='button'
-                  variant='outline'
+                  type="button"
+                  variant="outline"
                   onClick={() =>
                     field.pushValue({
                       food: "",
@@ -385,22 +194,23 @@ export function EditMealDialog({
                       macros: { protein: 0, carbs: 0, fats: 0 }
                     })
                   }
-                  className='w-full md:w-auto'
+                  className="w-full rounded-none border-border font-mono text-xs uppercase tracking-[0.18em] sm:w-auto"
                 >
-                  <Plus className='mr-2 h-4 w-4' /> {t("form.add_food_item")}
+                  <Plus className="size-3.5" aria-hidden="true" /> {t("form.add_food_item")}
                 </Button>
               )}
             </form.Field>
-            <div className='flex space-x-2 md:ml-auto'>
+            <div className="flex gap-2 sm:ml-auto">
               <Button
-                type='button'
-                variant='outline'
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
+                className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
               >
                 {t("edit_dialog.cancel")}
               </Button>
-              <Button type='submit' disabled={isPending}>
-                {isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              <Button type="submit" disabled={isPending} className="rounded-none font-mono text-xs uppercase tracking-[0.18em]">
+                {isPending && <Spinner className="mr-2" />}
                 {t("edit_dialog.save_changes")}
               </Button>
             </div>

@@ -29,13 +29,6 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
-	// New users are active by default. Defaulting here keeps the repository
-	// safe against callers that construct a User without an explicit status,
-	// since the users_status_check constraint only allows known values.
-	if user.Status == "" {
-		user.Status = models.UserStatusActive
-	}
-
 	profileJSON, err := MarshalToJSONB(user.Profile)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user profile: %w", err)

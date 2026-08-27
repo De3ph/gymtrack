@@ -107,7 +107,7 @@ export function PlanSetInput({
         {setsWithIds.map((set, index) => (
           <div
             key={set.id}
-            className="group grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 rounded-lg border bg-background px-2 py-1.5 transition-colors hover:border-primary/40 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]"
+            className="group grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-4 rounded-lg border bg-background p-2 transition-colors hover:border-primary/40 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]"
           >
             <span className="flex justify-start text-sm font-medium tabular-nums text-muted-foreground">
               {String(index + 1).padStart(2, "0")}

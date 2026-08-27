@@ -1,8 +1,9 @@
 "use client";
 
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { CalendarDays, UtensilsCrossed } from "lucide-react";
 import { useTranslations } from "next-intl";
-import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
 
 export type DashboardEventKind = "workout" | "meal";
@@ -25,57 +26,57 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
 
   if (events.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center">
-        <p className="font-heading text-lg font-medium text-foreground">
-          {t("empty_title")}
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {t("empty_description")}
-        </p>
-      </div>
+      <Empty className="rounded-none border border-border bg-card">
+        <EmptyHeader>
+          <EmptyTitle className="font-sans text-base font-medium text-foreground">
+            {t("empty_title")}
+          </EmptyTitle>
+          <EmptyDescription className="font-sans text-sm leading-6 text-muted-foreground">
+            {t("empty_description")}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+    <div className="space-y-4">
+      <p className="text-center font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
         {formatDate(date, "dddd, MMMM D, YYYY")}
       </p>
-      {events.map((event) => (
-        <div
-          key={`${event.kind}-${event.id}`}
-          className="flex items-start gap-4 rounded-2xl border border-border bg-card p-4"
-        >
-          <div
-            className={cnEventIcon(event.kind)}
+      <ul className="border border-border divide-y divide-border">
+        {events.map((event) => (
+          <Item
+            key={`${event.kind}-${event.id}`}
+            variant="outline"
+            size="default"
+            className="rounded-none border-0 border-b border-border last:border-b-0"
           >
-            {event.kind === "workout" ? (
-              <CalendarDays className="h-4 w-4" />
-            ) : (
-              <UtensilsCrossed className="h-4 w-4" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <p className="font-semibold text-foreground">{event.title}</p>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {event.time}
-              </span>
-            </div>
-            {event.detail && (
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                {event.detail}
-              </p>
-            )}
-          </div>
-        </div>
-      ))}
+            <ItemMedia variant="icon" className="rounded-none border border-border bg-background">
+              {event.kind === "workout" ? (
+                <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
+              ) : (
+                <UtensilsCrossed className="size-4 text-muted-foreground" aria-hidden="true" />
+              )}
+            </ItemMedia>
+            <ItemContent>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <ItemTitle className="font-sans text-sm font-medium text-foreground">
+                  {event.title}
+                </ItemTitle>
+                <span className="inline-flex items-center border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {event.time}
+                </span>
+              </div>
+              {event.detail && (
+                <ItemDescription className="font-sans text-sm leading-6 text-muted-foreground">
+                  {event.detail}
+                </ItemDescription>
+              )}
+            </ItemContent>
+          </Item>
+        ))}
+      </ul>
     </div>
   );
-}
-
-function cnEventIcon(kind: DashboardEventKind) {
-  return kind === "workout"
-    ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"
-    : "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
 }

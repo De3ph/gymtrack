@@ -3,29 +3,20 @@
 import * as React from "react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectItem,
-  SelectValue,
-  SelectTrigger,
-  SelectContent,
-  SelectGroup,
-  SelectLabel,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FieldInfo } from "@/components/ui/form-field";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { mealApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import type { MealFormData, FoodItemFormData } from "@/lib/validations/meal";
 import { createMealSchema } from "@/lib/validations/meal";
+import { FoodItemCard } from "./FoodItemCard";
+import { MealFormFields } from "./MealFormFields";
 
 interface MealFormProps {
   onSuccess?: () => void;
@@ -86,10 +77,8 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
     },
   });
 
-  // Mutation for creating meal
   const { mutate: createMeal, isPending } = useMutation({
     mutationFn: async (data: MealFormData) => {
-      // Combine date and time
       const [hours, minutes] = data.mealTime.split(":").map(Number);
       const combinedDate = dayjs(data.date)
         .hour(hours)
@@ -135,229 +124,33 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
       {submitError && (
         <div
           role="alert"
-          className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-md"
+          className="border border-destructive/20 bg-destructive/10 p-3 font-mono text-xs leading-4 text-destructive rounded-none"
         >
           {submitError}
         </div>
       )}
 
-      <div className="flex space-x-16">
-        <div className="flex flex-col space-y-2">
-          <FieldLabel htmlFor="date">{t("form.date_time_label")}</FieldLabel>
-          <div className="flex flex-wrap gap-4">
-            <form.Field name="date">
-              {(field) => (
-                <DatePicker
-                  value={field.state.value}
-                  onChange={(d) => { if (d) field.handleChange(d); }}
-                  onBlur={field.handleBlur}
-                  id="date"
-                  className="w-full md:w-45"
-                  required
-                />
-              )}
-            </form.Field>
-            <form.Field name="mealTime">
-              {(field) => (
-                <div className="space-y-2">
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    type="time"
-                    id="mealTime"
-                    data-testid="meal-time"
-                    className="w-full md:w-[120px]"
-                  />
-                  <FieldInfo field={field} />
-                </div>
-              )}
-            </form.Field>
-          </div>
-        </div>
-        <div className="flex flex-col space-y-2">
-          <FieldLabel>{t("form.meal_type_label")}</FieldLabel>
-          <form.Field name="mealType">
-            {(field) => (
-              <div className="space-y-2">
-                <Select
-                  items={mealTypeItems}
-                  value={field.state.value}
-                  onValueChange={(e: string | null) => {
-                    field.handleChange(
-                      (e ?? "breakfast") as Parameters<
-                        typeof field.handleChange
-                      >[0],
-                    );
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>{t("form.meal_type_label")}</SelectLabel>
-                      {mealTypeItems.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FieldInfo field={field} />
-              </div>
-            )}
-          </form.Field>
-        </div>
-      </div>
+      <MealFormFields form={form} t={t} mealTypeItems={mealTypeItems} />
+
+      <Separator />
 
       <form.Field name="items" mode="array">
         {(field) => (
           <div className="space-y-4">
             {field.state.value.map((_, index) => (
-              <Card key={index} className="relative">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={() => field.removeValue(index)}
-                  disabled={field.state.value.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-medium">
-                    {t("form.food_item_title", { index: index + 1 })}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="space-y-2 col-span-2">
-                    <FieldLabel>{t("form.food_name_label")}</FieldLabel>
-                    <form.Field name={`items[${index}].food`}>
-                      {(subField) => (
-                        <Field>
-                          <Input
-                            value={subField.state.value}
-                            onChange={(e) =>
-                              subField.handleChange(e.target.value)
-                            }
-                            onBlur={subField.handleBlur}
-                            placeholder={t("form.food.placeholder")}
-                            data-testid="meal-food"
-                          />
-                          <FieldInfo field={subField} />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-
-                  <div className="space-y-2">
-                    <FieldLabel>{t("form.quantity.label")}</FieldLabel>
-                    <form.Field name={`items[${index}].quantity`}>
-                      {(subField) => (
-                        <Field>
-                          <Input
-                            value={subField.state.value}
-                            onChange={(e) =>
-                              subField.handleChange(e.target.value)
-                            }
-                            onBlur={subField.handleBlur}
-                            placeholder={t("form.quantity.placeholder")}
-                            data-testid="meal-quantity"
-                          />
-                          <FieldInfo field={subField} />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-
-                  <div className="space-y-2">
-                    <FieldLabel>{t("form.calories.label")}</FieldLabel>
-                    <form.Field name={`items[${index}].calories`}>
-                      {(subField) => (
-                        <Field>
-                          <Input
-                            value={subField.state.value}
-                            onChange={(e) =>
-                              subField.handleChange(Number(e.target.value))
-                            }
-                            onBlur={subField.handleBlur}
-                            type="number"
-                            placeholder={t("form.calories.placeholder")}
-                            data-testid="meal-calories"
-                          />
-                          <FieldInfo field={subField} />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-
-                  <div className="space-y-2 col-span-full">
-                    <FieldLabel>{t("form.macros.label")}</FieldLabel>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <FieldLabel className="text-xs text-muted-foreground">
-                          {t("form.macros.protein")}
-                        </FieldLabel>
-                        <form.Field name={`items[${index}].macros.protein`}>
-                          {(subField) => (
-                            <Input
-                              value={subField.state.value}
-                              onChange={(e) =>
-                                subField.handleChange(Number(e.target.value))
-                              }
-                              onBlur={subField.handleBlur}
-                              type="number"
-                              data-testid="meal-protein"
-                            />
-                          )}
-                        </form.Field>
-                      </div>
-                      <div>
-                        <FieldLabel className="text-xs text-muted-foreground">
-                          {t("form.macros.carbs")}
-                        </FieldLabel>
-                        <form.Field name={`items[${index}].macros.carbs`}>
-                          {(subField) => (
-                            <Input
-                              value={subField.state.value}
-                              onChange={(e) =>
-                                subField.handleChange(Number(e.target.value))
-                              }
-                              onBlur={subField.handleBlur}
-                              type="number"
-                              data-testid="meal-carbs"
-                            />
-                          )}
-                        </form.Field>
-                      </div>
-                      <div>
-                        <FieldLabel className="text-xs text-muted-foreground">
-                          {t("form.macros.fats")}
-                        </FieldLabel>
-                        <form.Field name={`items[${index}].macros.fats`}>
-                          {(subField) => (
-                            <Input
-                              value={subField.state.value}
-                              onChange={(e) =>
-                                subField.handleChange(Number(e.target.value))
-                              }
-                              onBlur={subField.handleBlur}
-                              type="number"
-                              data-testid="meal-fats"
-                            />
-                          )}
-                        </form.Field>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <FoodItemCard
+                key={index}
+                form={form}
+                index={index}
+                onRemove={() => field.removeValue(index)}
+                canRemove={field.state.value.length > 1}
+                t={t}
+                testIdPrefix="meal"
+              />
             ))}
             <Button
               type="button"
+              variant="outline"
               onClick={() =>
                 field.pushValue({
                   food: "",
@@ -366,15 +159,17 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
                   macros: { protein: 0, carbs: 0, fats: 0 },
                 })
               }
-              className="w-full"
+              className="w-full rounded-none border-border font-mono text-xs uppercase tracking-[0.18em]"
             >
-              <Plus className="mr-2 h-4 w-4" /> {t("form.add_food_item")}
+              <Plus className="size-3.5" aria-hidden="true" /> {t("form.add_food_item")}
             </Button>
           </div>
         )}
       </form.Field>
 
-      <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
+      <Separator />
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
         <Button
           type="button"
           variant="outline"
@@ -382,16 +177,16 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
             form.reset();
             onClear?.();
           }}
-          className="w-full md:w-auto"
+          className="w-full rounded-none font-mono text-xs uppercase tracking-[0.18em] sm:w-auto"
         >
           {tCommon("clear")}
         </Button>
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full md:w-auto md:ml-auto"
+          className="w-full rounded-none font-mono text-xs uppercase tracking-[0.18em] sm:w-auto sm:ml-auto"
         >
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending && <Spinner className="mr-2" />}
           {t("form.log_meal")}
         </Button>
       </div>

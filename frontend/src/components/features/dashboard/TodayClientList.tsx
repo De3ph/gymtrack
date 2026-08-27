@@ -2,13 +2,8 @@
 
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { ClientWithAthlete } from "@/types";
 import { buildRoute } from "@/lib/routes";
 import { Eye, UserCheck } from "lucide-react";
@@ -34,30 +29,30 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
   };
 
   return (
-    <Card className="rounded-[1.5rem]">
-      <CardHeader className="gap-1 border-b border-border pb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>{t("description")}</CardDescription>
-          </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <UserCheck className="h-5 w-5" />
-          </div>
+    <div className="border border-border bg-card">
+      <header className="flex items-start justify-between gap-4 border-b border-border px-6 py-4 sm:px-8">
+        <div className="space-y-1">
+          <h2 className="font-sans text-base font-medium leading-tight text-foreground">{t("title")}</h2>
+          <p className="font-sans text-sm leading-6 text-muted-foreground">{t("description")}</p>
         </div>
-      </CardHeader>
-      <CardContent className="p-6">
+        <span className="flex size-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground" aria-hidden="true">
+          <UserCheck className="size-4" />
+        </span>
+      </header>
+      <div className="p-6">
         {focusClients.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center">
-            <p className="font-heading text-lg font-medium text-foreground">
-              {t("empty_title")}
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("empty_description")}
-            </p>
-          </div>
+          <Empty className="rounded-none border border-border bg-card">
+            <EmptyHeader>
+              <EmptyTitle className="font-sans text-base font-medium text-foreground">
+                {t("empty_title")}
+              </EmptyTitle>
+              <EmptyDescription className="font-sans text-sm leading-6 text-muted-foreground">
+                {t("empty_description")}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
-          <motion.div className="space-y-3" variants={staggerContainer} initial="hidden" animate="visible">
+          <motion.ul className="border border-border divide-y divide-border" variants={staggerContainer} initial="hidden" animate="visible">
             {focusClients.map((client) => (
               <TodayClientRow
                 key={client.relationship.relationshipId}
@@ -66,10 +61,10 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
                 tCommon={tCommon}
               />
             ))}
-          </motion.div>
+          </motion.ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -87,23 +82,38 @@ const TodayClientRow = memo(function TodayClientRow({
   const goal = client.athlete?.profile?.fitnessGoals;
 
   return (
-    <motion.div variants={staggerItem}>
-      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-muted font-heading font-semibold text-foreground">
+    <motion.li variants={staggerItem} className="list-none">
+      <Item
+        variant="outline"
+        size="default"
+        className="rounded-none border-0 border-b border-border last:border-b-0"
+      >
+        <ItemMedia
+          variant="icon"
+          className="rounded-none border border-border bg-background font-mono text-xs font-normal text-foreground"
+          aria-hidden="true"
+        >
           {initials(name)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-foreground">{name}</p>
-          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+        </ItemMedia>
+        <ItemContent>
+          <ItemTitle className="font-sans text-sm font-medium text-foreground">{name}</ItemTitle>
+          <ItemDescription className="font-sans text-sm leading-6 text-muted-foreground">
             {goal || t("no_goal")}
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => onViewClient(client.athlete?.username || "")}>
-          <Eye className="mr-2 h-4 w-4" />
-          {tCommon("view_client")}
-        </Button>
-      </div>
-    </motion.div>
+          </ItemDescription>
+        </ItemContent>
+        <ItemActions>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewClient(client.athlete?.username || "")}
+            className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
+          >
+            <Eye className="size-3.5" aria-hidden="true" />
+            {tCommon("view_client")}
+          </Button>
+        </ItemActions>
+      </Item>
+    </motion.li>
   );
 })
 

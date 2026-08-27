@@ -66,7 +66,6 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
 		Role:         req.Role,
-		Status:       models.UserStatusActive,
 		Profile:      req.Profile,
 	}
 
@@ -110,16 +109,7 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 	// Check account status
 	switch user.Status {
 	case models.UserStatusDeleted:
-		if user.DeletedAt == nil || s.clock.Now().After(user.DeletedAt.Add(30*24*time.Hour)) {
-			return nil, ErrAccountDeleted
-		}
-		if err := s.userRepo.RestoreUser(ctx, user.UserID); err != nil {
-			return nil, fmt.Errorf("failed to auto-restore account: %w", err)
-		}
-		user, err = s.userRepo.GetUserByID(ctx, user.UserID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve restored user: %w", err)
-		}
+		return nil, ErrAccountDeleted
 	case models.UserStatusActive:
 		// proceed normally
 	default:

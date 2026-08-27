@@ -30,13 +30,13 @@ export function MealFilterBar({
   );
 
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 p-3 rounded-md border bg-card">
-      <div className="flex items-center gap-2 h-10 text-sm font-medium text-muted-foreground sm:self-end">
-        <Filter className="h-4 w-4" />
+    <div className="flex flex-col gap-3 border border-border p-3 sm:flex-row sm:flex-wrap sm:items-end rounded-none">
+      <div className="flex h-10 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:self-end">
+        <Filter className="size-3.5" aria-hidden="true" />
         <span>{t("label")}</span>
       </div>
-      <div className="flex flex-col space-y-1 flex-1 sm:max-w-[180px]">
-        <label className="text-xs text-muted-foreground">
+      <div className="flex flex-1 flex-col space-y-1 sm:max-w-[180px]">
+        <label className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {t("start_date")}
         </label>
         <DatePicker
@@ -52,8 +52,8 @@ export function MealFilterBar({
           className="w-full"
         />
       </div>
-      <div className="flex flex-col space-y-1 flex-1 sm:max-w-[180px]">
-        <label className="text-xs text-muted-foreground">
+      <div className="flex flex-1 flex-col space-y-1 sm:max-w-[180px]">
+        <label className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {t("end_date")}
         </label>
         <DatePicker
@@ -76,8 +76,9 @@ export function MealFilterBar({
             variant="ghost"
             size="sm"
             onClick={() => clear(EMPTY_FILTER)}
+            className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
           >
-            <X className="mr-1 h-4 w-4" />
+            <X className="size-3.5" aria-hidden="true" />
             {t("clear")}
           </Button>
         )}
@@ -86,6 +87,7 @@ export function MealFilterBar({
           size="sm"
           disabled={!isDirty}
           onClick={apply}
+          className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
         >
           {t("apply")}
         </Button>

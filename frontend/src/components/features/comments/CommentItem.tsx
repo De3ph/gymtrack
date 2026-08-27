@@ -7,10 +7,21 @@ import { MessageSquare, Edit2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { commentApi } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { Comment } from "@/types";
 import { updateCommentSchema } from "@/lib/validations/comment";
+import { formatDate } from "@/lib/i18n/dayjs";
 
 interface CommentItemProps {
   comment: Comment;
@@ -65,16 +76,14 @@ export function CommentItem({
 
   return (
     <div
-      className={`rounded-md border bg-muted/30 p-3 ${
-        isReply ? "ml-6 border-l-2 border-l-primary/30" : ""
-      }`}
+      className={`border border-border p-3 ${isReply ? "border-l-2 border-l-muted" : ""}`}
     >
-      <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
-        <span className="font-medium capitalize">{comment.authorRole}</span>
+      <div className="flex items-center justify-between gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        <span className="text-foreground">{comment.authorRole}</span>
         <span>
           {formatDate(comment.createdAt, "MMM D, YYYY h:mm A")}
           {comment.editedAt && (
-            <span className="ml-1 text-xs">{t("item.edited_label")}</span>
+            <span className="ml-2">{t("item.edited_label")}</span>
           )}
         </span>
       </div>
@@ -101,16 +110,17 @@ export function CommentItem({
         </div>
       ) : (
         <>
-          <p className="mt-1 whitespace-pre-wrap text-sm">{comment.content}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+            {comment.content}
+          </p>
           <div className="mt-2 flex flex-wrap gap-1">
             {onReply && !isReply && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs"
                 onClick={() => onReply(comment.commentId)}
               >
-                <MessageSquare className="mr-1 h-3 w-3" />
+                <MessageSquare className="mr-1.5 size-3" aria-hidden="true" />
                 {t("item.reply")}
               </Button>
             )}
@@ -119,26 +129,43 @@ export function CommentItem({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs"
                   onClick={() => setIsEditing(true)}
                 >
-                  <Edit2 className="mr-1 h-3 w-3" />
+                  <Edit2 className="mr-1.5 size-3" aria-hidden="true" />
                   {t("item.edit")}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs text-destructive hover:text-destructive"
-                  onClick={() => {
-                    if (confirm(t("item.delete_confirm"))) {
-                      deleteComment(comment.commentId);
+                <AlertDialog>
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive"
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="mr-1.5 size-3" aria-hidden="true" />
+                        {t("item.delete")}
+                      </Button>
                     }
-                  }}
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="mr-1 h-3 w-3" />
-                  {t("item.delete")}
-                </Button>
+                  />
+                  <AlertDialogContent className="rounded-none border border-border shadow-none ring-0">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {t("item.delete_confirm")}
+                      </AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{tCommon("actions.cancel")}</AlertDialogCancel>
+                      <AlertDialogAction
+                        variant="destructive"
+                        onClick={() => deleteComment(comment.commentId)}
+                        disabled={isDeleting}
+                      >
+                        {t("item.delete")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             )}
           </div>

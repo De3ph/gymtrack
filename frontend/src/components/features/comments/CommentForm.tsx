@@ -102,7 +102,7 @@ export function CommentForm({
       </form.Field>
 
       {error && (
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="rounded-none border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error instanceof Error ? error.message : t('form.post_failed')}
         </div>
       )}

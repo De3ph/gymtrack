@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle } from "lucide-react";
-import { toast } from "@/components/ui/toast";
 
 export function DeleteAccountSection() {
   const [open, setOpen] = useState(false);
@@ -32,10 +31,6 @@ export function DeleteAccountSection() {
     mutationFn: (pw: string) => userApi.deleteAccount(pw),
     onSuccess: async () => {
       setOpen(false);
-      toast.add({
-        type: "info",
-        title: t("restore_info"),
-      });
       await logout();
       router.push(ROUTES.LOGIN);
     },

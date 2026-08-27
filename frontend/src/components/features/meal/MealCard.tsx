@@ -10,17 +10,11 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useTranslations } from "next-intl"
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Meal } from "@/types";
 import { MealItem } from "./MealItem";
@@ -29,7 +23,7 @@ import { staggerItem } from "@/lib/animations";
 
 const CommentThread = dynamic(
   () => import("@/components/features/comments/CommentThread").then(m => m.CommentThread),
-  { ssr: false, loading: () => <Skeleton className="h-12 w-full" /> }
+  { ssr: false, loading: () => <Skeleton className="h-12 w-full rounded-none" /> }
 );
 
 interface MealCardProps {
@@ -59,93 +53,98 @@ export const MealCard = memo(function MealCardImpl({
   setExpandedCommentsId,
 }: MealCardProps) {
   const t = useTranslations("meal")
+  const expanded = expandedCommentsId === meal.mealId;
 
   return (
     <motion.div key={meal.mealId} variants={staggerItem} layout>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <div className='flex flex-col'>
-            <CardTitle className='text-base font-semibold capitalize'>
-              {meal.mealType} - {formatDate(meal.date, "MMMM D, YYYY")}
-            </CardTitle>
-            <CardDescription>
-              {meal.items.length} {t("card.items")} - {calculateCalorie(meal)}{" "}
-              {t("card.kcal")}
-            </CardDescription>
+      <div className="border border-border">
+        <header className="flex items-center justify-between border-b border-border px-6 py-4 sm:px-8">
+          <div className="min-w-0">
+            <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-foreground capitalize">
+              {meal.mealType}
+            </h3>
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {formatDate(meal.date, "MMMM D, YYYY")} · {meal.items.length} {t("card.items")} · {calculateCalorie(meal)} {t("card.kcal")}
+            </p>
           </div>
-          {!readOnly && (
-            <div className='flex space-x-2'>
-              {canEdit(meal) && (
-                <>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    onClick={() => onEdit(meal)}
-                    aria-label={t("list.edit")}
-                  >
-                    <Edit2 className='h-4 w-4' />
-                  </Button>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    onClick={() => {
-                      if (confirm(t("card.confirm_delete")))
-                        onDelete(meal.mealId)
-                    }}
-                    aria-label={t("list.delete")}
-                  >
-                    <Trash2 className='h-4 w-4 text-destructive' />
-                  </Button>
-                </>
-              )}
+          {!readOnly && canEdit(meal) && (
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onEdit(meal)}
+                aria-label={t("list.edit")}
+                className="rounded-none"
+              >
+                <Edit2 className="size-4" aria-hidden="true" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => {
+                  if (confirm(t("card.confirm_delete")))
+                    onDelete(meal.mealId)
+                }}
+                aria-label={t("list.delete")}
+                className="rounded-none text-destructive hover:text-destructive"
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+              </Button>
             </div>
           )}
-        </CardHeader>
-        <CardContent className='space-y-4'>
-          <div className='space-y-2'>
+        </header>
+
+        <div className="px-6 sm:px-8">
+          <ul className="divide-y divide-border">
             {meal.items.map((item, i) => (
-              <MealItem key={i} item={item} index={i} />
+              <li key={i} className="list-none">
+                <MealItem item={item} index={i} />
+              </li>
             ))}
-          </div>
-          <div className='border-t pt-3'>
-            <button
-              type='button'
-              className='w-full justify-start text-muted-foreground flex items-center hover:bg-accent/50 rounded-md px-2 py-2 transition-colors'
-              onClick={() =>
-                setExpandedCommentsId(
-                  expandedCommentsId === meal.mealId ? null : meal.mealId
-                )
-              }
+          </ul>
+        </div>
+
+        <Separator />
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() =>
+            setExpandedCommentsId(expanded ? null : meal.mealId)
+          }
+          className="flex w-full items-center justify-start gap-2 rounded-none px-6 py-3 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground sm:px-8"
+          aria-expanded={expanded}
+        >
+          <MessageSquare className="size-3.5" aria-hidden="true" />
+          {t("card.comments")}
+          {expanded ? (
+            <ChevronUp className="ml-auto size-4" aria-hidden="true" />
+          ) : (
+            <ChevronDown className="ml-auto size-4" aria-hidden="true" />
+          )}
+        </Button>
+
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden border-t border-border"
             >
-              <MessageSquare className='mr-2 h-4 w-4' />
-              {t("card.comments")}
-              {expandedCommentsId === meal.mealId ? (
-                <ChevronUp className='ml-auto h-4 w-4' />
-              ) : (
-                <ChevronDown className='ml-auto h-4 w-4' />
-              )}
-            </button>
-            <AnimatePresence>
-              {expandedCommentsId === meal.mealId && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className='mt-3 overflow-hidden'
-                >
-                  <CommentThread
-                    targetType={TARGET_TYPES.MEAL}
-                    targetId={meal.mealId}
-                    readOnly={false}
-                    enabled={true}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </CardContent>
-      </Card>
+              <div className="px-6 py-4 sm:px-8">
+                <CommentThread
+                  targetType={TARGET_TYPES.MEAL}
+                  targetId={meal.mealId}
+                  readOnly={false}
+                  enabled={true}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   )
 })

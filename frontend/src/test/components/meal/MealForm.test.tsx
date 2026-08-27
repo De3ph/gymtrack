@@ -46,43 +46,37 @@ describe('MealForm', () => {
   it('renders meal form with initial food item', () => {
     renderWithQueryClient(<MealForm />)
 
-    expect(screen.getByLabelText(/meal date/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/meal time/i)).toBeInTheDocument()
+    // Date & meal type labels use mock translation keys (last segment)
+    expect(screen.getByText('date_time_label')).toBeInTheDocument()
     expect(screen.getByDisplayValue('breakfast')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/food item/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/quantity/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /add food item/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /log meal/i })).toBeInTheDocument()
+    expect(screen.getByTestId('meal-food')).toBeInTheDocument()
+    expect(screen.getByTestId('meal-quantity')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add_food_item/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log_meal/i })).toBeInTheDocument()
   })
 
   it('has correct form structure', () => {
     renderWithQueryClient(<MealForm />)
 
-    // Check for form element
-    const form = screen.getByRole('form')
+    const form = document.querySelector('form')
     expect(form).toBeInTheDocument()
-
-    // Check for meal type selector
     expect(screen.getByDisplayValue('breakfast')).toBeInTheDocument()
-
-    // Check for food item section
-    expect(screen.getByPlaceholderText(/food item/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/quantity/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/calories/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/protein/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/carbs/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/fats/i)).toBeInTheDocument()
+    expect(screen.getByTestId('meal-food')).toBeInTheDocument()
+    expect(screen.getByTestId('meal-quantity')).toBeInTheDocument()
+    expect(screen.getByTestId('meal-calories')).toBeInTheDocument()
+    expect(screen.getByTestId('meal-protein')).toBeInTheDocument()
+    expect(screen.getByTestId('meal-carbs')).toBeInTheDocument()
+    expect(screen.getByTestId('meal-fats')).toBeInTheDocument()
   })
 
   it('adds new food item when add button is clicked', async () => {
     const user = userEvent.setup()
     renderWithQueryClient(<MealForm />)
 
-    const addButton = screen.getByRole('button', { name: /add food item/i })
+    const addButton = screen.getByRole('button', { name: /add_food_item/i })
     await user.click(addButton)
 
-    // Should now have 2 food item sections
-    const foodInputs = screen.getAllByPlaceholderText(/food item/i)
+    const foodInputs = screen.getAllByTestId('meal-food')
     expect(foodInputs).toHaveLength(2)
   })
 
@@ -93,11 +87,10 @@ describe('MealForm', () => {
 
     renderWithQueryClient(<MealForm onSuccess={onSuccess} />)
 
-    // Fill in required fields
-    const foodInput = screen.getByPlaceholderText(/food item/i)
-    await user.type(foodInput, 'Oatmeal')
+    await user.type(screen.getByTestId('meal-food'), 'Oatmeal')
+    await user.type(screen.getByTestId('meal-quantity'), '1 cup')
 
-    const logButton = screen.getByRole('button', { name: /log meal/i })
+    const logButton = screen.getByRole('button', { name: /log_meal/i })
     await user.click(logButton)
 
     await waitFor(() => {
@@ -108,14 +101,19 @@ describe('MealForm', () => {
 
   it('shows loading state during submission', async () => {
     const user = userEvent.setup()
-    mockCreate.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)))
+    mockCreate.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ mealId: 'x' }), 100)))
 
     renderWithQueryClient(<MealForm />)
 
-    const logButton = screen.getByRole('button', { name: /log meal/i })
+    // Fill required field so validation passes and mutation starts
+    await user.type(screen.getByTestId('meal-food'), 'Oatmeal')
+    await user.type(screen.getByTestId('meal-quantity'), '1 cup')
+
+    const logButton = screen.getByRole('button', { name: /log_meal/i })
     await user.click(logButton)
 
-    expect(screen.getByRole('button', { name: /saving/i })).toBeDisabled()
+    // Button should be disabled while pending (Spinner shown)
+    await waitFor(() => expect(logButton).toBeDisabled())
   })
 
   it('handles submission error', async () => {
@@ -124,11 +122,14 @@ describe('MealForm', () => {
 
     renderWithQueryClient(<MealForm />)
 
-    const logButton = screen.getByRole('button', { name: /log meal/i })
+    await user.type(screen.getByTestId('meal-food'), 'Oatmeal')
+    await user.type(screen.getByTestId('meal-quantity'), '1 cup')
+
+    const logButton = screen.getByRole('button', { name: /log_meal/i })
     await user.click(logButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to create meal/i)).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toBeInTheDocument()
     })
   })
 })

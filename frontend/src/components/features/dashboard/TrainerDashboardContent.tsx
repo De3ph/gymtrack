@@ -4,20 +4,13 @@ import { DashboardActionButton } from "@/components/features/dashboard/Dashboard
 import { DashboardMetric, DashboardShell } from "@/components/features/dashboard/DashboardShell";
 import { TodayClientList } from "@/components/features/dashboard/TodayClientList";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Empty,
-  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import { relationshipApi } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
 import { useQuery } from "@tanstack/react-query";
@@ -26,10 +19,9 @@ import { useRouter } from "next/navigation";
 import { Dumbbell, User, Users } from "lucide-react";
 import dayjs from "dayjs";
 import { useMemo } from "react";
-import { motion, LazyMotion, domAnimation } from "motion/react";
+import { motion } from "motion/react";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 
-/** Extracted from inline map to avoid recreating on every render. */
 function ClientRow({
   client,
   viewLabel,
@@ -40,25 +32,30 @@ function ClientRow({
   onNavigate: (username: string) => void;
 }) {
   return (
-    <motion.div key={client.relationship.relationshipId} variants={staggerItem}>
-      <button
-        type="button"
-        onClick={() => onNavigate(client.athlete.username)}
-        className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:bg-muted/60"
+    <motion.li variants={staggerItem} className="list-none">
+      <Item
+        variant="outline"
+        size="default"
+        className="rounded-none border-0 border-b border-border last:border-b-0"
       >
-        <span className="min-w-0">
-          <span className="block truncate font-semibold text-foreground">
+        <ItemContent>
+          <ItemTitle className="font-sans text-sm font-medium text-foreground">
             {client.athlete.profile.name || ""}
-          </span>
-          <span className="block truncate text-sm text-muted-foreground">
+          </ItemTitle>
+          <ItemDescription className="font-sans text-sm leading-6 text-muted-foreground">
             {client.athlete.profile.fitnessGoals || ""}
-          </span>
-        </span>
-        <span className="shrink-0 text-sm font-medium text-primary">
+          </ItemDescription>
+        </ItemContent>
+        <button
+          type="button"
+          onClick={() => onNavigate(client.athlete.username)}
+          className="shrink-0 font-mono text-xs uppercase tracking-[0.18em] text-foreground underline underline-offset-4 hover:text-muted-foreground"
+          aria-label={`${viewLabel} ${client.athlete.profile.name || client.athlete.username}`}
+        >
           {viewLabel}
-        </span>
-      </button>
-    </motion.div>
+        </button>
+      </Item>
+    </motion.li>
   );
 }
 export function TrainerDashboardContent() {
@@ -77,7 +74,7 @@ export function TrainerDashboardContent() {
     .filter((client) => client.relationship.status === "active")
     .sort((a, b) => dayjs(b.relationship.createdAt).valueOf() - dayjs(a.relationship.createdAt).valueOf()),
   [clients],
-);
+ );
 
   const handleViewClient = (username: string) => {
     router.push(`/trainer/client/${username}`);
@@ -97,37 +94,41 @@ export function TrainerDashboardContent() {
 
       <motion.section className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]" variants={staggerContainer} initial="hidden" animate="visible">
         <TodayClientList clients={todayFocusClients} />
-        <Card className="rounded-[1.5rem]">
-          <CardHeader>
-            <CardTitle>{tTrainer("actions_title")}</CardTitle>
-            <CardDescription>{tTrainer("actions_description")}</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
+        <div className="border border-border bg-card">
+          <header className="border-b border-border px-6 py-4 sm:px-8">
+            <h2 className="font-sans text-base font-medium leading-tight text-foreground">
+              {tTrainer("actions_title")}
+            </h2>
+            <p className="mt-1 font-sans text-sm leading-6 text-muted-foreground">
+              {tTrainer("actions_description")}
+            </p>
+          </header>
+          <div className="grid gap-3 p-6 sm:grid-cols-2 sm:px-8">
             <DashboardActionButton
-              icon={<Users className="h-4 w-4" />}
+              icon={<Users className="size-4" aria-hidden="true" />}
               label={tTrainer("invite_athlete")}
               description={tTrainer("invite_description")}
               onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
             />
             <DashboardActionButton
-              icon={<Dumbbell className="h-4 w-4" />}
+              icon={<Dumbbell className="size-4" aria-hidden="true" />}
               label={tTrainer("workout_plans")}
               description={tTrainer("plans_description")}
               onClick={() => router.push(ROUTES.TRAINER_WORKOUT_PLANS)}
             />
             <DashboardActionButton
-              icon={<User className="h-4 w-4" />}
+              icon={<User className="size-4" aria-hidden="true" />}
               label={tCommon("view_client")}
               description={tTrainer("clients_description")}
               onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.section>
 
       <motion.section variants={staggerContainer} initial="hidden" animate="visible">
         {todayFocusClients.length > 0 ? (
-          <div className="grid gap-3">
+          <ul className="border border-border divide-y divide-border">
             {todayFocusClients.slice(0, 3).map((client) => (
               <ClientRow
                 key={client.relationship.relationshipId}
@@ -136,18 +137,20 @@ export function TrainerDashboardContent() {
                 onNavigate={handleViewClient}
               />
             ))}
-          </div>
+          </ul>
         ) : (
-          <Empty>
+          <Empty className="rounded-none border border-border bg-card">
             <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Users className="size-6" />
+              <EmptyMedia variant="icon" className="rounded-none border border-border bg-background">
+                <Users className="size-4 text-muted-foreground" aria-hidden="true" />
               </EmptyMedia>
-              <EmptyTitle>{tTrainer("no_clients_title")}</EmptyTitle>
+              <EmptyTitle className="font-sans text-base font-medium text-foreground">
+                {tTrainer("no_clients_title")}
+              </EmptyTitle>
+              <EmptyDescription className="font-sans text-sm leading-6 text-muted-foreground">
+                {tTrainer("no_clients_description")}
+              </EmptyDescription>
             </EmptyHeader>
-            <EmptyContent>
-              <EmptyDescription>{tTrainer("no_clients_description")}</EmptyDescription>
-            </EmptyContent>
           </Empty>
         )}
       </motion.section>

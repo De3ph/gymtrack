@@ -72,6 +72,23 @@ export function AthleteDashboardContent() {
       title={tAthlete("title")}
       description={tAthlete("description")}
     >
+
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <QuickActionsPanel />
+      </motion.section>
+
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <CombinedTrainingCalendar />
+      </motion.section>
+
       <motion.section
         className="grid gap-4 md:grid-cols-3"
         variants={staggerContainer}
@@ -109,21 +126,7 @@ export function AthleteDashboardContent() {
         )}
       </motion.section>
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <CombinedTrainingCalendar />
-      </motion.section>
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <QuickActionsPanel activeTrainer={activeTrainer} />
-      </motion.section>
     </DashboardShell>
   );
 }

@@ -277,8 +277,11 @@ func TestPostgresUserRepository(t *testing.T) {
 			Profile:      models.UserProfile{Name: "Restore User"},
 		}
 		require.NoError(t, repo.CreateUser(ctx, user))
+
+		// Soft-delete first.
 		require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
 
+		// Restore.
 		err := repo.RestoreUser(ctx, user.UserID)
 		require.NoError(t, err)
 
@@ -295,6 +298,7 @@ func TestPostgresUserRepository(t *testing.T) {
 	})
 
 	t.Run("GetUsersReadyForHardDelete", func(t *testing.T) {
+		// Create a user and soft-delete them.
 		user := &models.User{
 			Username:     "harddelete_candidate",
 			Email:        "harddelete_candidate@example.com",
@@ -306,10 +310,12 @@ func TestPostgresUserRepository(t *testing.T) {
 		require.NoError(t, repo.CreateUser(ctx, user))
 		require.NoError(t, repo.SoftDeleteUser(ctx, user.UserID))
 
+		// Query with a future timestamp — should include the deleted user.
 		ids, err := repo.GetUsersReadyForHardDelete(ctx, time.Now().Add(1*time.Hour))
 		require.NoError(t, err)
 		assert.Contains(t, ids, user.UserID)
 
+		// Query with a past timestamp (before deletion) — should NOT include.
 		ids, err = repo.GetUsersReadyForHardDelete(ctx, time.Now().Add(-24*time.Hour))
 		require.NoError(t, err)
 		assert.NotContains(t, ids, user.UserID)
@@ -329,6 +335,7 @@ func TestPostgresUserRepository(t *testing.T) {
 		err := repo.HardDeleteUser(ctx, user.UserID)
 		require.NoError(t, err)
 
+		// User should no longer exist.
 		_, err = repo.GetUserByID(ctx, user.UserID)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
