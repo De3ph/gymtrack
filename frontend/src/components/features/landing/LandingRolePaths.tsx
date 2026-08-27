@@ -23,43 +23,26 @@ export function LandingRolePaths() {
         Two sides, one loop
       </h2>
 
-      {roleKeys.map((role, index) => {
-        const isAthlete = role === "athlete";
-        return (
-          <article
-            key={role}
-            className={cn(
-              "group flex flex-col gap-6 px-6 py-8 transition-colors duration-200 sm:px-10 sm:py-12",
-              "hover:bg-muted/20",
-              index === 0 ? "border-b border-border lg:border-b-0" : "",
-              isAthlete
-                ? "hover:border-primary/20"
-                : "hover:border-accent/20"
-            )}
-          >
-            <header className="flex items-baseline gap-4">
-              <span
-                className={cn(
-                  "font-mono text-3xl font-semibold transition-colors duration-200 sm:text-4xl",
-                  isAthlete
-                    ? "text-primary group-hover:text-primary"
-                    : "text-accent group-hover:text-accent"
-                )}
-                aria-hidden="true"
-              >
-                {isAthlete ? "A." : "T."}
-              </span>
-              <p
-                className={cn(
-                  "font-mono text-[10px] uppercase tracking-[0.18em] transition-colors",
-                  isAthlete
-                    ? "text-primary/70 group-hover:text-primary"
-                    : "text-accent-foreground/60 group-hover:text-accent"
-                )}
-              >
-                {t("role_paths." + role + ".kicker")}
-              </p>
-            </header>
+      {roleKeys.map((role, index) => (
+        <article
+          key={role}
+          className={cn(
+            "group flex flex-col gap-6 px-6 py-8 transition-colors duration-200 sm:px-10 sm:py-12",
+            "hover:bg-muted/20 hover:border-primary/20",
+            index === 0 ? "border-b border-border lg:border-b-0" : ""
+          )}
+        >
+          <header className="flex items-baseline gap-4">
+            <span
+              className="font-mono text-3xl font-semibold text-primary transition-colors duration-200 group-hover:text-primary sm:text-4xl"
+              aria-hidden="true"
+            >
+              {role === "athlete" ? "A." : "T."}
+            </span>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary/70 transition-colors group-hover:text-primary">
+              {t("role_paths." + role + ".kicker")}
+            </p>
+          </header>
 
             <h3 className="text-balance font-mono text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground transition-colors group-hover:text-foreground sm:text-3xl">
               {t("role_paths." + role + ".title")}
@@ -75,21 +58,11 @@ export function LandingRolePaths() {
                   key={i}
                   className="grid grid-cols-[2rem_1.25rem_1fr] items-center gap-3 py-3 text-foreground transition-colors hover:bg-muted/30"
                 >
-                  <span
-                    className={cn(
-                      "font-mono text-xs transition-colors",
-                      isAthlete
-                        ? "text-primary/60 group-hover:text-primary"
-                        : "text-accent/70 group-hover:text-accent"
-                    )}
-                  >
+                  <span className="font-mono text-xs text-primary/60 transition-colors group-hover:text-primary">
                     0{i + 1}
                   </span>
                   <Check
-                    className={cn(
-                      "size-5 transition-colors",
-                      isAthlete ? "text-primary" : "text-accent"
-                    )}
+                    className="size-5 text-primary transition-colors"
                     aria-hidden="true"
                   />
                   <span className="text-sm font-medium transition-colors group-hover:text-foreground">
@@ -104,20 +77,16 @@ export function LandingRolePaths() {
               className={buttonVariants({
                 variant: "outline",
                 size: "lg",
-                className: cn(
-                  "w-fit rounded-none px-5 font-mono text-xs uppercase tracking-[0.18em] transition-colors",
-                  isAthlete
-                    ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                    : "border-accent text-accent hover:bg-accent hover:text-accent-foreground"
-                ),
+                className:
+                  "w-fit rounded-none border-primary px-5 font-mono text-xs uppercase tracking-[0.18em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground",
               })}
             >
               {t("role_paths." + role + ".cta")}
               <ArrowUpRight className="size-5" aria-hidden="true" />
             </Link>
           </article>
-        );
-      })}
+        )
+      )}
     </motion.div>
   );
 }
