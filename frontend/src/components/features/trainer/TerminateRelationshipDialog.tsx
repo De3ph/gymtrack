@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface TerminateRelationshipDialogProps {
   clientId: string | number;
@@ -52,7 +53,7 @@ export function TerminateRelationshipDialog({
       <>
         <div onClick={() => setOpen(true)}>{trigger}</div>
         <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className={cn("rounded-none border border-border shadow-none")}>
             <AlertDialogHeader>
               <AlertDialogTitle>{t("title")}</AlertDialogTitle>
               <AlertDialogDescription>
@@ -62,15 +63,15 @@ export function TerminateRelationshipDialog({
               </AlertDialogDescription>
             </AlertDialogHeader>
             {terminateError && (
-              <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+              <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
                 {terminateError}
               </div>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogCancel className="rounded-none">{t("cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleTerminate}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {t("confirm")}
               </AlertDialogAction>
@@ -83,7 +84,7 @@ export function TerminateRelationshipDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogContent>
+      <AlertDialogContent className={cn("rounded-none border border-border shadow-none")}>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("title")}</AlertDialogTitle>
           <AlertDialogDescription>
@@ -91,15 +92,15 @@ export function TerminateRelationshipDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         {terminateError && (
-          <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
             {terminateError}
           </div>
         )}
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogCancel className="rounded-none">{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleTerminate}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             {t("confirm")}
           </AlertDialogAction>

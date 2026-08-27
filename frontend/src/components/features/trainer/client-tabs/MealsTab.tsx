@@ -19,12 +19,12 @@ export function MealsTab({ meals }: MealsTabProps) {
   const t = useTranslations("trainer.client_detail.tabs");
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("meal_history")}</CardTitle>
-        <CardDescription>{t("meal_description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="rounded-none border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h3 className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("meal_history")}</h3>
+        <p className="text-sm text-muted-foreground mt-1">{t("meal_description")}</p>
+      </div>
+      <div className="p-6">
         {meals.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
             {t("no_meals")}
@@ -32,7 +32,7 @@ export function MealsTab({ meals }: MealsTabProps) {
         ) : (
           <MealList meals={meals} readOnly={true} />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

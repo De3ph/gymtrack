@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Star, Edit, Trash2 } from "lucide-react"
 import { TrainerReview } from "@/types"
 import { useTranslations } from "next-intl"
+import { cn } from "@/lib/utils"
 
 interface ReviewActionsProps {
   review: TrainerReview
@@ -35,7 +36,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
     setError("")
 
     try {
-      await reviewApi.updateReview(review.reviewId, { rating, comment })
+      await reviewApi.updateReview(review.reviewId!, { rating, comment })
       setEditOpen(false)
       onReviewUpdated?.()
     } catch (err: unknown) {
@@ -54,7 +55,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
     setError("")
 
     try {
-      await reviewApi.deleteReview(review.reviewId)
+      await reviewApi.deleteReview(review.reviewId!)
       setDeleteOpen(false)
       onReviewUpdated?.()
     } catch (err: unknown) {
@@ -76,13 +77,16 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
             key={star}
             type="button"
             onClick={() => setRating(star)}
-            className="focus:outline-none"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
           >
             <Star
-              className={`w-6 h-6 transition-colors ${star <= currentRating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300 hover:text-yellow-200"
-                }`}
+              className={cn(
+                "w-6 h-6 transition-colors",
+                star <= currentRating
+                  ? "fill-amber-500 text-amber-500"
+                  : "text-muted-foreground hover:text-amber-400"
+              )}
+              aria-hidden="true"
             />
           </button>
         ))}
@@ -99,12 +103,12 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
       <div className="flex gap-2">
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogTrigger >
-            <Button variant="outline" size="sm">
-              <Edit className="w-4 h-4 mr-1" />
+            <Button variant="outline" size="sm" className="rounded-none">
+              <Edit className="w-4 h-4 mr-1" aria-hidden="true" />
               {tCommon('actions.edit')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
             <DialogHeader>
               <DialogTitle>{tEdit('title')}</DialogTitle>
               <DialogDescription>
@@ -132,7 +136,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
                   {error}
                 </div>
               )}
@@ -142,14 +146,14 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
                   type="button"
                   variant="outline"
                   onClick={() => setEditOpen(false)}
-                  className="flex-1"
+                  className="flex-1 rounded-none"
                 >
                   {tEdit('cancel')}
                 </Button>
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1"
+                  className="flex-1 rounded-none"
                 >
                   {submitting ? tEdit('updating') : tEdit('update')}
                 </Button>
@@ -160,12 +164,12 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
 
         <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
           <DialogTrigger >
-            <Button variant="destructive" size="sm">
-              <Trash2 className="w-4 h-4 mr-1" />
+            <Button variant="destructive" size="sm" className="rounded-none">
+              <Trash2 className="w-4 h-4 mr-1" aria-hidden="true" />
               {tCommon('actions.delete')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
             <DialogHeader>
               <DialogTitle>{tDelete('title')}</DialogTitle>
               <DialogDescription>
@@ -176,7 +180,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
               <p>{tDelete('confirm_text')}</p>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
                   {error}
                 </div>
               )}
@@ -186,7 +190,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
                   type="button"
                   variant="outline"
                   onClick={() => setDeleteOpen(false)}
-                  className="flex-1"
+                  className="flex-1 rounded-none"
                 >
                   {tDelete('cancel')}
                 </Button>
@@ -194,7 +198,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
                   variant="destructive"
                   onClick={handleDelete}
                   disabled={submitting}
-                  className="flex-1"
+                  className="flex-1 rounded-none"
                 >
                   {submitting ? tDelete('deleting') : tDelete('title')}
                 </Button>

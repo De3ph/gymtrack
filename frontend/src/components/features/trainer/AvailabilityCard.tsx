@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { DAYS_OF_WEEK } from "@/lib/constants";
 import { availabilityApi } from "@/lib/api";
@@ -37,11 +36,11 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
+      <div className="rounded-none border border-border">
+        <div className="p-6">
           {t("trainer.availability.loading")}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
@@ -87,15 +86,15 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
     setAvailability(availability.filter((_, i) => i !== index));
   };
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t(`trainer.availability.title`)}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="rounded-none border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h3 className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{t(`trainer.availability.title`)}</h3>
+      </div>
+      <div className="p-6 space-y-4">
         {DAYS_OF_WEEK.map((day, index) => {
           const daySlots = availability.filter((s) => s.dayOfWeek === index);
           return (
-            <div key={day} className="border-b pb-4 last:border-0">
+            <div key={day} className="border-b border-border pb-4 last:border-0 last:pb-0">
               <div className="flex justify-between items-center mb-2">
                 <h4 className="font-medium">
                   {t(`common.date.${day.toLowerCase()}`)}
@@ -104,6 +103,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
                   variant="outline"
                   size="sm"
                   onClick={() => addTimeSlot(index)}
+                  className="rounded-none"
                 >
                   {t(`common.actions.add`)}
                 </Button>
@@ -136,6 +136,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
                       variant="destructive"
                       size="sm"
                       onClick={() => removeSlot(actualIndex)}
+                      className="rounded-none"
                     >
                       {t("trainer.availability.remove_slot")}
                     </Button>
@@ -146,11 +147,11 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
           );
         })}
         <div className="flex justify-end">
-          <Button onClick={handleAvailabilitySave} disabled={saving}>
+          <Button onClick={handleAvailabilitySave} disabled={saving} className="rounded-none">
             {saving ? t(`common.actions.saving`) : t(`common.actions.save`)}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

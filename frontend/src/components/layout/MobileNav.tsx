@@ -16,6 +16,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { linkStyles } from "./dashboard-styles";
+import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/routes";
 
 interface MobileNavProps {
@@ -44,10 +45,10 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
           className="lg:hidden"
           aria-label={tCommon("toggle_menu")}
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="h-full w-3/4 max-w-sm">
+      <DrawerContent className={cn("h-full w-3/4 max-w-sm rounded-none border border-border shadow-none")}>
         <DrawerHeader className="border-b px-6 py-4">
           <DrawerTitle className="flex items-center justify-between">
             <Link
@@ -58,7 +59,7 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
             </Link>
             <DrawerClose asChild>
               <Button variant="ghost" size="icon" aria-label="Close menu">
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </Button>
             </DrawerClose>
           </DrawerTitle>
@@ -78,7 +79,7 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
           {/* User Info */}
           <div className="mb-4 flex items-center gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="text-sm">{initials}</AvatarFallback>
+              <AvatarFallback className="text-sm font-[500]">{initials}</AvatarFallback>
             </Avatar>
             <span className="text-sm font-medium text-foreground">{userName}</span>
           </div>

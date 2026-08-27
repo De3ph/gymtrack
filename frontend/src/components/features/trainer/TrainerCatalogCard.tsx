@@ -24,7 +24,7 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
   return (
     <Link
       href={DYNAMIC_ROUTES.ATHLETE_TRAINERS_DETAIL(trainer.userId)}
-      className="group relative block rounded-xl border border-border bg-card p-5 outline-none transition-colors hover:bg-card/80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-safe:hover:-translate-y-0.5 motion-safe:transition-transform"
+      className="group relative block rounded-none border border-border bg-card p-5 outline-none transition-colors hover:bg-card/80 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <div className="flex flex-col items-center text-center">
         <TrainerAvatar
@@ -36,8 +36,8 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
         />
 
         <h3
-          className="mt-4 text-base font-extrabold tracking-tight text-foreground"
-          style={{ letterSpacing: "-0.02em" }}
+          className="mt-4 text-base font-bold text-foreground"
+          style={{ letterSpacing: "-0.01em" }}
         >
           {trainer.profile.name}
         </h3>
@@ -80,13 +80,13 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
         </div>
 
         {profile?.isAvailableForNewClients ? (
-          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-accent bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
+            <span className="h-1.5 w-1.5 rounded-none bg-accent" />
             {tCommon("status.available")}
           </span>
         ) : (
           <span className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+            <span className="h-1.5 w-1.5 rounded-none bg-muted-foreground" />
             {tCommon("status.unavailable")}
           </span>
         )}

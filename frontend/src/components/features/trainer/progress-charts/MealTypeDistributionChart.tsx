@@ -5,7 +5,6 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   ChartContainer,
   ChartTooltip,
@@ -17,7 +16,7 @@ import {
 import { MealStats } from "@/types"
 import { useTranslations } from "next-intl"
 
-const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--amber-600)"]
+const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-1)"]
 
 interface MealTypeDistributionChartProps {
   mealStats: MealStats
@@ -28,12 +27,12 @@ export function MealTypeDistributionChart({ mealStats, chartConfig }: MealTypeDi
   const t = useTranslations('trainer.charts.meal_type_distribution')
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-        <CardDescription>{t('description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="rounded-none border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h3 className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{t('title')}</h3>
+        <p className="text-sm text-muted-foreground mt-1">{t('description')}</p>
+      </div>
+      <div className="p-6">
         {mealStats.mealTypeBreakdown.length > 0 ? (
           <ChartContainer config={chartConfig} className="h-[250px]">
             <PieChart>
@@ -57,7 +56,7 @@ export function MealTypeDistributionChart({ mealStats, chartConfig }: MealTypeDi
         ) : (
           <p className="text-center text-muted-foreground py-8">{t('no_data')}</p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Award, Users } from "lucide-react";
 import type { User } from "@/types";
 import { useTranslations } from "next-intl";
@@ -10,40 +9,40 @@ interface MyTrainerProfileProps {
 export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
   const t = useTranslations('trainer.profile.my_profile')
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
+    <div className="rounded-none border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h3 className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          <Users className="h-5 w-5" aria-hidden="true" />
           {t('title')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </h3>
+      </div>
+      <div className="p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-muted-foreground">
+          <span className="text-sm font-[500] text-muted-foreground block">
             {t('name_label')}
-          </label>
-          <p className="mt-1 text-lg font-semibold text-foreground">
+          </span>
+          <p className="mt-1 text-base font-[600] text-foreground">
             {trainer.profile.name}
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-muted-foreground">
+          <span className="text-sm font-[500] text-muted-foreground block">
             {t('email_label')}
-          </label>
+          </span>
           <div className="mt-1 flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
+            <Mail className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <p className="text-foreground">{trainer.email}</p>
           </div>
         </div>
 
         {trainer.profile.certifications ? (
           <div>
-            <label className="block text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-[500] text-muted-foreground block">
               {t('certifications_label')}
-            </label>
+            </span>
             <div className="mt-1 flex items-start gap-2">
-              <Award className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <Award className="h-4 w-4 text-muted-foreground mt-0.5" aria-hidden="true" />
               <p className="text-foreground">
                 {trainer.profile.certifications}
               </p>
@@ -53,15 +52,15 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
 
         {trainer.profile.specializations ? (
           <div>
-            <label className="block text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-[500] text-muted-foreground block">
               {t('specializations_label')}
-            </label>
+            </span>
             <p className="mt-1 text-foreground">
               {trainer.profile.specializations}
             </p>
           </div>
         ) : null}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

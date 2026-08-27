@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import type { Relationship } from "@/types";
 
@@ -13,43 +12,43 @@ export function RelationshipDetailsCard({ relationship }: RelationshipDetailsCar
   const tCommon = useTranslations("common.status");
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
+    <div className="rounded-none border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h3 className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          <Calendar className="h-5 w-5" aria-hidden="true" />
           {t("relationship_details")}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </h3>
+      </div>
+      <div className="p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-sm font-[500] text-muted-foreground block">
             {t("status")}
-          </label>
+          </span>
           <p className="mt-1">
-            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+            <span className="inline-flex items-center rounded-none border border-accent bg-accent/10 px-2.5 py-0.5 text-xs text-accent">
               {tCommon("active")}
             </span>
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-sm font-[500] text-muted-foreground block">
             {t("connected_since")}
-          </label>
-          <p className="mt-1 text-gray-900 dark:text-white">
+          </span>
+          <p className="mt-1 text-foreground">
             {dayjs(relationship.createdAt).format("MMM D, YYYY")}
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-sm font-[500] text-muted-foreground block">
             {t("relationship_id")}
-          </label>
-          <p className="mt-1 text-sm font-mono text-gray-600 dark:text-gray-400">
+          </span>
+          <p className="mt-1 text-sm font-mono text-muted-foreground">
             {relationship.relationshipId}
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

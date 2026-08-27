@@ -42,23 +42,23 @@ export function UserAvatarMenu({
       <DropdownMenuTrigger
         render={
           <button 
-            className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200"
+            className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
             aria-label={`User menu for ${userName || 'user'}`}
           >
-            <Avatar className="h-9 w-9 transition-transform duration-200 hover:scale-105">
-              <AvatarFallback className="text-sm font-medium">{initials}</AvatarFallback>
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="text-sm font-[500]">{initials}</AvatarFallback>
             </Avatar>
           </button>
         }
       />
       <DropdownMenuContent align="end" sideOffset={8} className="w-48">
         <DropdownMenuItem render={<Link href={profileHref} />}>
-          <User className="mr-2 h-4 w-4" />
+          <User className="mr-2 h-4 w-4" aria-hidden="true" />
           {tCommon("profile")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout} variant="destructive">
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
           {tCommon("logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>

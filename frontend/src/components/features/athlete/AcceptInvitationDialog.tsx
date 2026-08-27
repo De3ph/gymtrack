@@ -16,6 +16,7 @@ import { CheckCircle, Loader2, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "@tanstack/react-form"
 import { useTranslations } from "next-intl"
+import { cn } from "@/lib/utils"
 
 interface AcceptInvitationDialogProps {
   onSuccess?: () => void
@@ -84,13 +85,13 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <Button variant="outline">
-            <UserPlus className="mr-2 h-4 w-4" />
+          <Button variant="outline" className="rounded-none">
+            <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
             {t('title')}
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
@@ -99,9 +100,9 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
         </DialogHeader>
 
         {success ? (
-          <div className="flex flex-col items-center space-y-4 py-6">
-            <CheckCircle className="h-12 w-12 text-green-500" />
-            <p className="text-center font-medium">{t('success')}</p>
+          <div className="flex flex-col items-center gap-4 py-6">
+            <CheckCircle className="size-5 text-accent" aria-hidden="true" />
+            <p className="text-center text-sm font-[500] text-foreground">{t('success')}</p>
           </div>
         ) : (
           <form
@@ -129,13 +130,13 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
                     }}
                     placeholder={t('code_placeholder')}
                     maxLength={8}
-                    className="font-mono text-lg tracking-wider"
+                    className="font-mono text-xs uppercase tracking-[0.18em]"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">
                     {t('code_hint')}
                   </p>
                   {field.state.meta.errors.length > 0 && (
-                    <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+                    <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
                       {field.state.meta.errors[0]}
                     </div>
                   )}
@@ -144,7 +145,7 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
             </form.Field>
 
             {error && (
-              <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+              <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -156,11 +157,11 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
                 <Button
                   type="submit"
                   disabled={!canSubmit || loading || isSubmitting}
-                  className="w-full"
+                  className="w-full rounded-none"
                 >
                   {loading || isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                       {t('connecting')}
                     </>
                   ) : (

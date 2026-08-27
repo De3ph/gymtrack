@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { relationshipApi } from "@/lib/api"
 import { User } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -21,8 +22,8 @@ export function MyTrainerButton() {
 
   if (isLoading) {
     return (
-      <Button variant="outline" disabled>
-        <User className="mr-2 h-4 w-4" />
+      <Button variant="outline" disabled className="rounded-none">
+        <Spinner className="mr-2" />
         {tCommon('loading')}
       </Button>
     )
@@ -33,14 +34,15 @@ export function MyTrainerButton() {
   }
 
   const handleClick = () => {
-    if (trainerData?.activeTrainer) {
-      router.push(buildRoute('ATHLETE_TRAINER_DETAIL', trainerData.activeTrainer.trainer.userId))
+    const trainerId = trainerData?.activeTrainer?.trainer.userId
+    if (trainerId != null) {
+      router.push(buildRoute('ATHLETE_TRAINER_DETAIL', trainerId))
     }
   }
 
   return (
-    <Button variant="outline" onClick={handleClick}>
-      <User className="mr-2 h-4 w-4" />
+    <Button variant="outline" onClick={handleClick} className="rounded-none">
+      <User className="mr-2 h-4 w-4" aria-hidden="true" />
       {t('title')}
     </Button>
   )

@@ -68,12 +68,12 @@ export function TrainerAvatar({
       </svg>
 
       {isAvailable && (
-        <span className='absolute bottom-1 right-1 z-10 h-3 w-3 rounded-full bg-teal-500 ring-2 ring-background dark:bg-teal-400' />
+        <span className='absolute bottom-1 right-1 z-10 h-3 w-3 rounded-none bg-accent ring-2 ring-background' />
       )}
 
       <div
         className={cn(
-          "relative overflow-hidden rounded-full bg-stone-200",
+          "relative overflow-hidden rounded-none bg-muted",
           !photoUrl || hasError ? "flex items-center justify-center" : ""
         )}
         style={{ width: avatarSize, height: avatarSize }}
@@ -88,7 +88,7 @@ export function TrainerAvatar({
             sizes={`${avatarSize}px`}
           />
         ) : (
-          <span className='text-sm font-semibold text-stone-600'>
+          <span className='text-sm font-[600] text-foreground'>
             {initials}
           </span>
         )}

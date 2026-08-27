@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useTranslations } from "next-intl"
+import { cn } from "@/lib/utils"
 
 interface CoachingRequestDialogProps {
   trainerId: string | number
@@ -51,7 +52,7 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
       <DialogTrigger>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
         <DialogHeader>
           <DialogTitle>{t('title', { trainerName })}</DialogTitle>
           <DialogDescription>
@@ -72,20 +73,20 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
           </div>
 
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+            <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-sm text-gray-600">
-              <strong>{t('what_happens_next')}</strong>
+          <div className="rounded-none border border-border bg-muted/50 p-3">
+            <p className="text-sm font-[500] text-foreground">
+              {t('what_happens_next')}
             </p>
-            <ul className="text-sm text-gray-600 mt-2 space-y-1">
-              <li>• {t('bullet_trainer_receives', { trainerName })}</li>
-              <li>• {t('bullet_accept_decline')}</li>
-              <li>• {t('bullet_connected')}</li>
-              <li>• {t('bullet_track')}</li>
+            <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+              <li>{t('bullet_trainer_receives', { trainerName })}</li>
+              <li>{t('bullet_accept_decline')}</li>
+              <li>{t('bullet_connected')}</li>
+              <li>{t('bullet_track')}</li>
             </ul>
           </div>
 
@@ -94,14 +95,14 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="flex-1"
+              className="flex-1 rounded-none"
             >
               {t('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={submitting}
-              className="flex-1"
+              className="flex-1 rounded-none"
             >
               {submitting ? t('sending') : t('send_request')}
             </Button>

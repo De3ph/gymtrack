@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Copy, Check, Loader2, RefreshCw } from "lucide-react";
 import { TIME_LIMITS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface GenerateInvitationDialogProps {
   open: boolean;
@@ -79,7 +80,7 @@ export function GenerateInvitationDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
@@ -93,11 +94,11 @@ export function GenerateInvitationDialog({
               <p className="text-center text-sm text-muted-foreground">
                 {t('instruction')}
               </p>
-              <Button onClick={generateCode} disabled={loading} size="lg">
+              <Button onClick={generateCode} disabled={loading} size="lg" className="rounded-none">
                 {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" />
+                  <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
                 )}
                 {t('generate_code_button')}
               </Button>
@@ -118,14 +119,14 @@ export function GenerateInvitationDialog({
                     size="icon"
                     onClick={copyToClipboard}
                     disabled={copying}
-                    className="shrink-0"
+                    className="shrink-0 rounded-none"
                   >
                     {copying ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                     ) : copied ? (
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-accent" aria-hidden="true" />
                     ) : (
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-4 w-4" aria-hidden="true" />
                     )}
                   </Button>
                 </div>
@@ -137,9 +138,9 @@ export function GenerateInvitationDialog({
                 </p>
               )}
 
-              <div className="rounded-lg border bg-muted p-4">
+              <div className="rounded-none border border-border bg-muted p-4">
                 <p className="text-sm">
-                  <strong>{t('instructions_text')}</strong> {t('instruction')}
+                  <span className="font-[500]">{t('instructions_text')}</span> {t('instruction')}
                 </p>
               </div>
 
@@ -147,12 +148,12 @@ export function GenerateInvitationDialog({
                 variant="outline"
                 onClick={generateCode}
                 disabled={loading}
-                className="w-full"
+                className="w-full rounded-none"
               >
                 {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" />
+                  <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
                 )}
                 {t('generate_new_code')}
               </Button>
@@ -160,7 +161,7 @@ export function GenerateInvitationDialog({
           )}
 
           {error && (
-            <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}

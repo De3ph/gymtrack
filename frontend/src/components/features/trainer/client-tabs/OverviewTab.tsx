@@ -46,47 +46,47 @@ export function OverviewTab({
   const tCommon = useTranslations("common.actions")
 
   return (
-    <Card className='mb-6'>
-      <CardHeader>
-        <CardTitle>{t("filter_data")}</CardTitle>
-        <CardDescription>{t("filter_description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="rounded-none border border-border mb-6">
+      <div className="px-6 py-4 border-b border-border">
+        <h3 className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("filter_data")}</h3>
+        <p className="text-sm text-muted-foreground mt-1">{t("filter_description")}</p>
+      </div>
+      <div className="p-6">
         <div className='flex flex-wrap gap-4'>
           <div>
-            <label className='text-sm font-medium'>{t("start_date")}</label>
+            <label className='text-sm font-[500]'>{t("start_date")}</label>
             <input
               type='date'
               value={dateRange.start}
               onChange={(e) =>
                 onDateRangeChange({ ...dateRange, start: e.target.value })
               }
-              className='mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm'
+              className='mt-1 block rounded-none border border-border bg-background px-3 py-2 text-sm'
             />
           </div>
           <div>
-            <label className='text-sm font-medium'>{t("end_date")}</label>
+            <label className='text-sm font-[500]'>{t("end_date")}</label>
             <input
               type='date'
               value={dateRange.end}
               onChange={(e) =>
                 onDateRangeChange({ ...dateRange, end: e.target.value })
               }
-              className='mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm'
+              className='mt-1 block rounded-none border border-border bg-background px-3 py-2 text-sm'
             />
           </div>
           <div>
-            <label className='text-sm font-medium'>{t("exercise_type")}</label>
+            <label className='text-sm font-[500]'>{t("exercise_type")}</label>
             <input
               type='text'
               placeholder={t("exercise_placeholder")}
               value={exerciseType}
               onChange={(e) => onExerciseTypeChange(e.target.value)}
-              className='mt-1 block rounded-md border border-input bg-background px-3 py-2 text-sm'
+              className='mt-1 block rounded-none border border-border bg-background px-3 py-2 text-sm'
             />
           </div>
           <div>
-            <label className='text-sm font-medium'>{t("meal_type")}</label>
+            <label className='text-sm font-[500]'>{t("meal_type")}</label>
             <Combobox>
               <ComboboxInput
                 placeholder={t("meal_placeholder")}
@@ -105,13 +105,13 @@ export function OverviewTab({
             </Combobox>
           </div>
           <div className='flex items-end gap-2'>
-            <Button>{tCommon("apply_filters")}</Button>
-            <Button variant='outline' onClick={onClearFilters}>
+            <Button className="rounded-none">{tCommon("apply_filters")}</Button>
+            <Button variant='outline' onClick={onClearFilters} className="rounded-none">
               {tCommon("clear")}
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

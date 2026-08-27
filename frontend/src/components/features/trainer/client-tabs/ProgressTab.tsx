@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { ClientProgressCharts } from "../ClientProgressCharts";
 import { WorkoutStats, MealStats } from "@/types";
 
@@ -18,10 +19,8 @@ export function ProgressTab({ workoutStats, mealStats }: ProgressTabProps) {
   }
 
   return (
-    <Card>
-      <CardContent className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </CardContent>
-    </Card>
+    <div className={cn("rounded-none border border-border", "flex items-center justify-center py-12")}>
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-hidden="true" />
+    </div>
   );
 }

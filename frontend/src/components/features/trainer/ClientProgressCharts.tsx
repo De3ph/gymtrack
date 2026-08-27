@@ -55,7 +55,7 @@ export function ClientProgressCharts({ workoutStats, mealStats }: ClientProgress
     },
     fats: {
       label: tStats('fats_label'),
-      color: "var(--amber-600)",
+      color: "var(--chart-4)",
     },
     totalSets: {
       label: tStats('total_sets_label'),

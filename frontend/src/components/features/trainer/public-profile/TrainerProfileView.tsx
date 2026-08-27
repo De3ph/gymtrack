@@ -46,11 +46,11 @@ export default function TrainerProfileView({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="rounded-none border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h3 className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("title")}</h3>
+      </div>
+      <div className="p-6 space-y-4">
         {/* Bio */}
         {isEditing ? (
           <form.Field name="bio">
@@ -69,7 +69,7 @@ export default function TrainerProfileView({
         ) : (
           <PublicProfileField>
             <Label>{t("bio")}</Label>
-            <p className="text-gray-700">{profile.bio}</p>
+            <p className="text-foreground">{profile.bio}</p>
           </PublicProfileField>
         )}
 
@@ -91,7 +91,7 @@ export default function TrainerProfileView({
         ) : (
           <PublicProfileField>
             <Label>{t("hourly_rate")}</Label>
-            <div className="text-gray-700">
+            <div className="text-foreground">
               {profile.hourlyRate ? t("hourly_rate_format", { rate: profile.hourlyRate }) : t("not_set")}
             </div>
           </PublicProfileField>
@@ -117,7 +117,7 @@ export default function TrainerProfileView({
         ) : (
           <PublicProfileField>
             <Label>{t("years_of_experience")}</Label>
-            <div className="text-gray-700">
+            <div className="text-foreground">
               {profile.yearsOfExperience ?? t("not_set")}
             </div>
           </PublicProfileField>
@@ -141,7 +141,7 @@ export default function TrainerProfileView({
         ) : (
           <PublicProfileField>
             <Label>{t("location")}</Label>
-            <div className="text-gray-700">
+            <div className="text-foreground">
               {profile.location ?? t("not_set")}
             </div>
           </PublicProfileField>
@@ -172,7 +172,7 @@ export default function TrainerProfileView({
         ) : (
           <PublicProfileField>
             <Label>{t("languages")}</Label>
-            <div className="text-gray-700">
+            <div className="text-foreground">
               {profile.languages?.length
                 ? profile.languages.join(", ")
                 : t("not_set")}
@@ -217,18 +217,19 @@ export default function TrainerProfileView({
                 variant="outline"
                 onClick={handleCancel}
                 disabled={saving}
+                className="rounded-none"
               >
                 {t("cancel")}
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} className="rounded-none">
                 {saving ? t("saving") : t("save")}
               </Button>
             </>
           ) : (
-            <Button onClick={handleEdit}>{t("edit_profile")}</Button>
+            <Button onClick={handleEdit} className="rounded-none">{t("edit_profile")}</Button>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

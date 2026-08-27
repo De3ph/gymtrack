@@ -12,6 +12,7 @@ import { FieldInfo } from "@/components/ui/form-field"
 import { Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "@/components/ui/toast"
+import { cn } from "@/lib/utils"
 
 interface CreateReviewDialogProps {
   trainerId: string
@@ -62,13 +63,16 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
             key={star}
             type="button"
             onClick={() => fieldValue.handleChange(star)}
-            className="focus:outline-none"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
           >
             <Star
-              className={`w-6 h-6 transition-colors ${star <= currentRating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300 hover:text-yellow-200"
-                }`}
+              className={cn(
+                "w-6 h-6 transition-colors",
+                star <= currentRating
+                  ? "fill-amber-500 text-amber-500"
+                  : "text-muted-foreground hover:text-amber-400"
+              )}
+              aria-hidden="true"
             />
           </button>
         ))}
@@ -81,7 +85,7 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
       <DialogTrigger >
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
         <DialogHeader>
           <DialogTitle>{t('title', { trainerName })}</DialogTitle>
           <DialogDescription>
@@ -129,14 +133,14 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="flex-1"
+              className="flex-1 rounded-none"
             >
               {t('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={isPending}
-              className="flex-1"
+              className="flex-1 rounded-none"
             >
               {isPending ? t('submitting') : t('submit')}
             </Button>
