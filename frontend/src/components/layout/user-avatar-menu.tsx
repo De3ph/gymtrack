@@ -53,12 +53,12 @@ export function UserAvatarMenu({
       />
       <DropdownMenuContent align="end" sideOffset={8} className="w-48">
         <DropdownMenuItem render={<Link href={profileHref} />}>
-          <User className="mr-2 h-4 w-4" aria-hidden="true" />
+          <User className="mr-2 size-5" aria-hidden="true" />
           {tCommon("profile")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout} variant="destructive">
-          <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
+          <LogOut className="mr-2 size-5" aria-hidden="true" />
           {tCommon("logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>

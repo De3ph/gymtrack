@@ -319,7 +319,7 @@ export function WorkoutForm({
           </Select>
           {loadedPlanName && (
             <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <ClipboardList className="size-3.5" aria-hidden="true" />
+              <ClipboardList className="size-5" aria-hidden="true" />
               {t("plan.loaded", { name: loadedPlanName })}
             </span>
           )}
@@ -352,7 +352,7 @@ export function WorkoutForm({
               variant="outline"
               className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
             >
-              <Plus className="size-3.5" aria-hidden="true" /> {t("add_exercise")}
+              <Plus className="size-5" aria-hidden="true" /> {t("add_exercise")}
             </Button>
           </div>
         )}
@@ -377,7 +377,7 @@ export function WorkoutForm({
           disabled={isPending}
           className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.18em] md:ml-auto md:w-auto"
         >
-          {isPending && <Spinner className="size-3.5" />}
+          {isPending && <Spinner className="size-5" />}
           {t("submit")}
         </Button>
       </div>

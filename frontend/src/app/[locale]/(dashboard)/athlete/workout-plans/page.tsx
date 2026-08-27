@@ -82,7 +82,7 @@ export default function AthleteWorkoutPlansPage() {
             </span>
           </div>
           <Button onClick={() => setShowCreateForm(true)} disabled={limitReached}>
-            <Plus className="size-3.5" /> {t("create")}
+            <Plus className="size-5" /> {t("create")}
           </Button>
         </div>
         {limitReached && (

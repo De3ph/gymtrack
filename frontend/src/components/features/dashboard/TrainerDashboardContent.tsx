@@ -105,19 +105,19 @@ export function TrainerDashboardContent() {
           </header>
           <div className="grid gap-3 p-6 sm:grid-cols-2 sm:px-8">
             <DashboardActionButton
-              icon={<Users className="size-4" aria-hidden="true" />}
+              icon={<Users className="size-5" aria-hidden="true" />}
               label={tTrainer("invite_athlete")}
               description={tTrainer("invite_description")}
               onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
             />
             <DashboardActionButton
-              icon={<Dumbbell className="size-4" aria-hidden="true" />}
+              icon={<Dumbbell className="size-5" aria-hidden="true" />}
               label={tTrainer("workout_plans")}
               description={tTrainer("plans_description")}
               onClick={() => router.push(ROUTES.TRAINER_WORKOUT_PLANS)}
             />
             <DashboardActionButton
-              icon={<User className="size-4" aria-hidden="true" />}
+              icon={<User className="size-5" aria-hidden="true" />}
               label={tCommon("view_client")}
               description={tTrainer("clients_description")}
               onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
@@ -142,7 +142,7 @@ export function TrainerDashboardContent() {
           <Empty className="rounded-none border border-border bg-card">
             <EmptyHeader>
               <EmptyMedia variant="icon" className="rounded-none border border-border bg-background">
-                <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+                <Users className="size-5 text-muted-foreground" aria-hidden="true" />
               </EmptyMedia>
               <EmptyTitle className="font-sans text-base font-semibold text-foreground">
                 {tTrainer("no_clients_title")}

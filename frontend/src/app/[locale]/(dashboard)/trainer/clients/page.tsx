@@ -69,7 +69,7 @@ export default function TrainerClientsPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          <Spinner className="size-4" />
+          <Spinner className="size-5" />
           <span>Loading</span>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function TrainerClientsPage() {
           onClick={() => setShowInviteDialog(true)}
           className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
         >
-          <UserPlus className="size-3.5" aria-hidden="true" />
+          <UserPlus className="size-5" aria-hidden="true" />
           Invite Athlete
         </Button>
       </div>
@@ -139,7 +139,7 @@ export default function TrainerClientsPage() {
               onClick={() => setShowInviteDialog(true)}
               className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
             >
-              <UserPlus className="size-3.5" aria-hidden="true" />
+              <UserPlus className="size-5" aria-hidden="true" />
               {t("invite_first_athlete")}
             </Button>
           </EmptyContent>

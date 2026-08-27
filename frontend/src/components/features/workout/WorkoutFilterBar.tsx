@@ -35,7 +35,7 @@ export function WorkoutFilterBar({
   return (
     <div className="flex flex-col gap-3 border border-border p-3 sm:flex-row sm:flex-wrap sm:items-end">
       <div className="flex items-center gap-2 text-muted-foreground sm:self-end">
-        <Filter className="size-4" aria-hidden="true" />
+        <Filter className="size-5" aria-hidden="true" />
         <span className="font-mono text-[10px] uppercase tracking-[0.18em]">
           {t("label")}
         </span>
@@ -86,7 +86,7 @@ export function WorkoutFilterBar({
             onClick={() => clear(EMPTY_FILTER)}
             className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
           >
-            <X className="size-3" aria-hidden="true" />
+            <X className="size-4" aria-hidden="true" />
             {t("clear")}
           </Button>
         )}

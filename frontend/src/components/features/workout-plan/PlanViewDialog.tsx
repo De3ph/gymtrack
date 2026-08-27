@@ -40,7 +40,7 @@ export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
               size="icon"
               className="h-8 w-8"
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="size-5" />
               <span className="sr-only">{t("view_plan")}</span>
             </Button>
           )

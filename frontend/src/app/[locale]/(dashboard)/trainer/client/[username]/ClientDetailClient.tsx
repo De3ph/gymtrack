@@ -128,7 +128,7 @@ export default function ClientDetailClient() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          <Spinner className="size-4" />
+          <Spinner className="size-5" />
           <span>Loading</span>
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function ClientDetailClient() {
             onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
             className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
           >
-            <ArrowLeft className="size-3.5" aria-hidden="true" />
+            <ArrowLeft className="size-5" aria-hidden="true" />
             {t("back")}
           </Button>
           <div>
@@ -177,7 +177,7 @@ export default function ClientDetailClient() {
               variant="destructive"
               className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
             >
-              <UserX className="size-3.5" aria-hidden="true" />
+              <UserX className="size-5" aria-hidden="true" />
               {t("end_relationship")}
             </Button>
           }

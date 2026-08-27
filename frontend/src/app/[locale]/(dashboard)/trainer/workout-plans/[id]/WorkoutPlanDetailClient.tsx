@@ -53,7 +53,7 @@ export function WorkoutPlanDetailClient({
           onClick={() => router.push(ROUTES.TRAINER_WORKOUT_PLANS)}
           className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
         >
-          <ArrowLeft className="size-3.5" aria-hidden="true" /> {tc("back")}
+          <ArrowLeft className="size-5" aria-hidden="true" /> {tc("back")}
         </Button>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -143,7 +143,7 @@ export function WorkoutPlanDetailClient({
                     variant="outline"
                     className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
                   >
-                    <UserPlus className="size-3.5" aria-hidden="true" />{" "}
+                    <UserPlus className="size-5" aria-hidden="true" />{" "}
                     {t("assign")}
                   </Button>
                 }

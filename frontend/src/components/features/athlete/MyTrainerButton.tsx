@@ -42,7 +42,7 @@ export function MyTrainerButton() {
 
   return (
     <Button variant="outline" onClick={handleClick} className="rounded-none">
-      <User className="mr-2 h-4 w-4" aria-hidden="true" />
+      <User className="mr-2 size-5" aria-hidden="true" />
       {t('title')}
     </Button>
   )

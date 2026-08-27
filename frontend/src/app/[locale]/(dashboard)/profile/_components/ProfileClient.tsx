@@ -149,7 +149,7 @@ function ProfileView({
         </div>
 
         <Button variant="outline" size="sm" onClick={onEdit}>
-          <Pencil className="h-4 w-4" />
+          <Pencil className="size-5" />
           {t("edit_profile")}
         </Button>
       </div>
@@ -550,7 +550,7 @@ export function ProfileClient() {
       {successMessage && (
         <div className="mx-auto mb-6 max-w-2xl">
           <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-3 text-sm text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <CheckCircle2 className="size-5 shrink-0" />
             {successMessage}
           </div>
         </div>
@@ -559,7 +559,7 @@ export function ProfileClient() {
       {updateMutation.isError && (
         <div className="mx-auto mb-6 max-w-2xl">
           <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+            <AlertCircle className="size-5 shrink-0" />
             {t("update_error")}
           </div>
         </div>

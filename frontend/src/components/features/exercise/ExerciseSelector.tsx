@@ -145,7 +145,7 @@ export function ExerciseSelector({
             disabled={disabled}
             className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em] shadow-none"
           >
-            <Dumbbell className="size-3.5" aria-hidden="true" />
+            <Dumbbell className="size-5" aria-hidden="true" />
             {t("selector.pick_exercise")}
           </Button>
         }
@@ -153,7 +153,7 @@ export function ExerciseSelector({
       <DialogContent className="min-w-[50dvw] max-h-[80vh] overflow-y-auto rounded-none border border-border p-0 text-foreground shadow-none ring-0">
         <DialogHeader className="border-b border-border px-6 pb-4 pt-6">
           <DialogTitle className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            <Dumbbell className="size-4 text-foreground" aria-hidden="true" />
+            <Dumbbell className="size-5 text-foreground" aria-hidden="true" />
             {t("selector.select_exercise")}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -164,7 +164,7 @@ export function ExerciseSelector({
         <div className="space-y-4 px-6 pb-6 pt-4">
           {isLoading && (
             <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <Spinner className="size-4" />
+              <Spinner className="size-5" />
               <span>{t("selector.loading")}</span>
             </div>
           )}
@@ -179,7 +179,7 @@ export function ExerciseSelector({
             <>
               <div className="relative">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
                   aria-hidden="true"
                 />
                 <Input
@@ -207,7 +207,7 @@ export function ExerciseSelector({
               <ScrollArea className="max-h-96">
                 {isLoadingExercises ? (
                   <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                    <Spinner className="size-4" />
+                    <Spinner className="size-5" />
                     <span>{t("selector.loading")}</span>
                   </div>
                 ) : exercises.length === 0 ? (
@@ -247,7 +247,7 @@ export function ExerciseSelector({
                             className="rounded-none bg-transparent"
                           >
                             <Dumbbell
-                              className="size-4 text-muted-foreground"
+                              className="size-5 text-muted-foreground"
                               aria-hidden="true"
                             />
                           </ItemMedia>

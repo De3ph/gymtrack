@@ -62,7 +62,7 @@ export function LandingFeatureGrid() {
                 className="grid grid-cols-[auto_1fr] items-start gap-x-6 gap-y-3 px-6 py-6 transition-colors hover:bg-muted/40 sm:grid-cols-[auto_1.4fr_1.4fr_auto] sm:gap-x-10 sm:px-8 sm:py-8"
               >
                 <Icon
-                  className="mt-1 size-4 shrink-0 text-foreground"
+                  className="mt-1 size-5 shrink-0 text-foreground"
                   aria-hidden="true"
                 />
                 <div>

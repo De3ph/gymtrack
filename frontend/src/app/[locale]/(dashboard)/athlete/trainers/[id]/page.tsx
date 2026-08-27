@@ -51,7 +51,7 @@ function Stars({ value }: { value: number }) {
         <Star
           key={i}
           className={cn(
-            "size-4",
+            "size-5",
             i < full ? "fill-current text-amber-400" : "text-muted-foreground/30",
           )}
           aria-hidden="true"
@@ -134,7 +134,7 @@ export default function TrainerProfilePage() {
             "inline-flex items-center gap-2 rounded-none border border-border px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] transition-colors hover:bg-muted",
           )}
         >
-          <ArrowLeft className="size-4" aria-hidden="true" />
+          <ArrowLeft className="size-5" aria-hidden="true" />
           {tTrainers("title")}
         </Link>
       </main>
@@ -185,7 +185,7 @@ export default function TrainerProfilePage() {
           href="/athlete/trainers"
           className="group inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
+          <ArrowLeft className="size-5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
           {tTrainers("eyebrow")}
         </Link>
       </div>
@@ -229,7 +229,7 @@ export default function TrainerProfilePage() {
                 </span>
                 {location && (
                   <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                    <MapPin className="size-4" aria-hidden="true" />
+                    <MapPin className="size-5" aria-hidden="true" />
                     {location}
                   </span>
                 )}

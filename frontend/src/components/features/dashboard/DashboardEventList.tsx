@@ -54,9 +54,9 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
           >
             <ItemMedia variant="icon" className="rounded-none border border-border bg-background">
               {event.kind === "workout" ? (
-                <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
+                <CalendarDays className="size-5 text-muted-foreground" aria-hidden="true" />
               ) : (
-                <UtensilsCrossed className="size-4 text-muted-foreground" aria-hidden="true" />
+                <UtensilsCrossed className="size-5 text-muted-foreground" aria-hidden="true" />
               )}
             </ItemMedia>
             <ItemContent>

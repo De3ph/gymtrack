@@ -103,13 +103,13 @@ export function ExerciseSetInput({
               {t("label")}
             </span>
             <span className={cn(colLabel, "justify-center")}>
-              <Weight className="size-3" aria-hidden="true" /> {t("weight")}
+              <Weight className="size-4" aria-hidden="true" /> {t("weight")}
             </span>
             <span className={cn(colLabel, "justify-center")}>
-              <Repeat className="size-3" aria-hidden="true" /> {t("reps")}
+              <Repeat className="size-4" aria-hidden="true" /> {t("reps")}
             </span>
             <span className={cn(colLabel, "justify-center")}>
-              <Timer className="size-3" aria-hidden="true" /> {t("rest")}
+              <Timer className="size-4" aria-hidden="true" /> {t("rest")}
             </span>
             <span />
           </div>
@@ -189,7 +189,7 @@ export function ExerciseSetInput({
                 aria-label={t("remove")}
                 data-testid="remove-set"
               >
-                <Trash2 className="size-4" aria-hidden="true" />
+                <Trash2 className="size-5" aria-hidden="true" />
               </Button>
             </div>
           </li>
@@ -205,7 +205,7 @@ export function ExerciseSetInput({
           disabled={disabled}
           className="w-full rounded-none border-0 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
         >
-          <Plus className="size-3.5" aria-hidden="true" /> {t("add")}
+          <Plus className="size-5" aria-hidden="true" /> {t("add")}
         </Button>
       </div>
     </div>

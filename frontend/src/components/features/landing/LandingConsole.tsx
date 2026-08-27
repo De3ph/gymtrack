@@ -48,7 +48,7 @@ export function LandingConsole() {
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border px-6 py-5 sm:px-8 sm:py-6">
           <div>
             <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <Radio className="size-3 shrink-0" aria-hidden="true" />
+              <Radio className="size-4 shrink-0" aria-hidden="true" />
               <span>{t("console.kicker")}</span>
             </p>
             <h2
@@ -92,7 +92,7 @@ export function LandingConsole() {
 
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-border px-6 py-3 sm:px-8">
           <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            <TrendingUp className="size-3 shrink-0" aria-hidden="true" />
+            <TrendingUp className="size-4 shrink-0" aria-hidden="true" />
             Weekly load
           </span>
           <div
@@ -123,7 +123,7 @@ export function LandingConsole() {
                 .join(" ")}
             >
               <item.icon
-                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                className="mt-0.5 size-5 shrink-0 text-muted-foreground"
                 aria-hidden="true"
               />
               <div className="min-w-0">

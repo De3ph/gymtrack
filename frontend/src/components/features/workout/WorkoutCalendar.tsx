@@ -70,7 +70,7 @@ export function WorkoutCalendar() {
         <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <Spinner className="size-4" />
+              <Spinner className="size-5" />
             </div>
           ) : selectedDayWorkouts.length > 0 ? (
             <ul className="divide-y divide-border">

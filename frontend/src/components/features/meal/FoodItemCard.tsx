@@ -31,7 +31,7 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
         disabled={!canRemove}
         aria-label="Remove item"
       >
-        <Trash2 className="size-4" aria-hidden="true" />
+        <Trash2 className="size-5" aria-hidden="true" />
       </Button>
       <CardHeader className="pb-2 px-6 pt-6 rounded-none">
         <CardTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-medium">

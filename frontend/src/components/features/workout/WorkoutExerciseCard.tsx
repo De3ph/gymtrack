@@ -73,9 +73,9 @@ export function WorkoutExerciseCard({
             className="h-6 w-6 shrink-0 rounded-none"
           >
             {isCollapsed ? (
-              <ChevronDown className="size-4" aria-hidden="true" />
+              <ChevronDown className="size-5" aria-hidden="true" />
             ) : (
-              <ChevronUp className="size-4" aria-hidden="true" />
+              <ChevronUp className="size-5" aria-hidden="true" />
             )}
           </Button>
           <h3 className="truncate text-base font-semibold text-foreground">
@@ -91,7 +91,7 @@ export function WorkoutExerciseCard({
           aria-label={t("exercise.sets.remove")}
           className="h-8 w-8 shrink-0 rounded-none text-muted-foreground hover:text-destructive"
         >
-          <Trash2 className="size-4" aria-hidden="true" />
+          <Trash2 className="size-5" aria-hidden="true" />
         </Button>
       </header>
 

@@ -62,7 +62,7 @@ export function LandingRolePaths() {
                   0{i + 1}
                 </span>
                 <Check
-                  className="size-3.5 text-foreground"
+                  className="size-5 text-foreground"
                   aria-hidden="true"
                 />
                 <span className="text-sm">
@@ -82,7 +82,7 @@ export function LandingRolePaths() {
             })}
           >
             {t("role_paths." + role + ".cta")}
-            <ArrowUpRight className="size-3.5" aria-hidden="true" />
+            <ArrowUpRight className="size-5" aria-hidden="true" />
           </Link>
         </article>
       ))}

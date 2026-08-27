@@ -80,7 +80,7 @@ export function DeleteWorkoutDialog({
             disabled={isDeleting}
             className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
           >
-            {isDeleting && <Spinner className="size-3.5" />}
+            {isDeleting && <Spinner className="size-5" />}
             {isDeleting ? t("deleting") : t("confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>

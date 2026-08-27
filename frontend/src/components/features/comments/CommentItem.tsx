@@ -120,7 +120,7 @@ export function CommentItem({
                 size="sm"
                 onClick={() => onReply(comment.commentId)}
               >
-                <MessageSquare className="mr-1.5 size-3" aria-hidden="true" />
+                <MessageSquare className="mr-1.5 size-4" aria-hidden="true" />
                 {t("item.reply")}
               </Button>
             )}
@@ -131,7 +131,7 @@ export function CommentItem({
                   size="sm"
                   onClick={() => setIsEditing(true)}
                 >
-                  <Edit2 className="mr-1.5 size-3" aria-hidden="true" />
+                  <Edit2 className="mr-1.5 size-4" aria-hidden="true" />
                   {t("item.edit")}
                 </Button>
                 <AlertDialog>
@@ -143,7 +143,7 @@ export function CommentItem({
                         className="text-destructive"
                         disabled={isDeleting}
                       >
-                        <Trash2 className="mr-1.5 size-3" aria-hidden="true" />
+                        <Trash2 className="mr-1.5 size-4" aria-hidden="true" />
                         {t("item.delete")}
                       </Button>
                     }

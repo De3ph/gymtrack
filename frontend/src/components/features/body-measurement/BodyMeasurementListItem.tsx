@@ -75,7 +75,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
               onClick={() => onEdit?.(measurement)}
               aria-label={tCommon("edit")}
             >
-              <Edit2 className="size-4" aria-hidden="true" />
+              <Edit2 className="size-5" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
@@ -83,7 +83,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
               onClick={() => onDelete?.(measurement)}
               aria-label={tCommon("delete")}
             >
-              <Trash2 className="size-4 text-destructive" aria-hidden="true" />
+              <Trash2 className="size-5 text-destructive" aria-hidden="true" />
             </Button>
           </div>
         )}
@@ -94,7 +94,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
             variant="secondary"
             className="h-auto rounded-none px-3 py-1.5 text-sm font-medium"
           >
-            <Ruler className="mr-1 size-3" aria-hidden="true" />
+            <Ruler className="mr-1 size-4" aria-hidden="true" />
             <span className="font-mono">
               {t("weight", {
                 value: measurement.weight.toFixed(1),
@@ -109,9 +109,9 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
               }`}
             >
               {weightChange.up ? (
-                <TrendingUp className="mr-1 size-3" aria-hidden="true" />
+                <TrendingUp className="mr-1 size-4" aria-hidden="true" />
               ) : (
-                <TrendingDown className="mr-1 size-3" aria-hidden="true" />
+                <TrendingDown className="mr-1 size-4" aria-hidden="true" />
               )}
               {weightChange.text}
               <span className="ml-1 text-muted-foreground">

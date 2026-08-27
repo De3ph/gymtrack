@@ -41,7 +41,7 @@ export function MealItem({ item }: MealItemProps) {
       className="rounded-none border-0 border-b border-border px-0 py-2.5 last:border-b-0"
     >
       <ItemMedia variant="icon" className="rounded-none">
-        <Utensils className="size-4 text-muted-foreground" aria-hidden="true" />
+        <Utensils className="size-5 text-muted-foreground" aria-hidden="true" />
       </ItemMedia>
       <ItemContent>
         <ItemTitle className="text-sm font-semibold text-foreground">

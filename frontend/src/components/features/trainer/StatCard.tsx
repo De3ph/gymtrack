@@ -16,7 +16,7 @@ export function StatCard({ title, value, icon: Icon, className }: StatCardProps)
     <Card className={cn("rounded-none border border-border shadow-none", className)}>
       <CardHeader className={Icon ? "flex flex-row items-center justify-between space-y-0 pb-2" : "pb-2"}>
         <CardTitle className="text-sm font-[500]">{title}</CardTitle>
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
+        {Icon && <Icon className="size-5 text-muted-foreground" aria-hidden="true" />}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>

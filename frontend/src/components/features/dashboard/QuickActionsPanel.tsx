@@ -22,19 +22,19 @@ export function QuickActionsPanel() {
       </header>
       <div className="grid gap-3 p-6 sm:px-8">
         <DashboardActionButton
-          icon={<Dumbbell className="size-4" aria-hidden="true" />}
+          icon={<Dumbbell className="size-5" aria-hidden="true" />}
           label={tAthlete("log_workout")}
           description={tAthlete("log_workout_description")}
           onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
         />
         <DashboardActionButton
-          icon={<UtensilsCrossed className="size-4" aria-hidden="true" />}
+          icon={<UtensilsCrossed className="size-5" aria-hidden="true" />}
           label={tAthlete("log_meal")}
           description={tAthlete("log_meal_description")}
           onClick={() => router.push(ROUTES.ATHLETE_MEALS)}
         />
         <DashboardActionButton
-          icon={<CalendarDays className="size-4" aria-hidden="true" />}
+          icon={<CalendarDays className="size-5" aria-hidden="true" />}
           label={tAthlete("calendar")}
           description={tAthlete("calendar_description")}
           onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}

@@ -161,7 +161,7 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
               }
               className="w-full rounded-none border-border font-mono text-xs uppercase tracking-[0.18em]"
             >
-              <Plus className="size-3.5" aria-hidden="true" /> {t("form.add_food_item")}
+              <Plus className="size-5" aria-hidden="true" /> {t("form.add_food_item")}
             </Button>
           </div>
         )}

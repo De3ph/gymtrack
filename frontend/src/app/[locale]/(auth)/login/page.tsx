@@ -182,13 +182,13 @@ export default function LoginPage() {
             <span className="flex items-center justify-center gap-3">
               {isLoading ? (
                 <>
-                  <Spinner className="size-4" />
+                  <Spinner className="size-5" />
                   {t("submitting")}
                 </>
               ) : (
                 <>
                   {t("submit")}
-                  <ArrowRight className="size-3.5" aria-hidden="true" />
+                  <ArrowRight className="size-5" aria-hidden="true" />
                 </>
               )}
             </span>

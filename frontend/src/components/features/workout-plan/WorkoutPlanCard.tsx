@@ -66,7 +66,7 @@ export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
                   className="h-8 w-8"
                   onClick={() => onView(plan)}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="size-5" />
                   <span className="sr-only">{tAthlete("view_plan")}</span>
                 </Button>
               ) : (
@@ -102,7 +102,7 @@ export const WorkoutPlanCard = memo(function WorkoutPlanCardImpl({
                   className="h-8 w-8"
                   onClick={() => onView(plan)}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="size-5" />
                   <span className="sr-only">{t("view") ?? tAthlete("view_plan")}</span>
                 </Button>
               ) : (

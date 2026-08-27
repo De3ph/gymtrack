@@ -32,7 +32,7 @@ export function MealFilterBar({
   return (
     <div className="flex flex-col gap-3 border border-border p-3 sm:flex-row sm:flex-wrap sm:items-end rounded-none">
       <div className="flex h-10 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:self-end">
-        <Filter className="size-3.5" aria-hidden="true" />
+        <Filter className="size-5" aria-hidden="true" />
         <span>{t("label")}</span>
       </div>
       <div className="flex flex-1 flex-col space-y-1 sm:max-w-[180px]">
@@ -78,7 +78,7 @@ export function MealFilterBar({
             onClick={() => clear(EMPTY_FILTER)}
             className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
           >
-            <X className="size-3.5" aria-hidden="true" />
+            <X className="size-5" aria-hidden="true" />
             {t("clear")}
           </Button>
         )}

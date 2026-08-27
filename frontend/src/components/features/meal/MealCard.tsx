@@ -76,7 +76,7 @@ export const MealCard = memo(function MealCardImpl({
                 aria-label={t("list.edit")}
                 className="rounded-none"
               >
-                <Edit2 className="size-4" aria-hidden="true" />
+                <Edit2 className="size-5" aria-hidden="true" />
               </Button>
               <Button
                 variant="ghost"
@@ -88,7 +88,7 @@ export const MealCard = memo(function MealCardImpl({
                 aria-label={t("list.delete")}
                 className="rounded-none text-destructive hover:text-destructive"
               >
-                <Trash2 className="size-4" aria-hidden="true" />
+                <Trash2 className="size-5" aria-hidden="true" />
               </Button>
             </div>
           )}
@@ -115,12 +115,12 @@ export const MealCard = memo(function MealCardImpl({
           className="flex w-full items-center justify-start gap-2 rounded-none px-6 py-3 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground sm:px-8"
           aria-expanded={expanded}
         >
-          <MessageSquare className="size-3.5" aria-hidden="true" />
+          <MessageSquare className="size-5" aria-hidden="true" />
           {t("card.comments")}
           {expanded ? (
-            <ChevronUp className="ml-auto size-4" aria-hidden="true" />
+            <ChevronUp className="ml-auto size-5" aria-hidden="true" />
           ) : (
-            <ChevronDown className="ml-auto size-4" aria-hidden="true" />
+            <ChevronDown className="ml-auto size-5" aria-hidden="true" />
           )}
         </Button>
 

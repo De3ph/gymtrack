@@ -39,7 +39,7 @@ export function LandingHero() {
             })}
           >
             {t("sign_up")}
-            <ArrowRight className="size-3.5" />
+            <ArrowRight className="size-5" />
           </Link>
           <Link
             href={ROUTES.LOGIN}
@@ -78,7 +78,7 @@ export function LandingHero() {
             >
               <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 <metric.Icon
-                  className="size-3 shrink-0"
+                  className="size-4 shrink-0"
                   aria-hidden="true"
                 />
                 <dt>{metric.label}</dt>

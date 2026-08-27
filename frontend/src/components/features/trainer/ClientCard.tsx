@@ -60,7 +60,7 @@ export const ClientCard = memo(function ClientCardImpl({ client, onViewClient }:
               className='flex-1 rounded-none'
               onClick={() => onViewClient(client.athlete?.username || "")}
             >
-              <Eye className='mr-2 h-4 w-4' aria-hidden="true" />
+              <Eye className='mr-2 size-5' aria-hidden="true" />
               {tCommon("view_client")}
             </Button>
           </div>

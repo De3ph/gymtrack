@@ -179,7 +179,7 @@ export function WorkoutPlanForm({
                 onClick={() => removeExercise(index)}
                 disabled={exercises.length === 1}
               >
-                <Trash2 className="size-4" />
+                <Trash2 className="size-5" />
               </Button>
             </div>
 
@@ -233,7 +233,7 @@ export function WorkoutPlanForm({
           onClick={addExercise}
           className="w-full border-dashed py-6 text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
         >
-          <Plus className="mr-2 size-4" /> {t("add_exercise")}
+          <Plus className="mr-2 size-5" /> {t("add_exercise")}
         </Button>
       </div>
 
@@ -246,11 +246,11 @@ export function WorkoutPlanForm({
           </div>
           <Button type="submit" disabled={isPending} className="min-w-40 gap-2">
             {isPending ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-5 animate-spin" />
             ) : isEditing ? (
-              <Save className="size-4" />
+              <Save className="size-5" />
             ) : (
-              <Dumbbell className="size-4" />
+              <Dumbbell className="size-5" />
             )}
             {isEditing ? t("plan_update") : t("plan_create")}
           </Button>

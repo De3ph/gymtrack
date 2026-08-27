@@ -36,7 +36,7 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
           <p className="font-sans text-sm leading-6 text-muted-foreground">{t("description")}</p>
         </div>
         <span className="flex size-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground" aria-hidden="true">
-          <UserCheck className="size-4" />
+          <UserCheck className="size-5" />
         </span>
       </header>
       <div className="p-6">
@@ -108,7 +108,7 @@ const TodayClientRow = memo(function TodayClientRow({
             onClick={() => onViewClient(client.athlete?.username || "")}
             className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
           >
-            <Eye className="size-3.5" aria-hidden="true" />
+            <Eye className="size-5" aria-hidden="true" />
             {tCommon("view_client")}
           </Button>
         </ItemActions>

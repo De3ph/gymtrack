@@ -91,13 +91,13 @@ export function PlanSetInput({
         <div className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] gap-2 px-2 pb-1 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]">
           <span className={cn(colLabel, "justify-start")}>{t('label')}</span>
           <span className={cn(colLabel, "justify-center")}>
-            <Weight className="size-3" /> {t('weight')}
+            <Weight className="size-4" /> {t('weight')}
           </span>
           <span className={cn(colLabel, "justify-center")}>
-            <Repeat className="size-3" /> {t('reps')}
+            <Repeat className="size-4" /> {t('reps')}
           </span>
           <span className={cn(colLabel, "justify-center")}>
-            <Timer className="size-3" /> {t('rest')}
+            <Timer className="size-4" /> {t('rest')}
           </span>
           <span />
         </div>
@@ -147,7 +147,7 @@ export function PlanSetInput({
                 className="h-8 w-8 text-muted-foreground opacity-60 transition-opacity hover:text-destructive group-hover:opacity-100"
                 aria-label={t('remove')}
               >
-                <Trash2 className="size-4" />
+                <Trash2 className="size-5" />
               </Button>
             </div>
           </div>
@@ -160,7 +160,7 @@ export function PlanSetInput({
         disabled={disabled}
         className="w-full border-dashed text-muted-foreground hover:border-primary/50 hover:text-primary"
       >
-        <Plus className="size-4 mr-1" /> {t('add')}
+        <Plus className="size-5 mr-1" /> {t('add')}
       </Button>
     </div>
   );

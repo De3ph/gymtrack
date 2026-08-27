@@ -78,7 +78,7 @@ export function ExerciseCard({
         {hasInstructions && (
           <div className="text-foreground">
             <div className="mb-1 flex items-center gap-2 font-semibold">
-              <Info className="size-4" aria-hidden="true" />
+              <Info className="size-5" aria-hidden="true" />
               <span>{t("card.instructions")}:</span>
             </div>
             <div className="border border-border p-3 text-sm leading-6 text-muted-foreground">

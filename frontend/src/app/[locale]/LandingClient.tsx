@@ -82,7 +82,7 @@ export function LandingClient() {
                 className="mb-6 border-destructive/40 bg-destructive/5 font-mono text-xs"
                 aria-live="polite"
               >
-                <Zap className="size-3.5" />
+                <Zap className="size-5" />
                 <AlertTitle>{t("auth_required.title")}</AlertTitle>
                 <AlertDescription>
                   {t("auth_required.description")}

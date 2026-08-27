@@ -69,7 +69,7 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
               aria-label={t("edit")}
               className="rounded-none"
             >
-              <Edit2 className="size-4" aria-hidden="true" />
+              <Edit2 className="size-5" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
@@ -78,7 +78,7 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
               aria-label={t("delete")}
               className="rounded-none text-muted-foreground hover:text-destructive"
             >
-              <Trash2 className="size-4" aria-hidden="true" />
+              <Trash2 className="size-5" aria-hidden="true" />
             </Button>
           </div>
         )}
@@ -88,7 +88,7 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
         {workout.exercises.map((ex: WorkoutExercise, i: number) => (
           <div key={i} className="flex items-start gap-2 text-sm">
             <Dumbbell
-              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+              className="mt-0.5 size-5 shrink-0 text-muted-foreground"
               aria-hidden="true"
             />
             <div className="min-w-0 flex-1">
@@ -134,13 +134,13 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
           }
         >
           <span className="flex items-center gap-2">
-            <MessageSquare className="size-3.5" aria-hidden="true" />
+            <MessageSquare className="size-5" aria-hidden="true" />
             {t("comments")}
           </span>
           {expandedCommentsId === workout.workoutId ? (
-            <ChevronUp className="size-4" aria-hidden="true" />
+            <ChevronUp className="size-5" aria-hidden="true" />
           ) : (
-            <ChevronDown className="size-4" aria-hidden="true" />
+            <ChevronDown className="size-5" aria-hidden="true" />
           )}
         </button>
         {expandedCommentsId === workout.workoutId && (

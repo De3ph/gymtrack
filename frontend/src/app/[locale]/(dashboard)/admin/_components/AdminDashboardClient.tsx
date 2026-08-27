@@ -59,7 +59,7 @@ export function AdminDashboardClient({ stats }: AdminDashboardClientProps) {
                   {card.label}
                 </span>
                 <Icon
-                  className="size-3.5 text-muted-foreground"
+                  className="size-5 text-muted-foreground"
                   aria-hidden="true"
                 />
               </div>
@@ -89,9 +89,9 @@ export function AdminDashboardClient({ stats }: AdminDashboardClientProps) {
               className="rounded-none border-foreground font-mono text-xs uppercase tracking-[0.18em] hover:bg-foreground hover:text-background"
               onClick={() => router.push(ROUTES.ADMIN_USERS)}
             >
-              <Users className="size-3.5" aria-hidden="true" />
+              <Users className="size-5" aria-hidden="true" />
               Manage Users
-              <ArrowUpRight className="size-3.5" aria-hidden="true" />
+              <ArrowUpRight className="size-5" aria-hidden="true" />
             </Button>
           </div>
         </div>

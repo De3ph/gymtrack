@@ -71,7 +71,7 @@ function CommentRow({
           onClick={() => onDelete(comment.commentId)}
           disabled={isDeleting}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="size-5" />
         </Button>
       </TableCell>
     </TableRow>
@@ -141,7 +141,7 @@ export default function ModerationClient() {
             Comments
           </h2>
           <MessageSquare
-            className="size-3.5 text-muted-foreground"
+            className="size-5 text-muted-foreground"
             aria-hidden="true"
           />
         </header>

@@ -128,7 +128,7 @@ export function ExerciseFilters({
             "rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground",
           )}
         >
-          <X className="size-3" aria-hidden="true" />
+          <X className="size-4" aria-hidden="true" />
           {t("filters.clear")}
         </Button>
       )}

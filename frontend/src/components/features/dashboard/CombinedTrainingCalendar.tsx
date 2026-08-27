@@ -120,8 +120,8 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
         </div>
         <div className="space-y-4 border-t border-border p-6 lg:border-t-0">
           <div className="flex flex-wrap gap-2">
-            <Legend icon={<CalendarDays className="size-3.5" aria-hidden="true" />} label={t("workout")} />
-            <Legend icon={<UtensilsCrossed className="size-3.5" aria-hidden="true" />} label={t("meal")} />
+            <Legend icon={<CalendarDays className="size-5" aria-hidden="true" />} label={t("workout")} />
+            <Legend icon={<UtensilsCrossed className="size-5" aria-hidden="true" />} label={t("meal")} />
           </div>
           <Separator />
           <div className="max-h-[500px] overflow-y-auto">

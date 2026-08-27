@@ -126,7 +126,7 @@ export function AdminProfileClient() {
           <h2 className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
             Change Password
           </h2>
-          <Lock className="size-3.5 text-muted-foreground" aria-hidden="true" />
+          <Lock className="size-5 text-muted-foreground" aria-hidden="true" />
         </header>
         <div className="px-6 py-6">
           <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -135,14 +135,14 @@ export function AdminProfileClient() {
                 role="alert"
                 className="flex items-center gap-2 border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
               >
-                <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+                <AlertCircle className="size-5 shrink-0" aria-hidden="true" />
                 {passwordError}
               </div>
             )}
 
             {changePasswordMutation.isSuccess && (
               <div className="flex items-center gap-2 border border-accent/40 bg-accent/10 p-3 text-sm text-foreground">
-                <CheckCircle2 className="size-4 shrink-0 text-accent" aria-hidden="true" />
+                <CheckCircle2 className="size-5 shrink-0 text-accent" aria-hidden="true" />
                 Password changed successfully
               </div>
             )}
@@ -204,7 +204,7 @@ export function AdminProfileClient() {
               disabled={changePasswordMutation.isPending}
             >
               {changePasswordMutation.isPending && (
-                <Spinner className="size-3.5" />
+                <Spinner className="size-5" />
               )}
               {changePasswordMutation.isPending
                 ? "Changing Password..."

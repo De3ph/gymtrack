@@ -28,7 +28,7 @@ export function LocaleToggle() {
       title={`Switch to ${nextLocale === "en" ? "English" : "Turkish"}`}
       className="gap-1"
     >
-      <Globe className="size-4" aria-hidden="true" />
+      <Globe className="size-5" aria-hidden="true" />
       <span className="text-xs font-[500]">{localeLabels[locale]}</span>
       <span className="sr-only">Toggle language</span>
     </Button>

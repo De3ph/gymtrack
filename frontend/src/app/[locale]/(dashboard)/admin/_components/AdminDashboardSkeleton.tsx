@@ -12,7 +12,7 @@ export function AdminDashboardSkeleton() {
           <div key={i} className="space-y-4 bg-background p-6">
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-24" />
-              <Skeleton className="size-3.5" />
+              <Skeleton className="size-5" />
             </div>
             <Skeleton className="h-9 w-20" />
           </div>

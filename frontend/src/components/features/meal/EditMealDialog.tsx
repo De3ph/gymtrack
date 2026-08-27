@@ -196,7 +196,7 @@ export function EditMealDialog({
                   }
                   className="w-full rounded-none border-border font-mono text-xs uppercase tracking-[0.18em] sm:w-auto"
                 >
-                  <Plus className="size-3.5" aria-hidden="true" /> {t("form.add_food_item")}
+                  <Plus className="size-5" aria-hidden="true" /> {t("form.add_food_item")}
                 </Button>
               )}
             </form.Field>

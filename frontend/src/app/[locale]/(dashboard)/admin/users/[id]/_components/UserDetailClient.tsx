@@ -100,7 +100,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
           onClick={() => router.push(ROUTES.ADMIN_USERS)}
           aria-label="Back to users"
         >
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-5" />
         </Button>
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center border border-border font-mono text-sm uppercase">
@@ -232,7 +232,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                 Admin Actions
               </h2>
               <AlertTriangle
-                className="size-3.5 text-muted-foreground"
+                className="size-5 text-muted-foreground"
                 aria-hidden="true"
               />
             </header>
@@ -244,7 +244,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                 </label>
                 <Dialog open={roleOpen} onOpenChange={setRoleOpen}>
                   <DialogTrigger className="inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted">
-                    <Shield className="size-3" />
+                    <Shield className="size-4" />
                     {detail.role}
                   </DialogTrigger>
                   <DialogContent className="rounded-none border border-border shadow-none">

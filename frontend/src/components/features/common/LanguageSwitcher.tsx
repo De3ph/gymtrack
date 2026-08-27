@@ -34,9 +34,9 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="rounded-none border border-border bg-background font-mono text-[10px] uppercase tracking-[0.18em] text-foreground shadow-none ring-0 outline-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 [&_svg]:size-3.5"
+        className="rounded-none border border-border bg-background font-mono text-[10px] uppercase tracking-[0.18em] text-foreground shadow-none ring-0 outline-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 [&_svg]:size-5"
       >
-        <Globe className="size-3.5" aria-hidden="true" />
+        <Globe className="size-5" aria-hidden="true" />
         <span>{getLocaleName(locale)}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent

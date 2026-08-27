@@ -378,8 +378,8 @@ export function EditWorkoutDialog({
               disabled={isPending}
               className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
             >
-              {isPending && <Spinner className="size-3.5" />}
-              <Save className="size-3.5" aria-hidden="true" />
+              {isPending && <Spinner className="size-5" />}
+              <Save className="size-5" aria-hidden="true" />
               {t("save_changes")}
             </Button>
           </div>

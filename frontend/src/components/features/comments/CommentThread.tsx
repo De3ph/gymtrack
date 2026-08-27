@@ -60,7 +60,7 @@ export function CommentThread({
   return (
     <div className='space-y-3'>
       <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-        <MessageSquare className="size-4" aria-hidden="true" />
+        <MessageSquare className="size-5" aria-hidden="true" />
         <span>{t("list.comments_count", { count: comments.length })}</span>
       </div>
       <CommentList

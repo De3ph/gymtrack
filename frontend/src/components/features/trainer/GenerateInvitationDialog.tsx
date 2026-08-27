@@ -96,9 +96,9 @@ export function GenerateInvitationDialog({
               </p>
               <Button onClick={generateCode} disabled={loading} size="lg" className="rounded-none">
                 {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  <Loader2 className="mr-2 size-5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                  <RefreshCw className="mr-2 size-5" aria-hidden="true" />
                 )}
                 {t('generate_code_button')}
               </Button>
@@ -122,11 +122,11 @@ export function GenerateInvitationDialog({
                     className="shrink-0 rounded-none"
                   >
                     {copying ? (
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      <Loader2 className="size-5 animate-spin" aria-hidden="true" />
                     ) : copied ? (
-                      <Check className="h-4 w-4 text-accent" aria-hidden="true" />
+                      <Check className="size-5 text-accent" aria-hidden="true" />
                     ) : (
-                      <Copy className="h-4 w-4" aria-hidden="true" />
+                      <Copy className="size-5" aria-hidden="true" />
                     )}
                   </Button>
                 </div>
@@ -151,9 +151,9 @@ export function GenerateInvitationDialog({
                 className="w-full rounded-none"
               >
                 {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  <Loader2 className="mr-2 size-5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                  <RefreshCw className="mr-2 size-5" aria-hidden="true" />
                 )}
                 {t('generate_new_code')}
               </Button>

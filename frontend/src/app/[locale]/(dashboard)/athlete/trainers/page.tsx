@@ -195,7 +195,7 @@ export default function TrainerCatalogPage() {
             onClick={clearFilters}
             className="w-full md:w-auto"
           >
-            <X className="size-3.5" aria-hidden="true" />
+            <X className="size-5" aria-hidden="true" />
             {tCommon("actions.clear")}
           </Button>
         )}

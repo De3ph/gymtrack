@@ -119,7 +119,7 @@ export function WorkoutList({
   if (isLoading && isSelfFetching) {
     return (
       <div className="flex items-center gap-2 py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        <Spinner className="size-4" />
+        <Spinner className="size-5" />
         <span>{t("loading")}</span>
       </div>
     );

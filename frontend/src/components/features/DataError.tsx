@@ -14,7 +14,7 @@ interface DataErrorProps {
 export function DataError({ title = 'Error', message }: DataErrorProps) {
   return (
     <Alert variant="destructive">
-      <AlertCircle className="size-4" />
+      <AlertCircle className="size-5" />
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{message}</AlertDescription>
     </Alert>

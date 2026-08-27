@@ -96,7 +96,7 @@ export default function TrainerWorkoutPlansPage() {
           onClick={() => setShowCreateForm(true)}
           className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
         >
-          <Plus className="size-3.5" aria-hidden="true" /> {t("create")}
+          <Plus className="size-5" aria-hidden="true" /> {t("create")}
         </Button>
       </div>
 

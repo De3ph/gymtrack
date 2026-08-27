@@ -86,7 +86,7 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
       <DialogTrigger
         render={
           <Button variant="outline" className="rounded-none">
-            <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+            <UserPlus className="mr-2 size-5" aria-hidden="true" />
             {t('title')}
           </Button>
         }
@@ -161,7 +161,7 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
                 >
                   {loading || isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      <Loader2 className="mr-2 size-5 animate-spin" aria-hidden="true" />
                       {t('connecting')}
                     </>
                   ) : (

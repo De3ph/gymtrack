@@ -30,7 +30,7 @@ export default function RoleDashboardPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          <Spinner className="size-4" />
+          <Spinner className="size-5" />
           <span>Loading</span>
         </div>
       </div>

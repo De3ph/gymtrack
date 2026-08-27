@@ -472,7 +472,7 @@ export function BodyMeasurementForm({
             {isFetchingPrevious ? (
               <Spinner />
             ) : (
-              <History className="size-3.5" aria-hidden="true" />
+              <History className="size-5" aria-hidden="true" />
             )}
             {t("fetch_previous")}
           </Button>
@@ -483,7 +483,7 @@ export function BodyMeasurementForm({
           className="w-full rounded-none md:w-auto md:ml-auto"
         >
           {isPending && <Spinner />}
-          <Plus className="size-3.5" aria-hidden="true" />
+          <Plus className="size-5" aria-hidden="true" />
           {initialMeasurement ? tCommon("update") : t("submit")}
         </Button>
       </div>

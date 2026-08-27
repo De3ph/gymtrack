@@ -50,11 +50,11 @@ function SortableHeader({
     >
       {label}
       {column.getIsSorted() === "asc" ? (
-        <ArrowUp className="size-3" />
+        <ArrowUp className="size-4" />
       ) : column.getIsSorted() === "desc" ? (
-        <ArrowDown className="size-3" />
+        <ArrowDown className="size-4" />
       ) : (
-        <ArrowUpDown className="size-3 opacity-40" />
+        <ArrowUpDown className="size-4 opacity-40" />
       )}
     </button>
   );

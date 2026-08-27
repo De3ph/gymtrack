@@ -31,7 +31,7 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
             {t('email_label')}
           </span>
           <div className="mt-1 flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            <Mail className="size-5 text-muted-foreground" aria-hidden="true" />
             <p className="text-foreground">{trainer.email}</p>
           </div>
         </div>
@@ -42,7 +42,7 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
               {t('certifications_label')}
             </span>
             <div className="mt-1 flex items-start gap-2">
-              <Award className="h-4 w-4 text-muted-foreground mt-0.5" aria-hidden="true" />
+              <Award className="size-5 text-muted-foreground mt-0.5" aria-hidden="true" />
               <p className="text-foreground">
                 {trainer.profile.certifications}
               </p>

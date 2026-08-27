@@ -39,7 +39,7 @@ export default function MyCoachingRequestsPage() {
             })}
           >
             {t('browse_trainers')}
-            <ArrowUpRight className="size-3.5" aria-hidden="true" />
+            <ArrowUpRight className="size-5" aria-hidden="true" />
           </Link>
         </div>
       </section>

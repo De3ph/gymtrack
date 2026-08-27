@@ -107,7 +107,7 @@ export function AssignPlanDialog({
             onClick={() => mutate()}
             disabled={isPending || selectedIds.length === 0}
           >
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending && <Loader2 className="mr-2 size-5 animate-spin" />}
             {t('assign_button', { count: selectedIds.length })}
           </Button>
         </DialogFooter>
