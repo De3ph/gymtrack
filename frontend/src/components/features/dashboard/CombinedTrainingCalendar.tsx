@@ -93,7 +93,7 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
     <div className="border border-border bg-card">
       <header className="flex flex-col gap-4 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <div className="space-y-1">
-          <h2 className="font-sans text-base font-medium leading-tight text-foreground">
+          <h2 className="font-sans text-base font-semibold leading-tight text-foreground">
             {t("title")}
           </h2>
           <p className="font-sans text-sm leading-6 text-muted-foreground">{t("description")}</p>

@@ -63,7 +63,7 @@ export default function TrainerDetailPage() {
           {tc('back')}
         </Button>
 
-        <h1 className="font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
+        <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
           {t('title')}
         </h1>
       </div>

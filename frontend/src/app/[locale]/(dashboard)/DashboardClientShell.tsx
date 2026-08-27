@@ -61,7 +61,7 @@ export function DashboardClientShell({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-md rounded-xl bg-popover p-6 shadow-lg ring-1 ring-foreground/10">
             <div className="mb-4 flex flex-col gap-2">
-              <h2 className="font-heading text-lg font-medium">
+              <h2 className="font-heading text-lg font-semibold">
                 Session Required
               </h2>
               <p className="text-sm text-muted-foreground">

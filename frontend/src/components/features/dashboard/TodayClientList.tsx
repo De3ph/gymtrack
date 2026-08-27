@@ -32,7 +32,7 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
     <div className="border border-border bg-card">
       <header className="flex items-start justify-between gap-4 border-b border-border px-6 py-4 sm:px-8">
         <div className="space-y-1">
-          <h2 className="font-sans text-base font-medium leading-tight text-foreground">{t("title")}</h2>
+          <h2 className="font-sans text-base font-semibold leading-tight text-foreground">{t("title")}</h2>
           <p className="font-sans text-sm leading-6 text-muted-foreground">{t("description")}</p>
         </div>
         <span className="flex size-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground" aria-hidden="true">
@@ -43,7 +43,7 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
         {focusClients.length === 0 ? (
           <Empty className="rounded-none border border-border bg-card">
             <EmptyHeader>
-              <EmptyTitle className="font-sans text-base font-medium text-foreground">
+              <EmptyTitle className="font-sans text-base font-semibold text-foreground">
                 {t("empty_title")}
               </EmptyTitle>
               <EmptyDescription className="font-sans text-sm leading-6 text-muted-foreground">
@@ -90,13 +90,13 @@ const TodayClientRow = memo(function TodayClientRow({
       >
         <ItemMedia
           variant="icon"
-          className="rounded-none border border-border bg-background font-mono text-xs font-normal text-foreground"
+          className="rounded-none border border-border bg-background font-mono text-xs font-medium text-foreground"
           aria-hidden="true"
         >
           {initials(name)}
         </ItemMedia>
         <ItemContent>
-          <ItemTitle className="font-sans text-sm font-medium text-foreground">{name}</ItemTitle>
+          <ItemTitle className="font-sans text-sm font-semibold text-foreground">{name}</ItemTitle>
           <ItemDescription className="font-sans text-sm leading-6 text-muted-foreground">
             {goal || t("no_goal")}
           </ItemDescription>

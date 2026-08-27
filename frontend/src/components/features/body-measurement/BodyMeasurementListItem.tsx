@@ -92,7 +92,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
         <div className="flex flex-wrap items-center gap-3">
           <Badge
             variant="secondary"
-            className="h-auto rounded-none px-3 py-1.5 text-sm font-normal"
+            className="h-auto rounded-none px-3 py-1.5 text-sm font-medium"
           >
             <Ruler className="mr-1 size-3" aria-hidden="true" />
             <span className="font-mono">
@@ -123,7 +123,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
             measurement.bodyFatPct > 0 && (
               <Badge
                 variant="outline"
-                className="h-auto rounded-none px-3 py-1.5 font-mono text-sm font-normal"
+                className="h-auto rounded-none px-3 py-1.5 font-mono text-sm font-medium"
               >
                 {t("body_fat", { value: measurement.bodyFatPct.toFixed(1) })}
               </Badge>

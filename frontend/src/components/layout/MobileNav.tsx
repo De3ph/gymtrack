@@ -81,7 +81,7 @@ export function MobileNav({ userRole, userName, onLogout }: MobileNavProps) {
             <Avatar className="h-10 w-10">
               <AvatarFallback className="text-sm font-[500]">{initials}</AvatarFallback>
             </Avatar>
-            <span className="text-sm font-medium text-foreground">{userName}</span>
+            <span className="text-sm font-semibold text-foreground">{userName}</span>
           </div>
 
           {/* Theme and Locale toggles */}

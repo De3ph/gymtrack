@@ -42,7 +42,7 @@ export default function MealsClient() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
+        <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
           {t("title")}
         </h1>
         <p className="text-muted-foreground">{t("description")}</p>
@@ -63,7 +63,7 @@ export default function MealsClient() {
           <div className="max-w-2xl">
             <Card className="rounded-none border border-border shadow-none ring-0">
               <CardHeader className="rounded-none border-b border-border">
-                <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+                <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   {t("card_title")}
                 </CardTitle>
                 <CardDescription>{t("card_description")}</CardDescription>

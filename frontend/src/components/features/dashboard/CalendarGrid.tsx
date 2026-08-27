@@ -28,8 +28,8 @@ export function CalendarGrid({
           meal: mealDates,
         }}
         modifiersClassNames={{
-          workout: "font-medium text-primary after:absolute after:-bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-primary",
-          meal: "font-medium text-emerald-600 after:absolute after:-bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-emerald-500 dark:text-emerald-400 dark:after:bg-emerald-400",
+          workout: "font-semibold text-primary after:absolute after:-bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-primary",
+          meal: "font-semibold text-emerald-600 after:absolute after:-bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-emerald-500 dark:text-emerald-400 dark:after:bg-emerald-400",
         }}
         className="rounded-none border-0 bg-background"
       />

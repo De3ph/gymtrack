@@ -144,7 +144,7 @@ export function MealList({
         {filterBar}
         <Empty className="rounded-none border border-border">
           <EmptyHeader>
-            <EmptyTitle className="font-mono text-sm uppercase tracking-[0.18em] font-normal text-foreground">
+            <EmptyTitle className="font-mono text-sm uppercase tracking-[0.18em] font-medium text-foreground">
               {t("list.no_meals")}
             </EmptyTitle>
           </EmptyHeader>

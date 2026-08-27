@@ -54,13 +54,13 @@ All tokens are defined in `src/app/globals.css` as CSS variables. Tailwind v4 ex
 
 | Role | Family | Weight | Size | Tracking | Use for |
 |---|---|---|---|---|---|
-| Display | `font-mono` (Geist Mono) | `400` | `text-2xl`–`text-[5.5rem]` | `tracking-[-0.04em]` | Hero, page titles, large section heads |
-| Heading | `font-sans` (Inter) | `500` | `text-base`–`text-2xl` | default | Card titles, dialog titles, subheads |
-| Body | `font-sans` | `400` | `text-sm`–`text-base` | default | Paragraphs, descriptions |
-| Eyebrow / label / data | `font-mono` | `400` | `text-[10px]`–`text-xs` | `uppercase tracking-[0.18em]` | Section labels, kickers, button text, table headers, metrics |
-| Numeric | `font-mono` | `400` | `text-3xl`–`text-5xl` | `tracking-tight` | Scoreboards, progress, KPIs |
+| Display | `font-mono` (Geist Mono) | `500` | `text-2xl`–`text-[5.5rem]` | `tracking-[-0.04em]` | Hero, page titles, large section heads |
+| Heading | `font-sans` (Inter) | `600` | `text-base`–`text-2xl` | default | Card titles, dialog titles, subheads |
+| Body | `font-sans` | `500` | `text-sm`–`text-base` | default | Paragraphs, descriptions |
+| Eyebrow / label / data | `font-mono` | `500` | `text-[10px]`–`text-xs` | `uppercase tracking-[0.18em]` | Section labels, kickers, button text, table headers, metrics |
+| Numeric | `font-mono` | `600` | `text-3xl`–`text-5xl` | `tracking-tight` | Scoreboards, progress, KPIs |
 
-**Forbidden**: `font-bold`, `font-extrabold`, `font-black` anywhere. Body copy in `text-foreground` and `text-muted-foreground` only. Display weight comes from size, not weight.
+**Allowed**: `font-normal` (`400`) for de-emphasized secondary text only, `font-medium` (`500`) for display/body/label, `font-semibold` (`600`) for heading/numeric. **Forbidden**: `font-bold` (`700`), `font-extrabold`, `font-black` anywhere. Body copy in `text-foreground` and `text-muted-foreground` only.
 
 **Type scale** (line-height pairs to the size):
 

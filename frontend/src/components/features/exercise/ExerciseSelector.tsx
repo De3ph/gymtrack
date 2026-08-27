@@ -252,7 +252,7 @@ export function ExerciseSelector({
                             />
                           </ItemMedia>
                           <ItemContent>
-                            <ItemTitle className="text-sm font-medium text-foreground">
+                            <ItemTitle className="text-sm font-semibold text-foreground">
                               {exercise.name}
                             </ItemTitle>
                             <ItemDescription className="line-clamp-2 text-xs text-muted-foreground">

@@ -88,7 +88,7 @@ export function WorkoutCalendar() {
                         key={ex.exerciseId || ex.name}
                         className="border-l border-border pl-3 text-sm text-muted-foreground"
                       >
-                        <span className="font-medium text-foreground">
+                        <span className="font-semibold text-foreground">
                           {ex.name}
                         </span>
                         {": "}

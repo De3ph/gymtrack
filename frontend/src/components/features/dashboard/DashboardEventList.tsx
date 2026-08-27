@@ -28,7 +28,7 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
     return (
       <Empty className="rounded-none border border-border bg-card">
         <EmptyHeader>
-          <EmptyTitle className="font-sans text-base font-medium text-foreground">
+          <EmptyTitle className="font-sans text-base font-semibold text-foreground">
             {t("empty_title")}
           </EmptyTitle>
           <EmptyDescription className="font-sans text-sm leading-6 text-muted-foreground">
@@ -61,7 +61,7 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
             </ItemMedia>
             <ItemContent>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <ItemTitle className="font-sans text-sm font-medium text-foreground">
+                <ItemTitle className="font-sans text-sm font-semibold text-foreground">
                   {event.title}
                 </ItemTitle>
                 <span className="inline-flex items-center border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

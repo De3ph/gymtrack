@@ -50,7 +50,7 @@ export function TrainerProfileClient({
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="mb-8 text-2xl font-medium tracking-tight text-foreground">
+      <h1 className="mb-8 text-2xl font-semibold tracking-tight text-foreground">
         {t("title")}
       </h1>
 

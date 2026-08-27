@@ -124,7 +124,7 @@ export default function TrainerProfilePage() {
   if (!trainer) {
     return (
       <main className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
-        <p className="font-mono text-7xl font-normal leading-[1.05] tracking-[-0.04em] text-primary/20">
+        <p className="font-mono text-7xl font-medium leading-[1.05] tracking-[-0.04em] text-primary/20">
           404
         </p>
         <p className="max-w-sm text-muted-foreground">{t("not_found")}</p>
@@ -209,7 +209,7 @@ export default function TrainerProfilePage() {
 
               <motion.h1
                 variants={heroItem}
-                className="mt-3 font-mono text-5xl font-normal leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl"
+                className="mt-3 font-mono text-5xl font-semibold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl"
               >
                 {name}
               </motion.h1>
@@ -220,7 +220,7 @@ export default function TrainerProfilePage() {
               >
                 <span className="inline-flex items-center gap-2">
                   <Stars value={rating} />
-                  <span className="font-mono font-normal text-foreground">
+                  <span className="font-mono font-medium text-foreground">
                     {rating ? rating.toFixed(1) : "—"}
                   </span>
                   <span className="text-muted-foreground">
@@ -253,7 +253,7 @@ export default function TrainerProfilePage() {
             >
               <div className="relative">
                 <div className="flex h-32 w-32 items-center justify-center rounded-none border border-border bg-background sm:h-36 sm:w-36">
-                  <span className="font-mono text-4xl font-normal tracking-[-0.04em] text-foreground sm:text-5xl">
+                  <span className="font-mono text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">
                     {initials}
                   </span>
                 </div>
@@ -278,7 +278,7 @@ export default function TrainerProfilePage() {
           {/* About */}
           {trainer.trainerProfile?.bio && (
             <motion.section variants={sectionItem}>
-              <h2 className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+              <h2 className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                 {t("about")}
               </h2>
               <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground">
@@ -300,14 +300,14 @@ export default function TrainerProfilePage() {
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                   {tile.label}
                 </p>
-                <p className="mt-2 font-mono text-2xl font-normal tracking-tight text-foreground">
+                <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-foreground">
                   {tile.value ?? (
-                    <span className="text-base font-normal text-muted-foreground">
+                    <span className="text-base font-medium text-muted-foreground">
                       {t("not_set")}
                     </span>
                   )}
                   {tile.suffix && (
-                    <span className="ml-1 text-sm font-normal text-muted-foreground">
+                    <span className="ml-1 text-sm font-medium text-muted-foreground">
                       {tile.suffix}
                     </span>
                   )}
@@ -328,7 +328,7 @@ export default function TrainerProfilePage() {
                     <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                       {stripColon(row.label)}
                     </dt>
-                    <dd className="text-right text-sm font-normal text-foreground">
+                    <dd className="text-right text-sm font-medium text-foreground">
                       {row.value || (
                         <span className="text-muted-foreground">
                           {t("not_set")}
@@ -344,9 +344,9 @@ export default function TrainerProfilePage() {
           {/* Reviews */}
           <motion.section variants={sectionItem}>
             <div className="flex items-center justify-between gap-4">
-              <h2 className="font-mono text-2xl font-normal tracking-[-0.04em] text-foreground">
+              <h2 className="font-mono text-2xl font-semibold tracking-[-0.04em] text-foreground">
                 {t("reviews_title")}
-                <span className="ml-2 align-middle font-mono text-sm font-normal text-muted-foreground">
+                <span className="ml-2 align-middle font-mono text-sm font-medium text-muted-foreground">
                   {reviewCount}
                 </span>
               </h2>
@@ -415,7 +415,7 @@ export default function TrainerProfilePage() {
           <div className="space-y-5 lg:sticky lg:top-6">
             <Card className="rounded-none border border-border shadow-none ring-0">
               <div className="border-b border-border px-6 py-4">
-                <h2 className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+                <h2 className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   {t("availability_title")}
                 </h2>
               </div>
@@ -442,7 +442,7 @@ export default function TrainerProfilePage() {
                               {daySlots.map((slot) => (
                                 <span
                                   key={slot.availabilityId}
-                                  className="rounded-none border border-border px-2.5 py-1 font-mono text-xs font-normal text-foreground"
+                                  className="rounded-none border border-border px-2.5 py-1 font-mono text-xs font-medium text-foreground"
                                 >
                                   {formatTime(slot.startTime)} –{" "}
                                   {formatTime(slot.endTime)}

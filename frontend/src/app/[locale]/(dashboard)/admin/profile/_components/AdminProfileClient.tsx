@@ -150,7 +150,7 @@ export function AdminProfileClient() {
             <div>
               <label
                 htmlFor="oldPassword"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
+                className="mb-1.5 block text-sm font-semibold text-muted-foreground"
               >
                 Current Password
               </label>
@@ -167,7 +167,7 @@ export function AdminProfileClient() {
             <div>
               <label
                 htmlFor="newPassword"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
+                className="mb-1.5 block text-sm font-semibold text-muted-foreground"
               >
                 New Password
               </label>
@@ -184,7 +184,7 @@ export function AdminProfileClient() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
+                className="mb-1.5 block text-sm font-semibold text-muted-foreground"
               >
                 Confirm New Password
               </label>

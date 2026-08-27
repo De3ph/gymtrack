@@ -98,10 +98,10 @@ export default function RegisterPage() {
 
   return (
     <div className='rounded-none border border-border p-6 sm:p-8'>
-      <p className='font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground'>
+      <p className='font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
         Account
       </p>
-      <h2 className='mb-6 mt-2 font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground'>
+      <h2 className='mb-6 mt-2 font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground'>
         {t("title")}
       </h2>
 
@@ -445,7 +445,7 @@ export default function RegisterPage() {
           {t("has_account")}{" "}
           <a
             href={ROUTES.LOGIN}
-            className='font-mono text-xs font-normal uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary'
+            className='font-mono text-xs font-medium uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary'
           >
             {t("sign_in")}
           </a>

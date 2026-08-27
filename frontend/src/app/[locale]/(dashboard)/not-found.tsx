@@ -8,7 +8,7 @@ export default async function DashboardNotFound() {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
       <div className="space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">404</p>
+        <p className="text-sm font-semibold text-muted-foreground">404</p>
         <h2 className="text-2xl font-semibold tracking-tight">{t("errors.not_found")}</h2>
         <p className="text-sm text-muted-foreground">{t("errors.generic")}</p>
       </div>

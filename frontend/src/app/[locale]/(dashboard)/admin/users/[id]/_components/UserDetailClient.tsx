@@ -107,7 +107,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
             {(profile.name || detail.username).charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 className="font-sans text-2xl font-medium leading-tight">
+            <h1 className="font-sans text-2xl font-semibold leading-tight">
               {profile.name || detail.username}
             </h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -243,7 +243,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                   Change Role
                 </label>
                 <Dialog open={roleOpen} onOpenChange={setRoleOpen}>
-                  <DialogTrigger className="inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
+                  <DialogTrigger className="inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted">
                     <Shield className="size-3" />
                     {detail.role}
                   </DialogTrigger>
@@ -284,12 +284,12 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
 
               {/* Status Change */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">
+                <label className="text-xs font-semibold text-muted-foreground">
                   Account Status
                 </label>
                 <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
                   <DialogTrigger
-                    className={`inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted ${
+                    className={`inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-semibold hover:bg-muted ${
                       detail.status === "banned" ? "text-destructive" : "text-foreground"
                     }`}
                   >

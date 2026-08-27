@@ -127,7 +127,7 @@ export function WorkoutPlanForm({
         />
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("plan_name")}
             </label>
             <Input
@@ -135,12 +135,12 @@ export function WorkoutPlanForm({
               onChange={(e) => setName(e.target.value)}
               placeholder={t("exercise_name_placeholder")}
               required
-              className="h-11 border-transparent bg-muted/40 px-3 text-base font-medium focus-visible:border-primary/60 focus-visible:bg-background"
+              className="h-11 border-transparent bg-muted/40 px-3 text-base font-semibold focus-visible:border-primary/60 focus-visible:bg-background"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("description_label")}
             </label>
             <Textarea
@@ -166,7 +166,7 @@ export function WorkoutPlanForm({
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-heading text-sm font-bold tabular-nums text-primary">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="truncate font-medium">
+                <span className="truncate font-semibold">
                   {exercise.name ||
                     t("fallback_exercise_name", { index: index + 1 })}
                 </span>
@@ -194,7 +194,7 @@ export function WorkoutPlanForm({
               />
 
               <div className="space-y-2">
-                <div className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {exercise.sets.length} set
                   {exercise.sets.length === 1 ? "" : "s"}
                 </div>
@@ -207,7 +207,7 @@ export function WorkoutPlanForm({
               <Separator />
 
               <div className="space-y-2">
-                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {t("notes_placeholder")}
                 </label>
                 <Input

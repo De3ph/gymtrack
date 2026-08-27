@@ -78,7 +78,7 @@ export function WorkoutExerciseCard({
               <ChevronUp className="size-4" aria-hidden="true" />
             )}
           </Button>
-          <h3 className="truncate text-base font-medium text-foreground">
+          <h3 className="truncate text-base font-semibold text-foreground">
             {exercise.name ||
               t("exercise.fallback_name", { number: index + 1 })}
           </h3>

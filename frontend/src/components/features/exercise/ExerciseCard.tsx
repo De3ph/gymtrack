@@ -39,7 +39,7 @@ export function ExerciseCard({
   return (
     <div className={cn("flex flex-col border border-border", className)}>
       <header className="flex items-start justify-between gap-3 border-b border-border px-6 py-4">
-        <h3 className="text-base font-medium leading-tight text-foreground">
+        <h3 className="text-base font-semibold leading-tight text-foreground">
           {exercise.name}
         </h3>
         {onSelect && (
@@ -70,14 +70,14 @@ export function ExerciseCard({
       <div className="space-y-2 px-6 py-4 text-sm">
         <div className="text-muted-foreground">
           {t("card.category")}:{" "}
-          <span className="font-medium text-foreground capitalize">
+          <span className="font-semibold text-foreground capitalize">
             {exercise.category}
           </span>
         </div>
 
         {hasInstructions && (
           <div className="text-foreground">
-            <div className="mb-1 flex items-center gap-2 font-medium">
+            <div className="mb-1 flex items-center gap-2 font-semibold">
               <Info className="size-4" aria-hidden="true" />
               <span>{t("card.instructions")}:</span>
             </div>

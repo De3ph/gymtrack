@@ -53,7 +53,7 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
     <article className="border border-border">
       <header className="flex flex-row items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex flex-col">
-          <h3 className="text-base font-medium text-foreground">
+          <h3 className="text-base font-semibold text-foreground">
             {formatDate(workout.date, "MMMM D, YYYY")}
           </h3>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -92,7 +92,7 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
               aria-hidden="true"
             />
             <div className="min-w-0 flex-1">
-              <span className="font-medium text-foreground">{ex.name}:</span>{" "}
+              <span className="font-semibold text-foreground">{ex.name}:</span>{" "}
               <span className="text-muted-foreground">
                 {ex.sets && ex.sets.length > 0 ? (
                   <>

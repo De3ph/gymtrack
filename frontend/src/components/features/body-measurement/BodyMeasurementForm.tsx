@@ -392,7 +392,7 @@ export function BodyMeasurementForm({
                       <div className="flex items-center gap-2 min-w-0">
                         <label
                           htmlFor={`part-${part.key}`}
-                          className="text-sm font-medium w-24 shrink-0 truncate"
+                          className="text-sm font-semibold w-24 shrink-0 truncate"
                         >
                           {t(`parts.${part.labelKey}`)}
                         </label>

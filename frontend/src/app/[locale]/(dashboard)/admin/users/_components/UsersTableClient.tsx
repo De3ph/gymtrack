@@ -66,7 +66,7 @@ const columns = [
       <SortableHeader label="Username" column={column} />
     ),
     cell: (info) => (
-      <span className="font-medium">{info.getValue()}</span>
+      <span className="font-semibold">{info.getValue()}</span>
     ),
   }),
   columnHelper.accessor("email", {

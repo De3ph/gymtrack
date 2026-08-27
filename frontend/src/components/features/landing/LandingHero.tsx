@@ -19,7 +19,7 @@ export function LandingHero() {
       <motion.div className="max-w-5xl" variants={landingReveal}>
         <h1
           id="hero-heading"
-          className="text-balance font-mono text-[2.5rem] font-normal leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-[5.5rem]"
+          className="text-balance font-mono text-[2.5rem] font-medium leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-[5.5rem]"
         >
           {t("hero.title")}
         </h1>
@@ -83,7 +83,7 @@ export function LandingHero() {
                 />
                 <dt>{metric.label}</dt>
               </div>
-              <dd className="font-mono text-3xl font-normal tracking-tight text-foreground sm:text-4xl">
+              <dd className="font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 {metric.value}
               </dd>
             </div>

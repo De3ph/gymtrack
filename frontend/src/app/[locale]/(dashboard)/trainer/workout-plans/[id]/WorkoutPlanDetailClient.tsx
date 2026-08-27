@@ -56,7 +56,7 @@ export function WorkoutPlanDetailClient({
           <ArrowLeft className="size-3.5" aria-hidden="true" /> {tc("back")}
         </Button>
         <div>
-          <h1 className="text-2xl font-medium tracking-tight text-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {plan.name}
           </h1>
           {plan.description && (
@@ -106,7 +106,7 @@ export function WorkoutPlanDetailClient({
               <ul className="divide-y divide-border">
                 {plan.exercises.map((ex: WorkoutPlanExercise, i: number) => (
                   <li key={ex.exerciseId} className="space-y-1 px-4 py-3 sm:px-6 sm:py-4">
-                    <p className="text-base font-medium text-foreground">
+                    <p className="text-base font-semibold text-foreground">
                       {i + 1}. {ex.name}
                     </p>
                     <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

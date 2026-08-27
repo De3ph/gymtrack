@@ -23,7 +23,7 @@ export function LandingProof() {
           </p>
           <h2
             id="proof-heading"
-            className="mt-4 text-balance font-mono text-2xl font-normal leading-[1.1] tracking-[-0.04em] text-foreground sm:text-4xl"
+            className="mt-4 text-balance font-mono text-2xl font-semibold leading-[1.1] tracking-[-0.04em] text-foreground sm:text-4xl"
           >
             {t("proof.title")}
           </h2>
@@ -46,7 +46,7 @@ export function LandingProof() {
                 <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                   {row.label}
                 </dt>
-                <dd className="font-mono text-2xl font-normal tracking-tight text-foreground sm:text-3xl">
+                <dd className="font-mono text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   {row.value}
                 </dd>
               </div>

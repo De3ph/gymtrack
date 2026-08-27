@@ -67,7 +67,7 @@ export default function AthleteWorkoutPlansPage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div className="flex flex-col space-y-2">
-        <h1 className="font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
+        <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
           {t("title")}
         </h1>
       </div>
@@ -76,7 +76,7 @@ export default function AthleteWorkoutPlansPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-medium text-foreground">{t("own_plans")}</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t("own_plans")}</h2>
             <span className="font-mono text-xs text-muted-foreground">
               {t("limit_counter", { count: ownPlans.length })}
             </span>
@@ -117,7 +117,7 @@ export default function AthleteWorkoutPlansPage() {
 
       {/* Assigned by Trainer */}
       <section className="space-y-4">
-        <h2 className="text-xl font-medium text-foreground">{t("assigned_plans")}</h2>
+        <h2 className="text-xl font-semibold text-foreground">{t("assigned_plans")}</h2>
         <MyWorkoutPlans />
       </section>
 

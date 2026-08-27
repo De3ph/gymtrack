@@ -83,7 +83,7 @@ export function PlanSetInput({
     onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
-  const colLabel = "flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground";
+  const colLabel = "flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground";
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -109,7 +109,7 @@ export function PlanSetInput({
             key={set.id}
             className="group grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-4 rounded-lg border bg-background p-2 transition-colors hover:border-primary/40 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]"
           >
-            <span className="flex justify-start text-sm font-medium tabular-nums text-muted-foreground">
+            <span className="flex justify-start text-sm font-semibold tabular-nums text-muted-foreground">
               {String(index + 1).padStart(2, "0")}
             </span>
             <div className="flex justify-center">

@@ -135,7 +135,7 @@ export function EditMealDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-none border border-border shadow-none">
         <DialogHeader>
-          <DialogTitle className="font-mono text-xs uppercase tracking-[0.18em] text-foreground font-normal">{t("edit_dialog.title")}</DialogTitle>
+          <DialogTitle className="font-mono text-xs uppercase tracking-[0.18em] text-foreground font-medium">{t("edit_dialog.title")}</DialogTitle>
           <DialogDescription className="text-sm leading-6 text-muted-foreground">{t("edit_dialog.description")}</DialogDescription>
         </DialogHeader>
 

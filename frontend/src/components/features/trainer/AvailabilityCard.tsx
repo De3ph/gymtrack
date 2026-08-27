@@ -96,7 +96,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
           return (
             <div key={day} className="border-b border-border pb-4 last:border-0 last:pb-0">
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">
+                <h4 className="font-semibold">
                   {t(`common.date.${day.toLowerCase()}`)}
                 </h4>
                 <Button

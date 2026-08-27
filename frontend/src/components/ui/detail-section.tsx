@@ -9,7 +9,7 @@ export function DetailSection({ title, children }: DetailSectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-sm font-semibold">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">{children}</CardContent>
     </Card>

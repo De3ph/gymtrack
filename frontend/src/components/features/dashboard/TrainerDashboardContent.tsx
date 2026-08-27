@@ -39,7 +39,7 @@ function ClientRow({
         className="rounded-none border-0 border-b border-border last:border-b-0"
       >
         <ItemContent>
-          <ItemTitle className="font-sans text-sm font-medium text-foreground">
+          <ItemTitle className="font-sans text-sm font-semibold text-foreground">
             {client.athlete.profile.name || ""}
           </ItemTitle>
           <ItemDescription className="font-sans text-sm leading-6 text-muted-foreground">
@@ -96,7 +96,7 @@ export function TrainerDashboardContent() {
         <TodayClientList clients={todayFocusClients} />
         <div className="border border-border bg-card">
           <header className="border-b border-border px-6 py-4 sm:px-8">
-            <h2 className="font-sans text-base font-medium leading-tight text-foreground">
+            <h2 className="font-sans text-base font-semibold leading-tight text-foreground">
               {tTrainer("actions_title")}
             </h2>
             <p className="mt-1 font-sans text-sm leading-6 text-muted-foreground">
@@ -144,7 +144,7 @@ export function TrainerDashboardContent() {
               <EmptyMedia variant="icon" className="rounded-none border border-border bg-background">
                 <Users className="size-4 text-muted-foreground" aria-hidden="true" />
               </EmptyMedia>
-              <EmptyTitle className="font-sans text-base font-medium text-foreground">
+              <EmptyTitle className="font-sans text-base font-semibold text-foreground">
                 {tTrainer("no_clients_title")}
               </EmptyTitle>
               <EmptyDescription className="font-sans text-sm leading-6 text-muted-foreground">

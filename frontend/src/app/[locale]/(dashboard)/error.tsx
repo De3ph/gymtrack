@@ -20,7 +20,7 @@ export default function DashboardError({
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
       <div className="space-y-2">
-        <p className="text-sm font-medium text-destructive">{t("errors.unexpected_error")}</p>
+        <p className="text-sm font-semibold text-destructive">{t("errors.unexpected_error")}</p>
         <h2 className="text-2xl font-semibold tracking-tight">{t("errors.generic")}</h2>
         <p className="text-sm text-muted-foreground">{t("errors.server_error")}</p>
       </div>

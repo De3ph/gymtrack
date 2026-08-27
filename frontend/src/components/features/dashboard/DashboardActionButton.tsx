@@ -25,7 +25,7 @@ export function DashboardActionButton({
         {icon}
       </span>
       <span className="min-w-0">
-        <span className="block truncate font-sans text-sm font-medium leading-6 text-foreground">{label}</span>
+        <span className="block truncate font-sans text-sm font-semibold leading-6 text-foreground">{label}</span>
         <span className="block truncate font-sans text-xs leading-4 text-muted-foreground">{description}</span>
       </span>
     </Button>

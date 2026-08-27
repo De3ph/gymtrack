@@ -34,7 +34,7 @@ export function LandingRolePaths() {
         >
           <header className="flex items-baseline gap-4">
             <span
-              className="font-mono text-3xl font-normal text-foreground sm:text-4xl"
+              className="font-mono text-3xl font-semibold text-foreground sm:text-4xl"
               aria-hidden="true"
             >
               {role === "athlete" ? "A." : "T."}
@@ -44,7 +44,7 @@ export function LandingRolePaths() {
             </p>
           </header>
 
-          <h3 className="text-balance font-mono text-2xl font-normal leading-tight tracking-[-0.03em] text-foreground sm:text-3xl">
+          <h3 className="text-balance font-mono text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl">
             {t("role_paths." + role + ".title")}
           </h3>
 

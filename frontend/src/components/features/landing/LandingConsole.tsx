@@ -53,7 +53,7 @@ export function LandingConsole() {
             </p>
             <h2
               id="console-heading"
-              className="mt-2 font-mono text-2xl font-normal leading-tight tracking-[-0.03em] text-foreground sm:text-3xl"
+              className="mt-2 font-mono text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl"
             >
               {t("console.title")}
             </h2>
@@ -83,7 +83,7 @@ export function LandingConsole() {
               <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 {label}
               </dt>
-              <dd className="font-mono text-3xl font-normal tracking-tight text-foreground sm:text-5xl">
+              <dd className="font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
                 {value}
               </dd>
             </div>
@@ -127,7 +127,7 @@ export function LandingConsole() {
                 aria-hidden="true"
               />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-semibold text-foreground">
                   {t(item.titleKey)}
                 </p>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

@@ -66,7 +66,7 @@ export function LandingFeatureGrid() {
                   aria-hidden="true"
                 />
                 <div>
-                  <h3 className="text-base font-medium text-foreground">
+                  <h3 className="text-base font-semibold text-foreground">
                     {t(feature.titleKey)}
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">

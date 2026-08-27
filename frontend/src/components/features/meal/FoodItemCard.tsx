@@ -34,7 +34,7 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
         <Trash2 className="size-4" aria-hidden="true" />
       </Button>
       <CardHeader className="pb-2 px-6 pt-6 rounded-none">
-        <CardTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-normal">
+        <CardTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-medium">
           {t("form.food_item_title", { index: index + 1 })}
         </CardTitle>
       </CardHeader>

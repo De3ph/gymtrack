@@ -99,7 +99,7 @@ export function WorkoutPlanList({
                 <Fragment key={exercise.exerciseId}>
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-sm font-semibold truncate">
                         {exercise.name}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">

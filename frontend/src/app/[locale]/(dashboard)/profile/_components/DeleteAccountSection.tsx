@@ -68,7 +68,7 @@ export function DeleteAccountSection() {
           </AlertDialogHeader>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("password_label")}</label>
+            <label className="text-sm font-semibold">{t("password_label")}</label>
             <Input
               type="password"
               placeholder={t("password_placeholder")}

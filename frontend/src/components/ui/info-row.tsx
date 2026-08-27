@@ -14,7 +14,7 @@ export function InfoRow({ icon: Icon, label, value }: InfoRowProps) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="truncate text-sm font-medium">
+        <p className="truncate text-sm font-semibold">
           {value ?? <span className="italic text-muted-foreground/60">Not set</span>}
         </p>
       </div>

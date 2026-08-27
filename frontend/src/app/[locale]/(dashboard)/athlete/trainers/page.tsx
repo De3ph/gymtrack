@@ -98,10 +98,10 @@ export default function TrainerCatalogPage() {
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
       <header className="mb-8">
-        <p className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
           {t("eyebrow")}
         </p>
-        <h1 className="mt-2 font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground md:text-4xl">
+        <h1 className="mt-2 font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground md:text-4xl">
           {t("headline")}
         </h1>
         <p className="mt-2 max-w-xl text-muted-foreground">{t("subhead")}</p>
@@ -111,7 +111,7 @@ export default function TrainerCatalogPage() {
         <div className="flex-1 space-y-1.5">
           <Label
             htmlFor="specialization"
-            className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground"
+            className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground"
           >
             {t("specialization")}
           </Label>
@@ -129,7 +129,7 @@ export default function TrainerCatalogPage() {
         <div className="flex-1 space-y-1.5">
           <Label
             htmlFor="location"
-            className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground"
+            className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground"
           >
             {t("location")}
           </Label>
@@ -145,7 +145,7 @@ export default function TrainerCatalogPage() {
           />
         </div>
         <div className="w-full space-y-1.5 md:w-40">
-          <Label className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+          <Label className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
             {t("min_rating")}
           </Label>
           <Select
@@ -181,7 +181,7 @@ export default function TrainerCatalogPage() {
               })
             }
           />
-          <Label htmlFor="openOnly" className="text-sm font-normal text-foreground">
+          <Label htmlFor="openOnly" className="text-sm font-medium text-foreground">
             {t("open_only")}
           </Label>
         </div>

@@ -13,7 +13,7 @@ export function QuickActionsPanel() {
   return (
     <div className="border border-border bg-card">
       <header className="border-b border-border px-6 py-4 sm:px-8">
-        <h2 className="font-sans text-base font-medium leading-tight text-foreground">
+        <h2 className="font-sans text-base font-semibold leading-tight text-foreground">
           {tAthlete("quick_title")}
         </h2>
         <p className="mt-1 font-sans text-sm leading-6 text-muted-foreground">

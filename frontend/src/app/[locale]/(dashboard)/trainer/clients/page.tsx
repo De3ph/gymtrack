@@ -80,7 +80,7 @@ export default function TrainerClientsPage() {
     <div className="container mx-auto py-6">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-medium tracking-tight text-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             My Clients
           </h1>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

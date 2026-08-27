@@ -80,7 +80,7 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
         </div>
 
         {profile?.isAvailableForNewClients ? (
-          <span className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-accent bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-accent bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">
             <span className="h-1.5 w-1.5 rounded-none bg-accent" />
             {tCommon("status.available")}
           </span>

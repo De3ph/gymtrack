@@ -44,9 +44,9 @@ export function MealItem({ item }: MealItemProps) {
         <Utensils className="size-4 text-muted-foreground" aria-hidden="true" />
       </ItemMedia>
       <ItemContent>
-        <ItemTitle className="text-sm font-medium text-foreground">
+        <ItemTitle className="text-sm font-semibold text-foreground">
           {item.food}
-          <span className="font-normal text-muted-foreground">
+          <span className="font-medium text-muted-foreground">
             {" "}
             ({item.quantity})
           </span>

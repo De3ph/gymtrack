@@ -60,7 +60,7 @@ export default function LoginPage() {
         <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
           Account
         </p>
-        <h2 className="mt-2 font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
+        <h2 className="mt-2 font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
           {t("title")}
         </h2>
       </motion.div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
               <Field>
                 <FieldLabel
                   htmlFor="identifier"
-                  className="mb-2 font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground"
+                  className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground"
                 >
                   {t("email.label")}
                 </FieldLabel>
@@ -117,7 +117,7 @@ export default function LoginPage() {
                   id="identifier"
                  
                   placeholder={t("email.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-semibold text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
                 />
                 <FieldInfo field={field} />
               </Field>
@@ -144,7 +144,7 @@ export default function LoginPage() {
               <Field>
                 <FieldLabel
                   htmlFor="password"
-                  className="mb-2 font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground"
+                  className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground"
                 >
                   {t("password.label")}
                 </FieldLabel>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                   id="password"
                  
                   placeholder={t("password.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-semibold text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
                 />
                 <FieldInfo field={field} />
               </Field>
@@ -167,7 +167,7 @@ export default function LoginPage() {
         <motion.div variants={reveal} className="pt-1 text-right">
           <a
             href="#"
-            className="font-mono text-[11px] font-normal uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
+            className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
           >
             {t("forgot_password")}
           </a>
@@ -205,7 +205,7 @@ export default function LoginPage() {
           {t("no_account")}{" "}
           <a
             href={ROUTES.REGISTER}
-            className="font-mono text-xs font-normal uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary"
+            className="font-mono text-xs font-medium uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary"
           >
             {t("sign_up")}
           </a>

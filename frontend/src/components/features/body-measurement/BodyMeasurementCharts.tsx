@@ -205,7 +205,7 @@ export function BodyMeasurementCharts({
 
       <Card className={CARD_OVERRIDES}>
         <CardHeader className={CARD_HEADER_OVERRIDES}>
-          <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+          <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
             {t("weight_title")}
           </CardTitle>
         </CardHeader>
@@ -255,7 +255,7 @@ export function BodyMeasurementCharts({
       {chartData.some((d) => typeof d.bodyFatPct === "number") && (
         <Card className={CARD_OVERRIDES}>
           <CardHeader className={CARD_HEADER_OVERRIDES}>
-            <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+            <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t("body_fat_title")}
             </CardTitle>
           </CardHeader>
@@ -311,7 +311,7 @@ export function BodyMeasurementCharts({
       {availableParts.length > 0 && (
         <Card className={CARD_OVERRIDES}>
           <CardHeader className={CARD_HEADER_OVERRIDES}>
-            <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+            <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t("parts_title")}
             </CardTitle>
           </CardHeader>

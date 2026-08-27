@@ -29,7 +29,7 @@ export function DashboardShell({ eyebrow, title, description, children }: Dashbo
           <span className="inline-flex items-center border border-border bg-background px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {eyebrow}
           </span>
-          <h1 className="font-mono text-4xl font-normal leading-[1.05] tracking-[-0.04em] text-foreground sm:text-5xl">
+          <h1 className="font-mono text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-5xl">
             {title}
           </h1>
           <p className="max-w-2xl font-sans text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
@@ -62,7 +62,7 @@ export function DashboardMetric({ label, value, hint, className }: DashboardMetr
       <p className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-3 font-mono text-4xl font-normal leading-tight tracking-tight text-foreground">
+      <p className="mt-3 font-mono text-4xl font-semibold leading-tight tracking-tight text-foreground">
         {value}
       </p>
       {hint && <p className="mt-2 font-sans text-sm leading-6 text-muted-foreground">{hint}</p>}

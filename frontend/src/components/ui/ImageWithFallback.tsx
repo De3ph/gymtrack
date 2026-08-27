@@ -50,7 +50,7 @@ export function ImageWithFallback({
           {fallback ?? (
             <div className='flex flex-col items-center gap-2 text-muted-foreground'>
               <Dumbbell className='size-8 opacity-40' />
-              <span className='text-xs font-medium opacity-40'>{alt}</span>
+              <span className='text-xs font-semibold opacity-40'>{alt}</span>
             </div>
           )}
         </div>

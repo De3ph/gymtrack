@@ -25,7 +25,7 @@ export function CalendarGrid({ selectedDate, onSelect, mealDays }: CalendarGridP
           selected={selectedDate}
           onSelect={onSelect}
           modifiers={{ meal: mealDays.map((d) => dayjs(d).toDate()) }}
-          modifiersClassNames={{ meal: "font-medium text-primary underline" }}
+          modifiersClassNames={{ meal: "font-semibold text-primary underline" }}
           className="rounded-none border border-border"
         />
       </div>
