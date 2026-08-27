@@ -2,6 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { motion } from "motion/react";
+import { ArrowLeft, MapPin, Star } from "lucide-react";
 import dayjs from "dayjs";
 import { trainerCatalogApi, availabilityApi, reviewApi } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
@@ -10,16 +13,69 @@ import {
   TrainerAvailability,
   TrainerReview,
 } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { CreateReviewDialog } from "@/components/features/reviews/CreateReviewDialog";
 import { ReviewActions } from "@/components/features/reviews/ReviewActions";
 import { CoachingRequestDialog } from "@/components/features/coaching/CoachingRequestDialog";
+import {
+  trainerStagger,
+  trainerReveal,
+} from "@/components/features/trainer/trainer-detail-variants";
 import { DAYS_OF_WEEK } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
+const heroContainer = trainerStagger;
+const heroItem = trainerReveal;
+const sectionContainer = trainerStagger;
+const sectionItem = trainerReveal;
+
+function getInitials(name?: string): string {
+  if (!name?.trim()) return "?";
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function Stars({ value }: { value: number }) {
+  const full = Math.floor(value);
+  return (
+    <span className="inline-flex items-center" aria-label={`${value} out of 5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={cn(
+            "size-4",
+            i < full ? "fill-current text-amber-400" : "text-muted-foreground/30",
+          )}
+          aria-hidden="true"
+        />
+      ))}
+    </span>
+  );
+}
+
+function formatTime(time: string) {
+  const [hours, minutes] = time.split(":");
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+}
+
+const stripColon = (s: string) => s.replace(/:\s*$/, "");
+
 export default function TrainerProfilePage() {
-  const t = useTranslations();
+  const t = useTranslations("athlete.trainers.detail");
+  const tTrainers = useTranslations("athlete.trainers");
+  const tCatalog = useTranslations("trainer.catalog");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const trainerId = params.id as string;
 
@@ -57,204 +113,375 @@ export default function TrainerProfilePage() {
     };
   }, [refreshData]);
 
-  const renderStars = (rating: number) => {
-    return "★".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
-  };
-
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(":");
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
-  };
-
   if (loading) {
-    return <div className="container mx-auto py-8">{t('athlete.trainers.detail.loading')}</div>;
+    return (
+      <main className="flex min-h-[70vh] items-center justify-center px-6">
+        <Spinner className="size-6" />
+      </main>
+    );
   }
 
   if (!trainer) {
-    return <div className="container mx-auto py-8">{t('athlete.trainers.detail.not_found')}</div>;
+    return (
+      <main className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
+        <p className="font-mono text-7xl font-normal leading-[1.05] tracking-[-0.04em] text-primary/20">
+          404
+        </p>
+        <p className="max-w-sm text-muted-foreground">{t("not_found")}</p>
+        <Link
+          href="/athlete/trainers"
+          className={cn(
+            "inline-flex items-center gap-2 rounded-none border border-border px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] transition-colors hover:bg-muted",
+          )}
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          {tTrainers("title")}
+        </Link>
+      </main>
+    );
   }
 
+  const name = trainer.profile.name || trainer.email || "Trainer";
+  const initials = getInitials(trainer.profile.name || trainer.email);
+  const rating = trainer.averageRating || 0;
+  const reviewCount = trainer.reviewCount || 0;
+  const isAvailable = trainer.trainerProfile?.isAvailableForNewClients;
+  const hourlyRate = trainer.trainerProfile?.hourlyRate;
+  const yearsExp = trainer.trainerProfile?.yearsOfExperience;
+  const location = trainer.trainerProfile?.location;
+  const languages = trainer.trainerProfile?.languages;
+
+  const statTiles = [
+    {
+      label: stripColon(t("hourly_rate")),
+      value: hourlyRate ? `${tCatalog("currency_symbol")}${hourlyRate}` : null,
+      suffix: hourlyRate ? tTrainers("per_hour") : null,
+    },
+    {
+      label: stripColon(t("years_of_experience")),
+      value: yearsExp != null ? String(yearsExp) : null,
+      suffix: yearsExp != null ? tTrainers("years_exp") : null,
+    },
+    {
+      label: stripColon(t("location")),
+      value: location || null,
+      suffix: null,
+    },
+  ];
+
+  const defRows = [
+    { label: t("specializations"), value: trainer.profile.specializations },
+    { label: t("certifications"), value: trainer.profile.certifications },
+    {
+      label: t("languages"),
+      value: languages?.length ? languages.join(", ") : null,
+    },
+  ];
+
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-3xl">{trainer.profile.name}</CardTitle>
-              <p className="text-gray-500">{trainer.email}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-yellow-500 text-2xl">
-                    {renderStars(trainer.averageRating || 0)}
+    <main className="relative min-h-screen">
+      <div className="relative mx-auto max-w-6xl px-5 pt-6">
+        <Link
+          href="/athlete/trainers"
+          className="group inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
+          {tTrainers("eyebrow")}
+        </Link>
+      </div>
+
+      {/* ── HERO ────────────────────────────────────────── */}
+      <section className="relative mx-auto mt-5 max-w-6xl px-5">
+        <motion.div
+          variants={heroContainer}
+          initial="hidden"
+          animate="visible"
+          className="relative overflow-hidden rounded-none border border-border bg-card"
+        >
+          <div className="relative grid items-center gap-8 px-6 py-10 sm:grid-cols-[1fr_auto] sm:px-12 sm:py-14">
+            <div>
+              <motion.p
+                variants={heroItem}
+                className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+              >
+                {tCommon("status.available")}
+              </motion.p>
+
+              <motion.h1
+                variants={heroItem}
+                className="mt-3 font-mono text-5xl font-normal leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl"
+              >
+                {name}
+              </motion.h1>
+
+              <motion.div
+                variants={heroItem}
+                className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Stars value={rating} />
+                  <span className="font-mono font-normal text-foreground">
+                    {rating ? rating.toFixed(1) : "—"}
                   </span>
-                  <span className="text-gray-600">
-                    {trainer.averageRating?.toFixed(1) || "0"} (
-                    {t('athlete.trainers.detail.reviews_count', { count: trainer.reviewCount || 0 })}
+                  <span className="text-muted-foreground">
+                    ({reviewCount} {t("reviews_count", { count: reviewCount })})
+                  </span>
+                </span>
+                {location && (
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <MapPin className="size-4" aria-hidden="true" />
+                    {location}
+                  </span>
+                )}
+              </motion.div>
+
+              {isAvailable ? (
+                <motion.span
+                  variants={heroItem}
+                  className="mt-6 inline-flex items-center gap-2 rounded-none border border-accent/40 bg-accent/10 px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.18em] text-accent-foreground"
+                >
+                  <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
+                  {t("available")}
+                </motion.span>
+              ) : null}
+            </div>
+
+            {/* monogram */}
+            <motion.div
+              variants={heroItem}
+              className="flex justify-center sm:justify-end"
+            >
+              <div className="relative">
+                <div className="flex h-32 w-32 items-center justify-center rounded-none border border-border bg-background sm:h-36 sm:w-36">
+                  <span className="font-mono text-4xl font-normal tracking-[-0.04em] text-foreground sm:text-5xl">
+                    {initials}
                   </span>
                 </div>
+                {isAvailable ? (
+                  <span className="absolute bottom-2 right-2 size-1.5 rounded-full bg-accent" aria-hidden="true" />
+                ) : null}
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
 
-                {trainer.trainerProfile?.hourlyRate ? (
-                  <div>
-                    <span className="font-medium text-lg">{t('athlete.trainers.detail.hourly_rate')}</span>
-                    <span className="text-xl">
-                      ${trainer.trainerProfile.hourlyRate}
+      {/* ── CONTENT ────────────────────────────────────── */}
+      <motion.div
+        variants={sectionContainer}
+        initial="hidden"
+        animate="visible"
+        className="relative mx-auto grid max-w-6xl grid-cols-1 gap-8 px-5 py-10 lg:grid-cols-3"
+      >
+        {/* MAIN COLUMN */}
+        <div className="space-y-10 lg:col-span-2">
+          {/* About */}
+          {trainer.trainerProfile?.bio && (
+            <motion.section variants={sectionItem}>
+              <h2 className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+                {t("about")}
+              </h2>
+              <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground">
+                {trainer.trainerProfile.bio}
+              </p>
+            </motion.section>
+          )}
+
+          {/* Stat tiles */}
+          <motion.section
+            variants={sectionItem}
+            className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+          >
+            {statTiles.map((tile) => (
+              <div
+                key={tile.label}
+                className="rounded-none border border-border p-5"
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {tile.label}
+                </p>
+                <p className="mt-2 font-mono text-2xl font-normal tracking-tight text-foreground">
+                  {tile.value ?? (
+                    <span className="text-base font-normal text-muted-foreground">
+                      {t("not_set")}
                     </span>
-                  </div>
-                ) : null}
-
-                {trainer.trainerProfile?.bio ? (
-                  <div>
-                    <h3 className="font-medium mb-2">{t('athlete.trainers.detail.about')}</h3>
-                    <p className="text-gray-600">
-                      {trainer.trainerProfile.bio}
-                    </p>
-                  </div>
-                ) : null}
-
-                {trainer.profile.specializations ? (
-                  <div>
-                    <h3 className="font-medium mb-2">{t('athlete.trainers.detail.specializations')}</h3>
-                    <p className="text-gray-600">
-                      {trainer.profile.specializations}
-                    </p>
-                  </div>
-                ) : null}
-
-                {trainer.profile.certifications ? (
-                  <div>
-                    <h3 className="font-medium mb-2">{t('athlete.trainers.detail.certifications')}</h3>
-                    <p className="text-gray-600">
-                      {trainer.profile.certifications}
-                    </p>
-                  </div>
-                ) : null}
-
-                {trainer.trainerProfile?.yearsOfExperience ? (
-                  <div>
-                    <span className="font-medium">{t('athlete.trainers.detail.years_of_experience')}</span>
-                    {trainer.trainerProfile.yearsOfExperience}
-                  </div>
-                ) : null}
-
-                {trainer.trainerProfile?.location && (
-                  <div>
-                    <span className="font-medium">{t('athlete.trainers.detail.location')}</span>
-                    {trainer.trainerProfile.location}
-                  </div>
-                )}
+                  )}
+                  {tile.suffix && (
+                    <span className="ml-1 text-sm font-normal text-muted-foreground">
+                      {tile.suffix}
+                    </span>
+                  )}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </motion.section>
 
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>{t('athlete.trainers.detail.reviews_title')}</CardTitle>
-                {currentUserId && (
-                  <CreateReviewDialog
-                    trainerId={trainerId}
-                    trainerName={trainer.profile.name}
-                    onReviewCreated={refreshData}
+          {/* Definition rows */}
+          <motion.section variants={sectionItem}>
+            <Card className="rounded-none border border-border shadow-none ring-0">
+              <dl className="divide-y divide-border">
+                {defRows.map((row) => (
+                  <div
+                    key={row.label}
+                    className="flex items-start justify-between gap-6 px-6 py-4"
                   >
-                    <Button variant="outline" size="sm">
-                      {t('athlete.trainers.detail.write_review')}
-                    </Button>
-                  </CreateReviewDialog>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {reviews.length === 0 ? (
-                <p className="text-gray-500">{t('athlete.trainers.detail.no_reviews')}</p>
-              ) : (
-                <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <div
-                      key={review.reviewId}
-                      className="border-b pb-4 last:border-0"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-yellow-500">
-                              {renderStars(review.rating)}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {dayjs(review.createdAt).format("MMM D, YYYY")}
-                            </span>
-                          </div>
-                          {review.comment && (
-                            <p className="text-gray-600">{review.comment}</p>
-                          )}
+                    <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      {stripColon(row.label)}
+                    </dt>
+                    <dd className="text-right text-sm font-normal text-foreground">
+                      {row.value || (
+                        <span className="text-muted-foreground">
+                          {t("not_set")}
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+          </motion.section>
+
+          {/* Reviews */}
+          <motion.section variants={sectionItem}>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="font-mono text-2xl font-normal tracking-[-0.04em] text-foreground">
+                {t("reviews_title")}
+                <span className="ml-2 align-middle font-mono text-sm font-normal text-muted-foreground">
+                  {reviewCount}
+                </span>
+              </h2>
+              {currentUserId && (
+                <CreateReviewDialog
+                  trainerId={trainerId}
+                  trainerName={name}
+                  onReviewCreated={refreshData}
+                >
+                  <Button variant="outline" size="sm">
+                    {t("write_review")}
+                  </Button>
+                </CreateReviewDialog>
+              )}
+            </div>
+
+            {reviews.length === 0 ? (
+              <p className="mt-4 rounded-none border border-border px-6 py-10 text-center text-muted-foreground">
+                {t("no_reviews")}
+              </p>
+            ) : (
+              <motion.ul
+                variants={sectionContainer}
+                initial="hidden"
+                animate="visible"
+                className="mt-5 space-y-4"
+              >
+                {reviews.map((review) => (
+                  <motion.li
+                    key={review.reviewId}
+                    variants={sectionItem}
+                    className="rounded-none border border-border bg-card p-6"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Stars value={review.rating} />
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {dayjs(review.createdAt).format("MMM D, YYYY")}
+                          </span>
                         </div>
-                        {currentUserId && (
-                          <ReviewActions
-                            review={review}
-                            trainerId={trainerId}
-                            currentUserId={currentUserId}
-                            onReviewUpdated={refreshData}
-                          />
+                        {review.comment && (
+                          <p className="mt-3 leading-relaxed text-foreground/90">
+                            {review.comment}
+                          </p>
                         )}
                       </div>
+                      {currentUserId && (
+                        <ReviewActions
+                          review={review}
+                          trainerId={trainerId}
+                          currentUserId={currentUserId}
+                          onReviewUpdated={refreshData}
+                        />
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            )}
+          </motion.section>
         </div>
 
-        <div>
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle>{t('athlete.trainers.detail.availability_title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {availability.length === 0 ? (
-                <p className="text-gray-500">{t('athlete.trainers.detail.no_availability')}</p>
-              ) : (
-                <div className="space-y-3">
-                  {DAYS_OF_WEEK.map((day, index) => {
-                    const daySlots = availability.filter(
-                      (s) => s.dayOfWeek === index,
-                    );
-                    if (daySlots.length === 0) return null;
-
-                    return (
-                      <div key={day}>
-                        <h4 className="font-medium text-sm">{t(`common.date.${day.toLowerCase()}`)}</h4>
-                        <div className="text-sm text-gray-600">
-                          {daySlots.map((slot) => (
-                            <div key={slot.availabilityId}>
-                              {formatTime(slot.startTime)} -{" "}
-                              {formatTime(slot.endTime)}
+        {/* SIDEBAR */}
+        <aside className="lg:col-span-1">
+          <div className="space-y-5 lg:sticky lg:top-6">
+            <Card className="rounded-none border border-border shadow-none ring-0">
+              <div className="border-b border-border px-6 py-4">
+                <h2 className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("availability_title")}
+                </h2>
+              </div>
+              <div className="px-6 py-5">
+                {availability.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("no_availability")}
+                  </p>
+                ) : (
+                  <ul className="space-y-4">
+                    {DAYS_OF_WEEK.map((day, index) => {
+                      const daySlots = availability.filter(
+                        (s) => s.dayOfWeek === index,
+                      );
+                      if (daySlots.length === 0) return null;
+                      return (
+                        <li key={day} className="flex items-start gap-3">
+                          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                          <div className="flex-1">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                              {t(`common.date.${day.toLowerCase()}`)}
+                            </p>
+                            <div className="mt-1.5 flex flex-wrap gap-2">
+                              {daySlots.map((slot) => (
+                                <span
+                                  key={slot.availabilityId}
+                                  className="rounded-none border border-border px-2.5 py-1 font-mono text-xs font-normal text-foreground"
+                                >
+                                  {formatTime(slot.startTime)} –{" "}
+                                  {formatTime(slot.endTime)}
+                                </span>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </Card>
 
-          {currentUserId && trainer && (
-            <CoachingRequestDialog
-              trainerId={trainerId}
-              trainerName={trainer.profile.name}
-              onRequestSent={refreshData}
-            >
-              <Button className="w-full mt-4">{t('athlete.trainers.detail.request_coaching')}</Button>
-            </CoachingRequestDialog>
-          )}
-        </div>
-      </div>
-    </div>
+            {currentUserId && trainer && (
+              <>
+                <CoachingRequestDialog
+                  trainerId={trainerId}
+                  trainerName={name}
+                  onRequestSent={refreshData}
+                >
+                  <Button className="w-full">{t("request_coaching")}</Button>
+                </CoachingRequestDialog>
+
+                <CreateReviewDialog
+                  trainerId={trainerId}
+                  trainerName={name}
+                  onReviewCreated={refreshData}
+                >
+                  <Button variant="outline" className="w-full">
+                    {t("write_review")}
+                  </Button>
+                </CreateReviewDialog>
+              </>
+            )}
+          </div>
+        </aside>
+      </motion.div>
+    </main>
   );
 }

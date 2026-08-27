@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/pagination";
 import { bodyMeasurementApi } from "@/lib/api";
 import { PAGINATION } from "@/lib/constants";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle
+} from "@/components/ui/empty";
 import { useTranslations } from "next-intl";
 import { BodyMeasurement } from "@/types";
 import { useMeasurementListStore } from "@/stores/measurement-list-store";
@@ -109,7 +115,12 @@ export function BodyMeasurementList({
   };
 
   if (isLoading && isSelfFetching) {
-    return <div>{t("loading")}</div>;
+    return (
+      <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
+        <Spinner />
+        {t("loading")}
+      </div>
+    );
   }
 
   const measurements = propMeasurements || data?.measurements || [];
@@ -128,9 +139,13 @@ export function BodyMeasurementList({
     return (
       <div className="space-y-4">
         {filterBar}
-        <div className="text-center p-8 text-muted-foreground">
-          {t("no_measurements")}
-        </div>
+        <Empty className="rounded-none border border-border">
+          <EmptyHeader>
+            <EmptyTitle className="font-mono text-xs uppercase tracking-[0.18em]">
+              {t("no_measurements")}
+            </EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       </div>
     );
   }

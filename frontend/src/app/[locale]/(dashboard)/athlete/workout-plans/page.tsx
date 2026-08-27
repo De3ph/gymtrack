@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,6 +21,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { STALE_TIMES } from "@/lib/api/api-constants";
+import { Spinner } from "@/components/ui/spinner";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 
 const PLAN_LIMIT = 3;
 
@@ -65,21 +67,22 @@ export default function AthleteWorkoutPlansPage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("description")}</p>
+        <h1 className="font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
+          {t("title")}
+        </h1>
       </div>
 
       {/* My Plans */}
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold">{t("own_plans")}</h2>
-            <span className="text-sm text-muted-foreground">
+            <h2 className="text-xl font-medium text-foreground">{t("own_plans")}</h2>
+            <span className="font-mono text-xs text-muted-foreground">
               {t("limit_counter", { count: ownPlans.length })}
             </span>
           </div>
           <Button onClick={() => setShowCreateForm(true)} disabled={limitReached}>
-            <Plus className="mr-2 h-4 w-4" /> {t("create")}
+            <Plus className="size-3.5" /> {t("create")}
           </Button>
         </div>
         {limitReached && (
@@ -87,12 +90,16 @@ export default function AthleteWorkoutPlansPage() {
         )}
         {ownLoading ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <Spinner />
           </div>
         ) : ownPlans.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            {t("no_plans")}
-          </div>
+          <Empty className="rounded-none border border-border p-8">
+            <EmptyHeader>
+              <EmptyTitle className="font-mono text-base uppercase tracking-[0.18em]">
+                {t("no_plans")}
+              </EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {ownPlans.map((plan) => (
@@ -110,7 +117,7 @@ export default function AthleteWorkoutPlansPage() {
 
       {/* Assigned by Trainer */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">{t("assigned_plans")}</h2>
+        <h2 className="text-xl font-medium text-foreground">{t("assigned_plans")}</h2>
         <MyWorkoutPlans />
       </section>
 
@@ -138,7 +145,7 @@ export default function AthleteWorkoutPlansPage() {
           if (!open) setDeletingPlan(null);
         }}
       >
-        <DialogContent>
+        <DialogContent className="rounded-none border border-border shadow-none">
           <DialogHeader>
             <DialogTitle>{t("delete")}</DialogTitle>
           </DialogHeader>

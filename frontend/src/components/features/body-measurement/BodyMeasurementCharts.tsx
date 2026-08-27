@@ -7,8 +7,6 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis
 } from "recharts";
@@ -19,6 +17,19 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig
+} from "@/components/ui/chart";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle
+} from "@/components/ui/empty";
 import { bodyMeasurementApi } from "@/lib/api";
 import { BODY_PARTS, PAGINATION } from "@/lib/constants";
 import { useTranslations } from "next-intl";
@@ -56,6 +67,12 @@ interface ChartDataPoint {
 }
 
 const EMPTY_FILTER: BodyMeasurementFilter = {};
+
+/** DESIGN.md §5.2 — strip Card's rounded-xl/shadow/ring defaults */
+const CARD_OVERRIDES = "rounded-none border border-border shadow-none ring-0";
+const CARD_HEADER_OVERRIDES =
+  "rounded-none border-b border-border px-6 py-4 sm:px-8";
+const CARD_CONTENT_OVERRIDES = "rounded-none px-6 py-6 sm:px-8";
 
 export function BodyMeasurementCharts({
   measurements: propMeasurements,
@@ -142,7 +159,12 @@ export function BodyMeasurementCharts({
   );
 
   if (isLoading && isSelfFetching) {
-    return <div>{t("loading")}</div>;
+    return (
+      <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
+        <Spinner />
+        {t("loading")}
+      </div>
+    );
   }
 
   const filterBar = isSelfFetching ? (
@@ -156,21 +178,42 @@ export function BodyMeasurementCharts({
     return (
       <div className="space-y-4">
         {filterBar}
-        <div className="text-center p-8 text-muted-foreground">{t("no_data")}</div>
+        <Empty className="rounded-none border border-border">
+          <EmptyHeader>
+            <EmptyTitle className="font-mono text-xs uppercase tracking-[0.18em]">
+              {t("no_data")}
+            </EmptyTitle>
+            <EmptyDescription>
+              {t("weight_label")} · {t("body_fat_label")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     );
   }
+
+  const weightConfig = {
+    weight: {
+      label: `${t("weight_label")} (kg)`,
+      color: "var(--chart-1)",
+    },
+  } satisfies ChartConfig;
 
   return (
     <div className="space-y-6">
       {filterBar}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t("weight_title")}</CardTitle>
+      <Card className={CARD_OVERRIDES}>
+        <CardHeader className={CARD_HEADER_OVERRIDES}>
+          <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+            {t("weight_title")}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
+        <CardContent className={CARD_CONTENT_OVERRIDES}>
+          <ChartContainer
+            config={weightConfig}
+            className="aspect-auto h-[280px] w-full"
+          >
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -184,9 +227,15 @@ export function BodyMeasurementCharts({
                   style: { fontSize: 12 }
                 }}
               />
-              <Tooltip
-                formatter={(value) =>
-                  typeof value === "number" ? `${value.toFixed(1)} kg` : value
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) =>
+                      typeof value === "number"
+                        ? `${value.toFixed(1)} kg`
+                        : String(value)
+                    }
+                  />
                 }
               />
               <Line
@@ -199,17 +248,27 @@ export function BodyMeasurementCharts({
                 name={t("weight_label")}
               />
             </LineChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </CardContent>
       </Card>
 
       {chartData.some((d) => typeof d.bodyFatPct === "number") && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t("body_fat_title")}</CardTitle>
+        <Card className={CARD_OVERRIDES}>
+          <CardHeader className={CARD_HEADER_OVERRIDES}>
+            <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+              {t("body_fat_title")}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
+          <CardContent className={CARD_CONTENT_OVERRIDES}>
+            <ChartContainer
+              config={{
+                bodyFatPct: {
+                  label: `${t("body_fat_label")} (%)`,
+                  color: "var(--chart-2)",
+                },
+              }}
+              className="aspect-auto h-[240px] w-full"
+            >
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -223,9 +282,15 @@ export function BodyMeasurementCharts({
                     style: { fontSize: 12 }
                   }}
                 />
-                <Tooltip
-                  formatter={(value) =>
-                    typeof value === "number" ? `${value.toFixed(1)}%` : value
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) =>
+                        typeof value === "number"
+                          ? `${value.toFixed(1)}%`
+                          : String(value)
+                      }
+                    />
                   }
                 />
                 <Line
@@ -238,18 +303,31 @@ export function BodyMeasurementCharts({
                   name={t("body_fat_label")}
                 />
               </LineChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       )}
 
       {availableParts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t("parts_title")}</CardTitle>
+        <Card className={CARD_OVERRIDES}>
+          <CardHeader className={CARD_HEADER_OVERRIDES}>
+            <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+              {t("parts_title")}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={320}>
+          <CardContent className={CARD_CONTENT_OVERRIDES}>
+            <ChartContainer
+              config={Object.fromEntries(
+                availableParts.map((part, idx) => [
+                  part.key,
+                  {
+                    label: `${tParts(part.labelKey)} (cm)`,
+                    color: COLORS[idx % COLORS.length],
+                  },
+                ]),
+              )}
+              className="aspect-auto h-[320px] w-full"
+            >
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -263,7 +341,15 @@ export function BodyMeasurementCharts({
                     style: { fontSize: 12 }
                   }}
                 />
-                <Tooltip formatter={(v) => (typeof v === "number" ? `${v} cm` : v)} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) =>
+                        typeof value === "number" ? `${value} cm` : String(value)
+                      }
+                    />
+                  }
+                />
                 {availableParts.map((part, idx) => (
                   <Line
                     key={part.key}
@@ -277,7 +363,7 @@ export function BodyMeasurementCharts({
                   />
                 ))}
               </LineChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       )}

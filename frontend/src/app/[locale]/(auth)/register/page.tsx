@@ -8,6 +8,9 @@ import { useRef, useEffect, useState } from "react"
 import { useForm } from "@tanstack/react-form"
 import { ROUTES } from "@/lib/routes"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Spinner } from "@/components/ui/spinner"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { FieldInfo } from "@/components/ui/form-field"
 import { useTranslations } from "next-intl"
@@ -94,13 +97,19 @@ export default function RegisterPage() {
   }, [form])
 
   return (
-    <div className='rounded-lg bg-card p-8 shadow-xl'>
-      <h2 className='mb-6 text-2xl font-semibold text-card-foreground'>
+    <div className='rounded-none border border-border p-6 sm:p-8'>
+      <p className='font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground'>
+        Account
+      </p>
+      <h2 className='mb-6 mt-2 font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground'>
         {t("title")}
       </h2>
 
       {error && (
-        <div className='mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive'>
+        <div
+          role='alert'
+          className='mb-4 rounded-none border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive'
+        >
           {error}
         </div>
       )}
@@ -136,7 +145,6 @@ export default function RegisterPage() {
                 type='text'
                 id='username'
                 placeholder={t("username.placeholder")}
-                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -167,7 +175,6 @@ export default function RegisterPage() {
                 type='email'
                 id='email'
                 placeholder={t("email.placeholder")}
-                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -198,7 +205,6 @@ export default function RegisterPage() {
                 type='password'
                 id='password'
                 placeholder={t("password.placeholder")}
-                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -232,7 +238,6 @@ export default function RegisterPage() {
                 type='password'
                 id='confirmPassword'
                 placeholder={t("confirm_password.placeholder")}
-                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -243,30 +248,30 @@ export default function RegisterPage() {
           {(field) => (
             <Field>
               <FieldLabel>{t("role.label")}</FieldLabel>
-              <div className='flex gap-4'>
-                <label
-                  className='flex items-center'
-                  onClick={() => field.handleChange("athlete")}
-                >
+              <div className='flex gap-6'>
+                <label className='flex cursor-pointer items-center gap-2'>
                   <input
                     type='radio'
+                    name='role'
                     checked={field.state.value === "athlete"}
                     onChange={() => field.handleChange("athlete")}
-                    className='mr-2'
+                    className='accent-primary'
                   />
-                  <span className='text-foreground'>{t("role.athlete")}</span>
+                  <span className='text-sm text-foreground'>
+                    {t("role.athlete")}
+                  </span>
                 </label>
-                <label
-                  className='flex items-center'
-                  onClick={() => field.handleChange("trainer")}
-                >
+                <label className='flex cursor-pointer items-center gap-2'>
                   <input
                     type='radio'
+                    name='role'
                     checked={field.state.value === "trainer"}
                     onChange={() => field.handleChange("trainer")}
-                    className='mr-2'
+                    className='accent-primary'
                   />
-                  <span className='text-foreground'>{t("role.trainer")}</span>
+                  <span className='text-sm text-foreground'>
+                    {t("role.trainer")}
+                  </span>
                 </label>
               </div>
             </Field>
@@ -294,7 +299,6 @@ export default function RegisterPage() {
                 type='text'
                 id='name'
                 placeholder={t("name.placeholder")}
-                className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
               />
               <FieldInfo field={field} />
             </Field>
@@ -320,7 +324,6 @@ export default function RegisterPage() {
                             type='number'
                             id='age'
                             placeholder={t("age.placeholder")}
-                            className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                           />
                         </Field>
                       )}
@@ -338,7 +341,6 @@ export default function RegisterPage() {
                             type='number'
                             id='weight'
                             placeholder={t("weight.placeholder")}
-                            className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                           />
                         </Field>
                       )}
@@ -358,7 +360,6 @@ export default function RegisterPage() {
                           type='number'
                           id='height'
                           placeholder={t("height.placeholder")}
-                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                         />
                       </Field>
                     )}
@@ -370,14 +371,13 @@ export default function RegisterPage() {
                         <FieldLabel htmlFor='fitnessGoals'>
                           {t("fitness_goals.label")}
                         </FieldLabel>
-                        <textarea
+                        <Textarea
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           id='fitnessGoals'
                           placeholder={t("fitness_goals.placeholder")}
                           rows={3}
-                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                         />
                       </Field>
                     )}
@@ -400,7 +400,6 @@ export default function RegisterPage() {
                           type='text'
                           id='certifications'
                           placeholder={t("certifications.placeholder")}
-                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                         />
                       </Field>
                     )}
@@ -419,7 +418,6 @@ export default function RegisterPage() {
                           type='text'
                           id='specializations'
                           placeholder={t("specializations.placeholder")}
-                          className='mt-1 block w-full rounded-md border border-input px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-ring'
                         />
                       </Field>
                     )}
@@ -429,19 +427,25 @@ export default function RegisterPage() {
             </>
           )}
         </form.Subscribe>
-        <button
+        <Button
           type='submit'
           disabled={isLoading}
-          className='w-full rounded-md bg-primary px-4 py-2 text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+          className='w-full rounded-none px-4 py-2 font-mono text-xs uppercase tracking-[0.18em]'
         >
-          {isLoading ? t("submitting") : t("submit")}
-        </button>
+          {isLoading ? (
+            <>
+              <Spinner /> {t("submitting")}
+            </>
+          ) : (
+            t("submit")
+          )}
+        </Button>
 
         <p className='mt-4 text-center text-sm text-muted-foreground'>
           {t("has_account")}{" "}
           <a
             href={ROUTES.LOGIN}
-            className='font-medium text-primary hover:text-primary/80'
+            className='font-mono text-xs font-normal uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary'
           >
             {t("sign_in")}
           </a>

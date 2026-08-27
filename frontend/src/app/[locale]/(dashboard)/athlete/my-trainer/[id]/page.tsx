@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { relationshipApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { ArrowLeft } from "lucide-react";
 import { RelationshipDetailsCard } from "@/components/features/trainer/RelationshipDetailsCard";
 import { MyTrainerProfile } from "@/components/features/trainer/MyTrainerProfile";
@@ -30,7 +31,9 @@ export default function TrainerDetailPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">{t('loading')}</div>
+        <div className="flex justify-center py-8">
+          <Spinner />
+        </div>
       </div>
     );
   }
@@ -42,7 +45,7 @@ export default function TrainerDetailPage() {
   ) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-red-600">
+        <div className="text-center text-destructive">
           {t('not_found_or_access')}
         </div>
       </div>
@@ -60,7 +63,7 @@ export default function TrainerDetailPage() {
           {tc('back')}
         </Button>
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
           {t('title')}
         </h1>
       </div>

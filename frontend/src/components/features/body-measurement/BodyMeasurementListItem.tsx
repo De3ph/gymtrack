@@ -11,14 +11,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { TIME_LIMITS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { BodyMeasurement } from "@/types";
@@ -62,15 +56,16 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
     : null;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+    // DESIGN.md §10.1 — hairline panel, no Card primitive
+    <div className="border border-border">
+      <div className="flex flex-row items-start justify-between gap-4 border-b border-border px-6 py-4 sm:px-8">
         <div className="flex flex-col">
-          <CardTitle className="text-base font-semibold">
+          <span className="font-mono text-sm text-foreground">
             {formatDate(measurement.date, "MMMM D, YYYY")}
-          </CardTitle>
-          <CardDescription>
+          </span>
+          <span className="text-xs text-muted-foreground">
             {formatDate(measurement.date, "HH:mm")}
-          </CardDescription>
+          </span>
         </div>
         {!readOnly && isEditableWithinWindow(measurement) && (
           <div className="flex space-x-1">
@@ -80,7 +75,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
               onClick={() => onEdit?.(measurement)}
               aria-label={tCommon("edit")}
             >
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className="size-4" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
@@ -88,62 +83,79 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
               onClick={() => onDelete?.(measurement)}
               aria-label={tCommon("delete")}
             >
-              <Trash2 className="h-4 w-4 text-destructive" />
+              <Trash2 className="size-4 text-destructive" aria-hidden="true" />
             </Button>
           </div>
         )}
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </div>
+      <div className="space-y-3 px-6 py-4 sm:px-8">
         <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="secondary" className="text-sm">
-            <Ruler className="mr-1 h-3 w-3" />
-            {t("weight", {
-              value: measurement.weight.toFixed(1),
-              unit: measurement.weightUnit
-            })}
+          <Badge
+            variant="secondary"
+            className="h-auto rounded-none px-3 py-1.5 text-sm font-normal"
+          >
+            <Ruler className="mr-1 size-3" aria-hidden="true" />
+            <span className="font-mono">
+              {t("weight", {
+                value: measurement.weight.toFixed(1),
+                unit: measurement.weightUnit
+              })}
+            </span>
           </Badge>
           {weightChange && (
             <span
-              className={`text-xs flex items-center ${
-                weightChange.up ? "text-emerald-600" : "text-rose-600"
+              className={`flex items-center font-mono text-xs ${
+                weightChange.up ? "text-foreground" : "text-muted-foreground"
               }`}
             >
               {weightChange.up ? (
-                <TrendingUp className="mr-1 h-3 w-3" />
+                <TrendingUp className="mr-1 size-3" aria-hidden="true" />
               ) : (
-                <TrendingDown className="mr-1 h-3 w-3" />
+                <TrendingDown className="mr-1 size-3" aria-hidden="true" />
               )}
-              {weightChange.text} {t("vs_previous")}
+              {weightChange.text}
+              <span className="ml-1 text-muted-foreground">
+                {t("vs_previous")}
+              </span>
             </span>
           )}
           {typeof measurement.bodyFatPct === "number" &&
             measurement.bodyFatPct > 0 && (
-              <Badge variant="outline" className="text-sm">
+              <Badge
+                variant="outline"
+                className="h-auto rounded-none px-3 py-1.5 font-mono text-sm font-normal"
+              >
                 {t("body_fat", { value: measurement.bodyFatPct.toFixed(1) })}
               </Badge>
             )}
         </div>
         {measurement.parts && Object.keys(measurement.parts).length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 pt-2 border-t">
-            {Object.entries(measurement.parts).map(([key, part]) => (
-              <div
-                key={key}
-                className="flex items-center justify-between text-sm"
-              >
-                <span className="text-muted-foreground">
-                  {t(`part_labels.${key}`, { defaultValue: key })}
-                </span>
-                <span className="font-medium">{part.value} cm</span>
-              </div>
-            ))}
-          </div>
+          <>
+            <Separator />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {Object.entries(measurement.parts).map(([key, part]) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="text-muted-foreground">
+                    {t(`part_labels.${key}`, { defaultValue: key })}
+                  </span>
+                  <span className="font-mono">{part.value} cm</span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
         {measurement.notes && (
-          <div className="text-sm text-muted-foreground italic border-t pt-2">
-            &ldquo;{measurement.notes}&rdquo;
-          </div>
+          <>
+            <Separator />
+            <div className="text-sm text-muted-foreground">
+              &ldquo;{measurement.notes}&rdquo;
+            </div>
+          </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 })

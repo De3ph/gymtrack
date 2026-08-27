@@ -30,9 +30,9 @@ export function BodyMeasurementFilterBar({
   );
 
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 p-3 rounded-md border bg-card">
-      <div className="flex items-center gap-2 h-10 text-sm font-medium text-muted-foreground sm:self-end">
-        <Filter className="h-4 w-4" />
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 rounded-none border border-border p-4">
+      <div className="flex items-center gap-2 h-10 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:self-end">
+        <Filter className="size-4" aria-hidden="true" />
         <span>{t("label")}</span>
       </div>
       <div className="flex flex-col space-y-1 flex-1 sm:max-w-[180px]">
@@ -77,7 +77,7 @@ export function BodyMeasurementFilterBar({
             size="sm"
             onClick={() => clear(EMPTY_FILTER)}
           >
-            <X className="mr-1 h-4 w-4" />
+            <X className="mr-1 size-4" aria-hidden="true" />
             {t("clear")}
           </Button>
         )}

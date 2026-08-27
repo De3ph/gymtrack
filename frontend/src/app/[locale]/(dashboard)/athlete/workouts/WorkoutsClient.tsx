@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -15,7 +15,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
-import { Workout, WorkoutExercise } from "@/types";
+import { Workout } from "@/types";
 
 interface WorkoutsClientProps {
   initialWorkout?: Workout;
@@ -29,8 +29,23 @@ export function WorkoutsClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("log");
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam === "list" || tabParam === "calendar" ? tabParam : "log";
   const t = useTranslations("athlete.workouts");
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value === "log") {
+        params.delete("tab");
+      } else {
+        params.set("tab", value);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const handleClear = () => {
     if (planId) {
@@ -43,14 +58,15 @@ export function WorkoutsClient({
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <h1 className="font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
+          {t("title")}
+        </h1>
         <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       <Tabs
-        defaultValue="log"
         className="w-full"
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
         value={activeTab}
       >
         <TabsList className="grid w-full grid-cols-3 mb-2" variant="line">
@@ -61,16 +77,18 @@ export function WorkoutsClient({
 
         <TabsContent value="log">
           <div className="max-w-2xl">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("card_title")}</CardTitle>
+            <Card className="rounded-none border border-border shadow-none ring-0">
+              <CardHeader className="rounded-none border-b border-border">
+                <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("card_title")}
+                </CardTitle>
                 <CardDescription>{t("card_description")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <WorkoutForm
                   key={planId || "default"}
                   workout={initialWorkout}
-                  onSuccess={() => setActiveTab("list")}
+                  onSuccess={() => handleTabChange("list")}
                   onClear={handleClear}
                 />
               </CardContent>

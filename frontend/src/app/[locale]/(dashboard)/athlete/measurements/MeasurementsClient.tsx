@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import {
   Card,
@@ -32,7 +33,12 @@ interface MeasurementsClientProps {
 }
 
 export function MeasurementsClient({ latest }: MeasurementsClientProps) {
-  const [activeTab, setActiveTab] = useState("log");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const activeTab =
+    tabParam === "list" || tabParam === "charts" ? tabParam : "log";
   const t = useTranslations("athlete.measurements");
   const queryClient = useQueryClient();
   const justSubmittedRef = useRef(false);
@@ -45,6 +51,20 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
     // setFilter resets page to 1 inside the store.
     measurementListStore.setFilter(next);
   }, [measurementListStore]);
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value === "log") {
+        params.delete("tab");
+      } else {
+        params.set("tab", value);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   useEffect(() => {
     if (!justSubmittedRef.current) return;
@@ -60,15 +80,19 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <h1 className="font-mono text-3xl font-normal leading-none tracking-[-0.04em] text-foreground">
+          {t("title")}
+        </h1>
         <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       {latest && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{t("latest.title")}</CardTitle>
-            <CardDescription>
+        <Card className="rounded-none border border-border shadow-none ring-0">
+          <CardHeader className="rounded-none border-b border-border pb-3">
+            <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+              {t("latest.title")}
+            </CardTitle>
+            <CardDescription className="font-mono text-xs">
               {new Date(latest.date).toLocaleDateString(undefined, {
                 year: "numeric",
                 month: "long",
@@ -79,18 +103,18 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
           <CardContent className="flex flex-wrap gap-4">
             {typeof latest.weight === "number" && (
               <div>
-                <div className="text-2xl font-bold">
+                <div className="font-mono text-2xl font-normal tracking-tight text-foreground">
                   {latest.weight.toFixed(1)} {latest.weightUnit}
                 </div>
-                <div className="text-xs text-muted-foreground">{t("latest.weight")}</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("latest.weight")}</div>
               </div>
             )}
             {typeof latest.bodyFatPct === "number" && latest.bodyFatPct > 0 && (
               <div>
-                <div className="text-2xl font-bold">
+                <div className="font-mono text-2xl font-normal tracking-tight text-foreground">
                   {latest.bodyFatPct.toFixed(1)}%
                 </div>
-                <div className="text-xs text-muted-foreground">{t("latest.body_fat")}</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("latest.body_fat")}</div>
               </div>
             )}
 
@@ -100,7 +124,7 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
 
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
         className="w-full"
       >
         <TabsList className="grid w-full grid-cols-3 mb-2" variant="line">
@@ -111,16 +135,18 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
 
         <TabsContent value="log">
           <div className="max-w-3xl">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("log_card_title")}</CardTitle>
+            <Card className="rounded-none border border-border shadow-none ring-0">
+              <CardHeader className="rounded-none border-b border-border">
+                <CardTitle className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("log_card_title")}
+                </CardTitle>
                 <CardDescription>{t("log_card_description")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <BodyMeasurementForm
                   onSuccess={() => {
                     justSubmittedRef.current = true;
-                    setActiveTab("list");
+                    handleTabChange("list");
                   }}
                 />
               </CardContent>

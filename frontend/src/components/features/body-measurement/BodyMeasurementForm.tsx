@@ -1,17 +1,25 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { History, Loader2, Plus } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { FieldError, FieldLabel } from "@/components/ui/field";
+import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { bodyMeasurementApi } from "@/lib/api";
 import { combineDateTime } from "@/lib/utils/datetime";
 import { ApiErrorHandler } from "@/lib/error-handler";
@@ -201,7 +209,7 @@ export function BodyMeasurementForm({
         <div
           role="alert"
           data-slot="form-error"
-          className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-md"
+          className="rounded-none bg-destructive/10 border border-destructive/20 text-destructive p-3"
         >
           {submitError}
         </div>
@@ -219,7 +227,7 @@ export function BodyMeasurementForm({
             <div
               role="alert"
               data-slot="form-error"
-              className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-md"
+              className="rounded-none bg-destructive/10 border border-destructive/20 text-destructive p-3"
             >
               <ul className="ml-4 list-disc">
                 {formErrors.map((err: unknown, i: number) => (
@@ -308,18 +316,20 @@ export function BodyMeasurementForm({
           <FieldLabel htmlFor="measurement-unit">{t("unit.label")}</FieldLabel>
           <form.Field name="weightUnit">
             {(field) => (
-              <select
-                id="measurement-unit"
+              <Select
                 value={field.state.value}
-                onChange={(e) =>
-                  field.handleChange(e.target.value as "kg" | "lbs")
+                onValueChange={(value) =>
+                  field.handleChange(value as "kg" | "lbs")
                 }
-                onBlur={field.handleBlur}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="kg">kg</option>
-                <option value="lbs">lbs</option>
-              </select>
+                <SelectTrigger id="measurement-unit" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="kg">kg</SelectItem>
+                  <SelectItem value="lbs">lbs</SelectItem>
+                </SelectContent>
+              </Select>
             )}
           </form.Field>
         </div>
@@ -372,13 +382,13 @@ export function BodyMeasurementForm({
             {t("parts.hint")}
           </span>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <form.Field name="parts">
+        {/* DESIGN.md §10.1 — hairline panel, no Card primitive */}
+        <div className="rounded-none border border-border p-4 sm:p-6">
+          <form.Field name="parts">
               {(field) => (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-4">
                   {BODY_PARTS.map((part) => (
-                    <div key={part.key} className="flex flex-col gap-1 min-w-0">
+                    <div key={part.key} className="flex flex-col gap-3 min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
                         <label
                           htmlFor={`part-${part.key}`}
@@ -388,9 +398,10 @@ export function BodyMeasurementForm({
                         </label>
                         <Input
                           id={`part-${part.key}`}
-                          type="number"
-                          step="0.1"
+                          inputMode="decimal"
+                          pattern="[0-9]*"
                           min="0"
+                          step={undefined}
                           placeholder="cm"
                           value={partInputs[part.key] ?? ""}
                           onChange={(e) =>
@@ -409,9 +420,8 @@ export function BodyMeasurementForm({
                 </div>
               )}
             </form.Field>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
       <div className="flex flex-col space-y-2">
         <FieldLabel htmlFor="measurement-notes">
@@ -421,13 +431,13 @@ export function BodyMeasurementForm({
         <form.Field name="notes">
           {(field) => (
             <>
-              <textarea
+              <Textarea
                 id="measurement-notes"
                 data-testid="measurement-notes"
                 value={field.state.value ?? ""}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="min-h-[80px] rounded-none"
                 placeholder={t("notes.placeholder")}
                 aria-invalid={!field.state.meta.isValid}
               />
@@ -447,7 +457,7 @@ export function BodyMeasurementForm({
             setPartErrors({});
             onClear?.();
           }}
-          className="w-full md:w-auto"
+          className="w-full rounded-none md:w-auto"
         >
           {tCommon("clear")}
         </Button>
@@ -457,12 +467,12 @@ export function BodyMeasurementForm({
             variant="outline"
             onClick={() => fetchPrevious()}
             disabled={isFetchingPrevious}
-            className="w-full md:w-auto"
+            className="w-full rounded-none md:w-auto"
           >
             {isFetchingPrevious ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Spinner />
             ) : (
-              <History className="mr-2 h-4 w-4" />
+              <History className="size-3.5" aria-hidden="true" />
             )}
             {t("fetch_previous")}
           </Button>
@@ -470,10 +480,10 @@ export function BodyMeasurementForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full md:w-auto md:ml-auto"
+          className="w-full rounded-none md:w-auto md:ml-auto"
         >
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          <Plus className="mr-2 h-4 w-4" />
+          {isPending && <Spinner />}
+          <Plus className="size-3.5" aria-hidden="true" />
           {initialMeasurement ? tCommon("update") : t("submit")}
         </Button>
       </div>
