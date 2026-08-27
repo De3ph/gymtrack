@@ -17,8 +17,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { bodyMeasurementApi } from "@/api/bodyMeasurementApi"
 import { useThemeColors } from "@/components/useThemeColors"
 import type { ThemeColors } from "@/constants/Colors"
-import type { BodyMeasurement } from "@/types"
-import { useAuthStore } from "@/stores/authStore"
 
 interface Measurement {
   measurementId?: number
@@ -95,7 +93,6 @@ function Sparkline({
 }
 
 export function MeasurementsScreen() {
-  const user = useAuthStore((s) => s.user);
   const c = useThemeColors()
   const qc = useQueryClient()
   const [showAdd, setShowAdd] = useState(false)
@@ -121,19 +118,17 @@ export function MeasurementsScreen() {
   // --- create mutation ---
   const { mutate: create, isPending: creating } = useMutation({
     mutationFn: () => {
-      const body: Omit<BodyMeasurement, "measurementId" | "createdAt" | "updatedAt"> = {
-        athleteId: user?.userId ?? 0,
-        date: new Date().toISOString().split("T")[0],
-        weight: weight ? Number(weight) : undefined,
-        bodyFatPct: bodyFat ? Number(bodyFat) : undefined,
-        notes: notes.trim() || undefined,
-        weightUnit: "kg",
-        parts: Object.fromEntries(
-          Object.entries(parts)
-            .filter(([, v]) => v)
-            .map(([k, v]) => [k, { value: Number(v) }])
-        ) as Record<string, { value?: number }>
+      const body: Record<string, unknown> = {
+        date: new Date().toISOString().split("T")[0]
       }
+      if (weight) body.weight = Number(weight)
+      if (bodyFat) body.bodyFatPct = Number(bodyFat)
+      if (notes.trim()) body.notes = notes.trim()
+      const pv: Record<string, number> = {}
+      Object.entries(parts).forEach(([k, v]) => {
+        if (v) pv[k] = Number(v)
+      })
+      if (Object.keys(pv).length > 0) body.parts = pv
       return bodyMeasurementApi.create(body)
     },
     onSuccess: () => {

@@ -2,8 +2,8 @@ import { apiRequest } from "./client";
 import type { BodyMeasurement } from "@/types";
 
 export const bodyMeasurementApi = {
-  create: (data: Omit<BodyMeasurement, "measurementId" | "createdAt" | "updatedAt">) =>
-    apiRequest<BodyMeasurement>("/measurements", { method: "POST", body: data }),
+  create: (data: Record<string, unknown>) =>
+    apiRequest<BodyMeasurement>("/measurements", { method: "POST", body: data as Record<string, unknown> }),
 
   getAll: (params?: Record<string, string>) =>
     apiRequest<{ measurements: BodyMeasurement[] }>("/measurements", { params }),
@@ -16,8 +16,8 @@ export const bodyMeasurementApi = {
       params: athleteId ? { athleteId: String(athleteId) } : undefined,
     })) ?? null,
 
-  update: (id: number, data: Partial<Omit<BodyMeasurement, "measurementId" | "createdAt" | "updatedAt">>) =>
-    apiRequest<BodyMeasurement>(`/measurements/${id}`, { method: "PUT", body: data }),
+  update: (id: number, data: Record<string, unknown>) =>
+    apiRequest<BodyMeasurement>(`/measurements/${id}`, { method: "PUT", body: data as Record<string, unknown> }),
 
   delete: (id: number) =>
     apiRequest<void>(`/measurements/${id}`, { method: "DELETE" }),

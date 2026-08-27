@@ -18,9 +18,8 @@ import {
 import { useRouter, type Href } from "expo-router"
 import { useI18n } from "@/lib/i18n"
 import { mealApi } from "@/api/mealApi"
-import { useAuthStore } from "@/stores/authStore"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { Meal, MealItem, MealListResponse } from "@/types"
+import type { Meal, MealListResponse } from "@/types"
 import { useThemeColors } from "@/components/useThemeColors"
 import type { ThemeColors } from "@/constants/Colors"
 
@@ -171,7 +170,6 @@ function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
 // ------- main screen -------
 
 export function MealsScreen() {
-  const user = useAuthStore((s) => s.user);
   const c = useThemeColors()
   const { t } = useI18n()
   const queryClient = useQueryClient()
@@ -204,7 +202,7 @@ export function MealsScreen() {
 
   // --- create mutation ---
   const createMutation = useMutation({
-    mutationFn: (payload: Omit<Meal, "mealId" | "createdAt" | "updatedAt">) => mealApi.create(payload),
+    mutationFn: (payload: Record<string, unknown>) => mealApi.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meals", "list"] })
       setModalVisible(false)
@@ -331,21 +329,20 @@ export function MealsScreen() {
         const carbs = parseFloat(item.carbs) || 0
         const fats = parseFloat(item.fats) || 0
 
-        const foodItem: MealItem = {
+        const foodItem: Record<string, unknown> = {
           food: item.food.trim(),
           quantity: item.quantity.trim(),
           calories
         }
 
         if (protein > 0 || carbs > 0 || fats > 0) {
-          foodItem.macros = { protein, carbs, fats }
+          (foodItem as Record<string, unknown>).macros = { protein, carbs, fats }
         }
 
         return foodItem
       })
 
-    const payload: Omit<Meal, "mealId" | "createdAt" | "updatedAt"> = {
-      athleteId: user?.userId ?? 0,
+    const payload: Record<string, unknown> = {
       date: newDate.trim(),
       mealType: newMealType,
       items: payloadItems

@@ -10,11 +10,11 @@ export const commentApi = {
       params: { targetType, targetId: String(targetId) },
     }),
 
-  create: (data: Omit<Comment, "commentId" | "createdAt" | "updatedAt">) =>
-    apiRequest<Comment>("/comments", { method: "POST", body: data }),
+  create: (data: Record<string, unknown>) =>
+    apiRequest<Comment>("/comments", { method: "POST", body: data as Record<string, unknown> }),
 
-  update: (id: string | number, data: Partial<Omit<Comment, "commentId" | "createdAt" | "updatedAt">>) =>
-    apiRequest<Comment>(`/comments/${id}`, { method: "PUT", body: data }),
+  update: (id: string | number, data: Record<string, unknown>) =>
+    apiRequest<Comment>(`/comments/${id}`, { method: "PUT", body: data as Record<string, unknown> }),
 
   delete: (id: string | number) =>
     apiRequest<void>(`/comments/${id}`, { method: "DELETE" }),

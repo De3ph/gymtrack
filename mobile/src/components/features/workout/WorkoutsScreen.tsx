@@ -17,7 +17,6 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter, type Href } from "expo-router";
 import { useI18n } from "@/lib/i18n";
 import { workoutApi } from "@/api/workoutApi";
-import { useAuthStore } from "@/stores/authStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Workout, WorkoutListResponse } from "@/types";
 import { ExercisePicker } from "./ExercisePicker";
@@ -166,7 +165,6 @@ export function WorkoutsScreen() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
   const styles = useMemo(() => createStyles(c), [c]);
 
   const openDetail = useCallback(
@@ -215,7 +213,7 @@ export function WorkoutsScreen() {
 
   // --- create mutation ---
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Workout, "workoutId" | "createdAt" | "updatedAt">) => workoutApi.create(data),
+    mutationFn: (data: Record<string, unknown>) => workoutApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts", "list"] });
       closeModalAndReset();
@@ -412,20 +410,16 @@ export function WorkoutsScreen() {
       }
     }
 
-    const payload: Omit<Workout, "workoutId" | "createdAt" | "updatedAt"> = {
-      athleteId: user?.userId ?? 0,
+    const payload: Record<string, unknown> = {
       date: newDate,
       exercises: validExercises.map((ex) => ({
         exerciseId: ex.pickedExerciseId ?? 0,
         name: ex.name.trim(),
         notes: ex.notes.trim() || undefined,
         sets: ex.sets.map((s) => ({
-          setId: "",
           weight: s.weight.trim() ? Number(s.weight) : 0,
           weightUnit: "kg",
           reps: Number(s.reps),
-          restTime: 60,
-          completed: false,
         })),
       })),
     };

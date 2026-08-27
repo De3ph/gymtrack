@@ -57,7 +57,7 @@ export function CommentSection({
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const createMutation = useMutation({
-    mutationFn: (payload: Omit<Comment, "commentId" | "createdAt" | "updatedAt">) => commentApi.create(payload),
+    mutationFn: (payload: Record<string, unknown>) => commentApi.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       setDraft("");
@@ -86,10 +86,8 @@ export function CommentSection({
     }
     createMutation.mutate({
       targetType,
-      targetId: Number(targetId),
+      targetId: String(targetId),
       content,
-      authorId: user?.userId ?? 0,
-      authorRole: (user?.role === "admin" ? "athlete" : user?.role) ?? "athlete",
     });
   }, [draft, createMutation, targetType, targetId, t]);
 
