@@ -2,9 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { ROUTES } from "@/lib/routes";
 import { InfoRow } from "@/components/ui/info-row";
-import { DetailSection } from "@/components/ui/detail-section";
+import { DetailPanel } from "@/app/[locale]/(dashboard)/admin/_components/detail-panel";
 import { adminApi } from "@/lib/api/adminApi";
 import { revalidateAdminStatsCache } from "@/lib/actions/cache";
 import {
@@ -35,6 +34,8 @@ import {
 } from "lucide-react";
 import type { AdminUserListItem } from "@/lib/api/adminApi";
 import type { UserRole, UserStatus } from "@/types";
+
+const badgeRegister = "h-auto rounded-none px-2.5 py-0.5 capitalize";
 
 const roleBadgeVariant: Record<
   string,
@@ -97,23 +98,16 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
           variant="ghost"
           size="icon"
           onClick={() => router.push(ROUTES.ADMIN_USERS)}
+          aria-label="Back to users"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="size-4" />
         </Button>
         <div className="flex items-center gap-3">
-          <div
-            className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white ${
-              detail.role === "admin"
-                ? "bg-destructive"
-                : detail.role === "trainer"
-                  ? "bg-primary"
-                  : "bg-accent"
-            }`}
-          >
+          <div className="flex size-10 items-center justify-center border border-border font-mono text-sm uppercase">
             {(profile.name || detail.username).charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="font-sans text-2xl font-medium leading-tight">
               {profile.name || detail.username}
             </h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -121,7 +115,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
               <span className="text-muted-foreground/40">·</span>
               <Badge
                 variant={roleBadgeVariant[detail.role] ?? "outline"}
-                className="capitalize"
+                className={badgeRegister}
               >
                 {detail.role}
               </Badge>
@@ -130,7 +124,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                   <span className="text-muted-foreground/40">·</span>
                   <Badge
                     variant={statusBadgeVariant[detail.status] ?? "outline"}
-                    className="capitalize"
+                    className={badgeRegister}
                   >
                     {detail.status}
                   </Badge>
@@ -144,7 +138,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
       {/* Detail Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Account Info */}
-        <DetailSection title="Account">
+        <DetailPanel title="Account">
           <InfoRow icon={Mail} label="Email" value={detail.email} />
           <InfoRow icon={User} label="Username" value={detail.username} />
           <InfoRow icon={Shield} label="Role" value={detail.role} />
@@ -157,10 +151,10 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
               year: "numeric",
             })}
           />
-        </DetailSection>
+        </DetailPanel>
 
         {/* Profile Details */}
-        <DetailSection title="Profile">
+        <DetailPanel title="Profile">
           {detail.role === "athlete" && (
             <>
               <InfoRow
@@ -205,15 +199,15 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
             </>
           )}
           {detail.role === "admin" && (
-            <p className="text-sm text-muted-foreground italic">
+            <p className="text-sm leading-6 text-muted-foreground">
               Full system access. No profile restrictions.
             </p>
           )}
-        </DetailSection>
+        </DetailPanel>
 
         {/* Activity + Admin Actions */}
         <div className="space-y-6">
-          <DetailSection title="Activity">
+          <DetailPanel title="Activity">
             <InfoRow
               icon={Calendar}
               label="Last Updated"
@@ -229,28 +223,31 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                   : "Never"
               }
             />
-          </DetailSection>
+          </DetailPanel>
 
           {/* Admin Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <div className="border border-border">
+            <header className="flex items-center justify-between border-b border-border px-6 py-4">
+              <h2 className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
                 Admin Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </h2>
+              <AlertTriangle
+                className="size-3.5 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </header>
+            <div className="space-y-4 px-6 py-6">
               {/* Role Change */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">
+                <label className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
                   Change Role
                 </label>
                 <Dialog open={roleOpen} onOpenChange={setRoleOpen}>
-                  <DialogTrigger className="inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground">
-                    <Shield className="h-3 w-3" />
+                  <DialogTrigger className="inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
+                    <Shield className="size-3" />
                     {detail.role}
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="rounded-none border border-border shadow-none">
                     <DialogHeader>
                       <DialogTitle>Change User Role</DialogTitle>
                       <DialogDescription>
@@ -292,17 +289,13 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                 </label>
                 <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
                   <DialogTrigger
-                    className={`inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground ${
-                      detail.status === "banned"
-                        ? "border-destructive text-destructive"
-                        : detail.status === "suspended"
-                          ? "border-amber-500 text-amber-500"
-                          : "text-foreground"
+                    className={`inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted ${
+                      detail.status === "banned" ? "text-destructive" : "text-foreground"
                     }`}
                   >
                     {detail.status || "active"}
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="rounded-none border border-border shadow-none">
                     <DialogHeader>
                       <DialogTitle>Change Account Status</DialogTitle>
                       <DialogDescription>
@@ -342,8 +335,8 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                   </DialogContent>
                 </Dialog>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

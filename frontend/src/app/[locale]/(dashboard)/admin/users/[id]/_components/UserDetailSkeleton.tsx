@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function UserDetailSkeleton() {
@@ -10,16 +9,16 @@ export function UserDetailSkeleton() {
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <div key={i} className="border border-border">
+            <div className="border-b border-border px-6 py-4">
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <div className="space-y-3 px-6 py-6">
               {Array.from({ length: 3 }).map((_, j) => (
                 <Skeleton key={j} className="h-10 w-full" />
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useUsersTableContext } from "./users-table-context";
-import { Loader2, Users } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { Users } from "lucide-react";
 
 export function UsersTableStateHandler({
   children,
@@ -14,7 +15,7 @@ export function UsersTableStateHandler({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }
