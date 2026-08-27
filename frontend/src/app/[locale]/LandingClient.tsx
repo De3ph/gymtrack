@@ -8,7 +8,12 @@ import { LandingHeader } from "@/components/features/landing/LandingHeader";
 import { LandingHero } from "@/components/features/landing/LandingHero";
 import { LandingProof } from "@/components/features/landing/LandingProof";
 import { LandingRolePaths } from "@/components/features/landing/LandingRolePaths";
-import { landingStagger } from "@/components/features/landing/landing-variants";
+import {
+  landingStagger,
+  landingReveal,
+  textReveal,
+  textStagger,
+} from "@/components/features/landing/landing-variants";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Zap } from "lucide-react";
@@ -44,26 +49,39 @@ export function LandingClient() {
             aria-hidden="true"
             className="hidden border-r border-border lg:block"
           >
-            <div className="sticky top-0 flex h-screen flex-col justify-between py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <span className="-rotate-90 origin-top-left translate-x-6 translate-y-6">
+            <motion.div
+              className="sticky top-0 flex h-screen flex-col justify-between py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+              variants={textStagger}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.span variants={textReveal} className="-rotate-90 origin-top-left translate-x-6 translate-y-6">
                 GymTrack / 2026
-              </span>
+              </motion.span>
               <ul className="space-y-2">
-                {sections.map((section) => (
-                  <li key={section.id}>
+                {sections.map((section, i) => (
+                  <motion.li
+                    key={section.id}
+                    variants={textReveal}
+                    transition={{ delay: 0.08 + i * 0.04 }}
+                  >
                     <a
                       href={`#${section.id}`}
                       className="block transition-colors hover:text-foreground"
                     >
                       §{section.index}
                     </a>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
-              <span className="-rotate-90 origin-bottom-left translate-x-6 -translate-y-6">
+              <motion.span
+                variants={textReveal}
+                transition={{ delay: 0.32 }}
+                className="-rotate-90 origin-bottom-left translate-x-6 -translate-y-6"
+              >
                 Built for measurable progress
-              </span>
-            </div>
+              </motion.span>
+            </motion.div>
           </aside>
 
           <motion.main
@@ -90,57 +108,86 @@ export function LandingClient() {
               </Alert>
             )}
 
-            <section
+            <motion.section
               id="hero"
               className="border-t border-border py-16 sm:py-24 lg:py-32"
               aria-labelledby="hero-heading"
+              variants={landingReveal}
             >
               <SectionRail index="01" label="Mission control" />
               <LandingHero />
-            </section>
+            </motion.section>
 
-            <section
+            <motion.section
               id="console"
               className="border-t border-border py-16 sm:py-24 lg:py-32"
               aria-labelledby="console-heading"
+              variants={landingReveal}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
             >
               <SectionRail index="02" label="Live signal" />
               <LandingConsole />
-            </section>
+            </motion.section>
 
-            <section
+            <motion.section
               id="features"
               className="border-t border-border py-16 sm:py-24 lg:py-32"
               aria-labelledby="features-heading"
+              variants={landingReveal}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
             >
               <SectionRail index="03" label="What you log" />
               <LandingFeatureGrid />
-            </section>
+            </motion.section>
 
-            <section
+            <motion.section
               id="roles"
               className="border-t border-border py-16 sm:py-24 lg:py-32"
               aria-labelledby="roles-heading"
+              variants={landingReveal}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
             >
               <SectionRail index="04" label="Two sides, one loop" />
               <LandingRolePaths />
-            </section>
+            </motion.section>
 
-            <section
+            <motion.section
               id="proof"
               className="border-t border-border py-16 sm:py-24 lg:py-32"
               aria-labelledby="proof-heading"
+              variants={landingReveal}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
             >
               <SectionRail index="05" label="Outcome" />
               <LandingProof />
-            </section>
+            </motion.section>
 
-            <footer className="border-t border-border py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <span>© GymTrack</span>
-                <span>EN / TR</span>
-              </div>
-            </footer>
+            <motion.footer
+              variants={textReveal}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="border-t border-border py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+            >
+              <motion.div
+                variants={textStagger}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="flex flex-wrap items-center justify-between gap-4"
+              >
+                <motion.span variants={textReveal}>© GymTrack</motion.span>
+                <motion.span variants={textReveal}>EN / TR</motion.span>
+              </motion.div>
+            </motion.footer>
           </motion.main>
         </div>
       </div>
@@ -150,10 +197,20 @@ export function LandingClient() {
 
 function SectionRail({ index, label }: { index: string; label: string }) {
   return (
-    <div className="mb-10 flex items-baseline gap-6 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-      <span className="text-foreground">§{index}</span>
-      <span>{label}</span>
-      <Separator className="flex-1" />
-    </div>
+    <motion.div
+      variants={textStagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-40px" }}
+      className="mb-10 flex items-baseline gap-6 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
+    >
+      <motion.span variants={textReveal} className="text-foreground">
+        §{index}
+      </motion.span>
+      <motion.span variants={textReveal}>{label}</motion.span>
+      <motion.div variants={textReveal} className="flex-1">
+        <Separator className="flex-1" />
+      </motion.div>
+    </motion.div>
   );
 }
