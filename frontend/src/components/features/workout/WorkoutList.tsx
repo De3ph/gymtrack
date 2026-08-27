@@ -11,6 +11,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Spinner } from "@/components/ui/spinner";
+import { Separator } from "@/components/ui/separator";
 import { workoutApi } from "@/lib/api";
 import { useWorkoutListStore } from "@/stores/workout-list-store";
 import { EditWorkoutDialog } from "./EditWorkoutDialog";
@@ -54,7 +56,6 @@ export function WorkoutList({
     if (onFilterChange) {
       onFilterChange(next);
     } else {
-      // setFilter resets page to 1 inside the store.
       workoutListStore.setFilter(next);
     }
   };
@@ -79,7 +80,6 @@ export function WorkoutList({
   const pageSize = PAGINATION.WORKOUT_PAGE_SIZE;
   const isSelfFetching = !propWorkouts;
 
-  // Only fetch data if not provided as props
   const { data, isLoading } = useQuery({
     queryKey: [
       "workouts",
@@ -117,7 +117,12 @@ export function WorkoutList({
   };
 
   if (isLoading && isSelfFetching) {
-    return <div>{t("loading")}</div>;
+    return (
+      <div className="flex items-center gap-2 py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        <Spinner className="size-4" />
+        <span>{t("loading")}</span>
+      </div>
+    );
   }
 
   const workouts = propWorkouts || data?.workouts || [];
@@ -133,7 +138,7 @@ export function WorkoutList({
     return (
       <div className="space-y-4">
         {filterBar}
-        <div className="text-center p-8 text-muted-foreground">
+        <div className="flex items-center justify-center border border-border py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {t("no_workouts")}
         </div>
       </div>
@@ -145,64 +150,70 @@ export function WorkoutList({
       {filterBar}
 
       {isSelfFetching && totalCount > 0 && (
-        <div className="text-xs text-muted-foreground">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {tPagination("count", { count: totalCount })}
         </div>
       )}
 
-      {workouts.map((workout) => (
-        <WorkoutCard
-          key={workout.workoutId}
-          workout={workout}
-          readOnly={readOnly}
-          canEdit={canEdit}
-          onEdit={handleEditClick}
-          onDelete={handleDeleteClick}
-          expandedCommentsId={expandedCommentsId}
-          setExpandedCommentsId={setExpandedCommentsId}
-        />
-      ))}
+      <ul className="space-y-3">
+        {workouts.map((workout) => (
+          <li key={workout.workoutId}>
+            <WorkoutCard
+              workout={workout}
+              readOnly={readOnly}
+              canEdit={canEdit}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
+              expandedCommentsId={expandedCommentsId}
+              setExpandedCommentsId={setExpandedCommentsId}
+            />
+          </li>
+        ))}
+      </ul>
 
       {showPagination && (
-        <Pagination className="mt-6">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (page > 1) handlePageChange(page - 1);
-                }}
-                aria-disabled={page <= 1}
-                className={page <= 1 ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <PaginationItem key={p}>
-                <PaginationLink
-                  isActive={p === page}
+        <>
+          <Separator />
+          <Pagination className="mt-6">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
                   onClick={(e) => {
                     e.preventDefault();
-                    handlePageChange(p);
+                    if (page > 1) handlePageChange(page - 1);
                   }}
-                >
-                  {p}
-                </PaginationLink>
+                  aria-disabled={page <= 1}
+                  className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                />
               </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (page < totalPages) handlePageChange(page + 1);
-                }}
-                aria-disabled={page >= totalPages}
-                className={
-                  page >= totalPages ? "pointer-events-none opacity-50" : ""
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    isActive={p === page}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(p);
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (page < totalPages) handlePageChange(page + 1);
+                  }}
+                  aria-disabled={page >= totalPages}
+                  className={
+                    page >= totalPages ? "pointer-events-none opacity-50" : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </>
       )}
       {!readOnly && (
         <>

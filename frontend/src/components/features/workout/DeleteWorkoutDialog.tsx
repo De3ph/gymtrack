@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -13,9 +12,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { workoutApi } from "@/lib/api";
 import { Workout } from "@/types";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface DeleteWorkoutDialogProps {
   workout: Workout | null;
@@ -30,19 +31,18 @@ export function DeleteWorkoutDialog({
 }: DeleteWorkoutDialogProps) {
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
-  const t = useTranslations('workout.delete_dialog');
+  const t = useTranslations("workout.delete_dialog");
 
   const { mutate: deleteWorkout } = useMutation({
     mutationFn: (id: string | number) => workoutApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["workouts"],
-        refetchType: "active" // Only refetch active queries
+        refetchType: "active",
       });
       onOpenChange(false);
     },
     onError: (error) => {
-      // TODO: Show toast notification with error message
       console.error("Failed to delete workout:", error);
     },
   });
@@ -56,17 +56,32 @@ export function DeleteWorkoutDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t('title')}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {t('description')}
+      <AlertDialogContent className="rounded-none border border-border bg-popover text-popover-foreground shadow-none ring-0">
+        <AlertDialogHeader className="text-left">
+          <AlertDialogTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {t("title")}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-sm text-muted-foreground">
+            {t("description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-            {isDeleting ? t('deleting') : t('confirm')}
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel
+            variant="outline"
+            className={cn(
+              "rounded-none font-mono text-[10px] uppercase tracking-[0.18em]",
+            )}
+          >
+            {t("cancel")}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+          >
+            {isDeleting && <Spinner className="size-3.5" />}
+            {isDeleting ? t("deleting") : t("confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import { MuscleGroup } from "@/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface MuscleGroupBadgeProps {
@@ -9,21 +10,21 @@ interface MuscleGroupBadgeProps {
   variant?: "default" | "small";
 }
 
-export function MuscleGroupBadge({ 
-  muscleGroup, 
+export function MuscleGroupBadge({
+  muscleGroup,
   className,
-  variant = "default"
+  variant = "default",
 }: MuscleGroupBadgeProps) {
-  const baseClasses = "inline-flex items-center rounded-full font-medium";
-  
-  const variantClasses = {
-    default: "px-3 py-1 text-sm bg-primary/10 text-primary dark:bg-primary/15",
-    small: "px-2 py-0.5 text-xs bg-primary/10 text-primary dark:bg-primary/15"
-  };
-
   return (
-    <span className={cn(baseClasses, variantClasses[variant], className)}>
+    <Badge
+      variant="outline"
+      className={cn(
+        "h-auto rounded-none border-border bg-transparent px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground",
+        variant === "small" && "px-1.5 py-0.5 text-[9px]",
+        className,
+      )}
+    >
       {muscleGroup.description}
-    </span>
+    </Badge>
   );
 }

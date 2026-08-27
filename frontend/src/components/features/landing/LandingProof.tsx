@@ -1,56 +1,70 @@
-﻿import { LineChart } from "lucide-react";
+﻿import { Activity, BarChart3, Trophy, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
+import { buttonVariants } from "@/components/ui/button";
 import { motion } from "motion/react";
-import { landingCard } from "./landing-variants";
-import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
+import { landingReveal } from "./landing-variants";
 
 export function LandingProof() {
   const t = useTranslations("home");
 
   return (
     <motion.div
-      className="mt-4 rounded-[2rem] border border-border bg-foreground p-6 text-primary-foreground dark:bg-black dark:text-white sm:p-8"
-      variants={landingCard}
+      variants={landingReveal}
+      className="border border-border"
+      role="region"
+      aria-labelledby="proof-heading"
     >
-      <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto_auto]">
+      <div className="grid gap-8 px-6 py-10 sm:px-10 sm:py-14 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
         <div>
-          <div className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.24em] text-primary-foreground/70">
-            <LineChart className="size-4 text-accent" />
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {t("proof.kicker")}
-          </div>
-          <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+          </p>
+          <h2
+            id="proof-heading"
+            className="mt-4 text-balance font-mono text-2xl font-normal leading-[1.1] tracking-[-0.04em] text-foreground sm:text-4xl"
+          >
             {t("proof.title")}
           </h2>
-          <p className="mt-3 max-w-2xl text-primary-foreground/75">
+          <p className="mt-6 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
             {t("proof.description")}
           </p>
         </div>
-        {/* Desktop: analytics image */}
-        <div className="hidden w-48 lg:block">
-          <ImageWithFallback
-            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80"
-            alt="Progress tracking analytics illustration"
-            aspectRatio="4/3"
-            className="rounded-xl shadow-lg shadow-black/20"
-          />
+
+        <div className="flex flex-col justify-between gap-6 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+          <dl className="grid grid-cols-3 divide-x divide-border lg:grid-cols-1 lg:divide-x-0 lg:divide-y">
+            {[
+              { value: "247", label: "Reps logged" },
+              { value: "12w", label: "Avg. streak" },
+              { value: "1:1", label: "Trainer loop" },
+            ].map((row) => (
+              <div
+                key={row.label}
+                className="flex flex-col gap-1 px-3 py-3 first:pl-0 last:pr-0 lg:px-0 lg:py-4 lg:first:pt-0 lg:last:pb-0"
+              >
+                <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {row.label}
+                </dt>
+                <dd className="font-mono text-2xl font-normal tracking-tight text-foreground sm:text-3xl">
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <Link
+            href={ROUTES.LOGIN}
+            className={buttonVariants({
+              variant: "default",
+              size: "lg",
+              className:
+                "w-fit rounded-none border-foreground bg-foreground px-6 font-mono text-xs uppercase tracking-[0.18em] text-background hover:bg-background hover:text-foreground",
+            })}
+          >
+            {t("login")}
+          </Link>
         </div>
-        <Link
-          href={ROUTES.LOGIN}
-          className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          {t("login")}
-        </Link>
-      </div>
-      {/* Mobile: image stacks below CTA */}
-      <div className="mt-4 lg:hidden">
-        <ImageWithFallback
-          src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80"
-          alt="Progress tracking analytics illustration"
-          aspectRatio="4/3"
-          className="rounded-xl shadow-lg shadow-black/20"
-        />
       </div>
     </motion.div>
   );

@@ -8,19 +8,23 @@ import { TrainerProfile } from "@/types";
 import { trainerCatalogApi } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { revalidateTrainerProfileCache } from "@/lib/actions/cache";
+import { cn } from "@/lib/utils";
 
 interface TrainerProfileClientProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialProfile: any;
 }
 
-export function TrainerProfileClient({ initialProfile }: TrainerProfileClientProps) {
+export function TrainerProfileClient({
+  initialProfile,
+}: TrainerProfileClientProps) {
   const [message, setMessage] = useState("");
   const t = useTranslations("trainer.profile");
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (profile: TrainerProfile) => trainerCatalogApi.updateTrainerProfile(profile),
+    mutationFn: (profile: TrainerProfile) =>
+      trainerCatalogApi.updateTrainerProfile(profile),
     onSuccess: async () => {
       await revalidateTrainerProfileCache();
       queryClient.invalidateQueries({ queryKey: ["myTrainerProfile"] });
@@ -42,24 +46,29 @@ export function TrainerProfileClient({ initialProfile }: TrainerProfileClientPro
   };
 
   const profile: TrainerProfile = (initialProfile?.profile as TrainerProfile) || {};
+  const isError = message.includes(t("profile_save_failed"));
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
+      <h1 className="mb-8 text-2xl font-medium tracking-tight text-foreground">
+        {t("title")}
+      </h1>
 
       {message && (
         <div
-          className={`mb-4 p-3 rounded ${
-            message.includes(t("profile_save_failed"))
-              ? "bg-red-100 text-red-800"
-              : "bg-green-100 text-green-800"
-          }`}
+          role="alert"
+          className={cn(
+            "mb-4 border px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em]",
+            isError
+              ? "border-destructive text-destructive"
+              : "border-foreground text-foreground",
+          )}
         >
           {message}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <TrainerProfileView
           profile={profile}
           onSave={handleSave}

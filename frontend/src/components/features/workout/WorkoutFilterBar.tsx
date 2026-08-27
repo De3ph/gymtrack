@@ -5,6 +5,7 @@ import { Filter, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { useTranslations } from "next-intl";
 import type { WorkoutFilter } from "./WorkoutList";
 import { useDeferredFilter } from "@/lib/hooks/use-deferred-filter";
@@ -18,27 +19,32 @@ const EMPTY_FILTER: WorkoutFilter = {};
 
 export function WorkoutFilterBar({
   filter,
-  onChange
+  onChange,
 }: WorkoutFilterBarProps) {
   const t = useTranslations("workout.filter");
   const { pending, setPending, isDirty, apply, clear } =
     useDeferredFilter<WorkoutFilter>(filter, onChange);
 
-  const hasActiveValues = !!(
-    filter.startDate || filter.endDate ||
-    pending.startDate || pending.endDate
+  const hasActiveValues = Boolean(
+    filter.startDate ||
+      filter.endDate ||
+      pending.startDate ||
+      pending.endDate,
   );
 
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 p-3 rounded-md border bg-card">
-      <div className="flex items-center gap-2 h-10 text-sm font-medium text-muted-foreground sm:self-end">
-        <Filter className="h-4 w-4" />
-        <span>{t("label")}</span>
+    <div className="flex flex-col gap-3 border border-border p-3 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="flex items-center gap-2 text-muted-foreground sm:self-end">
+        <Filter className="size-4" aria-hidden="true" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em]">
+          {t("label")}
+        </span>
       </div>
-      <div className="flex flex-col space-y-1 flex-1 sm:max-w-[180px]">
-        <label className="text-xs text-muted-foreground">
+
+      <Field className="flex-1 sm:max-w-[180px]">
+        <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {t("start_date")}
-        </label>
+        </FieldLabel>
         <DatePicker
           data-testid="workout-start-date"
           value={pending.startDate ? new Date(pending.startDate) : undefined}
@@ -51,11 +57,12 @@ export function WorkoutFilterBar({
           }
           className="w-full"
         />
-      </div>
-      <div className="flex flex-col space-y-1 flex-1 sm:max-w-[180px]">
-        <label className="text-xs text-muted-foreground">
+      </Field>
+
+      <Field className="flex-1 sm:max-w-[180px]">
+        <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {t("end_date")}
-        </label>
+        </FieldLabel>
         <DatePicker
           data-testid="workout-end-date"
           value={pending.endDate ? new Date(pending.endDate) : undefined}
@@ -68,7 +75,8 @@ export function WorkoutFilterBar({
           }
           className="w-full"
         />
-      </div>
+      </Field>
+
       <div className="flex items-center gap-2 sm:self-end">
         {hasActiveValues && (
           <Button
@@ -76,8 +84,9 @@ export function WorkoutFilterBar({
             variant="ghost"
             size="sm"
             onClick={() => clear(EMPTY_FILTER)}
+            className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
           >
-            <X className="mr-1 h-4 w-4" />
+            <X className="size-3" aria-hidden="true" />
             {t("clear")}
           </Button>
         )}
@@ -86,6 +95,7 @@ export function WorkoutFilterBar({
           size="sm"
           disabled={!isDirty}
           onClick={apply}
+          className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
         >
           {t("apply")}
         </Button>

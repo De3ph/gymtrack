@@ -7,7 +7,8 @@ import dayjs, { formatDate } from "@/lib/i18n/dayjs";
 import { useTranslations } from "next-intl";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { Separator } from "@/components/ui/separator";
 import { workoutApi } from "@/lib/api";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { WorkoutExercise, ExerciseSet } from "@/types";
@@ -28,12 +29,11 @@ export function WorkoutCalendar() {
   const t = useTranslations("workout.calendar");
   const tList = useTranslations("workout.list");
 
-  const { data: workoutsData } = useQuery({
+  const { data: workoutsData, isLoading } = useQuery({
     queryKey: ["workouts"],
     queryFn: () => workoutApi.getAll(),
   });
 
-  // Group workouts by date to show indicators
   const workoutDays = React.useMemo(() => {
     if (!workoutsData?.workouts) return [];
     return workoutsData.workouts.map((w) => dayjs(w.date).toDate());
@@ -47,7 +47,7 @@ export function WorkoutCalendar() {
   }, [selectedDate, workoutsData]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <CalendarGrid
         selectedDate={selectedDate}
         onSelect={(d) => {
@@ -58,29 +58,40 @@ export function WorkoutCalendar() {
         workoutDays={workoutDays}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
+      <section className="flex flex-col border border-border">
+        <header className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {selectedDate
               ? formatDate(selectedDate, "dddd, MMMM D, YYYY")
               : t("select_date")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {selectedDayWorkouts.length > 0 ? (
-            <div className="space-y-4">
+          </h3>
+        </header>
+
+        <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <Spinner className="size-4" />
+            </div>
+          ) : selectedDayWorkouts.length > 0 ? (
+            <ul className="divide-y divide-border">
               {selectedDayWorkouts.map((workout) => (
-                <div
+                <li
                   key={workout.workoutId}
-                  className="border-b last:border-0 pb-2"
+                  className="space-y-2 py-3 first:pt-0 last:pb-0"
                 >
-                  <div className="font-semibold">
+                  <div className="font-mono text-sm tracking-tight text-foreground">
                     {formatDate(workout.date, "h:mm A")}
                   </div>
-                  <ul className="list-disc pl-5 mt-2">
+                  <ul className="space-y-1 pl-3">
                     {workout.exercises.map((ex: WorkoutExercise) => (
-                      <li key={ex.exerciseId || ex.name}>
-                        {ex.name}:{" "}
+                      <li
+                        key={ex.exerciseId || ex.name}
+                        className="border-l border-border pl-3 text-sm text-muted-foreground"
+                      >
+                        <span className="font-medium text-foreground">
+                          {ex.name}
+                        </span>
+                        {": "}
                         {ex.sets && ex.sets.length > 0
                           ? tList("sets_x", { sets: ex.sets.length }) +
                             " " +
@@ -97,14 +108,18 @@ export function WorkoutCalendar() {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           ) : (
-            <p className="text-muted-foreground">{t("no_workouts")}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {t("no_workouts")}
+            </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        <Separator />
+      </section>
     </div>
   );
 }

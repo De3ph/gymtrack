@@ -2,15 +2,24 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { Inter, Noto_Sans, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import { Providers } from "./providers";
 import "../globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const notoSans = Noto_Sans({ subsets: ["latin"], variable: "--font-noto-sans" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["400", "500"],
+  display: "swap",
+});
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  weight: ["400"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "GymTrack - Fitness Tracking for Trainers & Athletes",
@@ -35,15 +44,17 @@ export async function generateStaticParams() {
   return [{ locale: "en" }, { locale: "tr" }];
 }
 
-export default function LocaleLayout({
+export default async function LocaleLayout({
   children,
-  params
+  params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+
   return (
-    <html lang="en" className={cn(inter.variable, notoSans.variable, geistMono.variable)} suppressHydrationWarning>
+    <html lang={locale} className={cn(inter.variable, geistMono.variable)} suppressHydrationWarning>
       <head>
         <template
           dangerouslySetInnerHTML={{
@@ -68,12 +79,10 @@ export default function LocaleLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <ServiceWorkerRegistrar />
         <Suspense fallback={null}>
-          <LocaleLayoutInner params={params}>
-            {children}
-          </LocaleLayoutInner>
+          <LocaleLayoutInner locale={locale}>{children}</LocaleLayoutInner>
         </Suspense>
       </body>
     </html>
@@ -82,19 +91,15 @@ export default function LocaleLayout({
 
 async function LocaleLayoutInner({
   children,
-  params,
+  locale,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  locale: string;
 }) {
-  const { locale } = await params;
-
-  // Providing all messages to the client
-  // side is the easiest way to get started
   const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
       <Providers>{children}</Providers>
     </NextIntlClientProvider>
   );

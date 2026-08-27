@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
-import { Loader2, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import {
   Dialog,
@@ -14,10 +14,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
-import { FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Spinner } from "@/components/ui/spinner";
+import { Separator } from "@/components/ui/separator";
 import { workoutApi } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { Workout, ExerciseSet } from "@/types";
@@ -27,6 +28,7 @@ import {
 } from "@/lib/validations/workout";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FieldError } from "@/components/ui/field";
 
 const ExerciseSelector = dynamic(
   () =>
@@ -37,6 +39,7 @@ const ExerciseSelector = dynamic(
 );
 import { ExerciseSetInput } from "@/components/features/workout/ExerciseSetInput";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface EditWorkoutDialogProps {
   workout: Workout | null;
@@ -60,10 +63,6 @@ export function EditWorkoutDialog({
     [tValidation],
   );
 
-  // Initialize form with workout data when dialog opens. Memoize the
-  // default-values object so the nested mapping isn't rebuilt on every
-  // render; useForm only consumes defaultValues on mount, and workout
-  // changes are handled by the reset effect below.
   const defaultValues = React.useMemo(
     () => ({
       date: workout ? dayjs(workout.date).toDate() : new Date(),
@@ -114,7 +113,6 @@ export function EditWorkoutDialog({
     },
   });
 
-  // Reset form and clear error when workout changes
   React.useEffect(() => {
     if (workout && open) {
       form.reset({
@@ -137,11 +135,10 @@ export function EditWorkoutDialog({
     }
   }, [workout, open, form]);
 
-  // Time validation helper
   const validateTimeFormat = (timeStr: string): [number, number] => {
     const timeParts = timeStr.split(":");
     if (timeParts.length !== 2) {
-      throw new Error(t('invalid_time_format'));
+      throw new Error(t("invalid_time_format"));
     }
     const [hours, minutes] = timeParts.map(Number);
     if (
@@ -152,17 +149,15 @@ export function EditWorkoutDialog({
       minutes < 0 ||
       minutes > 59
     ) {
-      throw new Error(t('invalid_time_values'));
+      throw new Error(t("invalid_time_values"));
     }
     return [hours, minutes];
   };
 
-  // Mutation for updating workout
   const { mutate: updateWorkout, isPending } = useMutation({
     mutationFn: async (data: WorkoutWithPerSetFormData) => {
-      if (!workout) throw new Error(t('no_workout_to_update'));
+      if (!workout) throw new Error(t("no_workout_to_update"));
 
-      // Combine date and time with validation
       const [hours, minutes] = validateTimeFormat(data.workoutTime);
       const combinedDate = dayjs(data.date)
         .hour(hours)
@@ -170,16 +165,14 @@ export function EditWorkoutDialog({
         .second(0)
         .millisecond(0);
 
-      // Validate exercises before sending to API
       const validExercises = data.exercises.filter(
         (ex) => ex.exerciseId.trim() !== "" && ex.name.trim() !== "",
       );
 
       if (validExercises.length !== data.exercises.length) {
-        throw new Error(t('exercises_must_be_valid'));
+        throw new Error(t("exercises_must_be_valid"));
       }
 
-      // Convert workout exercises to the format expected by the backend API
       const exercises = validExercises.map((exercise) => {
         return {
           exerciseId: Number(exercise.exerciseId),
@@ -203,7 +196,7 @@ export function EditWorkoutDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["workouts"],
-        refetchType: "active", // Only refetch active queries
+        refetchType: "active",
       });
       onOpenChange(false);
     },
@@ -211,7 +204,6 @@ export function EditWorkoutDialog({
       const errorMessage = ApiErrorHandler.handle(error);
       setError(errorMessage);
       console.error("Failed to update workout:", errorMessage);
-      // Auto-clear error after 5 seconds
       setTimeout(() => setError(null), 5000);
     },
   });
@@ -230,26 +222,38 @@ export function EditWorkoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
+      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto rounded-none border border-border p-0 text-foreground shadow-none ring-0">
+        <DialogHeader className="border-b border-border px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-6">
+          <DialogTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {t("title")}
+          </DialogTitle>
         </DialogHeader>
 
         {error && (
-          <div className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-md mx-6">
+          <div
+            role="alert"
+            className="border-b border-destructive px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-destructive sm:px-6"
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex flex-col space-y-2">
-            <FieldLabel htmlFor="date">{t("date_label")}</FieldLabel>
-            <div className="flex flex-wrap gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6 px-4 py-4 sm:px-6 sm:py-6">
+          <Field>
+            <FieldLabel
+              htmlFor="date"
+              className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+            >
+              {t("date_label")}
+            </FieldLabel>
+            <div className="flex flex-wrap gap-3">
               <form.Field name="date">
                 {(field) => (
                   <DatePicker
                     value={field.state.value}
-                    onChange={(d) => { if (d) field.handleChange(d); }}
+                    onChange={(d) => {
+                      if (d) field.handleChange(d);
+                    }}
                     onBlur={field.handleBlur}
                     id="date"
                     className="w-full md:w-45"
@@ -270,56 +274,67 @@ export function EditWorkoutDialog({
                 )}
               </form.Field>
             </div>
-          </div>
+            <FieldError
+              errors={
+                form.state.fieldMeta.date?.errors?.map((e) => ({
+                  message: typeof e === "string" ? e : e.message,
+                })) as Array<{ message?: string } | undefined> | undefined
+              }
+            />
+          </Field>
+
+          <Separator />
 
           <form.Field name="exercises" mode="array">
             {(field) => (
               <div className="space-y-4">
                 {field.state.value.map((exercise, index) => (
-                  <Card
+                  <article
                     key={`${exercise.exerciseId || exercise.name}-${index}`}
+                    className="border border-border"
                   >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg font-bold">
-                          {field.state.value[index]?.name ||
-                            t("fallback_exercise", { number: index + 1 })}
-                        </CardTitle>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => field.removeValue(index)}
-                          disabled={field.state.value.length === 1}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                      <div className="mt-2">
-                        <form.Field name={`exercises[${index}].exerciseId`}>
-                          {(subField) => (
-                            <ExerciseSelector
-                              onSelect={(selectedExercise) => {
-                                // Update both exerciseId and name when exercise is selected
-                                field.setValue((prev) => {
-                                  const newExercises = [...prev];
-                                  newExercises[index] = {
-                                    ...newExercises[index],
-                                    exerciseId: String(selectedExercise.exerciseId),
-                                    name: selectedExercise.name,
-                                  };
-                                  return newExercises;
-                                });
-                              }}
-                              selectedExerciseId={subField.state.value}
-                            />
-                          )}
-                        </form.Field>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Per-Set Input */}
+                    <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+                      <h3 className="text-base font-medium text-foreground">
+                        {field.state.value[index]?.name ||
+                          t("fallback_exercise", { number: index + 1 })}
+                      </h3>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => field.removeValue(index)}
+                        disabled={field.state.value.length === 1}
+                        aria-label={t("remove_exercise")}
+                        className="h-8 w-8 rounded-none text-muted-foreground hover:text-destructive"
+                      >
+                        ×
+                      </Button>
+                    </header>
+
+                    <div className="space-y-4 px-4 py-3 sm:px-6 sm:py-4">
+                      <form.Field name={`exercises[${index}].exerciseId`}>
+                        {(subField) => (
+                          <ExerciseSelector
+                            onSelect={(selectedExercise) => {
+                              field.setValue((prev) => {
+                                const newExercises = [...prev];
+                                newExercises[index] = {
+                                  ...newExercises[index],
+                                  exerciseId: String(
+                                    selectedExercise.exerciseId,
+                                  ),
+                                  name: selectedExercise.name,
+                                };
+                                return newExercises;
+                              });
+                            }}
+                            selectedExerciseId={subField.state.value}
+                          />
+                        )}
+                      </form.Field>
+
+                      <Separator />
+
                       <form.Field name={`exercises[${index}].sets`}>
                         {(subField) => (
                           <ExerciseSetInput
@@ -337,25 +352,34 @@ export function EditWorkoutDialog({
                           />
                         )}
                       </form.Field>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </article>
                 ))}
               </div>
             )}
           </form.Field>
 
-          <div className="flex justify-end space-x-4 pt-4 border-t">
+          <Separator />
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
+              className={cn(
+                "rounded-none font-mono text-[10px] uppercase tracking-[0.18em]",
+              )}
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              <Save className="mr-2 h-4 w-4" />
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+            >
+              {isPending && <Spinner className="size-3.5" />}
+              <Save className="size-3.5" aria-hidden="true" />
               {t("save_changes")}
             </Button>
           </div>

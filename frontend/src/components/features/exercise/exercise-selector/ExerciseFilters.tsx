@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface ExerciseFiltersProps {
   selectedMuscleGroup?: number;
@@ -36,10 +37,8 @@ export function ExerciseFilters({
 }: ExerciseFiltersProps) {
   const t = useTranslations("exercise");
   const hasActiveFilters =
-    selectedMuscleGroup || selectedEquipment || searchQuery;
+    Boolean(selectedMuscleGroup) || Boolean(selectedEquipment) || searchQuery;
 
-  // Memoize option arrays so select items keep a stable reference across
-  // renders when the underlying data is unchanged (rerender-memo).
   const muscleGroupItems = useMemo(
     () => [
       { value: "", label: t("filters.all_muscle_groups") },
@@ -54,13 +53,16 @@ export function ExerciseFilters({
   const equipmentItems = useMemo(
     () => [
       { value: "", label: t("filters.all_equipment") },
-      ...equipment.map((eq) => ({ value: String(eq.id), label: eq.description })),
+      ...equipment.map((eq) => ({
+        value: String(eq.id),
+        label: eq.description,
+      })),
     ],
     [equipment, t],
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+    <div className="flex flex-wrap items-center gap-2 border border-border px-3 py-2">
       <Select
         items={muscleGroupItems}
         value={selectedMuscleGroup ? String(selectedMuscleGroup) : ""}
@@ -68,14 +70,20 @@ export function ExerciseFilters({
           onMuscleGroupChange(v ? Number(v) : undefined)
         }
       >
-        <SelectTrigger className="w-auto min-w-40">
+        <SelectTrigger className="w-auto min-w-40 rounded-none shadow-none">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="rounded-none border border-border shadow-none ring-0">
           <SelectGroup>
-            <SelectLabel>{t("filters.all_muscle_groups")}</SelectLabel>
+            <SelectLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {t("filters.all_muscle_groups")}
+            </SelectLabel>
             {muscleGroupItems.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
+              <SelectItem
+                key={item.value}
+                value={item.value}
+                className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+              >
                 {item.label}
               </SelectItem>
             ))}
@@ -90,14 +98,20 @@ export function ExerciseFilters({
           onEquipmentChange(v ? Number(v) : undefined)
         }
       >
-        <SelectTrigger className="w-auto min-w-40">
+        <SelectTrigger className="w-auto min-w-40 rounded-none shadow-none">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="rounded-none border border-border shadow-none ring-0">
           <SelectGroup>
-            <SelectLabel>{t("filters.all_equipment")}</SelectLabel>
+            <SelectLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {t("filters.all_equipment")}
+            </SelectLabel>
             {equipmentItems.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
+              <SelectItem
+                key={item.value}
+                value={item.value}
+                className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+              >
                 {item.label}
               </SelectItem>
             ))}
@@ -110,9 +124,11 @@ export function ExerciseFilters({
           variant="ghost"
           size="sm"
           onClick={onClearFilters}
-          className="text-xs"
+          className={cn(
+            "rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground",
+          )}
         >
-          <X className="w-3 h-3 mr-1" />
+          <X className="size-3" aria-hidden="true" />
           {t("filters.clear")}
         </Button>
       )}

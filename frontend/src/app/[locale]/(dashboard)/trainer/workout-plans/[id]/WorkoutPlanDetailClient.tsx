@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,8 +10,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { WorkoutPlan, WorkoutPlanAssignment, WorkoutPlanExercise, WorkoutPlanSet } from "@/types";
+import type {
+  WorkoutPlan,
+  WorkoutPlanAssignment,
+  WorkoutPlanExercise,
+  WorkoutPlanSet,
+} from "@/types";
 
 interface WorkoutPlanDetailClientProps {
   plan: WorkoutPlan;
@@ -20,7 +23,11 @@ interface WorkoutPlanDetailClientProps {
   planId: string;
 }
 
-export function WorkoutPlanDetailClient({ plan, assignments, planId }: WorkoutPlanDetailClientProps) {
+export function WorkoutPlanDetailClient({
+  plan,
+  assignments,
+  planId,
+}: WorkoutPlanDetailClientProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const t = useTranslations("trainer.workout_plans");
@@ -28,28 +35,34 @@ export function WorkoutPlanDetailClient({ plan, assignments, planId }: WorkoutPl
 
   const [showEditForm, setShowEditForm] = useState(false);
 
-
-
   if (!plan) {
     return (
       <div className="container mx-auto py-6">
-        <p className="text-muted-foreground">{t('plan_not_found')}</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {t("plan_not_found")}
+        </p>
       </div>
     );
   }
 
-
-
   return (
     <div className="container mx-auto py-6">
-      <div className="mb-6 flex items-center gap-4">
-        <Button variant="outline" onClick={() => router.push(ROUTES.TRAINER_WORKOUT_PLANS)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> {tc('back')}
+      <div className="mb-6 flex items-center gap-3">
+        <Button
+          variant="outline"
+          onClick={() => router.push(ROUTES.TRAINER_WORKOUT_PLANS)}
+          className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden="true" /> {tc("back")}
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{plan.name}</h1>
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">
+            {plan.name}
+          </h1>
           {plan.description && (
-            <p className="text-muted-foreground">{plan.description}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {plan.description}
+            </p>
           )}
         </div>
       </div>
@@ -57,79 +70,107 @@ export function WorkoutPlanDetailClient({ plan, assignments, planId }: WorkoutPl
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
           {showEditForm ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("edit")}</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="border border-border">
+              <header className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+                <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("edit")}
+                </h2>
+              </header>
+              <div className="px-4 py-3 sm:px-6 sm:py-4">
                 <WorkoutPlanForm
                   plan={plan}
                   onSuccess={async () => {
                     setShowEditForm(false);
-                    await queryClient.invalidateQueries({ queryKey: ["workout-plan", planId] });
+                    await queryClient.invalidateQueries({
+                      queryKey: ["workout-plan", planId],
+                    });
                   }}
                 />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ) : (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>{t("exercises")}</CardTitle>
-                <Button variant="outline" size="sm" onClick={() => setShowEditForm(true)}>
+            <div className="border border-border">
+              <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+                <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("exercises")}
+                </h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowEditForm(true)}
+                  className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+                >
                   {t("edit")}
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {plan.exercises.map((ex: WorkoutPlanExercise, i: number) => (
-                    <li key={ex.exerciseId} className="border-b pb-3 last:border-0">
-                      <p className="font-medium">{i + 1}. {ex.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {t('exercise_detail', { count: ex.sets.length, weights: ex.sets.map((s: WorkoutPlanSet) => `${s.weight}${s.weightUnit}`).join(", ") })}
-                      </p>
-                      {ex.notes && (
-                        <p className="text-sm text-muted-foreground mt-1">{ex.notes}</p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+              </header>
+              <ul className="divide-y divide-border">
+                {plan.exercises.map((ex: WorkoutPlanExercise, i: number) => (
+                  <li key={ex.exerciseId} className="space-y-1 px-4 py-3 sm:px-6 sm:py-4">
+                    <p className="text-base font-medium text-foreground">
+                      {i + 1}. {ex.name}
+                    </p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      {t("exercise_detail", {
+                        count: ex.sets.length,
+                        weights: ex.sets
+                          .map(
+                            (s: WorkoutPlanSet) => `${s.weight}${s.weightUnit}`,
+                          )
+                          .join(", "),
+                      })}
+                    </p>
+                    {ex.notes && (
+                      <p className="text-sm text-muted-foreground">{ex.notes}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
 
         <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+          <div className="border border-border">
+            <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+              <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 {t("clients_assigned")} ({assignments.length})
-                <AssignPlanDialog
-                  planId={planId}
-                  trigger={
-                    <Button size="sm" variant="outline">
-                      <UserPlus className="w-4 h-4 mr-1" /> {t("assign")}
-                    </Button>
-                  }
-                  onSuccess={async () => {
-                    await queryClient.invalidateQueries({ queryKey: ["workout-plan-assignments", planId] });
-                  }}
-                />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {assignments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('no_clients_yet')}</p>
-              ) : (
-                <ul className="space-y-2">
-                  {assignments.map((a) => (
-                    <li key={a.assignmentId} className="text-sm">
-                      {t('athlete_label', { id: a.athleteId })}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
+              </h2>
+              <AssignPlanDialog
+                planId={planId}
+                trigger={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+                  >
+                    <UserPlus className="size-3.5" aria-hidden="true" />{" "}
+                    {t("assign")}
+                  </Button>
+                }
+                onSuccess={async () => {
+                  await queryClient.invalidateQueries({
+                    queryKey: ["workout-plan-assignments", planId],
+                  });
+                }}
+              />
+            </header>
+            {assignments.length === 0 ? (
+              <p className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:px-6 sm:py-4">
+                {t("no_clients_yet")}
+              </p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {assignments.map((a) => (
+                  <li
+                    key={a.assignmentId}
+                    className="px-4 py-3 text-sm text-foreground sm:px-6 sm:py-4"
+                  >
+                    {t("athlete_label", { id: a.athleteId })}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>

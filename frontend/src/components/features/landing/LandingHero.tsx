@@ -1,7 +1,13 @@
-﻿import { ArrowRight, ShieldCheck } from "lucide-react";
+﻿import {
+  Activity,
+  ArrowRight,
+  BarChart3,
+  UsersRound,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
+import { buttonVariants } from "@/components/ui/button";
 import { motion, LazyMotion, domAnimation } from "motion/react";
 import { landingReveal } from "./landing-variants";
 
@@ -10,35 +16,79 @@ export function LandingHero() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <motion.div className="max-w-3xl" variants={landingReveal}>
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground shadow-sm backdrop-blur">
-          <ShieldCheck className="size-3.5 text-accent" />
-          {t("eyebrow_badge")}
-        </div>
-
-        <h1 className="max-w-5xl text-5xl font-black leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+      <motion.div className="max-w-5xl" variants={landingReveal}>
+        <h1
+          id="hero-heading"
+          className="text-balance font-mono text-[2.5rem] font-normal leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-[5.5rem]"
+        >
           {t("hero.title")}
         </h1>
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+        <p className="mt-8 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
           {t("hero.description")}
         </p>
 
-        <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-12 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Link
             href={ROUTES.REGISTER}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-[14px] text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className={buttonVariants({
+              variant: "default",
+              size: "lg",
+              className:
+                "h-12 rounded-none border-foreground bg-foreground px-6 font-mono text-xs uppercase tracking-[0.18em] text-background hover:bg-background hover:text-foreground",
+            })}
           >
             {t("sign_up")}
-            <ArrowRight className="size-4" />
+            <ArrowRight className="size-3.5" />
           </Link>
           <Link
             href={ROUTES.LOGIN}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-6 py-[14px] text-base font-bold text-foreground shadow-sm transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className:
+                "h-12 rounded-none border-border bg-transparent px-6 font-mono text-xs uppercase tracking-[0.18em] hover:border-foreground",
+            })}
           >
             {t("login")}
           </Link>
         </div>
+
+        <dl className="mt-16 grid max-w-3xl grid-cols-3 divide-x divide-border border-y border-border">
+          {[
+            {
+              value: t("metrics.roles.value"),
+              label: t("metrics.roles.label"),
+              Icon: UsersRound,
+            },
+            {
+              value: t("metrics.track.value"),
+              label: t("metrics.track.label"),
+              Icon: Activity,
+            },
+            {
+              value: t("metrics.coach.value"),
+              label: t("metrics.coach.label"),
+              Icon: BarChart3,
+            },
+          ].map((metric) => (
+            <div
+              key={metric.label}
+              className="flex flex-col gap-2 px-4 py-5 sm:px-6 sm:py-6"
+            >
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <metric.Icon
+                  className="size-3 shrink-0"
+                  aria-hidden="true"
+                />
+                <dt>{metric.label}</dt>
+              </div>
+              <dd className="font-mono text-3xl font-normal tracking-tight text-foreground sm:text-4xl">
+                {metric.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </motion.div>
     </LazyMotion>
   );

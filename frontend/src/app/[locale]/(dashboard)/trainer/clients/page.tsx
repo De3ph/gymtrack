@@ -3,6 +3,8 @@
 import { GenerateInvitationDialog } from "@/components/features/trainer/GenerateInvitationDialog";
 import { ClientCard } from "@/components/features/trainer/ClientCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Empty,
   EmptyContent,
@@ -13,7 +15,7 @@ import {
 } from "@/components/ui/empty";
 import { relationshipApi } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
-import { Loader2, UserPlus, Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useDeferredValue, useMemo } from "react";
@@ -31,7 +33,6 @@ export default function TrainerClientsPage() {
   const t = useTranslations("trainer.clients");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
 
-  // Fetch clients using TanStack Query
   const { data, isLoading, error } = useQuery({
     queryKey: ["myClients"],
     queryFn: () => relationshipApi.getMyClients(),
@@ -40,7 +41,6 @@ export default function TrainerClientsPage() {
   });
   const clients = data?.clients ?? [];
 
-  // Guard: redirect if not a trainer
   useEffect(() => {
     if (user && user.role !== "trainer") {
       router.push(ROUTES.HOME);
@@ -54,7 +54,9 @@ export default function TrainerClientsPage() {
           client.athlete?.profile?.name
             ?.toLowerCase()
             .includes(deferredSearch.toLowerCase()) ||
-          client.athlete?.email?.toLowerCase().includes(deferredSearch.toLowerCase()),
+          client.athlete?.email
+            ?.toLowerCase()
+            .includes(deferredSearch.toLowerCase()),
       ),
     [clients, deferredSearch],
   );
@@ -66,56 +68,78 @@ export default function TrainerClientsPage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <Spinner className="size-4" />
+          <span>Loading</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto py-6">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">My Clients</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">
+            My Clients
+          </h1>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Manage your athlete relationships and view their progress
           </p>
         </div>
-        <Button onClick={() => setShowInviteDialog(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
+        <Button
+          onClick={() => setShowInviteDialog(true)}
+          className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+        >
+          <UserPlus className="size-3.5" aria-hidden="true" />
           Invite Athlete
         </Button>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
+        <div
+          role="alert"
+          className="mb-4 border border-destructive px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-destructive"
+        >
           {error instanceof Error ? error.message : String(error)}
         </div>
       )}
 
       {clients.length > 0 && (
         <div className="mb-4">
-          <input
+          <Input
             type="text"
             placeholder={t("search_placeholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full max-w-sm"
           />
         </div>
       )}
 
       {clients.length === 0 ? (
-        <Empty>
+        <Empty className="rounded-none border border-border">
           <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Users className="size-6" />
+            <EmptyMedia
+              variant="default"
+              className="rounded-none bg-transparent"
+            >
+              <Users
+                className="size-5 text-muted-foreground"
+                aria-hidden="true"
+              />
             </EmptyMedia>
-            <EmptyTitle>{t("no_clients_title")}</EmptyTitle>
+            <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em]">
+              {t("no_clients_title")}
+            </EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
             <EmptyDescription>{t("no_clients_description")}</EmptyDescription>
-            <Button onClick={() => setShowInviteDialog(true)}>
-              <UserPlus className="mr-2 h-4 w-4" />
+            <Button
+              onClick={() => setShowInviteDialog(true)}
+              className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+            >
+              <UserPlus className="size-3.5" aria-hidden="true" />
               {t("invite_first_athlete")}
             </Button>
           </EmptyContent>
@@ -138,9 +162,11 @@ export default function TrainerClientsPage() {
       )}
 
       {filteredClients.length === 0 && clients.length > 0 && (
-        <Empty>
+        <Empty className="rounded-none border border-border">
           <EmptyHeader>
-            <EmptyTitle>No Results Found</EmptyTitle>
+            <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em]">
+              No Results Found
+            </EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
             <EmptyDescription>No clients match your search.</EmptyDescription>

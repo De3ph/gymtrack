@@ -1,4 +1,3 @@
-import { Dumbbell } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
@@ -10,21 +9,22 @@ export function LandingHeader() {
 
   return (
     <header className="flex items-center justify-between gap-4">
-      <Link href={ROUTES.HOME} className="group flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-card shadow-sm transition group-hover:border-primary/60">
-          <Dumbbell className="size-5 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-foreground">
-            {t("title")}
-          </p>
-          <p className="-mt-0.5 text-xs font-medium text-muted-foreground">
+      <Link
+        href={ROUTES.HOME}
+        className="group flex items-center gap-3 font-mono text-xs uppercase tracking-[0.18em]"
+      >
+        <span className="flex size-9 items-center justify-center border border-foreground bg-foreground text-background transition group-hover:bg-background group-hover:text-foreground">
+          GT
+        </span>
+        <span className="hidden flex-col leading-tight sm:flex">
+          <span className="font-semibold text-foreground">{t("title")}</span>
+          <span className="text-[10px] text-muted-foreground">
             {t("eyebrow")}
-          </p>
-        </div>
+          </span>
+        </span>
       </Link>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <ThemeToggle />
         <LocaleToggle />
       </div>

@@ -1,12 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl"
+import { useTranslations } from "next-intl";
 import { ExerciseLibrary } from "@/types";
 import { MuscleGroupBadge } from "./MuscleGroupBadge";
 import { EquipmentBadge } from "./EquipmentBadge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 interface ExerciseCardProps {
@@ -20,9 +20,9 @@ export function ExerciseCard({
   exercise,
   onSelect,
   showInstructions = false,
-  className
+  className,
 }: ExerciseCardProps) {
-  const t = useTranslations("exercise")
+  const t = useTranslations("exercise");
   const [showFullInstructions, setShowFullInstructions] = useState(false);
 
   const handleSelect = () => {
@@ -30,68 +30,79 @@ export function ExerciseCard({
   };
 
   const toggleInstructions = () => {
-    setShowFullInstructions(!showFullInstructions);
+    setShowFullInstructions((v) => !v);
   };
 
-  return (
-    <Card className={className}>
-      <CardHeader className='pb-3'>
-        <div className='flex items-start justify-between'>
-          <CardTitle className='text-lg leading-tight'>
-            {exercise.name}
-          </CardTitle>
-          {onSelect && (
-            <Button size='sm' onClick={handleSelect} className='ml-2'>
-              {t("card.select")}
-            </Button>
-          )}
-        </div>
+  const hasInstructions = Boolean(exercise.instructions) && showInstructions;
+  const instructionsTooLong = (exercise.instructions?.length ?? 0) > 100;
 
-        <div className='flex flex-wrap gap-2 mt-2'>
+  return (
+    <div className={cn("flex flex-col border border-border", className)}>
+      <header className="flex items-start justify-between gap-3 border-b border-border px-6 py-4">
+        <h3 className="text-base font-medium leading-tight text-foreground">
+          {exercise.name}
+        </h3>
+        {onSelect && (
+          <Button
+            size="sm"
+            onClick={handleSelect}
+            className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+          >
+            {t("card.select")}
+          </Button>
+        )}
+      </header>
+
+      {(exercise.muscleGroup || exercise.equipment) && (
+        <div className="flex flex-wrap gap-1.5 border-b border-border px-6 py-3">
           {exercise.muscleGroup && (
             <MuscleGroupBadge
               muscleGroup={exercise.muscleGroup}
-              variant='small'
+              variant="small"
             />
           )}
           {exercise.equipment && (
-            <EquipmentBadge equipment={exercise.equipment} variant='small' />
+            <EquipmentBadge equipment={exercise.equipment} variant="small" />
           )}
         </div>
-      </CardHeader>
+      )}
 
-      <CardContent className='pt-0'>
-        <div className='space-y-2'>
-          <div className='text-sm text-muted-foreground'>
-            {t("card.category")}:{" "}
-            <span className='font-medium capitalize'>{exercise.category}</span>
-          </div>
+      <div className="space-y-2 px-6 py-4 text-sm">
+        <div className="text-muted-foreground">
+          {t("card.category")}:{" "}
+          <span className="font-medium text-foreground capitalize">
+            {exercise.category}
+          </span>
+        </div>
 
-          {exercise.instructions && showInstructions && (
-            <div className='text-sm text-foreground'>
-              <div className='flex items-center gap-2 mb-1'>
-                <Info className='w-4 h-4' />
-                <span className='font-medium'>{t("card.instructions")}:</span>
-              </div>
-              <div className='bg-muted p-2 rounded text-sm'>
-                {showFullInstructions
-                  ? exercise.instructions
-                  : `${exercise.instructions.slice(0, 100)}...`}
-                {exercise.instructions.length > 100 && (
-                  <button
-                    onClick={toggleInstructions}
-                    className='text-primary hover:text-primary/80 ml-1 underline'
-                  >
-                    {showFullInstructions
-                      ? t("card.show_less")
-                      : t("card.show_more")}
-                  </button>
-                )}
-              </div>
+        {hasInstructions && (
+          <div className="text-foreground">
+            <div className="mb-1 flex items-center gap-2 font-medium">
+              <Info className="size-4" aria-hidden="true" />
+              <span>{t("card.instructions")}:</span>
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
+            <div className="border border-border p-3 text-sm leading-6 text-muted-foreground">
+              {showFullInstructions
+                ? exercise.instructions
+                : `${exercise.instructions!.slice(0, 100)}...`}
+              {instructionsTooLong && (
+                <button
+                  type="button"
+                  onClick={toggleInstructions}
+                  className={cn(
+                    buttonVariants({ variant: "link", size: "sm" }),
+                    "ml-1 h-auto rounded-none p-0 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground underline-offset-4 hover:no-underline",
+                  )}
+                >
+                  {showFullInstructions
+                    ? t("card.show_less")
+                    : t("card.show_more")}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

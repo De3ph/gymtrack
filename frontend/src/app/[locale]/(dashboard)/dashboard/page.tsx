@@ -20,7 +20,6 @@ export default function RoleDashboardPage() {
     }
   }, [isLoading, user, logout]);
 
-  // Redirect admin users to their dashboard
   useEffect(() => {
     if (!isLoading && user?.role === "admin") {
       router.replace("/admin");
@@ -30,9 +29,9 @@ export default function RoleDashboardPage() {
   if (isLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex items-center gap-3 text-lg text-muted-foreground">
-          <Spinner className="size-6 text-primary" />
-          Loading...
+        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <Spinner className="size-4" />
+          <span>Loading</span>
         </div>
       </div>
     );

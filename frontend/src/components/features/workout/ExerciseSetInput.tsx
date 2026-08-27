@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Weight, Repeat, Timer } from "lucide-react";
 import { ExerciseSet } from "@/types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
-// Extended ExerciseSet type with unique ID for stable keys
 interface ExerciseSetWithId extends ExerciseSet {
   id: string;
 }
@@ -30,7 +29,6 @@ export function ExerciseSetInput({
 }: ExerciseSetInputProps) {
   const t = useTranslations("workout.form.exercise.sets");
 
-  // Maintain internal state with stable IDs
   const [setsWithIds, setSetsWithIds] = useState<ExerciseSetWithId[]>(() => {
     return (value || []).map((set, index) => ({
       ...set,
@@ -38,8 +36,6 @@ export function ExerciseSetInput({
     }));
   });
 
-  // Sync external value changes into internal state, preserving IDs by index.
-  // The functional setState returns `prev` when nothing changed, so no cascading renders.
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const newVal = value ?? [];
@@ -74,14 +70,12 @@ export function ExerciseSetInput({
     };
     const newSetsWithIds = [...setsWithIds, newSet];
     setSetsWithIds(newSetsWithIds);
-    // Convert back to ExerciseSet[] for the parent component
     onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
   const removeSet = (setId: string) => {
     const newSetsWithIds = setsWithIds.filter((set) => set.id !== setId);
     setSetsWithIds(newSetsWithIds);
-    // Convert back to ExerciseSet[] for the parent component
     onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
@@ -94,147 +88,126 @@ export function ExerciseSetInput({
       set.id === setId ? { ...set, [field]: newValue } : set,
     );
     setSetsWithIds(newSetsWithIds);
-    // Convert back to ExerciseSet[] for the parent component
     onChange(newSetsWithIds.map(({ id, ...set }) => set));
   };
 
+  const colLabel =
+    "flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground";
+
   return (
-    <div className={cn("space-y-3", className)}>
-      <FieldLabel>{t("label")}</FieldLabel>
-
-      {!value || value.length === 0 ? (
-        <div className="space-y-3">
-          <div className="text-center py-4 text-sm text-muted-foreground border rounded-md">
-            {t("no_sets")}
+    <div className={cn("border border-border", className)}>
+      {setsWithIds.length > 0 && (
+        <>
+          <div className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 border-b border-border px-3 py-2 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]">
+            <span className={cn(colLabel, "justify-start")}>
+              {t("label")}
+            </span>
+            <span className={cn(colLabel, "justify-center")}>
+              <Weight className="size-3" aria-hidden="true" /> {t("weight")}
+            </span>
+            <span className={cn(colLabel, "justify-center")}>
+              <Repeat className="size-3" aria-hidden="true" /> {t("reps")}
+            </span>
+            <span className={cn(colLabel, "justify-center")}>
+              <Timer className="size-3" aria-hidden="true" /> {t("rest")}
+            </span>
+            <span />
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addSet}
-            disabled={disabled}
-            className="w-full"
+          <Separator className="hidden" />
+        </>
+      )}
+
+      <ul className="divide-y divide-border">
+        {setsWithIds.map((set, index) => (
+          <li
+            key={set.id}
+            className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 px-3 py-1.5 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]"
           >
-            <Plus className="w-4 h-4 mr-1" />
-            {t("add")}
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {setsWithIds.map((set, index) => (
-            <div
-              key={set.id}
-              className="flex flex-wrap items-center gap-2 p-3 border rounded-md bg-background"
-            >
-              {/* Set Number */}
-              <div className="flex items-center gap-1 min-w-15">
-                <span className="text-sm font-medium">
-                  {t("set_number", { number: index + 1 })}
-                </span>
-              </div>
-
-              {/* Weight Input */}
-              <div className="flex items-center gap-1 min-w-20">
-                <Field>
-                  <FieldLabel className="text-xs">{t("weight")}</FieldLabel>
-                  <Input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    value={set.weight}
-                    onChange={(e) =>
-                      updateSet(
-                        set.id,
-                        "weight",
-                        parseFloat(e.target.value) || 0,
-                      )
-                    }
-                    disabled={disabled}
-                    className="w-16"
-                    placeholder="0"
-                    data-testid="set-weight"
-                  />
-                </Field>
-                <span className="text-sm text-muted-foreground self-end pb-1">
-                  {t("weight_unit")}
-                </span>
-              </div>
-
-              {/* Reps Input */}
-              <div className="flex items-center gap-1 min-w-17.5">
-                <Field>
-                  <FieldLabel className="text-xs">{t("reps")}</FieldLabel>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={set.reps}
-                    onChange={(e) =>
-                      updateSet(set.id, "reps", parseInt(e.target.value) || 1)
-                    }
-                    disabled={disabled}
-                    className="w-16"
-                    placeholder="1"
-                    data-testid="set-reps"
-                  />
-                </Field>
-              </div>
-
-              {/* Rest Time Input */}
-              <div className="flex items-center gap-1 min-w-22.5">
-                <Field>
-                  <FieldLabel className="text-xs">{t("rest")}</FieldLabel>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="15"
-                    value={set.restTime || 0}
-                    onChange={(e) =>
-                      updateSet(
-                        set.id,
-                        "restTime",
-                        parseInt(e.target.value) || 0,
-                      )
-                    }
-                    disabled={disabled}
-                    className="w-16"
-                    placeholder="60"
-                    data-testid="set-rest"
-                  />
-                </Field>
-                <span className="text-sm text-muted-foreground self-end pb-1">
-                  {t("seconds")}
-                </span>
-              </div>
-
-              {/* Remove Button */}
+            <span className="flex justify-start font-mono text-sm tabular-nums text-muted-foreground">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div className="flex justify-center">
+              <Input
+                type="number"
+                step="0.5"
+                min="0"
+                value={set.weight}
+                onChange={(e) =>
+                  updateSet(
+                    set.id,
+                    "weight",
+                    parseFloat(e.target.value) || 0,
+                  )
+                }
+                disabled={disabled}
+                className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
+                placeholder="0"
+                data-testid="set-weight"
+              />
+            </div>
+            <div className="flex justify-center">
+              <Input
+                type="number"
+                min="1"
+                value={set.reps}
+                onChange={(e) =>
+                  updateSet(set.id, "reps", parseInt(e.target.value) || 1)
+                }
+                disabled={disabled}
+                className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
+                placeholder="—"
+                data-testid="set-reps"
+              />
+            </div>
+            <div className="flex justify-center">
+              <Input
+                type="number"
+                min="0"
+                step="15"
+                value={set.restTime || 0}
+                onChange={(e) =>
+                  updateSet(
+                    set.id,
+                    "restTime",
+                    parseInt(e.target.value) || 0,
+                  )
+                }
+                disabled={disabled}
+                className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
+                placeholder="—"
+                data-testid="set-rest"
+              />
+            </div>
+            <div className="flex justify-end">
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => removeSet(set.id)}
                 disabled={disabled}
-                className="text-red-600 hover:text-red-700 ml-auto"
+                className="h-8 w-8 rounded-none text-muted-foreground hover:text-destructive"
+                aria-label={t("remove")}
                 data-testid="remove-set"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="size-4" aria-hidden="true" />
               </Button>
             </div>
-          ))}
+          </li>
+        ))}
+      </ul>
 
-          {/* Add Set Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addSet}
-            disabled={disabled}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            {t("add")}
-          </Button>
-        </div>
-      )}
+      <div className="border-t border-border">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addSet}
+          disabled={disabled}
+          className="w-full rounded-none border-0 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+        >
+          <Plus className="size-3.5" aria-hidden="true" /> {t("add")}
+        </Button>
+      </div>
     </div>
   );
 }

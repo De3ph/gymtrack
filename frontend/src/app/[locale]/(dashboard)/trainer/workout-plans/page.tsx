@@ -63,7 +63,7 @@ export default function TrainerWorkoutPlansPage() {
       await workoutPlanApi.delete(deletingPlan.planId);
       await revalidateWorkoutPlansCache();
       queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
-      setPlanFilter(""); // Reset filter when deleting
+      setPlanFilter("");
       setDeletingPlan(null);
     } catch (e) {
       console.error(e);
@@ -83,42 +83,51 @@ export default function TrainerWorkoutPlansPage() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("description")}</p>
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">
+            {t("title")}
+          </h1>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {t("description")}
+          </p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="mr-2 h-4 w-4" /> {t("create")}
+        <Button
+          onClick={() => setShowCreateForm(true)}
+          className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+        >
+          <Plus className="size-3.5" aria-hidden="true" /> {t("create")}
         </Button>
       </div>
 
-      {/* Filter Select */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="w-full sm:w-auto sm:ml-auto">
-          <Select
-            items={planFilterItems}
-            value={planFilter}
-            onValueChange={(v: string | null) => setPlanFilter(v ?? "")}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>{t("all_plans")}</SelectLabel>
-                {planFilterItems.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="mb-6 flex justify-end">
+        <Select
+          items={planFilterItems}
+          value={planFilter}
+          onValueChange={(v: string | null) => setPlanFilter(v ?? "")}
+        >
+          <SelectTrigger className="w-full rounded-none shadow-none sm:w-auto">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-none border border-border shadow-none ring-0">
+            <SelectGroup>
+              <SelectLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                {t("all_plans")}
+              </SelectLabel>
+              {planFilterItems.map((item) => (
+                <SelectItem
+                  key={item.value}
+                  value={item.value}
+                  className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+                >
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Create/Edit Dialog */}
       <WorkoutPlanFormDialog
         open={showCreateForm || !!editingPlan}
         onOpenChange={(open) => {
@@ -134,7 +143,6 @@ export default function TrainerWorkoutPlansPage() {
         }}
       />
 
-      {/* Assign Dialog */}
       {assigningPlan && (
         <AssignPlanDialog
           planId={assigningPlan.planId}
@@ -143,34 +151,42 @@ export default function TrainerWorkoutPlansPage() {
         />
       )}
 
-      {/* Delete Confirmation */}
       <Dialog
         open={!!deletingPlan}
         onOpenChange={(open) => {
           if (!open) setDeletingPlan(null);
         }}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("delete")}</DialogTitle>
+        <DialogContent className="rounded-none border border-border p-0 shadow-none ring-0">
+          <DialogHeader className="border-b border-border px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-6">
+            <DialogTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {t("delete")}
+            </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
+          <p className="px-4 py-3 text-sm text-muted-foreground sm:px-6 sm:py-4">
             {t("delete_confirm", {
               count: deletingPlan?.exercises.length || 0,
             })}
           </p>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setDeletingPlan(null)}>
+          <div className="flex justify-end gap-2 border-t border-border px-4 py-3 sm:px-6">
+            <Button
+              variant="outline"
+              onClick={() => setDeletingPlan(null)}
+              className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+            >
               {tc("cancel")}
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+            >
               {tc("delete")}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Plan List */}
       <WorkoutPlanList
         plans={filteredPlans}
         onEdit={(plan) => setEditingPlan(plan)}

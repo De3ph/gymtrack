@@ -170,23 +170,76 @@ The same applies to `Badge` (rounded-4xl, h-5). When you need a chip, write a `<
 
 ## 5. Components — primitives to reach for
 
-`src/components/ui/` ships 38 shadcn primitives. Reach for them in this order:
+`src/components/ui/` ships 38 shadcn primitives. **Use them. Don't reinvent.** Every primitive in the repo is the canonical answer to a recurring UI problem; building a parallel version is technical debt.
 
-| Need | Primitive | Notes |
+When a primitive's defaults conflict with the register (rounded corners, shadows, colored chips), the answer is **wrap it with `cn()` overrides**, not skip it. `cn()` is `clsx + tailwind-merge`, so later classes win.
+
+### 5.1 Default — use as-is, no overrides
+
+These primitives already fit the register.
+
+| Primitive | Use it for |
+|---|---|
+| `Button` (`@base-ui/react/button`) | A real `<button>` that submits or triggers an action. |
+| `buttonVariants` | The styling helper. Use this on `<Link>` and `<a>` when you need a button-styled navigation element. The `<Button>` component itself is for `<button>` only — `Link` won't navigate via a real `<button>`. |
+| `Separator` | Hairline rules between content blocks. Already `bg-border h-px w-full` by default — register-perfect. |
+| `Input`, `Textarea`, `Label` | Form controls. Default is `rounded-md` (`var(--radius-md)`) — keep it; the input register allows it (see §3.4). |
+| `Field`, `FieldGroup`, `FieldSet`, `FieldLabel`, `FieldDescription`, `FieldError`, `FieldSeparator`, `FieldContent`, `FieldTitle`, `FieldLegend` | Canonical form layout. `FieldError` ships with `role="alert"` and lists multiple errors — use it. |
+| `FormField` | The TanStack Form glue. |
+| `Dialog`, `Sheet`, `Drawer`, `AlertDialog`, `Popover` | Modal flows. Backdrop and surface are fine. |
+| `Toast` (sonner) | Errors, success, no decorative toasts. |
+| `Tooltip` | Icon labels, dense row hints. |
+| `Tabs` | Use the `variant="line"` prop — it strips the `bg-muted` background and uses a hairline underline. Default variant is wrong for the register. |
+| `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `TableCaption`, `TableFooter` | Tabular data (admin, lists). The default `TableRow` uses `hover:bg-muted/50` — fine. |
+| `Item`, `ItemGroup`, `ItemSeparator`, `ItemMedia`, `ItemContent`, `ItemTitle`, `ItemDescription`, `ItemActions`, `ItemHeader`, `ItemFooter` | **The hairline row primitive.** When you need a row with an icon, a title, an optional description, and a value or action — reach for `Item`. It carries `divide-y` behavior, sensible focus rings, and `size` variants. **Replace ad-hoc `<li>` grids with `Item` whenever the row is "icon + title + value" shaped.** |
+| `Empty`, `EmptyHeader`, `EmptyTitle`, `EmptyDescription`, `EmptyContent`, `EmptyMedia` | Zero-data states. The `EmptyMedia variant="icon"` adds a tinted icon box — override with `rounded-none` if you need the scoreboard register; otherwise it's fine for empty states. |
+| `InfoRow` | A precomposed icon + label + value row. **Use it in detail views, profile pages, settings.** Don't rebuild this in feature code. |
+| `Spinner` | The `Loader2Icon` spinner with `role="status"`. Default `size-4 animate-spin`. Use in buttons, form fields, list headers. |
+| `Skeleton` | Loading placeholders for table rows and card stacks. |
+| `ScrollArea` | Custom scroll containers — workouts calendar, sidebar overflow. |
+| `Pagination` | Paginated list controls. |
+| `Combobox`, `Command` | Search + select. `cmdk` under the hood. |
+| `Select` | Native-ish select with search support. |
+| `DatePicker` (date-picker) | Calendar picker. |
+| `Calendar` | Standalone calendar (used by `DatePicker`). |
+| `Checkbox`, `Toggle` | Boolean inputs. |
+| `Form`, `FormField` | TanStack Form + Zod binding. |
+| `InputGroup`, `InputOTP` | Compound input layouts. |
+| `Avatar` | User-uploaded avatars only. **Not for decoration.** |
+| `Chart` (recharts wrapper) | The single signal color (`var(--chart-1)`) lives here. Use the `Chart` primitive for any visualization, not raw recharts. |
+| `Carousel` (embla) | Reserved for genuine carousels (testimonial rotations, image galleries). **Not for hero decoration.** |
+| `Sidebar` | Authenticated-app left rail. Marketing/landing surfaces don't use it — they use the `SectionRail` pattern from §4.1. |
+| `NavLink` | Active-aware nav link inside the sidebar. Not for marketing CTAs. |
+| `DetailSection` | Profile/admin detail row. Wraps `Card` — see §5.2. |
+
+### 5.2 Wrap with overrides — these conflict with the register
+
+These primitives have one or more styles that violate the register. The fix is to pass `className` overrides through `cn()`. Do not skip them.
+
+| Primitive | What conflicts | Override |
 |---|---|---|
-| Button-styled link | `buttonVariants` from `@/components/ui/button` | `Button` is a real `<button>`; for `<Link>` use the variant helper |
-| Hairline divider | `Separator` | Use between content blocks, not `<span className="h-px bg-border" />` |
-| Form field | `Field`, `FormField`, `Input`, `Label` | All already in the kit |
-| Dialog / sheet | `Dialog`, `Sheet`, `Drawer` | For modal flows |
-| Toast | `Toast` (sonner) | Errors, success, no decorative toasts |
-| Empty state | `Empty` | Use for zero-data states |
-| Tabs | `Tabs` | For in-page navigation only |
-| Table | `Table` | For tabular data; not for marketing |
-| Tooltip | `Tooltip` | For icon labels and dense rows |
+| `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `CardAction` | `rounded-xl shadow-xs ring-foreground/10 overflow-hidden py-6` | Add `"rounded-none border border-border shadow-none ring-0 overflow-visible"` to each part. |
+| `Badge` | `rounded-4xl h-5 px-2 py-0.5` (pill, fixed height) | Add `"h-auto rounded-none px-3 py-1.5"` to match the scoreboard chip. |
+| `DetailSection` | Wraps `Card` directly, no override hook | Compose `Card` parts yourself with overrides, or wrap `DetailSection` in a thin local component that adds the overrides. |
+| `Avatar` | `rounded-full` | Allowed for user-uploaded avatars only. Don't reach for it on landing surfaces. |
+| `Empty` | `rounded-lg border-dashed p-12` (dashed border, rounded, big padding) | Override with `"rounded-none border border-border"`. Keep `p-12` only if you have the vertical space. |
+| `Tabs` (default variant) | `bg-muted p-[3px] rounded-lg` on the list | Always pass `variant="line"` to `TabsList`. |
+| `Tooltip` content | `rounded-md` | Override content via `<TooltipContent className="rounded-none ..." />`. |
+| `Dialog`/`Sheet`/`Drawer` content | `rounded-xl` on the panel, sometimes `shadow-lg` | Override via content `className` to `"rounded-none border border-border shadow-none"`. |
+| `Sonner` (toast) | `rounded-lg` | Theme via `<Toaster className="rounded-none" />`. |
+| `Carousel` content | Often `rounded-2xl` | Override content `className` to `"rounded-none"`. |
 
-**Don't** reach for: `Card`, `Badge`, `Carousel` (rounded/shadow register), `Avatar` (only if user-uploaded, never as decoration).
+**The override pattern is identical every time**: import `cn` from `@/lib/utils`, pass `className={cn(<primitive-defaults-override>, yourClass)}`. Never mutate the primitive file in `src/components/ui/` to add register-specific styles — keep overrides local to the consumer.
 
-When you use a primitive, its baked-in styles win unless you override via `className` passed through `cn()`. `cn()` is `clsx + tailwind-merge`, so later classes win. Override `rounded-*`, `shadow-*`, and `ring-*` aggressively when you need to stay in register.
+### 5.3 Never use for new surfaces
+
+- `Card` family, `Badge`, `Carousel`, `Avatar` (as decoration) — see §5.2 and the forbidden list in §3.4. If a feature insists, it must be `Card` parts with explicit overrides, not the raw primitive.
+
+### 5.4 When there is no primitive
+
+If the registry doesn't cover what you need, write it as a feature component (`src/components/features/<domain>/`). Do **not** add a new file to `src/components/ui/` for a one-off. A primitive moves to the registry only after it's been reused by 3+ feature domains.
+
+The reference for the in-domain pattern: `LandingFeatureGrid`, `LandingRolePaths`, `LandingConsole` — these build the "hairline panel + divide-y rows" pattern by composing `Separator` and `Item`, not by writing custom divs.
 
 ---
 
@@ -283,16 +336,185 @@ Before requesting review on a UI change, verify:
 - [ ] Light and dark themes both look right. (Switch the theme toggle and re-check.)
 - [ ] Stock photos and decorative gradient blobs: not present.
 - [ ] Translation keys exist in both `messages/en.json` and `messages/tr.json`. Run `pnpm validate:i18n`.
+- [ ] **Used a shadcn primitive from `@/components/ui/` for every recurring pattern** (button, divider, row, field, dialog, table, tabs, empty state, tooltip, spinner). If a primitive's defaults conflict, override via `className` — do not invent a new local component. See §5.2.
+- [ ] If a `<li>` row has the shape "icon + title + value" or "icon + title + description + action", it uses `Item` (and friends), not a hand-rolled grid.
 
 If any box is unchecked, the change is not ready.
 
 ---
 
-## 10. Worked example — a new section
+## 10. Patterns — composing primitives
 
-You need to add a "Pricing" section to the landing page. Here's what it should look like.
+Three patterns recur everywhere. Memorize them.
+
+### 10.1 Hairline panel
+
+A bordered container with no shadow, no rounding, internal hairlines. Built from `<div className="border border-border">` and `divide-y divide-border` (or `Separator` between explicit rows). **Don't import `Card` for this — write the div.**
 
 ```tsx
+<div className="border border-border">
+  <header className="flex items-center justify-between border-b border-border px-6 py-4 sm:px-8">
+    <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+      Title
+    </h2>
+  </header>
+  <ul className="divide-y divide-border">{rows}</ul>
+</div>
+```
+
+### 10.2 Section rail
+
+`Separator` is the canonical rail. It is `bg-border h-px w-full` by default.
+
+```tsx
+function SectionRail({ index, label }: { index: string; label: string }) {
+  return (
+    <div className="mb-10 flex items-baseline gap-6 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+      <span className="text-foreground">§{index}</span>
+      <span>{label}</span>
+      <Separator className="flex-1" />
+    </div>
+  );
+}
+```
+
+### 10.3 Hairline row — use `Item`
+
+When a row is shaped "icon + title + (description) + value/action", use `Item`. Override its defaults so the border is `border-border` and the radius is zero. Sizes `default` / `sm` / `xs` cover the common cases.
+
+```tsx
+import {
+  Item,
+  ItemMedia,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemActions,
+} from "@/components/ui/item";
+
+<ul className="border border-border">
+  {rows.map((row) => (
+    <Item
+      key={row.id}
+      variant="outline"
+      size="default"
+      className="rounded-none border-0 border-b border-border last:border-b-0"
+    >
+      <ItemMedia variant="icon" className="rounded-none">
+        <row.Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+      </ItemMedia>
+      <ItemContent>
+        <ItemTitle className="text-sm font-medium text-foreground">
+          {row.title}
+        </ItemTitle>
+        <ItemDescription className="text-sm text-muted-foreground">
+          {row.description}
+        </ItemDescription>
+      </ItemContent>
+      <ItemActions>
+        <span className="font-mono text-sm text-foreground">{row.value}</span>
+      </ItemActions>
+    </Item>
+  ))}
+</ul>
+```
+
+This replaces the previous "hand-rolled `<li>` with a 4-column grid" pattern. **Item is the new default for any row.**
+
+### 10.4 Empty state — use `Empty`
+
+Override the `rounded-lg border-dashed` defaults.
+
+```tsx
+<Empty className="rounded-none border border-border p-12">
+  <EmptyHeader>
+    <EmptyTitle className="font-mono text-base uppercase tracking-[0.18em]">
+      No workouts this week
+    </EmptyTitle>
+    <EmptyDescription>
+      Log your first session to start tracking progress.
+    </EmptyDescription>
+  </EmptyHeader>
+  <EmptyContent>
+    <Button onClick={...}>Log workout</Button>
+  </EmptyContent>
+</Empty>
+```
+
+### 10.5 Detail row — use `InfoRow`
+
+For profile and settings pages, don't reinvent the icon+label+value row.
+
+```tsx
+import { InfoRow } from "@/components/ui/info-row";
+import { Mail } from "lucide-react";
+
+<InfoRow icon={Mail} label="Email" value={user.email} />
+```
+
+If you need a custom container, wrap `Card` with overrides:
+
+```tsx
+<Card className="rounded-none border border-border shadow-none ring-0">
+  <CardHeader className="border-b border-border">
+    <CardTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+      Account
+    </CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4 p-0">
+    <InfoRow icon={Mail} label="Email" value={user.email} />
+    <Separator />
+    <InfoRow icon={Calendar} label="Joined" value={user.joinedAt} />
+  </CardContent>
+</Card>
+```
+
+### 10.6 Loading — use `Spinner`
+
+```tsx
+import { Spinner } from "@/components/ui/spinner";
+
+<Button disabled>
+  <Spinner /> Saving…
+</Button>
+```
+
+Never roll your own spinner. `Spinner` already has `role="status" aria-label="Loading"`.
+
+### 10.7 Tabs — use `Tabs` with `variant="line"`
+
+```tsx
+<Tabs defaultValue="overview">
+  <TabsList variant="line">
+    <TabsTrigger value="overview">Overview</TabsTrigger>
+    <TabsTrigger value="workouts">Workouts</TabsTrigger>
+    <TabsTrigger value="meals">Meals</TabsTrigger>
+  </TabsList>
+  <TabsContent value="overview">...</TabsContent>
+</Tabs>
+```
+
+`variant="default"` on `TabsList` uses `bg-muted p-[3px] rounded-lg` — that's the rounded-pill register. Always pass `variant="line"` for the scoreboard register.
+
+---
+
+## 11. Worked example — a new section using primitives
+
+You need to add a "Pricing" section to the landing page. Everything in the example is either a primitive or a hairline div — no hand-rolled cards.
+
+```tsx
+import {
+  Item,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemActions,
+  ItemMedia,
+} from "@/components/ui/item";
+import { Separator } from "@/components/ui/separator";
+import { buttonVariants } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
+
 <section
   id="pricing"
   className="border-t border-border py-16 sm:py-24 lg:py-32"
@@ -309,24 +531,28 @@ You need to add a "Pricing" section to the landing page. Here's what it should l
         Plans
       </h2>
       <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        3 tiers
+        {plans.length} tiers
       </span>
     </header>
 
-    <ul className="divide-y divide-border">
-      {plans.map((plan) => (
-        <li
-          key={plan.id}
-          className="grid grid-cols-[1fr_auto_auto] items-center gap-6 px-6 py-6 sm:px-8 sm:py-8"
-        >
-          <div>
-            <h3 className="text-base font-medium text-foreground">
-              {plan.name}
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {plan.description}
-            </p>
-          </div>
+    {plans.map((plan) => (
+      <Item
+        key={plan.id}
+        variant="outline"
+        className="rounded-none border-0 border-b border-border last:border-b-0 px-6 py-6 sm:px-8 sm:py-8"
+      >
+        <ItemMedia variant="icon" className="rounded-none">
+          <plan.Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+        </ItemMedia>
+        <ItemContent>
+          <ItemTitle className="text-base font-medium text-foreground">
+            {plan.name}
+          </ItemTitle>
+          <ItemDescription className="text-sm leading-6 text-muted-foreground">
+            {plan.description}
+          </ItemDescription>
+        </ItemContent>
+        <ItemActions>
           <span className="font-mono text-2xl font-normal tracking-tight text-foreground">
             {plan.price}
           </span>
@@ -342,9 +568,9 @@ You need to add a "Pricing" section to the landing page. Here's what it should l
             Choose
             <ArrowUpRight className="size-3.5" aria-hidden="true" />
           </Link>
-        </li>
-      ))}
-    </ul>
+        </ItemActions>
+      </Item>
+    ))}
   </div>
 </section>
 ```
@@ -353,11 +579,11 @@ That's the whole pattern. It recurs across `LandingConsole`, `LandingFeatureGrid
 
 ---
 
-## 11. Reference
+## 12. Reference
 
 - **Color palette roles**: `src/app/globals.css` (`@theme inline`, `:root`, `.dark`).
 - **Tailwind v4 config**: `src/app/globals.css` (CSS-first config, no `tailwind.config.js`).
-- **shadcn primitives**: `src/components/ui/` (38 components).
+- **shadcn primitives catalog**: `src/components/ui/` — 38 components. See §5.1 for the default-as-is list, §5.2 for the override list, §10 for the patterns.
 - **Motion variants**: `src/components/features/landing/landing-variants.ts` — replicate the pattern per feature.
 - **Existing reference surfaces** (the system in action):
   - `src/app/[locale]/LandingClient.tsx` — page frame, section rails.
@@ -367,4 +593,4 @@ That's the whole pattern. It recurs across `LandingConsole`, `LandingFeatureGrid
   - `src/components/features/landing/LandingRolePaths.tsx` — comparison split, monospaced bullets.
   - `src/components/features/landing/LandingProof.tsx` — proof section, single CTA.
 
-When in doubt, open one of these and match it.
+When in doubt, open one of these and match it. If you're reaching for a primitive for the first time, read the source at `src/components/ui/<name>.tsx` — the prop API and baked-in styles are the contract.
