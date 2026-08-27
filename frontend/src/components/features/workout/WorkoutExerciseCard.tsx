@@ -88,7 +88,7 @@ export function WorkoutExerciseCard({
           variant="ghost"
           size="icon-sm"
           onClick={() => field.removeValue(index)}
-          aria-label={t("sets.remove")}
+          aria-label={t("exercise.sets.remove")}
           className="h-8 w-8 shrink-0 rounded-none text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="size-4" aria-hidden="true" />
