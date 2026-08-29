@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsPanel, TabsList, TabsTab } from "@/components/animate-ui/components/base/tabs";
 import { OverviewTab } from "./OverviewTab";
 import { WorkoutsTab } from "./WorkoutsTab";
 import { MealsTab } from "./MealsTab";
@@ -48,22 +48,22 @@ export function ClientTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
-      <TabsList className="mb-4 flex-wrap" variant="line">
-        <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
-        <TabsTrigger value="workouts">
+      <TabsList className="mb-4 flex-wrap">
+        <TabsTab value="overview">{t("overview")}</TabsTab>
+        <TabsTab value="workouts">
           {t("workouts")} ({workouts.length})
-        </TabsTrigger>
-        <TabsTrigger value="meals">
+        </TabsTab>
+        <TabsTab value="meals">
           {t("meals")} ({meals.length})
-        </TabsTrigger>
-        <TabsTrigger value="measurements">
+        </TabsTab>
+        <TabsTab value="measurements">
           {t("measurements")} ({measurements.length})
-        </TabsTrigger>
-        <TabsTrigger value="progress">{t("progress_charts")}</TabsTrigger>
-        <TabsTrigger value="plans">{t("plans")}</TabsTrigger>
+        </TabsTab>
+        <TabsTab value="progress">{t("progress_charts")}</TabsTab>
+        <TabsTab value="plans">{t("plans")}</TabsTab>
       </TabsList>
 
-      <TabsContent value="overview">
+      <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="overview">
         <OverviewTab
           dateRange={dateRange}
           exerciseType={exerciseType}
@@ -73,27 +73,27 @@ export function ClientTabs({
           onMealTypeChange={onMealTypeChange}
           onClearFilters={onClearFilters}
         />
-      </TabsContent>
+      </TabsPanel>
 
-      <TabsContent value="workouts">
+      <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="workouts">
         <WorkoutsTab workouts={workouts} />
-      </TabsContent>
+      </TabsPanel>
 
-      <TabsContent value="meals">
+      <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="meals">
         <MealsTab meals={meals} />
-      </TabsContent>
+      </TabsPanel>
 
-      <TabsContent value="measurements">
+      <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="measurements">
         <MeasurementsTab measurements={measurements} />
-      </TabsContent>
+      </TabsPanel>
 
-      <TabsContent value="progress">
+      <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="progress">
         <ProgressTab workoutStats={workoutStats} mealStats={mealStats} />
-      </TabsContent>
+      </TabsPanel>
 
-      <TabsContent value="plans">
+      <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="plans">
         <ClientPlansTab />
-      </TabsContent>
+      </TabsPanel>
     </Tabs>
   );
 }

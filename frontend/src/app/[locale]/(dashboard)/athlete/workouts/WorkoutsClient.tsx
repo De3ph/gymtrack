@@ -2,7 +2,12 @@
 
 import { useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsPanel,
+  TabsList,
+  TabsTab,
+} from "@/components/animate-ui/components/base/tabs";
 
 import { WorkoutForm } from "@/components/features/workout/WorkoutForm";
 import { WorkoutList } from "@/components/features/workout/WorkoutList";
@@ -30,7 +35,8 @@ export function WorkoutsClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab = tabParam === "list" || tabParam === "calendar" ? tabParam : "log";
+  const activeTab =
+    tabParam === "list" || tabParam === "calendar" ? tabParam : "log";
   const t = useTranslations("athlete.workouts");
 
   const handleTabChange = useCallback(
@@ -44,7 +50,7 @@ export function WorkoutsClient({
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams],
   );
 
   const handleClear = () => {
@@ -69,17 +75,17 @@ export function WorkoutsClient({
         onValueChange={handleTabChange}
         value={activeTab}
       >
-        <TabsList className="grid w-full grid-cols-3 mb-2" variant="line">
-          <TabsTrigger value="log">{t("log_tab")}</TabsTrigger>
-          <TabsTrigger value="list">{t("list_tab")}</TabsTrigger>
-          <TabsTrigger value="calendar">{t("calendar_tab")}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-2">
+          <TabsTab className="text-foreground" value="log">{t("log_tab")}</TabsTab>
+          <TabsTab className="text-foreground" value="list">{t("list_tab")}</TabsTab>
+          <TabsTab className="text-foreground" value="calendar">{t("calendar_tab")}</TabsTab>
         </TabsList>
 
-        <TabsContent value="log">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
           <div className="max-w-2xl">
             <Card className="rounded-none border border-border shadow-none ring-0">
               <CardHeader className="rounded-none border-b border-border">
-                <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-foreground">
                   {t("card_title")}
                 </CardTitle>
                 <CardDescription>{t("card_description")}</CardDescription>
@@ -94,15 +100,15 @@ export function WorkoutsClient({
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </TabsPanel>
 
-        <TabsContent value="list">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
           <WorkoutList />
-        </TabsContent>
+        </TabsPanel>
 
-        <TabsContent value="calendar">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="calendar">
           <WorkoutCalendar />
-        </TabsContent>
+        </TabsPanel>
       </Tabs>
     </div>
   );

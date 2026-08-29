@@ -2,7 +2,12 @@
 
 import { useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsPanel,
+  TabsList,
+  TabsTab,
+} from "@/components/animate-ui/components/base/tabs";
 
 import { MealForm } from "@/components/features/meal/MealForm";
 import { MealList } from "@/components/features/meal/MealList";
@@ -53,13 +58,13 @@ export default function MealsClient() {
         onValueChange={handleTabChange}
         value={activeTab}
       >
-        <TabsList className="grid w-full grid-cols-3 mb-2" variant="line">
-          <TabsTrigger value="log">{t("log_tab")}</TabsTrigger>
-          <TabsTrigger value="list">{t("list_tab")}</TabsTrigger>
-          <TabsTrigger value="calendar">{t("calendar_tab")}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-2">
+          <TabsTab value="log">{t("log_tab")}</TabsTab>
+          <TabsTab value="list">{t("list_tab")}</TabsTab>
+          <TabsTab value="calendar">{t("calendar_tab")}</TabsTab>
         </TabsList>
 
-        <TabsContent value="log">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
           <div className="max-w-2xl">
             <Card className="rounded-none border border-border shadow-none ring-0">
               <CardHeader className="rounded-none border-b border-border">
@@ -73,15 +78,15 @@ export default function MealsClient() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </TabsPanel>
 
-        <TabsContent value="list">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
           <MealList />
-        </TabsContent>
+        </TabsPanel>
 
-        <TabsContent value="calendar">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="calendar">
           <MealCalendar />
-        </TabsContent>
+        </TabsPanel>
       </Tabs>
     </div>
   );

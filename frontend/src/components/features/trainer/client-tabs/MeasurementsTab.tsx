@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsPanel, TabsList, TabsTab } from "@/components/animate-ui/components/base/tabs";
 import { BodyMeasurementList } from "@/components/features/body-measurement/BodyMeasurementList";
 import { BodyMeasurementCharts } from "@/components/features/body-measurement/BodyMeasurementCharts";
 import { useTranslations } from "next-intl";
@@ -43,12 +43,12 @@ export function MeasurementsTab({ measurements }: MeasurementsTabProps) {
       <div className="p-6">
         <Tabs value={activeSubtab} onValueChange={handleSubtabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4 rounded-none border border-border">
-            <TabsTrigger value="list">
+            <TabsTab value="list">
               {t("measurements_list")} ({measurements.length})
-            </TabsTrigger>
-            <TabsTrigger value="charts">{t("measurements_charts")}</TabsTrigger>
+            </TabsTab>
+            <TabsTab value="charts">{t("measurements_charts")}</TabsTab>
           </TabsList>
-          <TabsContent value="list">
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
             {measurements.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
                 {t("no_measurements")}
@@ -56,10 +56,10 @@ export function MeasurementsTab({ measurements }: MeasurementsTabProps) {
             ) : (
               <BodyMeasurementList measurements={measurements} readOnly={true} />
             )}
-          </TabsContent>
-          <TabsContent value="charts">
+          </TabsPanel>
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="charts">
             <BodyMeasurementCharts measurements={measurements} />
-          </TabsContent>
+          </TabsPanel>
         </Tabs>
       </div>
     </div>

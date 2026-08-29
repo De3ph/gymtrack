@@ -13,7 +13,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsPanel, TabsList, TabsTab } from "@/components/animate-ui/components/base/tabs";
 import { BodyMeasurementForm } from "@/components/features/body-measurement/BodyMeasurementForm";
 import {
   BodyMeasurementFilter,
@@ -127,13 +127,13 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
         onValueChange={handleTabChange}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-3 mb-2" variant="line">
-          <TabsTrigger value="log">{t("log_tab")}</TabsTrigger>
-          <TabsTrigger value="list">{t("list_tab")}</TabsTrigger>
-          <TabsTrigger value="charts">{t("charts_tab")}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-2">
+          <TabsTab value="log">{t("log_tab")}</TabsTab>
+          <TabsTab value="list">{t("list_tab")}</TabsTab>
+          <TabsTab value="charts">{t("charts_tab")}</TabsTab>
         </TabsList>
 
-        <TabsContent value="log">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
           <div className="max-w-3xl">
             <Card className="rounded-none border border-border shadow-none ring-0">
               <CardHeader className="rounded-none border-b border-border">
@@ -152,23 +152,23 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </TabsPanel>
 
-        <TabsContent value="list">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
           <BodyMeasurementList
             filter={filter}
             onFilterChange={handleFilterChange}
             page={page}
             onPageChange={measurementListStore.setPage}
           />
-        </TabsContent>
+        </TabsPanel>
 
-        <TabsContent value="charts">
+        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="charts">
           <BodyMeasurementCharts
             filter={filter}
             onFilterChange={handleFilterChange}
           />
-        </TabsContent>
+        </TabsPanel>
       </Tabs>
     </div>
   );
