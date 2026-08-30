@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import dayjs from "dayjs";
 
 interface PlanSetWithId extends WorkoutPlanSet {
   id: string;
@@ -33,27 +34,19 @@ export function PlanSetInput({
     }));
   });
 
-  // Sync external value changes into internal state.
-  // The functional setState returns `prev` when nothing changed, so no cascading renders.
-  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  // Sync external value into state, preserving ids by index so keys (and focus) stay stable.
+  // eslint-disable react-hooks/exhaustive-deps
   useEffect(() => {
-    const currentIds = new Set(setsWithIds.map(s => s.id));
-    const newSets = (value || []).map((set, index) => {
-      const existingSet = setsWithIds.find(s =>
-        s.weight === set.weight &&
-        s.reps === set.reps &&
-        s.restTime === set.restTime &&
-        !currentIds.has(s.id)
-      );
-      if (existingSet) {
-        currentIds.add(existingSet.id);
-        return existingSet;
-      }
-      return { ...set, id: `set-${Date.now()}-${index}` };
+    setSetsWithIds(prev => {
+      const valueSets = value || [];
+      // Preserve existing ids by index; only generate new ids for new rows (add/remove)
+      return valueSets.map((set, i) => {
+        const prevId = prev[i]?.id;
+        return { ...set, id: prevId || `set-${dayjs().valueOf()}-${i}` };
+      });
     });
-    setSetsWithIds(newSets);
   }, [value]);
-  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  // eslint-enable react-hooks/exhaustive-deps
 
   const addSet = () => {
     const lastSet = setsWithIds[setsWithIds.length - 1];
@@ -62,7 +55,7 @@ export function PlanSetInput({
       weightUnit: lastSet ? lastSet.weightUnit : "kg",
       reps: lastSet ? lastSet.reps : 10,
       restTime: lastSet ? lastSet.restTime : 60,
-      id: `set-${Date.now()}`
+      id: `set-${dayjs().valueOf()}`
     };
     const newSetsWithIds = [...setsWithIds, newSet];
     setSetsWithIds(newSetsWithIds);

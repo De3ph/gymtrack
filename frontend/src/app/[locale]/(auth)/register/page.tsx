@@ -29,7 +29,7 @@ export default function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "athlete" as UserRole,
+      role: "athlete" as Exclude<UserRole, "admin">,
       name: "",
       age: "",
       weight: "",
@@ -59,7 +59,7 @@ export default function RegisterPage() {
           username: value.username,
           email: value.email,
           password: value.password,
-          role: value.role,
+          role: value.role as Exclude<UserRole, "admin">,
           profile
         })
 
@@ -114,7 +114,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <form ref={formRef} className='space-y-4'>
+      <form ref={formRef} className='space-y-6'>
         <form.Field
           name='username'
           validators={{

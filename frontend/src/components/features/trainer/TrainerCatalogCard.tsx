@@ -36,7 +36,7 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
         />
 
         <h3
-          className="mt-4 text-base font-bold text-foreground"
+          className="mt-4 text-base font-semibold text-foreground"
           style={{ letterSpacing: "-0.01em" }}
         >
           {trainer.profile.name}

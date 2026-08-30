@@ -19,7 +19,7 @@ export function StatCard({ title, value, icon: Icon, className }: StatCardProps)
         {Icon && <Icon className="size-5 text-muted-foreground" aria-hidden="true" />}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="font-mono text-2xl font-semibold tracking-tight">{value}</div>
       </CardContent>
     </Card>
   );

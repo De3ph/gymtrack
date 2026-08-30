@@ -88,7 +88,7 @@ export function TerminateRelationshipDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>{t("title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t("description", { name: athleteName || "this athlete" })}
+            {t("description", { name: athleteName || tClients("this_athlete") })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {terminateError && (

@@ -235,7 +235,7 @@ export function BodyMeasurementForm({
                     {typeof err === "string"
                       ? err
                       : ((err as { message?: string })?.message ??
-                        "Invalid input")}
+                      "Invalid input")}
                   </li>
                 ))}
               </ul>
@@ -376,7 +376,7 @@ export function BodyMeasurementForm({
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <FieldLabel>{t("parts.label")}</FieldLabel>
           <span className="text-xs text-muted-foreground">
             {t("parts.hint")}
@@ -385,43 +385,112 @@ export function BodyMeasurementForm({
         {/* DESIGN.md §10.1 — hairline panel, no Card primitive */}
         <div className="rounded-none border border-border p-4 sm:p-6">
           <form.Field name="parts">
-              {(field) => (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-4">
-                  {BODY_PARTS.map((part) => (
-                    <div key={part.key} className="flex flex-col gap-3 min-w-0">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <label
-                          htmlFor={`part-${part.key}`}
-                          className="text-sm font-semibold w-24 shrink-0 truncate"
-                        >
-                          {t(`parts.${part.labelKey}`)}
-                        </label>
-                        <Input
-                          id={`part-${part.key}`}
-                          inputMode="decimal"
-                          pattern="[0-9]*"
-                          min="0"
-                          step={undefined}
-                          placeholder="cm"
-                          value={partInputs[part.key] ?? ""}
-                          onChange={(e) =>
-                            handlePartInputChange(part.key, e.target.value)
-                          }
-                          onBlur={() => handlePartBlur(field, part.key)}
-                        />
-                      </div>
+            {(field) => {
+              // Group paired parts (left/right) side by side; single parts take full cell.
+              // Each cell follows the form-wide "label above input" pattern so nothing
+              // overflows narrow grid cells.
+              const renderPartInput = (key: string) => (
+                <Input
+                  id={`part-${key}`}
+                  inputMode="decimal"
+                  pattern="[0-9]*"
+                  min="0"
+                  step={undefined}
+                  placeholder="cm"
+                  value={partInputs[key] ?? ""}
+                  onChange={(e) => handlePartInputChange(key, e.target.value)}
+                  onBlur={() => handlePartBlur(field, key)}
+                />
+              );
+              const pairedKeys = new Set([
+                "bicepLeft",
+                "bicepRight",
+                "forearmLeft",
+                "forearmRight",
+                "thighLeft",
+                "thighRight",
+                "calfLeft",
+                "calfRight",
+              ]);
+              const rendered = new Set<string>();
+              const partsRows = BODY_PARTS.map((part) => {
+                if (rendered.has(part.key)) return null;
+                if (!pairedKeys.has(part.key)) {
+                  // Single part - render alone
+                  rendered.add(part.key);
+                  return (
+                    <div key={part.key} className="flex flex-col gap-2 min-w-0">
+                      <FieldLabel htmlFor={`part-${part.key}`}>
+                        {t(`parts.${part.labelKey}`)}
+                      </FieldLabel>
+                      {renderPartInput(part.key)}
                       <FieldError
                         errors={
-                          partErrors[part.key] ? [partErrors[part.key]] : []
+                          partErrors[part.key]
+                            ? [{ message: partErrors[part.key] as string }]
+                            : []
                         }
                       />
                     </div>
-                  ))}
+                  );
+                }
+                // Paired part (e.g. bicepLeft) - render both left + right together
+                const pairKey = part.key;
+                const partnerKey = pairKey.replace(
+                  /Left|Right$/,
+                  (m) => (m === "Left" ? "Right" : "Left"),
+                );
+                rendered.add(pairKey);
+                rendered.add(partnerKey);
+                const labelFor = (key: string) => {
+                  const def = BODY_PARTS.find((p) => p.key === key);
+                  return def ? t(`parts.${def.labelKey}`) : "";
+                };
+                const sides = [
+                  {
+                    key: pairKey,
+                    label: labelFor(pairKey),
+                    error: partErrors[pairKey],
+                  },
+                  {
+                    key: partnerKey,
+                    label: labelFor(partnerKey),
+                    error: partErrors[partnerKey],
+                  },
+                ];
+                return (
+                  <div key={pairKey} className="grid grid-cols-2 gap-4">
+                    {sides.map((side) => (
+                      <div
+                        key={side.key}
+                        className="flex flex-col gap-2 min-w-0"
+                      >
+                        <FieldLabel
+                          htmlFor={`part-${side.key}`}
+                          className="truncate"
+                          title={side.label}
+                        >
+                          {side.label}
+                        </FieldLabel>
+                        {renderPartInput(side.key)}
+                        <FieldError
+                          errors={side.error ? [{ message: side.error }] : []}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              }).filter(Boolean) as React.ReactNode[];
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {partsRows}
                 </div>
-              )}
-            </form.Field>
-          </div>
+              );
+            }}
+          </form.Field>
         </div>
+      </div>
 
       <div className="flex flex-col space-y-2">
         <FieldLabel htmlFor="measurement-notes">
@@ -447,7 +516,7 @@ export function BodyMeasurementForm({
         </form.Field>
       </div>
 
-      <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <Button
           type="button"
           variant="outline"
@@ -457,7 +526,7 @@ export function BodyMeasurementForm({
             setPartErrors({});
             onClear?.();
           }}
-          className="w-full rounded-none md:w-auto"
+          className="w-full rounded-none sm:w-auto"
         >
           {tCommon("clear")}
         </Button>
@@ -467,7 +536,7 @@ export function BodyMeasurementForm({
             variant="outline"
             onClick={() => fetchPrevious()}
             disabled={isFetchingPrevious}
-            className="w-full rounded-none md:w-auto"
+            className="w-full rounded-none sm:w-auto"
           >
             {isFetchingPrevious ? (
               <Spinner />
@@ -480,7 +549,7 @@ export function BodyMeasurementForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-none md:w-auto md:ml-auto"
+          className="w-full rounded-none sm:w-auto sm:ml-auto"
         >
           {isPending && <Spinner />}
           <Plus className="size-5" aria-hidden="true" />

@@ -163,7 +163,7 @@ export function WorkoutPlanForm({
             {/* Index chip + accent */}
             <div className="flex items-center justify-between gap-3 border-b bg-muted/30 px-4 py-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-heading text-sm font-bold tabular-nums text-primary">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-mono text-sm font-semibold tabular-nums text-primary">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <span className="truncate font-semibold">
