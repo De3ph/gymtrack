@@ -31,7 +31,7 @@ func NewPostgresCodeBasedInvitation(pool *pgxpool.Pool, clock utils.Clock) *Post
 
 // GenerateInvitation creates a new invitation with a random 8-hex-char code.
 func (p *PostgresCodeBasedInvitation) GenerateInvitation(ctx context.Context, trainerID int, athleteID int) (*models.Invitation, error) {
-	code, err := generateRandomHex(ctx, 8)
+	code, err := generateRandomHex(ctx, 4)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate invitation code: %w", err)
 	}

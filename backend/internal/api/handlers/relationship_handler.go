@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
@@ -267,8 +269,12 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 	// Get active trainer relationship
 	activeRelationship, err := h.relationshipRepo.GetByAthleteID(c.Request.Context(), athleteIDInt)
 	if err != nil {
-		handleInternalError(c, err, "failed to retrieve relationships")
-		return
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			activeRelationship = nil
+		} else {
+			handleInternalError(c, err, "failed to retrieve relationships")
+			return
+		}
 	}
 
 	var activeTrainer *gin.H
@@ -783,4 +789,3 @@ func calculateMealStats(meals []*models.Meal) *MealStats {
 		MealTypeBreakdown: mealTypeBreakdown,
 	}
 }
-
