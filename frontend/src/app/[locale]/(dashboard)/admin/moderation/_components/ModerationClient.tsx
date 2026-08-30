@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api/adminApi";
+import type { AdminComment } from "@/types";
 import {
   Table,
   TableBody,
@@ -41,8 +42,8 @@ function CommentRow({
   onDelete,
   isDeleting,
 }: {
-  comment: { commentId: string; content: string; authorId: string; authorRole: string; targetType: string; targetId: string; createdAt: string };
-  onDelete: (id: string) => void;
+  comment: AdminComment;
+  onDelete: (id: number) => void;
   isDeleting: boolean;
 }) {
   return (
@@ -95,14 +96,14 @@ export default function ModerationClient() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (commentId) => adminApi.deleteComment(commentId),
+    mutationFn: (commentId: number) => adminApi.deleteComment(commentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-comments"] });
     },
   });
 
   const handleDelete = useCallback(
-    (commentId) => {
+    (commentId: number) => {
       if (confirm("Delete this comment permanently?")) {
         deleteMutation.mutate(commentId);
       }
@@ -123,7 +124,7 @@ export default function ModerationClient() {
         </p>
       </div>
       <div className="flex items-center gap-4">
-        <Select value={targetType} onValueChange={(v) => { setTargetType(v); setPage(0); }}>
+        <Select value={targetType} onValueChange={(v) => { setTargetType(v ?? "all"); setPage(0); }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Target type" />
           </SelectTrigger>

@@ -127,7 +127,7 @@ export interface UsersTableClientProps {
 
 export function UsersTableClient({ initialData }: UsersTableClientProps) {
   return (
-    <UsersTableProvider initialData={initialData} columns={columns}>
+    <UsersTableProvider initialData={initialData} columns={columns as unknown as import("@tanstack/react-table").ColumnDef<AdminUserListItem>[]}>
       <UsersTableContent />
     </UsersTableProvider>
   );

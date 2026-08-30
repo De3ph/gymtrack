@@ -72,7 +72,7 @@ export function UsersTableProvider({
     staleTime: 30 * 1000,
   });
 
-  const users = data?.users ?? [];
+  const users = (data?.users ?? []) as unknown as AdminUserListItem[];
 
   // Client-side search filter (only filters the page; server returns full list)
   const filteredUsers = useMemo(() => {
@@ -88,20 +88,20 @@ export function UsersTableProvider({
     return users.filter((u) => {
       if (search) {
         const match =
-          u.username.toLowerCase().includes(q) ||
-          u.email.toLowerCase().includes(q) ||
+          (u.username ?? "").toLowerCase().includes(q) ||
+          (u.email ?? "").toLowerCase().includes(q) ||
           (u.profile?.name ?? "").toLowerCase().includes(q);
         if (!match) return false;
       }
       if (period !== "all") {
-        if (new Date(u.createdAt).getTime() < cutoff) return false;
+        if (new Date(u.createdAt ?? 0).getTime() < cutoff) return false;
       }
       return true;
     });
   }, [users, search, period]);
 
   const table = useReactTable({
-    data: filteredUsers,
+    data: filteredUsers as unknown as AdminUserListItem[],
     columns,
     state: { sorting, columnFilters, pagination },
     onSortingChange: setSorting,

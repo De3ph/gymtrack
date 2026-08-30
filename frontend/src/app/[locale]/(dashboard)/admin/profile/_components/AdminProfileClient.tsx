@@ -76,7 +76,7 @@ export function AdminProfileClient() {
 
   if (!user) return null;
 
-  const joinedDate = new Date(user.createdAt);
+  const joinedDate = new Date(user.createdAt ?? Date.now());
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
