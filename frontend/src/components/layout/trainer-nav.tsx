@@ -7,7 +7,7 @@ export function TrainerNav() {
   const tTrainer = useTranslations('trainer');
 
   return (
-    <>
+    <nav className='font-semibold'>
       <NavLink href={ROUTES.TRAINER_CLIENTS} activeMatch="endsWith">
         {tTrainer('clients.title')}
       </NavLink>
@@ -17,6 +17,6 @@ export function TrainerNav() {
       <NavLink href={ROUTES.TRAINER_WORKOUT_PLANS} activeMatch="endsWith">
         {tNav('workout_plans')}
       </NavLink>
-    </>
+    </nav>
   );
 }

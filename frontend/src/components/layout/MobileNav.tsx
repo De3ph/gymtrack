@@ -138,21 +138,28 @@ function AthleteNavLinks() {
 }
 
 function AdminNavLinks() {
+  const t = useTranslations("admin.nav");
+
   return (
     <>
       <DrawerClose asChild>
         <Link href={ROUTES.ADMIN_DASHBOARD} className={linkStyles.nav}>
-          Dashboard
+          {t("dashboard")}
         </Link>
       </DrawerClose>
       <DrawerClose asChild>
         <Link href={ROUTES.ADMIN_USERS} className={linkStyles.nav}>
-          Users
+          {t("users")}
         </Link>
       </DrawerClose>
       <DrawerClose asChild>
         <Link href={ROUTES.ADMIN_PROFILE} className={linkStyles.nav}>
-          Profile
+          {t("profile")}
+        </Link>
+      </DrawerClose>
+      <DrawerClose asChild>
+        <Link href={ROUTES.ADMIN_MODERATION} className={linkStyles.nav}>
+          {t("moderation")}
         </Link>
       </DrawerClose>
     </>

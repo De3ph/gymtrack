@@ -6,7 +6,7 @@ export function AdminNav() {
   const t = useTranslations("admin.nav");
 
   return (
-    <>
+    <nav className="font-semibold">
       <NavLink href={ROUTES.ADMIN_DASHBOARD} activeMatch="endsWith">
         {t("dashboard")}
       </NavLink>
@@ -19,6 +19,6 @@ export function AdminNav() {
       <NavLink href={ROUTES.ADMIN_MODERATION} activeMatch="includes">
         {t("moderation")}
       </NavLink>
-    </>
+    </nav>
   );
 }

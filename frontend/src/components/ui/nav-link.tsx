@@ -17,7 +17,7 @@ interface NavLinkProps {
 export function NavLink({ href, children, activeMatch = "exact", className }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = matchPath(pathname, href, activeMatch);
-  
+
   return (
     <Link
       href={href}

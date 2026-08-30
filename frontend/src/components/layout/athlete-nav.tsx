@@ -7,7 +7,7 @@ export function AthleteNav() {
   const tAthlete = useTranslations('athlete');
 
   return (
-    <>
+    <nav className='font-semibold'>
       <NavLink href={ROUTES.ATHLETE_WORKOUTS} activeMatch="endsWith">
         {tNav('workouts')}
       </NavLink>
@@ -23,6 +23,6 @@ export function AthleteNav() {
       <NavLink href={ROUTES.ATHLETE_WORKOUT_PLANS} activeMatch="endsWith">
         {tNav('workout_plans')}
       </NavLink>
-    </>
+    </nav>
   );
 }
