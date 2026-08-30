@@ -1,15 +1,11 @@
-import {
-  Apple,
-  Dumbbell,
-  Radio,
-  Ruler,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { Apple, Dumbbell, Radio, Ruler, TrendingUp, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedProgress } from "@/components/animated/animated-progress";
 import { motion, LazyMotion, domAnimation } from "motion/react";
-import { landingReveal } from "./landing-variants";
+import { landingReveal, reducedMotionVariants } from "./landing-variants";
+import { useReducedMotion } from "./useReducedMotion";
+import CountingNumber from "@/components/animated/counting-number";
 
 const consoleItems = [
   {
@@ -36,11 +32,13 @@ const consoleItems = [
 
 export function LandingConsole() {
   const t = useTranslations("home");
+  const reducedMotion = useReducedMotion();
+  const variants = reducedMotion ? reducedMotionVariants : landingReveal;
 
   return (
     <LazyMotion features={domAnimation}>
       <motion.div
-        variants={landingReveal}
+        variants={variants}
         className="border border-border"
         role="region"
         aria-labelledby="console-heading"
@@ -66,15 +64,19 @@ export function LandingConsole() {
               className="size-1.5 rounded-full bg-background animate-pulse"
               aria-hidden="true"
             />
-            +42%
+            <span>+</span>
+            <span>
+              <CountingNumber number={42} inView inViewMargin="10px" />
+            </span>
+            <span>%</span>
           </Badge>
         </header>
 
         <dl className="grid grid-cols-3 divide-x divide-border">
           {[
-            ["3", t("features.workouts.title")],
-            ["1.8k", t("features.nutrition.title")],
-            ["92", t("features.measurements.title")],
+            [125, t("features.workouts.title")],
+            [681, t("features.nutrition.title")],
+            [52, t("features.measurements.title")],
           ].map(([value, label]) => (
             <div
               key={label}
@@ -84,7 +86,12 @@ export function LandingConsole() {
                 {label}
               </dt>
               <dd className="font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
-                {value}
+                <CountingNumber
+                  number={value as number}
+                  fromNumber={0}
+                  inView
+                  inViewMargin="10px"
+                />
               </dd>
             </div>
           ))}
@@ -93,21 +100,9 @@ export function LandingConsole() {
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-border px-6 py-3 sm:px-8">
           <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             <TrendingUp className="size-4 shrink-0" aria-hidden="true" />
-            Weekly load
+            {t("console.weekly_load")}
           </span>
-          <div
-            className="h-1.5 w-full bg-muted"
-            role="progressbar"
-            aria-valuenow={78}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Weekly load"
-          >
-            <div className="h-full w-[78%] bg-foreground" />
-          </div>
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground">
-            78%
-          </span>
+          <AnimatedProgress value={78} />
         </div>
 
         <ul className="grid grid-cols-1 divide-y divide-border border-t border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">

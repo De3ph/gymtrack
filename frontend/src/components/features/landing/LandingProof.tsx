@@ -1,17 +1,19 @@
-﻿import { Activity, BarChart3, Trophy, Users } from "lucide-react";
-import { useTranslations } from "next-intl";
+﻿import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
 import { buttonVariants } from "@/components/ui/button";
 import { motion } from "motion/react";
-import { landingReveal } from "./landing-variants";
+import { landingReveal, reducedMotionVariants } from "./landing-variants";
+import { useReducedMotion } from "./useReducedMotion";
 
 export function LandingProof() {
   const t = useTranslations("home");
+  const reducedMotion = useReducedMotion();
+  const variants = reducedMotion ? reducedMotionVariants : landingReveal;
 
   return (
     <motion.div
-      variants={landingReveal}
+      variants={variants}
       className="border border-border"
       role="region"
       aria-labelledby="proof-heading"
@@ -35,16 +37,16 @@ export function LandingProof() {
         <div className="flex flex-col justify-between gap-6 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
           <dl className="grid grid-cols-3 divide-x divide-border lg:grid-cols-1 lg:divide-x-0 lg:divide-y">
             {[
-              { value: "247", label: "Reps logged" },
-              { value: "12w", label: "Avg. streak" },
-              { value: "1:1", label: "Trainer loop" },
+              { value: "247", labelKey: "proof.reps_logged" },
+              { value: "12w", labelKey: "proof.avg_streak" },
+              { value: "1:1", labelKey: "proof.trainer_loop" },
             ].map((row) => (
               <div
-                key={row.label}
+                key={row.labelKey}
                 className="flex flex-col gap-1 px-3 py-3 first:pl-0 last:pr-0 lg:px-0 lg:py-4 lg:first:pt-0 lg:last:pb-0"
               >
                 <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {row.label}
+                  {t(row.labelKey)}
                 </dt>
                 <dd className="font-mono text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   {row.value}
