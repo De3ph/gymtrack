@@ -1,12 +1,12 @@
 {
   "home": {
     "title": "GymTrack",
-    "eyebrow": "Antrenman zekası",
+    "eyebrow": "Akıllı antrenman sistemi",
     "eyebrow_badge": "Ölçülebilir ilerleme için tasarlandı",
-    "description": "Antrenörleri ve sporcuları birbirine bağlayan nihai fitness takip platformu. Antrenmanları takip edin, beslenmeyi izleyin ve fitness hedeflerinize birlikte ulaşın.",
+    "description": "Antrenörleri ve sporcuları tek çatı altında buluşturan fitness takip platformu. Antrenmanını kaydet, beslenmeni izle, hedeflerine birlikte ulaş.",
     "hero": {
-      "title": "Daha akıllı antrenman. Daha net koçluk. Ortak ilerleme.",
-      "description": "GymTrack; antrenmanları, öğünleri, ölçümleri ve koçluğu sporcu ile antrenör için tek odaklı kontrol merkezinde toplar."
+      "title": "Daha akıllı çalış. Daha net koçluk al. Birlikte ilerleyin.",
+      "description": "GymTrack; antrenmanları, öğünleri, ölçümleri ve koçluğu sporcu ile antrenör için tek bir kontrol merkezinde toplar."
     },
     "sign_up": "Ücretsiz Başla",
     "login": "Giriş Yap",
@@ -17,7 +17,7 @@
       },
       "track": {
         "value": "360",
-        "label": "Takip"
+        "label": "Takip alanı"
       },
       "coach": {
         "value": "1",
@@ -26,58 +26,241 @@
     },
     "console": {
       "kicker": "Canlı sinyal",
-      "title": "Haftan hareket halinde"
+      "title": "Haftan hareket halinde",
+      "weekly_load": "Haftalık yük",
+      "growth": "+%{value}"
     },
     "features": {
+      "domains_label": "alan",
+      "what_you_log": "Ne kaydediyorsun",
+      "output": "Çıktı",
+      "header_description": "Her set, her öğün, her ölçüm — tek yerde takip edilir.",
+      "stats_workouts": "+%12 bu hafta",
+      "stats_nutrition": "2.340 kkal bugün",
+      "stats_measurements": "-1 kg bu hafta",
+      "stats_coaching": "3 aktif danışman",
       "workouts": {
         "title": "Antrenman takibi",
-        "description": "Set, tekrar, ağırlık ve antrenman geçmişini liste ve takvim görünümleriyle kaydet.",
-        "metric": "Set kaydedildi"
+        "description": "Set, tekrar, ağırlık ve antrenman geçmişini takvim ve liste görünümüyle kaydet.",
+        "metric": "Set kaydedildi",
+        "example": {
+          "badge": "Güç Günü",
+          "label": "Ağu 28",
+          "title": "Bench Press",
+          "subtitle": "4 × 8 @ 85 kg",
+          "extra1": "Incline DB Press 3×12",
+          "extra2": "Cable Flyes 3×15"
+        }
       },
       "nutrition": {
         "title": "Beslenme takibi",
-        "description": "Öğünleri, kaloriyi, makroları ve günlük beslenme düzenini takip et.",
-        "metric": "Makro takip edildi"
+        "description": "Öğünleri, kaloriyi, makroları ve beslenme düzenini takip et.",
+        "metric": "Makrolar takip edildi",
+        "example": {
+          "badge": "Öğle",
+          "label": "Bugün",
+          "title": "Izgara Tavuklu Kase",
+          "subtitle": "680 kkal · P:45g · H:62g · Y:22g",
+          "extra1": "Yulaflımoothie ile çilek",
+          "extra2": "Protein shake"
+        }
       },
       "measurements": {
         "title": "Vücut ölçümleri",
-        "description": "Kilo, yağ oranı ve vücut bölümü ölçümlerini zaman içinde kaydet.",
-        "metric": "Trend görünür"
+        "description": "Kilonu, yağ oranını ve vücut ölçülerini zaman içinde kaydet.",
+        "metric": "Gelişim görünür",
+        "example": {
+          "badge": "Haftalık",
+          "label": "Ağu 25",
+          "title": "Kilo: 81 kg",
+          "subtitle": "Vücut yağı: %14.2",
+          "extra1": "Göğüs: 107 cm",
+          "extra2": "Bel: 81 cm"
+        }
       },
       "coaching": {
         "title": "Antrenör bağlantısı",
-        "description": "Antrenör bul, istek gönder, müşteri kabul et ve antrenman planı ata.",
-        "metric": "Talepler yönetildi"
+        "description": "Antrenör bul, istek gönder, danışanını kabul et ve antrenman planı ata.",
+        "metric": "İstekler yönetildi",
+        "example": {
+          "badge": "Aktif",
+          "label": "Antrenör",
+          "title": "Koç Mehmet",
+          "subtitle": "4 danışan · 12 haftalık program",
+          "extra1": "Bekleyen istekler: 2",
+          "extra2": "Yarın seans 09:00"
+        }
       }
     },
     "role_paths": {
+      "sr_only_label": "İki taraf, tek döngü",
       "athlete": {
         "kicker": "Sporcu yolu",
-        "title": "İlerlemeyi kanıta dönüştür.",
-        "description": "Her repi, öğünü, ölçümü ve planı tek yerde tut; ilerleme tahmin değil, görünür veri olsun.",
+        "title": "İlerlemeni kanıtla.",
+        "description": "Her seti, öğünü, ölçümü ve planı tek yerde tut — ilerleme tahmin değil, gözle görülür veri olsun.",
         "bullets": [
-          "Antrenman, öğün ve ölçümleri hızlıca kaydet.",
-          "Geçmiş, grafikler ve atanmış planlarla ilerlemeyi gör.",
-          "Koçluk istediğinde antrenörle bağlantı kur."
+          "Antrenman, öğün ve ölçümlerini saniyeler içinde kaydet.",
+          "Geçmişini, grafiklerini ve sana atanan planları tek yerden takip et.",
+          "İstediğinde bir antrenörle bağlantı kur, koçluk al."
         ],
         "cta": "Sporcu olarak katıl"
       },
       "trainer": {
         "kicker": "Antrenör yolu",
-        "title": "Danışanları karmaşa olmadan yönet.",
-        "description": "İlişkileri, istekleri, planları ve danışan ilerlemesini tek odaklı çalışma alanında yönet.",
+        "title": "Danışanlarını karmaşa olmadan yönet.",
+        "description": "İlişkileri, istekleri, planları ve danışan ilerlemesini tek bir çalışma alanından yönet.",
         "bullets": [
-          "Sporcu davet et ve müşteri listesini yönet.",
-          "Danışanlara antrenman planı oluştur ve ata.",
-          "Danışan antrenmanlarını, öğünlerini, ölçümlerini ve grafiklerini incele."
+          "Sporcu davet et, danışan listeni yönet.",
+          "Danışanlarına özel antrenman planı oluştur ve ata.",
+          "Danışanların antrenmanını, beslenmesini ve gelişimini incele."
         ],
         "cta": "Antrenör olarak katıl"
       }
     },
     "proof": {
       "kicker": "İlerleme sistemi",
-      "title": "Niyetten kanıta tek döngü.",
-      "description": "GymTrack antrenman ilişkisini görünür tutar: ne planlandı, ne yapıldı, ne değişti ve sırada ne var."
+      "title": "Plandan sonuca, tek bakışta.",
+      "description": "GymTrack antrenman ilişkisini şeffaf tutar: ne planlandı, ne yapıldı, ne değişti ve sırada ne var — hepsi görünür.",
+      "reps_logged": "Kaydedilen tekrar",
+      "avg_streak": "ort. seri",
+      "trainer_loop": "Koçluk döngüsü"
+    },
+    "about": "Hakkımızda"
+  },
+  "about": {
+    "badge": "Hakkımızda — eksik halka",
+    "aside_top": "GymTrack / 2026 — Hakkımızda",
+    "aside_bottom": "Plan ile kanıt arasında",
+    "tape": "İlerleme çubuğu",
+    "hero": {
+      "plan": "Plan ile",
+      "and": "— ve —",
+      "proof": "kanıt",
+      "suffix": "arasında bir boşluk var.",
+      "description": "GymTrack, tahtaya yazılan planla ilerleme fotoğrafı arasında kalan gerçek işler için var. Gerçekten yaptığın setler, gerçekten yediğin öğünler, gerçekten değişen ölçüler — hepsi tek yerde. Koç ve sporcu aynı gerçeği görsün diye.",
+      "cta_start": "Antrenmana başla",
+      "cta_crew": "Ekiple tanış"
+    },
+    "stats": {
+      "founded_label": "Kuruluş",
+      "founded_value": "2024",
+      "founded_sub": "İstanbul, sonra uzaktan",
+      "loop_label": "İlişki",
+      "loop_value": "1:1",
+      "loop_sub": "sporcu ↔ antrenör",
+      "window_label": "Düzenleme süresi",
+      "window_value": "24 sa",
+      "window_sub": "dürüst kalsın diye"
+    },
+    "ledger": {
+      "title": "Antrenman defteri — 12. hafta",
+      "live": "Canlı",
+      "mon_day": "Pzt",
+      "mon_title": "Alt vücut · 5×5 Back Squat",
+      "mon_meta": "ort. 82,5 kg · 18 set",
+      "tue_day": "Sal",
+      "tue_title": "Beslenme · 2.340 kcal",
+      "tue_meta": "P 168 · K 245 · Y 72",
+      "wed_day": "Çar",
+      "wed_title": "Kontrol · 81,4 kg (−0,6)",
+      "wed_meta": "Bel 84 → 83 · Yağ %14,2",
+      "coach_label": "Koç notu",
+      "coach_body": "“Tempo gayet iyiydi. Bu hafta 2,5 kg ekle, dinlenmeyi 90 saniyede tut. Beldeki incelme güzel gidiyor, beslenme tutarlıydı. Cuma görüşürüz.”",
+      "coach_author": "— Koç Meryem · 19:42",
+      "honest": "Düzenlemeler 24 saat sonra kapanır — kayıt dürüst kalır",
+      "ledger_id": "GymTrack Defter #1247",
+      "carbon_copy": "Kopyası antrenöre gider",
+      "perforate": "KOPAR — BURADAN YIRT"
+    },
+    "rail": {
+      "origin": "Köken — neden kurduk",
+      "loop": "Döngü — ilerleme nasıl akar",
+      "principles": "İlkeler — taviz vermediklerimiz",
+      "crew": "Ekip — arkamızdaki isimler",
+      "proof": "Kanıt — rakamlar ve bağlamı"
+    },
+    "origin": {
+      "title_a": "Sıradan bir takip uygulaması değil.",
+      "title_b": "Ortak bir gerçek kaynağı.",
+      "p1": "Hepimiz aynı döngüyü yaşadık: sporcular tablo ekran görüntüsü atıyor, antrenörler beş ayrı grup sohbetinde boğuluyor, geçen salı ne olduğunu kimse tam hatırlamıyor. İlerlemeyi durduran şey çaba eksikliği değildi — ortak bir kanıt yoktu.",
+      "p2": "Biz de sorunu sadeleştirdik. Antrenman ve öğünlerin aynı takvimde yaşadığı tek bir yer. Davet edilen, kabul edilen ya da sonlandırılan, net bir ilişki. Ve herkesi dürüst tutan tek bir kural: bugünü düzeltebilirsin, geçen ayı yeniden yazamazsın.",
+      "card1_title": "Hızlı kaydet, süslemeye gerek yok",
+      "card1_desc": "Setler, plakalar, makrolar, ya da sadece \"yaptım.\" Önemli olan hız, mükemmellik değil.",
+      "card2_title": "İlişki, özelliğin ta kendisi",
+      "card2_desc": "Davet kodlarıyla bağlan, DM'ye gerek yok. Durum her iki taraf için de görünür.",
+      "timeline_title": "Zaman çizelgesi",
+      "y2023_title": "Salon zemininde başlayan sorun",
+      "y2023_text": "Antrenör Meryem, 22 danışanını WhatsApp, Sheets ve hafızasıyla yönetiyor. Saat 23:00'de yazıyor: \"3×8'i yaptın mı?\" Cevap perşembeye kadar gelmiyor.",
+      "y2024_title": "İlk defter",
+      "y2024_text": "Sade, süssüz bir prototip çıkarıyoruz: tek tarih, iki sekme — antrenman ve öğün. Takipçi yok, akış yok. Sadece kayıt, ve onu görebilen bir koç.",
+      "y2025_title": "24 saat kuralı",
+      "y2025_text": "Düzenlemeleri bir gün sonra kilitliyoruz. İlk hafta şikayet geliyor, sonra güven artıyor. Sporcular pazar akşamı bütün ayı geriye dönük mükemmelleştirmeyi bırakıyor.",
+      "y2026_title": "Bugün",
+      "y2026_text": "Antrenörler sakin, odaklı listelerle çalışıyor. Sporcular söz değil, kanıt taşıyor. Plan ile sonuç arasındaki boşluk artık bir eve sahip."
+    },
+    "loop": {
+      "title": "Ürünümüz aslında bu döngü.",
+      "description": "Dört durak, tek yön. Biri eksik olursa döngü kırılır, koçluk tahmine döner.",
+      "s1_name": "Kaydet",
+      "s1_desc": "Sporcu ne yaptıysa onu kaydeder — setler, öğünler, kilo — hafıza tazeyken.",
+      "s2_name": "İncele",
+      "s2_desc": "Antrenör vitrini değil, defteri okur. Yorumlar doğrudan kaydın üzerine düşülür.",
+      "s3_name": "Uyarla",
+      "s3_desc": "Plan, atanana kadar bir şablondur. Yükü ayarla, hareketi değiştir, işe yarayanı koru.",
+      "s4_name": "Kanıt",
+      "s4_desc": "Grafikler ve geçmiş, çabayı somut kanıta dönüştürür. Gelecek hafta gerçeklerle başlar.",
+      "quiet_label": "Sessiz kural",
+      "quiet_body": "Beğeni yok. Seriyi bozdun diye utandırma yok. Gece yarısı \"bugünü kaçırdın\" bildirimi yok. Platform araya girmez, ilişkinin işini kendisi görsün diye.",
+      "quiet_tag": "— bilerek sade tasarlandı"
+    },
+    "principles": {
+      "p1_title": "İyimserlik değil, kanıt",
+      "p1_body": "Kaydedilmediyse olmamıştır. Gerçek olanı tasarlıyoruz — \"bugün pas geçtim\" de olsa. O da bir veridir.",
+      "p1_meta": "Geriye doldurma yok · 24 sa pencere · dürüst grafikler",
+      "p2_title": "Liste değil, ilişki",
+      "p2_body": "40 danışanı olan bir antrenörün gerçekte hiç danışanı yoktur. Biz sayıyı sınırlıyoruz, bugün ilgi bekleyeni öne çıkarıyoruz ve ilişkinin saygıyla bitmesini sağlıyoruz.",
+      "p2_meta": "Davet kodları · danışanlık süresi · günlük odak",
+      "p3_title": "Sadelik bir özelliktir",
+      "p3_body": "Salonda ilerleme, bileşik faiz gibi birikir. Biz \"yarın yine gel\" için tasarlıyoruz — hızlı kayıt, sakin arayüz, dopamin tuzağı yok.",
+      "p3_meta": "Tek tıkla kayıt · akış yok · önce takvim"
+    },
+    "crew": {
+      "title": "Küçük ekip, salon mesaisi.",
+      "subtitle": "Kaldırıyoruz, koçluk yapıyoruz, teslim ediyoruz — bu sırayla",
+      "meryem_role": "Koç · Kurucu ortak",
+      "meryem_detail": "10 yıllık koçluk deneyimi, 2.000'in üzerinde danışan haftası. 24 saat kuralını bir salon peçetesine yazdı.",
+      "emir_role": "Ürün · Sporcu",
+      "emir_detail": "Eski halterci. Kayıt hızına takıntılı: \"30 saniye sürüyorsa, kimse yapmaz.\"",
+      "sena_role": "Tasarım · Sistemler",
+      "sena_detail": "Defteri sakin bir arayüze dönüştürdü. Sadeliğin de bir tasarım hedefi olduğuna inanıyor.",
+      "can_role": "Mühendislik",
+      "can_detail": "Kaydı dürüst tutuyor — saat senkronizasyonu, JSONB ve yalan söylemeyen migration'lar.",
+      "hiring": "Arıyoruz: koç araçları mühendisi",
+      "email": "hello@gymtrack.app"
+    },
+    "stats_strip": {
+      "reps_label": "Kaydedilen tekrar",
+      "reps_desc": "Ocak 2024'ten bu yana. Gösteriş değil bu — her setin ağırlığı, tekrarı ve 24 saat sonra artık değiştirilemeyen bir tarihi var.",
+      "avg_label": "ort. ilişki süresi",
+      "avg_weeks": "hafta",
+      "avg_desc": "Bir platoyu, onu kıran ayarlamayı görecek kadar uzun bir süre.",
+      "ontime_label": "Zamanında kayıtlar",
+      "ontime_desc": "Gün içinde kaydedilenler. Geri kalanı gecikmiş — ve grafik bunu gösteriyor."
+    },
+    "cta": {
+      "title_a": "Bir kayıtla başla.",
+      "title_b": "Koçluk sonra gelir",
+      "description": "Kredi kartı gerekmez, karmaşık bir kurulum yok. Bir antrenman kaydet, hazır olduğunda bir koç davet et — ya da göz kulak olunmasını isteyene kadar tek başına devam et.",
+      "create": "Hesap oluştur",
+      "signin": "Giriş yap"
+    },
+    "footer": {
+      "copy": "© 2026 GymTrack — Plan ile kanıt arasında",
+      "home": "Ana sayfa"
+    },
+    "metadata": {
+      "title": "Hakkımızda — GymTrack",
+      "description": "Plan ile kanıt arasında bir boşluk var. GymTrack, sporcular ve antrenörler için ortak bir gerçek kaynağıdır: tek defter, tek ilişki, tek dürüst döngü."
     }
   },
   "common": {
@@ -130,20 +313,20 @@
       "pending": "Beklemede"
     },
     "errors": {
-      "generic": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
-      "network": "Ağ hatası. Bağlantınızı kontrol edin.",
+      "generic": "Kaydedilemedi. Bağlantını kontrol et ve tekrar dene.",
+      "network": "Ağ hatası. Bağlantını kontrol et ve tekrar dene.",
       "required": "Bu alan zorunludur.",
-      "invalid": "Geçersiz giriş.",
+      "invalid": "Vurgulanan alanları kontrol et ve tekrar dene.",
       "unauthorized": "Bu işlemi yapmaya yetkiniz yok.",
-      "not_found": "İstenen kaynak bulunamadı.",
-      "server_error": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
-      "failed_load_dashboard_stats": "Panel istatistikleri yüklenemedi",
-      "failed_load_users": "Kullanıcılar yüklenemedi",
-      "failed_load_user_details": "Kullanıcı detayları yüklenemedi",
-      "failed_load_workout_plan": "Antrenman planı yüklenemedi",
-      "failed_load_body_measurements": "Vücut ölçümleri yüklenemedi",
-      "failed_load_trainer_profile": "Antrenör profili yüklenemedi",
-      "unexpected_error": "Beklenmeyen bir hata oluştu"
+      "not_found": "Bulunamadı. Bağlantıyı kontrol et veya tekrar dene.",
+      "server_error": "Sunucu hatası. Biraz sonra tekrar dene.",
+      "failed_load_dashboard_stats": "Panel istatistikleri yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
+      "failed_load_users": "Kullanıcılar yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
+      "failed_load_user_details": "Kullanıcı detayları yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
+      "failed_load_workout_plan": "Antrenman planı yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
+      "failed_load_body_measurements": "Ölçümler yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
+      "failed_load_trainer_profile": "Antrenör profili yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
+      "unexpected_error": "Beklenmeyen bir hata oluştu. Tekrar dene."
     },
     "loading": "Yükleniyor...",
     "search": {
@@ -183,7 +366,7 @@
       "title": "Hesabınıza Giriş Yapın",
       "email": {
         "label": "E-posta veya Kullanıcı Adı",
-        "placeholder": "E-posta veya kullanıcı adınızı girin",
+        "placeholder": "ad@ornek.com",
         "error": {
           "required": "E-posta veya kullanıcı adı zorunludur",
           "invalid": "Lütfen geçerli bir e-posta veya kullanıcı adı girin (3-30 alfanümerik karakter)"
@@ -191,7 +374,7 @@
       },
       "password": {
         "label": "Şifre",
-        "placeholder": "Şifrenizi girin",
+        "placeholder": "••••••••",
         "error": {
           "required": "Şifre zorunludur",
           "min_length": "Şifre en az 6 karakter olmalıdır"
@@ -207,14 +390,14 @@
       "title": "Hesabınızı Oluşturun",
       "name": {
         "label": "Ad Soyad",
-        "placeholder": "Adınızı ve soyadınızı girin",
+        "placeholder": "örn., Ahmet Yılmaz",
         "error": {
           "required": "Ad soyad zorunludur"
         }
       },
       "email": {
         "label": "E-posta",
-        "placeholder": "E-posta adresinizi girin",
+        "placeholder": "ad@ornek.com",
         "error": {
           "required": "E-posta zorunludur",
           "invalid": "Lütfen geçerli bir e-posta adresi girin"
@@ -222,7 +405,7 @@
       },
       "password": {
         "label": "Şifre",
-        "placeholder": "Bir şifre oluşturun",
+        "placeholder": "En az 8 karakter",
         "error": {
           "required": "Şifre zorunludur",
           "min_length": "Şifre en az 6 karakter olmalıdır"
@@ -230,7 +413,7 @@
       },
       "confirm_password": {
         "label": "Şifreyi Onayla",
-        "placeholder": "Şifrenizi onaylayın",
+        "placeholder": "Şifreyi tekrar girin",
         "error": {
           "required": "Lütfen şifrenizi onaylayın",
           "mismatch": "Şifreler eşleşmiyor"
@@ -243,7 +426,7 @@
       },
       "username": {
         "label": "Kullanıcı Adı",
-        "placeholder": "Bir kullanıcı adı seçin",
+        "placeholder": "örn., ahmetyilmaz42",
         "error": {
           "required": "Kullanıcı adı zorunludur",
           "min_length": "Kullanıcı adı en az 3 karakter olmalıdır",
@@ -253,15 +436,15 @@
       },
       "age": {
         "label": "Yaş",
-        "placeholder": "Yaşınızı girin"
+        "placeholder": "örn., 28"
       },
       "weight": {
         "label": "Kilo",
-        "placeholder": "Kilonuzu girin"
+        "placeholder": "örn., 82"
       },
       "height": {
         "label": "Boy",
-        "placeholder": "Boyunuzu girin"
+        "placeholder": "örn., 180"
       },
       "fitness_goals": {
         "label": "Fitness Hedefleri",
@@ -277,6 +460,7 @@
       },
       "submit": "Hesap Oluştur",
       "submitting": "Hesap oluşturuluyor...",
+      "cancel": "İptal",
       "has_account": "Zaten hesabınız var mı?",
       "sign_in": "Giriş Yapın"
     },
@@ -407,7 +591,7 @@
     "list": {
       "title": "Antrenman Geçmişi",
       "loading": "Antrenmanlar yükleniyor...",
-      "no_workouts": "Henüz antrenman kaydedilmedi",
+      "no_workouts": "Henüz antrenman yok — ilk antrenmanını kaydet, geçmiş burada görünsün.",
       "view_details": "Detayları Gör",
       "edit": "Düzenle",
       "delete": "Sil",
@@ -436,7 +620,7 @@
     "delete_dialog": {
       "title": "Antrenmanı Sil",
       "description": "Bu antrenmanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-      "confirm": "Sil",
+      "confirm": "Antrenmanı sil",
       "cancel": "İptal",
       "deleting": "Siliniyor..."
     },
@@ -519,7 +703,7 @@
     "list": {
       "title": "Öğün Geçmişi",
       "loading": "Öğünler yükleniyor...",
-      "no_meals": "Henüz öğün kaydedilmedi",
+      "no_meals": "Henüz öğün yok — ilk öğününü kaydet, geçmiş burada görünsün.",
       "view_details": "Detayları Gör",
       "edit": "Düzenle",
       "delete": "Sil"
@@ -580,7 +764,7 @@
   "body_measurement": {
     "list": {
       "loading": "Vücut ölçümleri yükleniyor...",
-      "no_measurements": "Henüz vücut ölçümü kaydedilmedi. İlk ölçümünüzü kaydedin!",
+      "no_measurements": "Henüz ölçüm yok — ilk ölçümünü kaydet, trend burada görünsün.",
       "weight": "{value} {unit}",
       "body_fat": "Yağ oranı: {value}%",
       "vs_previous": "önceki ölçüme göre",
@@ -619,7 +803,7 @@
       "description": "{date} tarihli ölçümü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
       "description_generic": "Bu vücut ölçümünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
       "cancel": "İptal",
-      "confirm": "Sil"
+      "confirm": "Ölçümü sil"
     },
     "filter": {
       "label": "Filtrele",
@@ -665,7 +849,7 @@
       "no_clients_title": "Henüz Danışan Yok",
       "no_clients_description": "Henüz aktif danışanınız yok. Davet kodu oluşturarak sporcularla çalışmaya başlayın.",
       "invite_first_athlete": "İlk Sporcu Davet Et",
-      "no_clients": "Henüz danışan yok",
+      "no_clients": "Henüz danışan yok — sporcu davet ederek listeni oluştur.",
       "add_client": "Danışan Ekle",
       "view_client": "Danışanı Gör",
       "client_details": "Danışan Detayları",
@@ -738,7 +922,7 @@
         "description": "{name} ile ilişkinizi sonlandırmak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
         "confirm": "İlişkiyi Sonlandır",
         "cancel": "İptal",
-        "error": "İlişki sonlandırılamadı"
+        "error": "İlişki sonlandırılamadı. Bağlantını kontrol et ve tekrar dene."
       },
       "relationship_details": "İlişki Detayları",
       "status": "Durum",
@@ -752,8 +936,8 @@
       "certifications": "Sertifikalar",
       "loading": "Profil yükleniyor...",
       "profile_saved": "Profil başarıyla kaydedildi!",
-      "profile_save_failed": "Profil kaydedilemedi.",
-      "profile_load_failed": "Profil yüklenemedi",
+      "profile_save_failed": "Profil kaydedilemedi. Bağlantını kontrol et ve tekrar dene.",
+      "profile_load_failed": "Profil yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "my_profile": {
         "title": "Antrenör Profili",
         "name_label": "Ad",
@@ -785,7 +969,7 @@
       "title": "Müsaitlik Durumum",
       "loading": "Müsaitlik durumu yükleniyor...",
       "saved_success": "Müsaitlik durumu başarıyla kaydedildi!",
-      "save_failed": "Müsaitlik durumu kaydedilemedi",
+      "save_failed": "Müsaitlik kaydedilemedi. Bağlantını kontrol et ve tekrar dene.",
       "to_label": "ile",
       "remove_slot": "X"
     },
@@ -800,14 +984,14 @@
     "generate_invitation": {
       "title": "Sporcu Davet Et",
       "description": "Sporcuların sizinle bağlantı kurmak için kullandığı bir davet kodu oluşturun. Kodlar 7 gün sonra sona erer.",
-      "instruction": "Bir sporcu için benzersiz bir davet kodu oluşturmak için aşağıdaki düğmeye tıklayın.",
+      "instruction": "Sporcunun seninle bağlantı kurmak için kullanacağı benzersiz kod oluştur. Kodlar 7 gün sonra sona erer.",
       "generate_code_button": "Kod Oluştur",
       "code_label": "Davet Kodu",
       "expires_on": "{date} tarihinde",
       "expires_at": "{time} saatinde sona eriyor",
       "instructions_text": "Talimatlar:",
       "generate_new_code": "Yeni Kod Oluştur",
-      "error_fallback": "Davet kodu oluşturulamadı"
+      "error_fallback": "Davet kodu oluşturulamadı. Tekrar dene."
     },
     "charts": {
       "nutrition_trends": {
@@ -879,7 +1063,7 @@
       "back": "Geri",
       "plan_not_found": "Plan bulunamadı",
       "exercise_detail": "{sets} set, {reps} tekrar",
-      "no_clients_yet": "Henüz danışan yok",
+      "no_clients_yet": "Henüz danışan yok — önce sporcu davet et.",
       "athlete_label": "Sporcu"
     }
   },
@@ -888,7 +1072,7 @@
     "edit_profile": "Profili Düzenle",
     "loading": "Profil yükleniyor...",
     "not_found": "Kullanıcı bulunamadı",
-    "update_error": "Profil güncellenemedi",
+    "update_error": "Profil güncellenemedi. Bağlantını kontrol et ve tekrar dene.",
     "profile_saved": "Profil başarıyla kaydedildi",
     "member_since": "Üyelik tarihi",
     "personal_info": "Kişisel Bilgiler",
@@ -920,7 +1104,7 @@
       "title": "Hesabı Sil",
       "description": "Hesabınızı ve ilişkili tüm verileri kalıcı olarak silin. Bu işlem 30 gün içinde geri alınabilir.",
       "password_label": "Şifreyi Onayla",
-      "password_placeholder": "Onaylamak için şifrenizi girin",
+      "password_placeholder": "Mevcut şifrenizi girin",
       "confirm": "Hesabımı Sil",
       "cancel": "İptal",
       "error_wrong_password": "Yanlış şifre. Lütfen tekrar deneyin.",
@@ -960,7 +1144,7 @@
       "description": "Antrenmanlarınızı kaydedin ve ilerlemenizi takip edin.",
       "log_workout": "Antrenman Kaydet",
       "view_history": "Geçmişi Gör",
-      "no_workouts": "Henüz antrenman kaydedilmedi",
+      "no_workouts": "Henüz antrenman yok — ilk antrenmanını kaydet.",
       "log_tab": "Antrenman Kaydet",
       "list_tab": "Geçmiş (Liste)",
       "calendar_tab": "Geçmiş (Takvim)",
@@ -972,7 +1156,7 @@
       "description": "Hedeflerinize ulaşmak için beslenmenizi takip edin.",
       "log_meal": "Öğün Kaydet",
       "view_history": "Geçmişi Gör",
-      "no_meals": "Henüz öğün kaydedilmedi",
+      "no_meals": "Henüz öğün yok — ilk öğününü kaydet.",
       "log_tab": "Öğün Kaydet",
       "list_tab": "Geçmiş (Liste)",
       "calendar_tab": "Geçmiş (Takvim)",
@@ -1089,6 +1273,10 @@
         "certifications": "Sertifikalar",
         "years_of_experience": "Deneyim Yılı: ",
         "location": "Konum: ",
+        "languages": "Diller",
+        "languages_placeholder": "örn, İngilizce, İspanyolca",
+        "not_set": "Belirtilmemiş",
+        "available": "Yeni danışanlar için müsait",
         "reviews_title": "Yorumlar",
         "write_review": "Yorum Yaz",
         "no_reviews": "Henüz yorum yok",
@@ -1107,6 +1295,7 @@
     },
     "workout_plans": {
       "title": "Antrenman Planlarım",
+      "description": "Kişisel ve atanan antrenman planlarınız.",
       "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!",
       "view_plan": "Planı Görüntüle",
       "start_workout": "Antrenmana Başla",
@@ -1148,14 +1337,14 @@
       "cancel": "İptal",
       "content_required": "İçerik gereklidir",
       "content_too_long": "İçerik 1000 karakterden az olmalıdır",
-      "post_failed": "Yorum gönderilemedi",
+      "post_failed": "Yorum gönderilemedi. Bağlantını kontrol et ve tekrar dene.",
       "reply_placeholder": "Bir yanıt yazın..."
     },
     "list": {
       "title": "Yorumlar",
-      "no_comments": "Henüz yorum yok",
+      "no_comments": "Henüz yorum yok — ilk yorumu aşağıya yaz.",
       "comments_count": "Yorumlar ({count})",
-      "load_failed": "Yorumlar yüklenemedi"
+      "load_failed": "Yorumlar yüklenemedi. Bağlantını kontrol et ve tekrar dene."
     },
     "item": {
       "by": "tarafından",
@@ -1192,7 +1381,7 @@
       "cancel": "İptal",
       "sending": "Gönderiliyor...",
       "send_request": "Talep Gönder",
-      "error_fallback": "Koçluk talebi gönderilemedi"
+      "error_fallback": "Koçluk isteği gönderilemedi. Bağlantını kontrol et ve tekrar dene."
     },
     "list": {
       "loading": "Koçluk talepleri yükleniyor...",

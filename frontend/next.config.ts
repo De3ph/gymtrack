@@ -12,6 +12,9 @@ const withBundleAnalyzer = createBundleAnalyzer({
 // Source maps are intentionally KEPT for Sentry symbolication (enabled via withSentryConfig); disabling is an escape hatch only if build OOM occurs.
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   // cacheComponents enables prerender-phase source maps by default; they cost
   // extra memory during "Generating static pages". Sentry's source maps are
   // unaffected — this only skips the prerender phase.

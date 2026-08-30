@@ -150,7 +150,7 @@ export interface AdminUserListItem {
   username: string;
   email: string;
   role: UserRole;
-  status: UserStatus;
+  status?: UserStatus;
   profile: UserProfile;
   createdAt: string;
   updatedAt: string;

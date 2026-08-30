@@ -2,8 +2,8 @@
 
 // Static routes - exact paths without parameters
 export const ROUTES = {
-  // Auth routes
   HOME: '/',
+  ABOUT: '/about',
   LOGIN: '/login',
   REGISTER: '/register',
 

@@ -5,7 +5,7 @@ import { decrypt, updateSession, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME, type 
 
 const intlMiddleware = createMiddleware(routing);
 
-const publicRoutes = ['/login', '/register', '/'];
+const publicRoutes = ['/login', '/register', '/', '/about'];
 
 function isPublicRoute(pathname: string): boolean {
   const parts = pathname.split('/').filter(Boolean)
