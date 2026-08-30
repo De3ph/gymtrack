@@ -85,6 +85,7 @@ export function RegisterScreen() {
         role,
         profile: Object.keys(profile).length > 0 ? profile : undefined,
       });
+      router.replace('/(tabs)');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("common.errors.generic");
       setError(message);

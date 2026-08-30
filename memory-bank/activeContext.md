@@ -3,6 +3,16 @@
 ## Zustand Migration (implemented) — `plans/zustand-migration.md`
 Implemented the "survive navigation" store migration: list filter/pagination and the shared calendar date now persist across route/tab switches. Auth (`authStore`) and React Query server-state untouched.
 
+## BodyMeasurementForm Layout Fixes (2026-08-30)
+Fixed parts-grid overflow in `frontend/src/components/features/body-measurement/BodyMeasurementForm.tsx`:
+- Paired body parts (bicep/forearm/thigh/calf L/R) previously rendered `label(w-48/md:w-64) + input + label + input` in one flex row inside `lg:grid-cols-4` cells (~200px) → severe horizontal overflow. Restructured every parts cell to the form-wide "label above input" pattern; paired parts are now a `grid grid-cols-2 gap-4` sub-grid inside their cell (per-side labels + per-side `FieldError`).
+- Parts grid: `lg:grid-cols-4 gap-x-12` → `lg:grid-cols-3 gap-6` (9 cells = clean 3×3; `gap-6` per DESIGN.md §3.3).
+- Footer button row: `space-y-4 md:space-x-4` → `flex-col gap-4 sm:flex-row`; buttons `md:w-auto` → `sm:w-auto` (breakpoint consistency with rest of form).
+- Deduped part-input rendering into a `renderPartInput(key)` helper; fixed one latent `FieldError errors` type mismatch by passing `{ message }` objects (tsc errors in file: 6 → 5, all remaining pre-existing in untouched logic).
+- Verified: `eslint` exit 0; `tsc --noEmit` no new errors.
+
+
+
 ### New store files (`frontend/src/stores/`)
 - `list-ui-store.ts` — generic `createListUiStore<TFilter>(initialFilter)` factory (`filter`/`page`/`setFilter` (resets page→1)/`setPage`/`reset`).
 - `meal-list-store.ts` → `useMealListStore`
@@ -243,3 +253,10 @@ Proceed to Phase 5 (Misc cleanups & ESLint) when ready.
 
 ### Known Issue
 TextInputs in LoginScreen/RegisterScreen lack `testID` props. Maestro taps label text to focus inputs. Consider adding `testID` for reliability.
+## Font Loading + Register Fixes (2026-08-30)
+Typography audit findings, all fixed:
+- [locale]/layout.tsx: Inter + Geist Mono loaded static weights (400/500) while 150 x font-semibold (600) synthesized fake-bold. Fix: omit weight (variable axis). Added latin-ext subsets - Turkish glyphs previously fell back to system font.
+- AboutClient.tsx: Space_Grotesk display face (3rd font, allowed) - static 4 weights + missing latin-ext fixed same way. Hero font-bold leading-[0.88] tracking-[-0.05em] moved to register: font-medium leading-[1.05] tracking-[-0.04em] (DESIGN.md 3.2 display row).
+- All 8 forbidden font-bold/black/extrabold removed (count now 0): ProfileClient h1 x2 + TrainerCatalogCard h3 changed to font-semibold (heading 600); LandingMetrics + StatCard values changed to font-mono font-semibold tracking-tight (numeric register); WorkoutPlanForm index chip font-heading font-bold changed to font-mono font-semibold.
+- Deliberate non-changes: no font swap (Inter + Geist Mono correct pairing), no font-synthesis: none (variable fonts cover all weights), no global tabular-nums (per-instance already).
+- Verified: eslint exit 0 on all touched files; tsc same pre-existing error set (stash round-trip confirmed 23 pre-existing in ProfileClient/TrainerCatalogCard, 0 new).

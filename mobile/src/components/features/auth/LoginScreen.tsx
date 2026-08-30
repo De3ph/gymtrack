@@ -48,7 +48,7 @@ export function LoginScreen() {
     setLoading(true);
     try {
       await login(identifier.trim(), password);
-      // Navigation handled automatically by _layout auth guard
+      router.replace('/(tabs)');
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : t("common.errors.generic");
