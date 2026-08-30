@@ -5,34 +5,38 @@ import { ROUTES } from "@/lib/routes";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
-import { landingReveal } from "./landing-variants";
+import { landingReveal, reducedMotionVariants } from "./landing-variants";
+import { useReducedMotion } from "./useReducedMotion";
 
 const roleKeys = ["athlete", "trainer"] as const;
 
 export function LandingRolePaths() {
   const t = useTranslations("home");
+  const reducedMotion = useReducedMotion();
+  const variants = reducedMotion ? reducedMotionVariants : landingReveal;
 
   return (
     <motion.div
-      variants={landingReveal}
-      className="grid grid-cols-1 border border-border lg:grid-cols-2 lg:divide-x lg:divide-border"
+      variants={variants}
+      className="grid grid-cols-1 items-stretch border border-border lg:grid-cols-2 lg:divide-x lg:divide-border"
       role="region"
       aria-labelledby="roles-heading"
     >
-      <h2 id="roles-heading" className="sr-only">
-        Two sides, one loop
-      </h2>
+        <h2 id="roles-heading" className="sr-only">
+          {t("role_paths.sr_only_label")}
+        </h2>
 
       {roleKeys.map((role, index) => (
         <article
           key={role}
           className={cn(
-            "group flex flex-col gap-6 px-6 py-8 transition-colors duration-200 sm:px-10 sm:py-12",
+            "group flex h-full flex-col gap-6 px-8 py-10 transition-colors duration-200 sm:px-12 sm:py-14",
             "hover:bg-muted/20 hover:border-primary/20",
             index === 0 ? "border-b border-border lg:border-b-0" : ""
           )}
         >
-          <header className="flex items-baseline gap-4">
+          <div className="min-h-28 px-2">
+            <header className="flex items-baseline gap-4">
             <span
               className="font-mono text-3xl font-semibold text-primary transition-colors duration-200 group-hover:text-primary sm:text-4xl"
               aria-hidden="true"
@@ -40,51 +44,54 @@ export function LandingRolePaths() {
               {role === "athlete" ? "A." : "T."}
             </span>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary/70 transition-colors group-hover:text-primary">
-              {t("role_paths." + role + ".kicker")}
+              {t(`role_paths.${role}.kicker`)}
             </p>
           </header>
 
-            <h3 className="text-balance font-mono text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground transition-colors group-hover:text-foreground sm:text-3xl">
-              {t("role_paths." + role + ".title")}
-            </h3>
+          <h3 className="text-balance font-mono text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground transition-colors group-hover:text-foreground sm:text-3xl">
+            {t(`role_paths.${role}.title`)}
+          </h3>
+          </div>
 
-            <p className="max-w-md text-sm font-semibold leading-6 text-muted-foreground transition-colors group-hover:text-foreground/80">
-              {t("role_paths." + role + ".description")}
-            </p>
+          <div className="flex-1 px-2">
+          <p className="max-w-md text-sm font-semibold leading-6 text-muted-foreground transition-colors group-hover:text-foreground/80 mb-4">
+            {t(`role_paths.${role}.description`)}
+          </p>
 
-            <ol className="divide-y divide-border border-y border-border">
-              {[0, 1, 2].map((i) => (
-                <li
-                  key={i}
-                  className="grid grid-cols-[2rem_1.25rem_1fr] items-center gap-3 py-3 text-foreground transition-colors hover:bg-muted/30"
-                >
-                  <span className="font-mono text-xs text-primary/60 transition-colors group-hover:text-primary">
-                    0{i + 1}
-                  </span>
-                  <Check
-                    className="size-5 text-primary transition-colors"
-                    aria-hidden="true"
-                  />
-                  <span className="text-sm font-medium transition-colors group-hover:text-foreground">
-                    {t("role_paths." + role + ".bullets." + i)}
-                  </span>
-                </li>
-              ))}
-            </ol>
+          <ol className="divide-y divide-border border-y border-border">
+            {[0, 1, 2].map((i) => (
+              <li
+                key={`bullet-${role}-${i}`}
+                className="grid grid-cols-[2rem_1.25rem_1fr] items-center gap-3 py-3 px-1.5 text-foreground transition-colors hover:bg-muted/30"
+              >
+                <span className="font-mono text-xs text-primary/60 transition-colors group-hover:text-primary">
+                  0{i + 1}
+                </span>
+                <Check
+                  className="size-5 text-primary transition-colors"
+                  aria-hidden="true"
+                />
+                <span className="text-sm font-medium transition-colors group-hover:text-foreground">
+                  {t(`role_paths.${role}.bullets.${i}`)}
+                </span>
+              </li>
+            ))}
+          </ol>
+          </div>
 
-            <Link
-              href={ROUTES.REGISTER}
-              className={buttonVariants({
-                variant: "outline",
-                size: "lg",
-                className:
-                  "w-fit rounded-none border-primary px-5 font-mono text-xs uppercase tracking-[0.18em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground",
-              })}
-            >
-              {t("role_paths." + role + ".cta")}
-              <ArrowUpRight className="size-5" aria-hidden="true" />
-            </Link>
-          </article>
+          <Link
+            href={ROUTES.REGISTER}
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className:
+                "w-fit rounded-none border-primary px-5 font-mono text-xs uppercase tracking-[0.18em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground",
+            })}
+          >
+            {t(`role_paths.${role}.cta`)}
+            <ArrowUpRight className="size-5" aria-hidden="true" />
+          </Link>
+        </article>
         )
       )}
     </motion.div>

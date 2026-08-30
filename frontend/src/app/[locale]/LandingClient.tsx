@@ -1,24 +1,44 @@
 ﻿"use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
-import { LandingConsole } from "@/components/features/landing/LandingConsole";
-import { LandingFeatureGrid } from "@/components/features/landing/LandingFeatureGrid";
+import { FullBleedBackdrop } from "@/components/features/landing/FullBleedBackdrop";
 import { LandingHeader } from "@/components/features/landing/LandingHeader";
 import { LandingHero } from "@/components/features/landing/landing-hero";
-import { LandingProof } from "@/components/features/landing/LandingProof";
-import { LandingRolePaths } from "@/components/features/landing/LandingRolePaths";
+import { SectionRail } from "@/components/features/landing/SectionRail";
+import { useReducedMotion } from "@/components/features/landing/useReducedMotion";
 import {
   landingStagger,
   landingReveal,
+  reducedMotionVariants,
   textReveal,
   textStagger,
 } from "@/components/features/landing/landing-variants";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
 import { Zap } from "lucide-react";
+import Image from "next/image";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState, Suspense } from "react";
+import dynamic from "next/dynamic";
+
+const LandingConsole = dynamic(
+  () => import("@/components/features/landing/LandingConsole").then((m) => m.LandingConsole),
+  { ssr: false, loading: () => null }
+);
+
+const LandingFeatureGrid = dynamic(
+  () => import("@/components/features/landing/LandingFeatureGrid").then((m) => m.LandingFeatureGrid),
+  { ssr: false, loading: () => null }
+);
+
+const LandingRolePaths = dynamic(
+  () => import("@/components/features/landing/LandingRolePaths").then((m) => m.LandingRolePaths),
+  { ssr: false, loading: () => null }
+);
+
+const LandingProof = dynamic(
+  () => import("@/components/features/landing/LandingProof").then((m) => m.LandingProof),
+  { ssr: false, loading: () => null }
+);
 
 const sections = [
   { index: "01", id: "hero" },
@@ -38,17 +58,28 @@ const invertedSection =
   "relative isolate text-[#fafaf9] [--accent:#2dd4bf] [--accent-foreground:#0c0a09] [--background:#0c0a09] [--border:#ffffff40] [--card:#1c1917] [--card-foreground:#fafaf9] [--destructive:#f87171] [--destructive-foreground:#0c0a09] [--foreground:#fafaf9] [--input:#292524] [--muted:#292524] [--muted-foreground:#a8a29e] [--popover:#1c1917] [--popover-foreground:#fafaf9] [--primary:#ef4444] [--primary-foreground:#fafaf9] [--ring:#ef4444] [--secondary:#292524] [--secondary-foreground:#fafaf9]";
 
 export function LandingClient() {
-  const searchParams = useSearchParams();
   const t = useTranslations("dashboard");
-  const showAuthError = searchParams.get("error") === "auth_required";
+  const [showAuthError, setShowAuthError] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (showAuthError && typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("error");
-      window.history.replaceState(null, "", url.toString());
-    }
-  }, [showAuthError]);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") !== "auth_required") return;
+    setShowAuthError(true);
+    params.delete("error");
+    const qs = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${qs ? `?${qs}` : ""}`
+    );
+  }, []);
+
+  const mainVariants = reducedMotion ? reducedMotionVariants : landingStagger;
+  const sectionVariants = reducedMotion ? reducedMotionVariants : landingReveal;
+  const textVariants = reducedMotion ? reducedMotionVariants : textReveal;
+  const textStaggerVariants = reducedMotion ? reducedMotionVariants : textStagger;
 
   return (
     <div className="relative min-h-screen overflow-x-clip bg-background text-foreground">
@@ -60,18 +91,18 @@ export function LandingClient() {
           >
             <motion.div
               className="sticky top-0 flex h-screen flex-col justify-between py-8 font-mono text-[10px] uppercase tracking-[0.18em]"
-              variants={textStagger}
+              variants={textStaggerVariants}
               initial="hidden"
               animate="visible"
             >
-              <motion.span variants={textReveal} className="-rotate-90 origin-top-left translate-x-6 translate-y-6">
+              <motion.span variants={textVariants} className="-rotate-90 origin-top-left translate-x-6 translate-y-6">
                 GymTrack / 2026
               </motion.span>
               <ul className="space-y-2">
                 {sections.map((section, i) => (
                   <motion.li
                     key={section.id}
-                    variants={textReveal}
+                    variants={textVariants}
                     transition={{ delay: 0.08 + i * 0.04 }}
                   >
                     <a
@@ -84,7 +115,7 @@ export function LandingClient() {
                 ))}
               </ul>
               <motion.span
-                variants={textReveal}
+                variants={textVariants}
                 transition={{ delay: 0.32 }}
                 className="-rotate-90 origin-bottom-left translate-x-6 -translate-y-6"
               >
@@ -95,7 +126,7 @@ export function LandingClient() {
 
           <motion.main
             className="flex flex-col"
-            variants={landingStagger}
+            variants={mainVariants}
             initial="hidden"
             animate="visible"
           >
@@ -121,17 +152,19 @@ export function LandingClient() {
               id="hero"
               className={`relative border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
               aria-labelledby="hero-heading"
-              variants={landingReveal}
+              variants={sectionVariants}
             >
               <div
                 aria-hidden="true"
                 className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#0c0a09] lg:-translate-x-[calc(50%_+_4rem)]"
               >
-                <div
-                  className="absolute inset-0 bg-cover bg-center brightness-50 contrast-125 grayscale"
-                  style={{
-                    backgroundImage: "url('/images/hero-training.jpg')",
-                  }}
+                <Image
+                  src="/images/hero-training.jpg"
+                  alt=""
+                  fill
+                  priority
+                  className="object-cover brightness-50 contrast-125 grayscale"
+                  sizes="100vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/70" />
               </div>
@@ -143,58 +176,66 @@ export function LandingClient() {
               id="console"
               className="border-t border-border py-16 sm:py-24 lg:py-32"
               aria-labelledby="console-heading"
-              variants={landingReveal}
+              variants={sectionVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
             >
               <SectionRail index="02" label="Live signal" />
-              <LandingConsole />
+              <Suspense fallback={null}>
+                <LandingConsole />
+              </Suspense>
             </motion.section>
 
             <motion.section
               id="features"
               className={`border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
               aria-labelledby="features-heading"
-              variants={landingReveal}
+              variants={sectionVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
             >
               <FullBleedBackdrop />
               <SectionRail index="03" label="What you log" />
-              <LandingFeatureGrid />
+              <Suspense fallback={null}>
+                <LandingFeatureGrid />
+              </Suspense>
             </motion.section>
 
             <motion.section
               id="roles"
               className="border-t border-border py-16 sm:py-24 lg:py-32"
               aria-labelledby="roles-heading"
-              variants={landingReveal}
+              variants={sectionVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
             >
               <SectionRail index="04" label="Two sides, one loop" />
-              <LandingRolePaths />
+              <Suspense fallback={null}>
+                <LandingRolePaths />
+              </Suspense>
             </motion.section>
 
             <motion.section
               id="proof"
               className={`border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
               aria-labelledby="proof-heading"
-              variants={landingReveal}
+              variants={sectionVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
             >
               <FullBleedBackdrop />
               <SectionRail index="05" label="Outcome" />
-              <LandingProof />
+              <Suspense fallback={null}>
+                <LandingProof />
+              </Suspense>
             </motion.section>
 
             <motion.footer
-              variants={textReveal}
+              variants={textVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
@@ -202,48 +243,19 @@ export function LandingClient() {
             >
               <FullBleedBackdrop />
               <motion.div
-                variants={textStagger}
+                variants={textStaggerVariants}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
                 className="flex flex-wrap items-center justify-between gap-4"
               >
-                <motion.span variants={textReveal}>© GymTrack</motion.span>
-                <motion.span variants={textReveal}>EN / TR</motion.span>
+                <motion.span variants={textVariants}>© GymTrack</motion.span>
+                <motion.span variants={textVariants}>EN / TR</motion.span>
               </motion.div>
             </motion.footer>
           </motion.main>
         </div>
       </div>
     </div>
-  );
-}
-
-function FullBleedBackdrop() {
-  return (
-    <div
-      aria-hidden="true"
-      className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#0c0a09] lg:-translate-x-[calc(50%_+_4rem)]"
-    />
-  );
-}
-
-function SectionRail({ index, label }: { index: string; label: string }) {
-  return (
-    <motion.div
-      variants={textStagger}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-40px" }}
-      className="mb-10 flex items-baseline gap-6 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
-    >
-      <motion.span variants={textReveal} className="text-foreground">
-        §{index}
-      </motion.span>
-      <motion.span variants={textReveal}>{label}</motion.span>
-      <motion.div variants={textReveal} className="flex-1">
-        <Separator className="flex-1" />
-      </motion.div>
-    </motion.div>
   );
 }

@@ -9,15 +9,13 @@ import { Providers } from "./providers";
 import "../globals.css";
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-inter",
-  weight: ["400", "500"],
   display: "swap",
 });
 const geistMono = Geist_Mono({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-geist-mono",
-  weight: ["400"],
   display: "swap",
 });
 

@@ -25,6 +25,12 @@ export function LandingHeader() {
       </Link>
 
       <div className="flex items-center gap-1">
+        <Link
+          href={ROUTES.ABOUT}
+          className="hidden h-9 items-center px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:inline-flex"
+        >
+          {t("about")}
+        </Link>
         <ThemeToggle />
         <LocaleToggle />
       </div>

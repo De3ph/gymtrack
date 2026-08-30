@@ -4,17 +4,21 @@ import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
 import { buttonVariants } from "@/components/ui/button";
 import { motion } from "motion/react";
-import { textReveal, textStagger } from "../landing-variants";
+import { reducedMotionVariants, textReveal, textStagger } from "../landing-variants";
+import { useReducedMotion } from "../useReducedMotion";
 
 export function HeroActions() {
   const t = useTranslations("home");
+  const reducedMotion = useReducedMotion();
+  const staggerVariants = reducedMotion ? reducedMotionVariants : textStagger;
+  const revealVariants = reducedMotion ? reducedMotionVariants : textReveal;
 
   return (
     <motion.div
-      variants={textStagger}
+      variants={staggerVariants}
       className="mt-12 flex flex-col gap-3 sm:flex-row sm:items-center"
     >
-      <motion.div variants={textReveal}>
+      <motion.div variants={revealVariants}>
         <Link
           href={ROUTES.REGISTER}
           className={buttonVariants({
@@ -28,7 +32,7 @@ export function HeroActions() {
           <ArrowRight className="size-5" />
         </Link>
       </motion.div>
-      <motion.div variants={textReveal}>
+      <motion.div variants={revealVariants}>
         <Link
           href={ROUTES.LOGIN}
           className={buttonVariants({

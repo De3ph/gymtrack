@@ -12,7 +12,7 @@ export function LandingMetrics() {
           key={metric}
           className="rounded-2xl border border-border bg-card/70 p-4 shadow-sm backdrop-blur"
         >
-          <p className="text-2xl font-black text-foreground">
+          <p className="font-mono text-2xl font-semibold tracking-tight text-foreground">
             {t(`${metric}.value`)}
           </p>
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">

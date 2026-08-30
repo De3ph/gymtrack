@@ -1,10 +1,14 @@
 import { Activity, BarChart3, UsersRound, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
-import { textReveal, textStagger } from "../landing-variants";
+import { reducedMotionVariants, textReveal, textStagger } from "../landing-variants";
+import { useReducedMotion } from "../useReducedMotion";
 
 export function HeroMetrics() {
   const t = useTranslations("home");
+  const reducedMotion = useReducedMotion();
+  const staggerVariants = reducedMotion ? reducedMotionVariants : textStagger;
+  const revealVariants = reducedMotion ? reducedMotionVariants : textReveal;
 
   const metrics: { value: string; label: string; Icon: LucideIcon }[] = [
     {
@@ -26,13 +30,13 @@ export function HeroMetrics() {
 
   return (
     <motion.dl
-      variants={textStagger}
+      variants={staggerVariants}
       className="mt-16 grid max-w-3xl grid-cols-3 divide-x divide-border border-y border-border"
     >
       {metrics.map((metric) => (
         <motion.div
           key={metric.label}
-          variants={textReveal}
+          variants={revealVariants}
           className="flex flex-col gap-2 px-4 py-5 sm:px-6 sm:py-6"
         >
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

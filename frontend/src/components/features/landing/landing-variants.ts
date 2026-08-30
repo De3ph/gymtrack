@@ -1,5 +1,10 @@
 import type { Variants } from "motion/react";
 
+export const reducedMotionVariants: Variants = {
+  hidden: { opacity: 1 },
+  visible: { opacity: 1 },
+};
+
 export const landingStagger: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -44,5 +49,18 @@ export const textStagger: Variants = {
   visible: {
     opacity: 1,
     transition: { staggerChildren: 0.06, delayChildren: 0.08 },
+  },
+};
+
+export const featureGridItemVariants: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 120,
+      damping: 20,
+    },
   },
 };
