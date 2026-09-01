@@ -66,6 +66,7 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
 		Role:         req.Role,
+		Status:       models.UserStatusActive,
 		Profile:      req.Profile,
 	}
 

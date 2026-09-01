@@ -86,7 +86,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to register user"})
+		handleInternalError(c, err, "failed to register user")
 		return
 	}
 
