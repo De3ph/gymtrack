@@ -1,0 +1,56 @@
+name: Migrate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/migrations/**'
+      - '.github/workflows/migrate.yml'
+
+jobs:
+  migrate:
+    name: Apply database migrations
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gymtrack_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      POSTGRES_TEST_DSN: postgres://postgres:postgres@localhost:5432/gymtrack_test?sslmode=disable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install migrate CLI
+        run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.19.1
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432; do
+            echo "waiting for postgres..."; sleep 2;
+          done
+
+      - name: Run migrations
+        run: migrate -database "$POSTGRES_TEST_DSN" -source file://backend/migrations up
+
+      - name: Verify schema_migrations table
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d gymtrack_test \
+            -c "SELECT version, dirty FROM schema_migrations;"

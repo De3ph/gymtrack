@@ -1,23 +1,28 @@
-// Command migrate applies pending SQL migrations from backend/migrations/ to
-// the database named by POSTGRES_DSN. Applied migrations are tracked in a
-// schema_migrations table, so re-running is safe: already-applied files are
-// skipped, pending files are applied in filename order (001, 002, ...) each in
-// its own transaction together with its tracking row.
+// Command migrate applies or rolls back SQL migrations against the database
+// named by POSTGRES_DSN. Migrations are embedded into the binary so the tool
+// runs without access to the source tree.
 //
-// Unlike cmd/ensure-schema (which drops the schema and applies migration 001
-// only, for local resets), this tool is additive and safe to run on any
-// environment.
+// Usage:
+//
+//	go run cmd/migrate/main.go                 # up (default)
+//	go run cmd/migrate/main.go -dir up         # apply all pending
+//	go run cmd/migrate/main.go -dir down       # roll back last applied
+//	go run cmd/migrate/main.go -dir force 3    # mark version 3 (recovery)
 package main
 
 import (
-	"context"
+	"errors"
+	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
-	"sort"
-	"strings"
+	"strconv"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
+
+	"gymtrack-backend/internal/config"
+	migratelib "gymtrack-backend/internal/migrate"
 
 	logger "gymtrack-backend/internal/infrastructure/log"
 
@@ -28,108 +33,71 @@ func main() {
 	logger.InitConsole()
 	defer logger.Sync()
 
+	dir := flag.String("dir", "up", "migration direction: up, down, or force <version>")
+	flag.Parse()
+
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
-		dsn = "postgres://postgres:123456@localhost:5432/gymtrack?sslmode=disable"
+		dsn = config.DefaultPostgresDSN()
 	}
 
-	pool, err := pgxpool.New(context.Background(), dsn)
+	src, err := iofs.New(migratelib.MigrationsFS(), ".")
 	if err != nil {
-		zap.L().Fatal("failed to connect", zap.Error(err))
-	}
-	defer pool.Close()
-	ctx := context.Background()
-
-	if _, err := pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (
-		name TEXT PRIMARY KEY,
-		applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-	)`); err != nil {
-		zap.L().Fatal("failed to create schema_migrations", zap.Error(err))
+		zap.L().Fatal("failed to create migration source", zap.Error(err))
 	}
 
-	applied, err := appliedMigrations(ctx, pool)
+	m, err := migrate.NewWithSourceInstance("iofs", src, dsn)
 	if err != nil {
-		zap.L().Fatal("failed to read applied migrations", zap.Error(err))
+		zap.L().Fatal("failed to initialize migrator", zap.Error(err))
 	}
-
-	files, err := migrationFiles()
-	if err != nil {
-		zap.L().Fatal("failed to list migrations", zap.Error(err))
-	}
-
-	pending := 0
-	for _, file := range files {
-		name := strings.TrimSuffix(filepath.Base(file), ".up.sql")
-		if applied[name] {
-			fmt.Printf("skip    %s (already applied)\n", name)
-			continue
+	defer func() {
+		sErr, dErr := m.Close()
+		if sErr != nil {
+			zap.L().Warn("source close error", zap.Error(sErr))
 		}
-		pending++
-		if err := applyMigration(ctx, pool, name, file); err != nil {
-			zap.L().Fatal("migration failed", zap.String("migration", name), zap.Error(err))
+		if dErr != nil {
+			zap.L().Warn("database close error", zap.Error(dErr))
 		}
-		fmt.Printf("applied %s\n", name)
-	}
+	}()
 
-	if pending == 0 {
-		fmt.Println("database is up to date")
-	}
-}
-
-// appliedMigrations returns the set of migration names recorded in
-// schema_migrations.
-func appliedMigrations(ctx context.Context, pool *pgxpool.Pool) (map[string]bool, error) {
-	rows, err := pool.Query(ctx, `SELECT name FROM schema_migrations`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	applied := make(map[string]bool)
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, err
+	switch *dir {
+	case "up":
+		err := m.Up()
+		if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			zap.L().Fatal("migration up failed", zap.Error(err))
 		}
-		applied[name] = true
+		if errors.Is(err, migrate.ErrNoChange) {
+			fmt.Println("database is up to date")
+		} else {
+			fmt.Println("migrations applied")
+		}
+	case "down":
+		err := m.Down()
+		if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			zap.L().Fatal("migration down failed", zap.Error(err))
+		}
+		if errors.Is(err, migrate.ErrNoChange) {
+			fmt.Println("no migrations to roll back")
+		} else {
+			fmt.Println("last migration rolled back")
+		}
+	case "force":
+		args := flag.Args()
+		if len(args) != 1 {
+			fmt.Fprintln(os.Stderr, "force requires a version argument: -dir force <version>")
+			os.Exit(2)
+		}
+		version, perr := strconv.Atoi(args[0])
+		if perr != nil {
+			fmt.Fprintf(os.Stderr, "invalid version %q: %v\n", args[0], perr)
+			os.Exit(2)
+		}
+		if ferr := m.Force(version); ferr != nil {
+			zap.L().Fatal("force version failed", zap.Int("version", version), zap.Error(ferr))
+		}
+		fmt.Printf("forced schema_migrations version to %d\n", version)
+	default:
+		fmt.Fprintf(os.Stderr, "unknown -dir value %q (use up, down, or force)\n", *dir)
+		os.Exit(2)
 	}
-	return applied, rows.Err()
-}
-
-// migrationFiles returns the sorted paths of all *.up.sql files in
-// backend/migrations/.
-func migrationFiles() ([]string, error) {
-	matches, err := filepath.Glob("migrations/*.up.sql")
-	if err != nil {
-		return nil, err
-	}
-	sort.Strings(matches)
-	if len(matches) == 0 {
-		return nil, fmt.Errorf("no migrations found; run from the backend/ directory")
-	}
-	return matches, nil
-}
-
-// applyMigration runs one migration file and records it, atomically.
-func applyMigration(ctx context.Context, pool *pgxpool.Pool, name, path string) error {
-	sql, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	tx, err := pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = tx.Rollback(ctx) }()
-
-	if _, err := tx.Exec(ctx, string(sql)); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(ctx,
-		`INSERT INTO schema_migrations (name) VALUES ($1)`, name,
-	); err != nil {
-		return err
-	}
-	return tx.Commit(ctx)
 }

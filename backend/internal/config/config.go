@@ -16,6 +16,13 @@ type Config struct {
 	FrontendURL  string
 }
 
+// DefaultPostgresDSN returns the local development DSN used when
+// POSTGRES_DSN is not set. Matches the convention used by cmd/migrate and
+// cmd/ensure-schema so they can run without a .env file.
+func DefaultPostgresDSN() string {
+	return "postgres://postgres:123456@localhost:5432/gymtrack?sslmode=disable"
+}
+
 func LoadConfig() *Config {
 	// Try loading .env from multiple possible locations
 	_ = godotenv.Load(".env")
@@ -34,7 +41,7 @@ func LoadConfig() *Config {
 
 	return &Config{
 		JWTSecret:    jwtSecret,
-		PostgresDSN:  getEnv("POSTGRES_DSN", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable"),
+		PostgresDSN:  getEnv("POSTGRES_DSN", DefaultPostgresDSN()),
 		CacheEnabled: getEnv("CACHE_ENABLED", "true") != "false",
 		ResendAPIKey: getEnv("RESEND_API_KEY", ""),
 		EmailFrom:    getEnv("EMAIL_FROM", ""),

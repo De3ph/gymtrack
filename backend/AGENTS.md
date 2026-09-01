@@ -6,8 +6,10 @@
 |---|---|
 | `go run cmd/server/main.go` | Start server on port 8080 |
 | `go build -o server.exe cmd/server/main.go` | Build binary |
-| `go run cmd/migrate/main.go` | Apply SQL migrations (`backend/migrations/001`–`005`) |
-| `go run cmd/ensure-schema/main.go` | Verify the database schema is in sync |
+| `go run cmd/migrate/main.go` | Apply SQL migrations from embedded FS (default: `-dir up`) |
+| `go run cmd/migrate/main.go -dir down` | Roll back the last applied migration |
+| `go run cmd/migrate/main.go -dir force 3` | Force `schema_migrations` version (dirty-state recovery) |
+| `go run cmd/ensure-schema/main.go` | Destructive local reset: drops schema, applies all migrations, seeds lookup tables |
 | `go test ./...` | Run all tests |
 | `go test ./internal/infrastructure/persistence/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
 | `go run cmd/seed/main.go` | Seed mock data: 30 workouts + 30 meals for `de3ph` (password `1234567890`) |
@@ -26,6 +28,7 @@
 - **Docs**: `github.com/swaggo/swag` + `gin-swagger` (Swagger UI at `/swagger/*`)
 - **Validation**: `github.com/go-playground/validator/v10`
 - **Config**: `github.com/joho/godotenv` (loads `.env`)
+- **Migrations**: `github.com/golang-migrate/migrate/v4` v4.19 (`iofs` + `database/postgres` drivers; SQL embedded via `embed.FS`)
 - **Testing**: `github.com/stretchr/testify` + `github.com/stretchr/objx`
 
 ## Architecture (layered)
@@ -40,6 +43,7 @@ internal/
     middleware/            — auth, admin, rate-limit, body-limit, metrics
     routes/                — 12 route files, grouped by domain
   config/                  — Config struct, PostgreSQL connection pool, seed data
+  migrate/                 — embedded SQL migrations (embed.FS) + MigrationsFS() for golang-migrate
   domain/
     errors/                — ErrNotFound, ErrUnauthorized, ErrForbidden, etc.
     models/                — 15 domain structs (Workout, User, Meal, Exercise, etc.)
@@ -63,6 +67,8 @@ internal/
 - **Schema**: `public` (default schema).
 - **Tables**: `users`, `relationships`, `workouts`, `meals`, `comments`, `invitations`, `exercises`, `equipment`, `muscle_groups`, `coaching_requests`, `trainer_reviews`, `trainer_availabilities`, `workout_plans`, `workout_plan_assignments`, `body_measurements`.
 - **Schema management**: Tables are created via migration scripts. Run `go run ./cmd/migrate` to apply migrations.
+- **Migration library**: `golang-migrate/migrate/v4` with `iofs` source (reading from the embedded `internal/migrate/migrations/` FS) and `database/postgres` driver. Tracking table is `schema_migrations` (managed by the library; `version INT`, `dirty BOOLEAN`). Same table format as the previous custom runner, so existing databases are picked up automatically — no manual re-baselining.
+- **Adding a migration**: Create `internal/migrate/migrations/NNN_<name>.up.sql` + matching `.down.sql` (and copy to `backend/migrations/` for the CI workflow). Then `go run cmd/migrate/main.go`. The CI job (`.github/workflows/migrate.yml`) runs against a fresh Postgres 16 service container and verifies `schema_migrations` ends clean (`dirty=false`).
 - **Primary keys**: All tables use `id SERIAL PRIMARY KEY`. Foreign keys reference these integer IDs.
 - **JSONB columns**: `workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises` store arrays as JSONB.
 
@@ -98,6 +104,6 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 ## Known gaps
 
 - No E2E test suite. Repository-level and unit tests exist, but integration across the full HTTP layer is limited.
-- Schema is managed by hand-written SQL migrations in `backend/migrations/` (`001`–`006`), applied via `go run ./cmd/migrate` (tracks applied migrations in `schema_migrations`; idempotent — run it after adding any new migration file). `cmd/ensure-schema` is a destructive local reset (drops the schema, applies migration 001 only). No off-the-shelf migration library (e.g., golang-migrate).
+- Schema is managed by `golang-migrate/migrate/v4` (`internal/migrate/migrations/` embedded via `embed.FS`). SQL files must also live in `backend/migrations/` for the CI workflow, which installs the migrate CLI and runs against a fresh Postgres service container. New files follow `{version}_{name}.up.sql` / `{version}_{name}.down.sql`. Idempotent — run `go run cmd/migrate/main.go` after adding a file. `cmd/ensure-schema` is a destructive local reset (drops the public schema, applies all migrations, seeds lookup tables).
 - JSONB columns (`workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises`) are stored as untyped `[]byte` in Go; there is no struct deserialization layer over them.
 - PostgreSQL is the sole persistence backend; Couchbase references remain only in historical `doc.go` comments.
