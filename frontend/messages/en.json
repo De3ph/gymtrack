@@ -507,6 +507,11 @@
       "success_title": "Account Restored"
     }
   },
+  "welcomeGif": {
+    "title": "Welcome to GymTrack!",
+    "description": "Your fitness journey starts now. Let's push it!",
+    "close": "Let's go"
+  },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back, {name}",

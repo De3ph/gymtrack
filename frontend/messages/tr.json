@@ -507,6 +507,11 @@
       "success_title": "Hesap Geri Yüklendi"
     }
   },
+  "welcomeGif": {
+    "title": "GymTrack'e hoş geldin!",
+    "description": "Fitness yolculuğun şimdi başlıyor. Hadi hadi!",
+    "close": "Hadi başlayalım"
+  },
   "dashboard": {
     "title": "Panel",
     "welcome": "Tekrar hoş geldin, {name}",

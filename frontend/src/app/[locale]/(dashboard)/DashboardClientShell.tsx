@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/lib/hooks/useLogout";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { WelcomeGifDialog } from "@/components/features/welcome/welcome-gif-dialog";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 
@@ -84,6 +85,7 @@ export function DashboardClientShell({
         userName={user?.profile?.name}
         onLogout={logout}
       />
+      {!showAuthGate && <WelcomeGifDialog />}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {children}
       </main>

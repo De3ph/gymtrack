@@ -65,6 +65,10 @@ export default function RegisterPage() {
 
         // Auto-login after registration
         await login(value.email, value.password)
+
+        // Mark the one-time welcome GIF as pending for the dashboard
+        localStorage.setItem("gymtrack:welcome-gif-pending", "1")
+
         router.push(ROUTES.HOME)
       } catch (err: unknown) {
         const errorMessage =
