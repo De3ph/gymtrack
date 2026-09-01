@@ -1,3 +1,16 @@
+/**
+ * GymTrack design tokens.
+ *
+ * Two tiers:
+ *  - Primitives: hue + step ramps (`--color-accent-50`..`900`, etc.).
+ *  - Semantic: role tokens consumed by `className="text-text bg-card border-border"`.
+ *
+ * Light defaults in `:root`. Dark overrides live in `@media (prefers-color-scheme: dark)`
+ * and `:root.dark` (used by gluestack `GluestackUIProvider mode="dark"`).
+ *
+ * All `R G B` values are space-separated triplets consumed by `rgb(var(--x))` in `@theme inline`.
+ */
+
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css";
@@ -5,104 +18,264 @@
 
 @layer theme {
   :root {
-    --primary: 23 23 23;
-    --primary-foreground: 250 250 250;
+    /* Primitives — accent (blue) */
+    --color-accent-50: 239 246 255;
+    --color-accent-100: 219 234 254;
+    --color-accent-200: 191 219 254;
+    --color-accent-300: 147 197 253;
+    --color-accent-400: 96 165 250;
+    --color-accent-500: 59 130 246;
+    --color-accent-600: 37 99 235;
+    --color-accent-700: 29 78 216;
+    --color-accent-800: 30 64 175;
+    --color-accent-900: 30 58 138;
+
+    /* Primitives — neutral (slate-ish) */
+    --color-neutral-50: 249 250 251;
+    --color-neutral-100: 243 244 246;
+    --color-neutral-200: 229 231 235;
+    --color-neutral-300: 209 213 219;
+    --color-neutral-400: 156 163 175;
+    --color-neutral-500: 107 114 128;
+    --color-neutral-600: 75 85 99;
+    --color-neutral-700: 55 65 81;
+    --color-neutral-800: 31 41 55;
+    --color-neutral-900: 17 24 39;
+
+    /* Primitives — danger (red) */
+    --color-danger-50: 254 242 242;
+    --color-danger-100: 254 226 226;
+    --color-danger-200: 254 202 202;
+    --color-danger-500: 239 68 68;
+    --color-danger-600: 220 38 38;
+    --color-danger-700: 185 28 28;
+    --color-danger-800: 153 27 27;
+
+    /* Primitives — success (green) */
+    --color-success-50: 240 253 244;
+    --color-success-100: 220 252 231;
+    --color-success-600: 22 163 74;
+    --color-success-700: 21 128 61;
+    --color-success-800: 22 101 52;
+
+    /* Primitives — warning (amber) */
+    --color-warning-100: 254 249 195;
+    --color-warning-600: 217 119 6;
+    --color-warning-700: 180 83 9;
+    --color-warning-800: 133 77 14;
+
+    /* Primitives — invite (violet) */
+    --color-invite-300: 196 181 253;
+    --color-invite-600: 124 58 237;
+    --color-invite-700: 109 40 217;
+
+    /* Semantic — text */
+    --text: 17 24 39;
+    --text-secondary: 75 85 99;
+    --text-tertiary: 107 114 128;
+    --text-body: 55 65 81;
+
+    /* Semantic — surface */
+    --background: 249 250 251;
+    --surface-subtle: 243 244 246;
     --card: 255 255 255;
-    --secondary: 245 245 245;
-    --secondary-foreground: 23 23 23;
-    --background: 255 255 255;
-    --popover: 255 255 255;
-    --popover-foreground: 10 10 10;
-    --muted: 245 245 245;
-    --muted-foreground: 115 115 115;
-    --destructive: 231 0 11;
-    --foreground: 10 10 10;
-    --border: 229 229 229;
-    --input: 229 229 229;
-    --ring: 212 212 212;
-    --accent: 247 247 247;
-    --accent-foreground: 52 52 52;
+    --border: 229 231 235;
+    --border-strong: 209 213 219;
+
+    /* Semantic — accent */
+    --accent: 37 99 235;
+    --accent-on-light: 29 78 216;
+    --accent-disabled: 147 197 253;
+    --accent-surface: 239 246 255;
+    --on-accent: 255 255 255;
+
+    /* Semantic — status */
+    --danger: 220 38 38;
+    --danger-text: 185 28 28;
+    --danger-surface: 254 242 242;
+    --danger-border: 254 202 202;
+    --danger-on-fill: 255 255 255;
+
+    --success: 22 163 74;
+    --success-text: 22 101 52;
+    --success-surface: 220 252 231;
+
+    --warning: 217 119 6;
+    --warning-text: 133 77 14;
+    --warning-surface: 254 249 195;
+
+    /* Semantic — invite */
+    --invite: 124 58 237;
+    --invite-disabled: 196 181 253;
+
+    /* Semantic — tab */
+    --tab-icon-default: 156 163 175;
+    --tab-icon-selected: 37 99 235;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --primary: 255 245 245;
-      --primary-foreground: 23 23 23;
-      --card: 23 23 23;
-      --secondary: 38 38 38;
-      --secondary-foreground: 250 250 250;
-      --background: 10 10 10;
-      --popover: 23 23 23;
-      --popover-foreground: 250 250 250;
-      --muted: 38 38 38;
-      --muted-foreground: 161 161 161;
-      --destructive: 255 100 103;
-      --foreground: 250 250 250;
-      --border: 46 46 46;
-      --input: 46 46 46;
-      --accent: 38 38 38;
-      --accent-foreground: 250 250 250;
-      --ring: 115 115 115;
+      --text: 249 250 251;
+      --text-secondary: 156 163 175;
+      --text-tertiary: 107 114 128;
+      --text-body: 209 213 219;
+
+      --background: 3 7 18;
+      --surface-subtle: 17 24 39;
+      --card: 31 41 55;
+      --border: 55 65 81;
+      --border-strong: 75 85 99;
+
+      --accent: 59 130 246;
+      --accent-on-light: 191 219 254;
+      --accent-disabled: 30 64 175;
+      --accent-surface: 30 58 138;
+      --on-accent: 255 255 255;
+
+      --danger: 248 113 113;
+      --danger-text: 252 165 165;
+      --danger-surface: 69 10 10;
+      --danger-border: 127 29 29;
+      --danger-on-fill: 69 10 10;
+
+      --success: 74 222 128;
+      --success-text: 134 239 172;
+      --success-surface: 5 46 22;
+
+      --warning: 251 191 36;
+      --warning-text: 253 230 138;
+      --warning-surface: 69 26 3;
+
+      --invite: 167 139 250;
+      --invite-disabled: 76 29 149;
+
+      --tab-icon-default: 107 114 128;
+      --tab-icon-selected: 59 130 246;
     }
   }
 
   :root.dark {
-    --primary: 255 245 245;
-    --primary-foreground: 23 23 23;
-    --card: 23 23 23;
-    --secondary: 38 38 38;
-    --secondary-foreground: 250 250 250;
-    --background: 10 10 10;
-    --popover: 23 23 23;
-    --popover-foreground: 250 250 250;
-    --muted: 38 38 38;
-    --muted-foreground: 161 161 161;
-    --destructive: 255 100 103;
-    --foreground: 250 250 250;
-    --border: 46 46 46;
-    --input: 46 46 46;
-    --accent: 38 38 38;
-    --accent-foreground: 250 250 250;
-    --ring: 115 115 115;
-  }
+    --text: 249 250 251;
+    --text-secondary: 156 163 175;
+    --text-tertiary: 107 114 128;
+    --text-body: 209 213 219;
 
-  :root.light {
-    --primary: 23 23 23;
-    --primary-foreground: 250 250 250;
-    --card: 255 255 255;
-    --secondary: 245 245 245;
-    --secondary-foreground: 23 23 23;
-    --background: 255 255 255;
-    --popover: 255 255 255;
-    --popover-foreground: 10 10 10;
-    --muted: 245 245 245;
-    --muted-foreground: 115 115 115;
-    --destructive: 231 0 11;
-    --foreground: 10 10 10;
-    --border: 229 229 229;
-    --input: 229 229 229;
-    --ring: 212 212 212;
-    --accent: 247 247 247;
-    --accent-foreground: 52 52 52;
+    --background: 3 7 18;
+    --surface-subtle: 17 24 39;
+    --card: 31 41 55;
+    --border: 55 65 81;
+    --border-strong: 75 85 99;
+
+    --accent: 59 130 246;
+    --accent-on-light: 191 219 254;
+    --accent-disabled: 30 64 175;
+    --accent-surface: 30 58 138;
+    --on-accent: 255 255 255;
+
+    --danger: 248 113 113;
+    --danger-text: 252 165 165;
+    --danger-surface: 69 10 10;
+    --danger-border: 127 29 29;
+    --danger-on-fill: 69 10 10;
+
+    --success: 74 222 128;
+    --success-text: 134 239 172;
+    --success-surface: 5 46 22;
+
+    --warning: 251 191 36;
+    --warning-text: 253 230 138;
+    --warning-surface: 69 26 3;
+
+    --invite: 167 139 250;
+    --invite-disabled: 76 29 149;
+
+    --tab-icon-default: 107 114 128;
+    --tab-icon-selected: 59 130 246;
   }
 }
 
 @theme inline {
-  --color-primary: rgb(var(--primary));
-  --color-primary-foreground: rgb(var(--primary-foreground));
-  --color-card: rgb(var(--card));
-  --color-secondary: rgb(var(--secondary));
-  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  /* Primitive ramps — `bg-accent-500`, `text-neutral-700`, etc. */
+  --color-accent-50: rgb(var(--color-accent-50));
+  --color-accent-100: rgb(var(--color-accent-100));
+  --color-accent-200: rgb(var(--color-accent-200));
+  --color-accent-300: rgb(var(--color-accent-300));
+  --color-accent-400: rgb(var(--color-accent-400));
+  --color-accent-500: rgb(var(--color-accent-500));
+  --color-accent-600: rgb(var(--color-accent-600));
+  --color-accent-700: rgb(var(--color-accent-700));
+  --color-accent-800: rgb(var(--color-accent-800));
+  --color-accent-900: rgb(var(--color-accent-900));
+
+  --color-neutral-50: rgb(var(--color-neutral-50));
+  --color-neutral-100: rgb(var(--color-neutral-100));
+  --color-neutral-200: rgb(var(--color-neutral-200));
+  --color-neutral-300: rgb(var(--color-neutral-300));
+  --color-neutral-400: rgb(var(--color-neutral-400));
+  --color-neutral-500: rgb(var(--color-neutral-500));
+  --color-neutral-600: rgb(var(--color-neutral-600));
+  --color-neutral-700: rgb(var(--color-neutral-700));
+  --color-neutral-800: rgb(var(--color-neutral-800));
+  --color-neutral-900: rgb(var(--color-neutral-900));
+
+  --color-danger-50: rgb(var(--color-danger-50));
+  --color-danger-100: rgb(var(--color-danger-100));
+  --color-danger-200: rgb(var(--color-danger-200));
+  --color-danger-500: rgb(var(--color-danger-500));
+  --color-danger-600: rgb(var(--color-danger-600));
+  --color-danger-700: rgb(var(--color-danger-700));
+  --color-danger-800: rgb(var(--color-danger-800));
+
+  --color-success-50: rgb(var(--color-success-50));
+  --color-success-100: rgb(var(--color-success-100));
+  --color-success-600: rgb(var(--color-success-600));
+  --color-success-700: rgb(var(--color-success-700));
+  --color-success-800: rgb(var(--color-success-800));
+
+  --color-warning-100: rgb(var(--color-warning-100));
+  --color-warning-600: rgb(var(--color-warning-600));
+  --color-warning-700: rgb(var(--color-warning-700));
+  --color-warning-800: rgb(var(--color-warning-800));
+
+  --color-invite-300: rgb(var(--color-invite-300));
+  --color-invite-600: rgb(var(--color-invite-600));
+  --color-invite-700: rgb(var(--color-invite-700));
+
+  /* Semantic tokens — `bg-background`, `text-text`, `border-border`, etc. */
+  --color-text: rgb(var(--text));
+  --color-text-secondary: rgb(var(--text-secondary));
+  --color-text-tertiary: rgb(var(--text-tertiary));
+  --color-text-body: rgb(var(--text-body));
+
   --color-background: rgb(var(--background));
-  --color-popover: rgb(var(--popover));
-  --color-popover-foreground: rgb(var(--popover-foreground));
-  --color-muted: rgb(var(--muted));
-  --color-muted-foreground: rgb(var(--muted-foreground));
-  --color-destructive: rgb(var(--destructive));
-  --color-foreground: rgb(var(--foreground));
+  --color-surface-subtle: rgb(var(--surface-subtle));
+  --color-card: rgb(var(--card));
   --color-border: rgb(var(--border));
-  --color-input: rgb(var(--input));
-  --color-ring: rgb(var(--ring));
+  --color-border-strong: rgb(var(--border-strong));
+
   --color-accent: rgb(var(--accent));
-  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-accent-on-light: rgb(var(--accent-on-light));
+  --color-accent-disabled: rgb(var(--accent-disabled));
+  --color-accent-surface: rgb(var(--accent-surface));
+  --color-on-accent: rgb(var(--on-accent));
+
+  --color-danger: rgb(var(--danger));
+  --color-danger-text: rgb(var(--danger-text));
+  --color-danger-surface: rgb(var(--danger-surface));
+  --color-danger-border: rgb(var(--danger-border));
+  --color-danger-on-fill: rgb(var(--danger-on-fill));
+
+  --color-success: rgb(var(--success));
+  --color-success-text: rgb(var(--success-text));
+  --color-success-surface: rgb(var(--success-surface));
+
+  --color-warning: rgb(var(--warning));
+  --color-warning-text: rgb(var(--warning-text));
+  --color-warning-surface: rgb(var(--warning-surface));
+
+  --color-invite: rgb(var(--invite));
+  --color-invite-disabled: rgb(var(--invite-disabled));
+
+  --color-tab-icon-default: rgb(var(--tab-icon-default));
+  --color-tab-icon-selected: rgb(var(--tab-icon-selected));
 }

@@ -2,7 +2,6 @@ import { Tabs } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useThemeColors } from "@/components/useThemeColors";
-import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 
 export default function TabLayout() {
   const c = useThemeColors();
@@ -12,7 +11,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: c.accent,
         tabBarInactiveTintColor: c.tabIconDefault,
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: true,
       }}
     >
       <Tabs.Screen
