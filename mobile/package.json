@@ -15,6 +15,8 @@
   "dependencies": {
     "@expo/ui": "57.0.11",
     "@expo/vector-icons": "^15.1.1",
+    "@gluestack-ui/core": "^5",
+    "@gluestack-ui/utils": "^5",
     "@gorhom/bottom-sheet": "^5.0.0",
     "@react-navigation/native": "^7.0.0",
     "@shopify/flash-list": "2.0.2",
@@ -35,9 +37,11 @@
     "expo-symbols": "~57.0.2",
     "expo-system-ui": "~57.0.2",
     "expo-web-browser": "~57.0.2",
+    "nativewind": "^5.0.0-preview.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.2",
+    "react-native-css": "^3.0.4",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -50,12 +54,21 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@tailwindcss/postcss": "^4.2.0",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.1",
     "openapi-typescript": "^7.0.0",
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.2.0",
     "typescript": "~6.0.3"
   },
   "private": true,
+  "overrides": {
+    "lightningcss": "1.30.1"
+  },
+  "resolutions": {
+    "lightningcss": "1.30.1"
+  },
   "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee"
 }

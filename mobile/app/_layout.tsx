@@ -10,6 +10,7 @@ import { queryClient } from "@/lib/query-client";
 import { I18nProvider } from "@/lib/i18n";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -43,13 +44,15 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <I18nProvider>
-        <SafeAreaProvider>
-          <AppNavigator />
-        </SafeAreaProvider>
-      </I18nProvider>
-    </QueryClientProvider>
+    <GluestackUIProvider mode="system">
+      <QueryClientProvider client={queryClient}>
+        <I18nProvider>
+          <SafeAreaProvider>
+            <AppNavigator />
+          </SafeAreaProvider>
+        </I18nProvider>
+      </QueryClientProvider>
+    </GluestackUIProvider>
   );
 }
 
