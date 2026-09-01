@@ -166,7 +166,7 @@ export default function LoginPage() {
 
         <motion.div variants={reveal} className="pt-1 text-right">
           <a
-            href="#"
+            href={ROUTES.FORGOT_PASSWORD}
             className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
           >
             {t("forgot_password")}

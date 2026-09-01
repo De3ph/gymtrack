@@ -32,6 +32,19 @@ export function createLoginSchema(t: (key: string) => string) {
   });
 }
 
+const forgotPasswordSchema = z.object({
+  email: z.email("Invalid email address"),
+});
+
+export function createForgotPasswordSchema(t: (key: string) => string) {
+  return z.object({
+    email: z
+      .string()
+      .min(1, t("auth.forgot_password.email.error.required"))
+      .email(t("auth.forgot_password.email.error.invalid")),
+  });
+}
+
 const checkNaN = (val: unknown) => {
   if (val === undefined || val === null || val === '') {
     return undefined;
@@ -137,3 +150,5 @@ export type LoginFormData = z.infer<typeof loginSchema> & {
   identifier: string
   password: string
 }
+
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>

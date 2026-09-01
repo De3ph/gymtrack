@@ -464,6 +464,37 @@
       "has_account": "Already have an account?",
       "sign_in": "Sign in"
     },
+    "forgot_password": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send a link to get you back in.",
+      "email": {
+        "label": "Email",
+        "placeholder": "name@example.com",
+        "error": {
+          "required": "Email is required",
+          "invalid": "Please enter a valid email"
+        }
+      },
+      "submit": "Send reset link",
+      "submitting": "Sending...",
+      "back_to_login": "Back to log in",
+      "hints": {
+        "check_spam": "Check spam",
+        "expires_in": "Link expires in 1h",
+        "didnt_get": "Didn't get it? Try again"
+      },
+      "success": {
+        "title": "Check your inbox",
+        "subtitle": "If an account exists for {email}, we just sent a reset link. It expires in one hour.",
+        "didnt_get_it": "Didn't get it?",
+        "resend": "Send another link",
+        "resending": "Sending..."
+      },
+      "error": {
+        "network": "Something went wrong. Try again in a moment.",
+        "too_many": "Too many attempts. Wait a minute and try again."
+      }
+    },
     "logout": {
       "confirm": "Are you sure you want to logout?",
       "button": "Logout"

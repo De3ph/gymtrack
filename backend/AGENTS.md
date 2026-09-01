@@ -98,6 +98,6 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 ## Known gaps
 
 - No E2E test suite. Repository-level and unit tests exist, but integration across the full HTTP layer is limited.
-- Schema is managed by hand-written SQL migrations in `backend/migrations/` (`001`–`005`), applied via `go run ./cmd/migrate`. No off-the-shelf migration library (e.g., golang-migrate).
+- Schema is managed by hand-written SQL migrations in `backend/migrations/` (`001`–`006`), applied via `go run ./cmd/migrate` (tracks applied migrations in `schema_migrations`; idempotent — run it after adding any new migration file). `cmd/ensure-schema` is a destructive local reset (drops the schema, applies migration 001 only). No off-the-shelf migration library (e.g., golang-migrate).
 - JSONB columns (`workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises`) are stored as untyped `[]byte` in Go; there is no struct deserialization layer over them.
 - PostgreSQL is the sole persistence backend; Couchbase references remain only in historical `doc.go` comments.

@@ -11,6 +11,9 @@ type Config struct {
 	JWTSecret    string
 	PostgresDSN  string
 	CacheEnabled bool
+	ResendAPIKey string
+	EmailFrom    string
+	FrontendURL  string
 }
 
 func LoadConfig() *Config {
@@ -33,6 +36,9 @@ func LoadConfig() *Config {
 		JWTSecret:    jwtSecret,
 		PostgresDSN:  getEnv("POSTGRES_DSN", "postgres://postgres:password@localhost:5432/gymtrack?sslmode=disable"),
 		CacheEnabled: getEnv("CACHE_ENABLED", "true") != "false",
+		ResendAPIKey: getEnv("RESEND_API_KEY", ""),
+		EmailFrom:    getEnv("EMAIL_FROM", ""),
+		FrontendURL:  getEnv("FRONTEND_URL", "http://localhost:3000"),
 	}
 }
 

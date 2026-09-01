@@ -25,7 +25,7 @@ func handleServiceError(c *gin.Context, err error) bool {
 	case "INVALID_CREDENTIALS":
 		c.JSON(http.StatusUnauthorized, gin.H{"error": svcErr.Message})
 	case "VALIDATION", "INVALID_DATE", "INVALID_PASSWORD",
-		"SELF_ROLE_CHANGE", "LAST_ADMIN":
+		"SELF_ROLE_CHANGE", "LAST_ADMIN", "INVALID_RESET_TOKEN":
 		c.JSON(http.StatusBadRequest, gin.H{"error": svcErr.Message})
 	case "WORKOUT_NOT_FOUND", "MEAL_NOT_FOUND", "WORKOUT_PLAN_NOT_FOUND",
 		"BODY_MEASUREMENT_NOT_FOUND", "USER_NOT_FOUND",

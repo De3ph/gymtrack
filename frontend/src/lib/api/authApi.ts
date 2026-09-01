@@ -20,5 +20,9 @@ export const authApi = {
 
     restoreAccount: async (data: { identifier: string; password: string }) => {
         return api.post<LoginResponse>("/auth/restore", data)
+    },
+
+    requestPasswordReset: async (data: { email: string }) => {
+        return api.post<MessageResponse>("/auth/password-reset/request", data)
     }
 }

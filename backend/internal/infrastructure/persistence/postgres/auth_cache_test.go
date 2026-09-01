@@ -46,6 +46,18 @@ func (c *countingUserRepo) GetAllUsersFiltered(ctx context.Context, role string,
 func (c *countingUserRepo) CountUsers(ctx context.Context, role string, search string) (int, error) {
 	return c.inner.CountUsers(ctx, role, search)
 }
+func (c *countingUserRepo) SoftDeleteUser(ctx context.Context, userID int) error {
+	return c.inner.SoftDeleteUser(ctx, userID)
+}
+func (c *countingUserRepo) RestoreUser(ctx context.Context, userID int) error {
+	return c.inner.RestoreUser(ctx, userID)
+}
+func (c *countingUserRepo) GetUsersReadyForHardDelete(ctx context.Context, before time.Time) ([]int, error) {
+	return c.inner.GetUsersReadyForHardDelete(ctx, before)
+}
+func (c *countingUserRepo) HardDeleteUser(ctx context.Context, userID int) error {
+	return c.inner.HardDeleteUser(ctx, userID)
+}
 
 func TestCachedUserRepository_AuthCacheHit(t *testing.T) {
 	pool, cleanup := testutils.SetupTestPostgresDB(t)

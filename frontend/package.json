@@ -18,6 +18,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "validate:i18n": "tsx scripts/validate-translations.ts",
+    "email": "email dev --dir emails --port 3000",
+    "email:export": "tsx scripts/export-email.tsx",
     "generate:icons": "node scripts/generate-pwa-icons.mjs",
     "codegen:types": "openapi-typescript ../backend/docs/swagger.json -o ./src/types/generated.ts"
   },
@@ -42,6 +44,7 @@
     "react": "19.2.3",
     "react-day-picker": "^9.14.0",
     "react-dom": "19.2.3",
+    "react-email": "^6.9.3",
     "react-resizable-panels": "^4.10.0",
     "recharts": "^3.8.0",
     "server-only": "^0.0.1",
@@ -54,6 +57,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.12",
     "@playwright/test": "^1.59.1",
+    "@react-email/ui": "6.9.3",
     "@tailwindcss/postcss": "^4.2.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

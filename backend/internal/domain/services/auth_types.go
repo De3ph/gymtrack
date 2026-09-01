@@ -62,6 +62,7 @@ var (
 	ErrAccountDeleted          = NewServiceError("account has been deleted", "ACCOUNT_DELETED")
 	ErrAccountCannotBeDeleted  = NewServiceError("admin accounts cannot be deleted", "ADMIN_DELETE_FORBIDDEN")
 	ErrAccountInactive         = NewServiceError("account is not active", "ACCOUNT_INACTIVE")
+	ErrInvalidResetToken       = NewServiceError("invalid or expired reset token", "INVALID_RESET_TOKEN")
 )
 
 // ServiceError represents a business logic error with a code

@@ -6,6 +6,7 @@ export const ROUTES = {
   ABOUT: '/about',
   LOGIN: '/login',
   REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
 
   // Profile routes
   PROFILE: '/profile',

@@ -49,3 +49,6 @@ test-results/
 blob-report/
 .playwright/
 
+# email template render output (scripts/render-email-check.tsx)
+.email-out/
+

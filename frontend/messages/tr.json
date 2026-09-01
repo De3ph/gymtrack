@@ -464,6 +464,37 @@
       "has_account": "Zaten hesabınız var mı?",
       "sign_in": "Giriş Yapın"
     },
+    "forgot_password": {
+      "title": "Şifrenizi mi unuttunuz?",
+      "subtitle": "E-postanızı girin, size geri dönmeniz için bir bağlantı gönderelim.",
+      "email": {
+        "label": "E-posta",
+        "placeholder": "ad@ornek.com",
+        "error": {
+          "required": "E-posta zorunludur",
+          "invalid": "Lütfen geçerli bir e-posta girin"
+        }
+      },
+      "submit": "Sıfırlama bağlantısı gönder",
+      "submitting": "Gönderiliyor...",
+      "back_to_login": "Girişe dön",
+      "hints": {
+        "check_spam": "Spam'i kontrol edin",
+        "expires_in": "Bağlantı 1 saat geçerli",
+        "didnt_get": "Gelmedi mi? Tekrar deneyin"
+      },
+      "success": {
+        "title": "E-postanızı kontrol edin",
+        "subtitle": "{email} için bir hesap varsa, az önce sıfırlama bağlantısı gönderdik. Bir saat sonra geçersiz olacak.",
+        "didnt_get_it": "Gelmedi mi?",
+        "resend": "Yeniden gönder",
+        "resending": "Gönderiliyor..."
+      },
+      "error": {
+        "network": "Bir şeyler ters gitti. Birazdan tekrar deneyin.",
+        "too_many": "Çok fazla deneme. Bir dakika bekleyip tekrar deneyin."
+      }
+    },
     "logout": {
       "confirm": "Çıkış yapmak istediğinizden emin misiniz?",
       "button": "Çıkış Yap"

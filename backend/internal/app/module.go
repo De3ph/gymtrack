@@ -14,6 +14,7 @@ import (
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
 	"gymtrack-backend/internal/infrastructure/cache"
+	"gymtrack-backend/internal/infrastructure/email"
 	"gymtrack-backend/internal/infrastructure/persistence"
 	"gymtrack-backend/internal/infrastructure/persistence/postgres"
 	"gymtrack-backend/internal/utils"
@@ -115,7 +116,6 @@ var RepositoryModule = fx.Module("repositories",
 			return factory.CoachingRequestRepository()
 		},
 
-
 		// Services
 		func(userRepo repositories.UserRepository, cfg *config.Config, clock utils.Clock) *services.AuthService {
 			return services.NewAuthService(userRepo, cfg.JWTSecret, clock)
@@ -149,6 +149,27 @@ var RepositoryModule = fx.Module("repositories",
 		services.NewBodyMeasurementService,
 		services.NewAdminService,
 
+		// Password reset dependencies
+		func(pool *pgxpool.Pool, clock utils.Clock) repositories.PasswordResetTokenRepository {
+			return postgres.NewPostgresPasswordResetTokenRepository(pool, clock)
+		},
+		func(cfg *config.Config) services.EmailSender {
+			if cfg.ResendAPIKey != "" && cfg.EmailFrom != "" {
+				return email.NewResendSender(cfg.ResendAPIKey, cfg.EmailFrom)
+			}
+			zap.L().Warn("password reset emails disabled: RESEND_API_KEY/EMAIL_FROM not set")
+			return email.DisabledSender{}
+		},
+		func(
+			userRepo repositories.UserRepository,
+			tokenRepo repositories.PasswordResetTokenRepository,
+			mailer services.EmailSender,
+			cfg *config.Config,
+			clock utils.Clock,
+		) *services.PasswordResetService {
+			return services.NewPasswordResetService(userRepo, tokenRepo, mailer, cfg.FrontendURL, clock)
+		},
+
 		handlers.NewAuthHandler,
 		handlers.NewUserHandler,
 		handlers.NewAdminHandler,
@@ -163,6 +184,7 @@ var RepositoryModule = fx.Module("repositories",
 		handlers.NewCoachingRequestHandler,
 		handlers.NewWorkoutPlanHandler,
 		handlers.NewBodyMeasurementHandler,
+		handlers.NewPasswordResetHandler,
 
 		func() *gin.Engine {
 			return gin.Default()
@@ -194,6 +216,7 @@ var RepositoryModule = fx.Module("repositories",
 		coachingRequestHandler *handlers.CoachingRequestHandler,
 		workoutPlanHandler *handlers.WorkoutPlanHandler,
 		bodyMeasurementHandler *handlers.BodyMeasurementHandler,
+		pwResetHandler *handlers.PasswordResetHandler,
 		cfg *config.Config,
 		authService *services.AuthService,
 		userRepo repositories.UserRepository,
@@ -221,7 +244,7 @@ var RepositoryModule = fx.Module("repositories",
 		routes.RegisterSwaggerRoutes(router)
 
 		apiGroup := router.Group("/api")
-		routes.AuthRoutes(apiGroup, authHandler)
+		routes.AuthRoutes(apiGroup, authHandler, pwResetHandler)
 		routes.UserRoutes(apiGroup, userHandler, authMw)
 		routes.AdminRoutes(apiGroup, adminHandler, authMw)
 
@@ -248,13 +271,13 @@ func StartServer(lc fx.Lifecycle, router *gin.Engine) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			srv = &http.Server{
-			Addr:              ":8080",
-			Handler:           router,
-			ReadTimeout:       10 * time.Second,
-			ReadHeaderTimeout: 5 * time.Second,
-			WriteTimeout:      30 * time.Second,
-			IdleTimeout:       120 * time.Second,
-		}
+				Addr:              ":8080",
+				Handler:           router,
+				ReadTimeout:       10 * time.Second,
+				ReadHeaderTimeout: 5 * time.Second,
+				WriteTimeout:      30 * time.Second,
+				IdleTimeout:       120 * time.Second,
+			}
 			go func() {
 				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					zap.L().Error("Server error", zap.Error(err))
