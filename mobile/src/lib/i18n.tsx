@@ -5,7 +5,7 @@ import { getLocales } from "expo-localization";
 import en from "../../messages/en.json";
 import tr from "../../messages/tr.json";
 
-const messages: Record<string, Record<string, string>> = { en, tr };
+const messages: Record<string, unknown> = { en, tr };
 type Locale = "en" | "tr";
 
 interface I18nContextValue {
@@ -23,7 +23,9 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const locale: Locale = deviceLocale === "tr" ? "tr" : "en";
 
   const value = useMemo(() => {
-    const msg = messages[locale] ?? messages.en;
+    const msg =
+      (messages[locale] as Record<string, unknown> | undefined) ??
+      (messages.en as Record<string, unknown>);
     return {
       locale,
       t: (key: string, params?: Record<string, string | number>) => {
