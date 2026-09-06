@@ -100,7 +100,7 @@ func (h *ExerciseHandler) GetExerciseByID(c *gin.Context) {
 	exerciseIDStr := c.Param("id")
 	exerciseID, err := strconv.Atoi(exerciseIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exercise id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid exercise ID. Please check the URL and try again"})
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *ExerciseHandler) GetExerciseByID(c *gin.Context) {
 	}
 
 	if exercise == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Exercise not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Exercise not found. It may have been deleted or the ID is incorrect"})
 		return
 	}
 
@@ -132,7 +132,7 @@ func (h *ExerciseHandler) GetExercisesByMuscleGroup(c *gin.Context) {
 	muscleGroupIDStr := c.Param("id")
 	muscleGroupID, err := strconv.Atoi(muscleGroupIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid muscle group ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid muscle group ID. Please select a valid muscle group and try again"})
 		return
 	}
 
@@ -159,7 +159,7 @@ func (h *ExerciseHandler) GetExercisesByEquipment(c *gin.Context) {
 	equipmentIDStr := c.Param("id")
 	equipmentID, err := strconv.Atoi(equipmentIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID. Please select valid equipment and try again"})
 		return
 	}
 
@@ -187,7 +187,7 @@ func (h *ExerciseHandler) GetExercisesByEquipment(c *gin.Context) {
 func (h *ExerciseHandler) SearchExercises(c *gin.Context) {
 	var req SearchExercisesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid search parameters"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid search parameters. Please check the filters and try again"})
 		return
 	}
 
@@ -209,26 +209,26 @@ func (h *ExerciseHandler) SearchExercises(c *gin.Context) {
 // @Param request body handlers.CreateExerciseRequest true "Exercise creation data"
 // @Success 201 {object} models.Exercise "Exercise created successfully"
 // @Failure 400 {object} map[string]any "Invalid request data"
-// @Failure 401 {object} map[string]any "User not authenticated"
+// @Failure 401 {object} map[string]any "You need to log in to continue. Please log in and try again"
 // @Failure 500 {object} map[string]any "Internal server error"
 // @Router /exercises [post]
 func (h *ExerciseHandler) CreateExercise(c *gin.Context) {
 	var req CreateExerciseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid exercise data. Please check the submitted fields and try again"})
 		return
 	}
 
 	// Get user ID from context (set by JWT middleware)
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 

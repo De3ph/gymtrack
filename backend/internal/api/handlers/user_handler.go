@@ -47,13 +47,13 @@ type UserResponse struct {
 func (h *UserHandler) GetCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is invalid or expired. Please log in again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -99,19 +99,19 @@ type UpdateProfileRequest struct {
 func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is invalid or expired. Please log in again"})
 		return
 	}
 
 	var req UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile data. Please check the submitted fields and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -158,24 +158,24 @@ type DeleteAccountRequest struct {
 func (h *UserHandler) DeleteCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is invalid or expired. Please log in again"})
 		return
 	}
 
 	var req DeleteAccountRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the submitted data and try again"})
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the submitted data and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 

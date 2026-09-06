@@ -39,7 +39,7 @@ type CreateMealInput struct {
 
 func (s *MealService) CreateMeal(ctx context.Context, input CreateMealInput) (*models.Meal, error) {
 	if input.UserRole != models.RoleAthlete {
-		return nil, NewServiceError("Only athletes can create meals", "FORBIDDEN")
+		return nil, NewServiceError("Only athletes can log meals. Trainers cannot log meals on behalf of clients", "FORBIDDEN")
 	}
 
 	if err := s.validator.Struct(input); err != nil {
@@ -75,7 +75,7 @@ func (s *MealService) GetMeal(ctx context.Context, input GetMealInput) (*models.
 	}
 
 	if input.RequesterRole == models.RoleAthlete && meal.AthleteID != input.RequesterID {
-		return nil, NewServiceError("Access denied", "FORBIDDEN")
+		return nil, NewServiceError("This meal belongs to another athlete. You can only view your own meals", "FORBIDDEN")
 	}
 
 	return meal, nil
@@ -98,7 +98,7 @@ type GetMealsOutput struct {
 
 func (s *MealService) GetMeals(ctx context.Context, input GetMealsInput) (*GetMealsOutput, error) {
 	if input.UserRole != models.RoleAthlete {
-		return nil, NewServiceError("Only athletes can list their meals", "FORBIDDEN")
+		return nil, NewServiceError("Only athletes can view their meal history. Trainers, please use the client meals view", "FORBIDDEN")
 	}
 
 	meals := make([]*models.Meal, 0)
@@ -107,7 +107,7 @@ func (s *MealService) GetMeals(ctx context.Context, input GetMealsInput) (*GetMe
 	if input.Date != "" {
 		parsedDate, err := time.Parse("2006-01-02", input.Date)
 		if err != nil {
-			return nil, NewServiceError("Invalid date format. Use YYYY-MM-DD format", "INVALID_DATE")
+			return nil, NewServiceError("Invalid date format. Please use YYYY-MM-DD format, e.g. 2026-09-06", "INVALID_DATE")
 		}
 
 		startDate := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, parsedDate.Location())
@@ -148,11 +148,11 @@ func (s *MealService) UpdateMeal(ctx context.Context, input UpdateMealInput) (*m
 	}
 
 	if meal.AthleteID != input.AthleteID {
-		return nil, NewServiceError("Access denied", "FORBIDDEN")
+		return nil, NewServiceError("You can only edit your own meals", "FORBIDDEN")
 	}
 
 	if !meal.CanEdit() {
-		return nil, NewServiceError("Cannot edit meal after 24 hours", "FORBIDDEN")
+		return nil, NewServiceError("This meal can no longer be edited because more than 24 hours have passed since it was logged", "FORBIDDEN")
 	}
 
 	if err := s.validator.Struct(input); err != nil {
@@ -180,11 +180,11 @@ func (s *MealService) DeleteMeal(ctx context.Context, mealID, athleteID int) err
 	}
 
 	if meal.AthleteID != athleteID {
-		return NewServiceError("Access denied", "FORBIDDEN")
+		return NewServiceError("You can only delete your own meals", "FORBIDDEN")
 	}
 
 	if !meal.CanEdit() {
-		return NewServiceError("Cannot delete meal after 24 hours", "FORBIDDEN")
+		return NewServiceError("This meal can no longer be deleted because more than 24 hours have passed since it was logged", "FORBIDDEN")
 	}
 
 	if err := s.mealRepo.Delete(ctx, mealID); err != nil {
@@ -219,7 +219,7 @@ func (s *MealService) GetClientMeals(ctx context.Context, input GetClientMealsIn
 	}
 
 	if !hasActiveRelationship {
-		return nil, NewServiceError("You don't have an active relationship with this client", "FORBIDDEN")
+		return nil, NewServiceError("You don't have an active coaching relationship with this client, so you can't view their meals", "FORBIDDEN")
 	}
 
 	meals := make([]*models.Meal, 0)

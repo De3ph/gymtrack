@@ -47,33 +47,33 @@ type UpdateWorkoutRequest struct {
 // @Security BearerAuth
 // @Param request body CreateWorkoutRequest true "Create workout request"
 // @Success 201 {object} models.Workout "Workout created successfully"
-// @Failure 400 {object} map[string]any "Invalid request body or validation error"
-// @Failure 401 {object} map[string]any "User not authenticated"
-// @Failure 403 {object} map[string]any "User is not an athlete"
-// @Failure 500 {object} map[string]any "Failed to create workout"
+// @Failure 400 {object} map[string]any "Invalid workout data. Please check the date and exercises and try again"
+// @Failure 401 {object} map[string]any "You need to log in to continue. Please log in and try again"
+// @Failure 403 {object} map[string]any "Only athletes can log workouts"
+// @Failure 500 {object} map[string]any "Something went wrong while creating the workout"
 // Router: /api/workouts
 func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 	athleteID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, exists := c.Get("userRole")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User role not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
 		return
 	}
 
 	var req CreateWorkoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
 		return
 	}
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -110,7 +110,7 @@ func (h *WorkoutHandler) GetWorkout(c *gin.Context) {
 	workoutIDStr := c.Param("id")
 	workoutID, err := strconv.Atoi(workoutIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid workout id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
@@ -118,7 +118,7 @@ func (h *WorkoutHandler) GetWorkout(c *gin.Context) {
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -160,13 +160,13 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 
 	limit, offset, startDate, endDate, err := services.ParseWorkoutQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid search parameters. Please check the date format (RFC3339, e.g. 2026-09-06T00:00:00Z) and try again"})
 		return
 	}
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -202,8 +202,8 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 // @Param id path string true "Workout ID"
 // @Param request body UpdateWorkoutRequest true "Updated workout data"
 // @Success 200 {object} models.Workout "Workout updated successfully"
-// @Failure 400 {object} map[string]any "Invalid request body or validation error"
-// @Failure 403 {object} map[string]any "Access denied or edit window expired"
+// @Failure 400 {object} map[string]any "Invalid workout data. Please check the date and exercises and try again"
+// @Failure 403 {object} map[string]any "You can only edit your own workouts, within 24 hours of logging"
 // @Failure 404 {object} map[string]any "Workout not found"
 // @Failure 500 {object} map[string]any "Failed to update workout"
 // Router: /api/workouts/:id
@@ -211,20 +211,20 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 	workoutIDStr := c.Param("id")
 	workoutID, err := strconv.Atoi(workoutIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid workout id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
 
 	var req UpdateWorkoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
 		return
 	}
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -262,14 +262,14 @@ func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
 	workoutIDStr := c.Param("id")
 	workoutID, err := strconv.Atoi(workoutIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid workout id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -309,7 +309,7 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 
 	limit, offset, startDate, endDate, err := services.ParseWorkoutQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the client username and search parameters and try again"})
 		return
 	}
 
@@ -322,13 +322,13 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 		return
 	}
 	if athlete == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
 
 	trainerIDInt, err := strconv.Atoi(trainerID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -354,6 +354,3 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 		"count":    result.Count,
 	})
 }
-
-
-

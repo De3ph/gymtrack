@@ -38,7 +38,7 @@ type CreateWorkoutInput struct {
 
 func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutInput) (*models.Workout, error) {
 	if input.UserRole != models.RoleAthlete {
-		return nil, NewServiceError("Only athletes can create workouts", "FORBIDDEN")
+		return nil, NewServiceError("Only athletes can log workouts. Trainers should create workout plans instead", "FORBIDDEN")
 	}
 
 	if err := s.validator.Struct(input); err != nil {
@@ -74,7 +74,7 @@ func (s *WorkoutService) GetWorkout(ctx context.Context, input GetWorkoutInput) 
 	}
 
 	if input.RequesterRole == models.RoleAthlete && workout.AthleteID != input.RequesterID {
-		return nil, NewServiceError("Access denied", "FORBIDDEN")
+		return nil, NewServiceError("This workout belongs to another athlete. You can only view your own workouts", "FORBIDDEN")
 	}
 
 	return workout, nil
@@ -96,7 +96,7 @@ type GetWorkoutsOutput struct {
 
 func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput) (*GetWorkoutsOutput, error) {
 	if input.UserRole != models.RoleAthlete {
-		return nil, NewServiceError("Only athletes can list their workouts", "FORBIDDEN")
+		return nil, NewServiceError("Only athletes can view their workout history. Trainers, please use the client workouts view", "FORBIDDEN")
 	}
 
 	workouts := make([]*models.Workout, 0)
@@ -135,11 +135,11 @@ func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutI
 	}
 
 	if workout.AthleteID != input.AthleteID {
-		return nil, NewServiceError("Access denied", "FORBIDDEN")
+		return nil, NewServiceError("You can only edit your own workouts", "FORBIDDEN")
 	}
 
 	if !workout.CanEdit() {
-		return nil, NewServiceError("Cannot edit workout after 24 hours", "FORBIDDEN")
+		return nil, NewServiceError("This workout can no longer be edited because more than 24 hours have passed since it was logged", "FORBIDDEN")
 	}
 
 	if err := s.validator.Struct(input); err != nil {
@@ -166,11 +166,11 @@ func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID
 	}
 
 	if workout.AthleteID != athleteID {
-		return NewServiceError("Access denied", "FORBIDDEN")
+		return NewServiceError("You can only delete your own workouts", "FORBIDDEN")
 	}
 
 	if !workout.CanEdit() {
-		return NewServiceError("Cannot delete workout after 24 hours", "FORBIDDEN")
+		return NewServiceError("This workout can no longer be deleted because more than 24 hours have passed since it was logged", "FORBIDDEN")
 	}
 
 	if err := s.workoutRepo.Delete(ctx, workoutID); err != nil {
@@ -205,7 +205,7 @@ func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientW
 	}
 
 	if !hasActiveRelationship {
-		return nil, NewServiceError("You don't have an active relationship with this client", "FORBIDDEN")
+		return nil, NewServiceError("You don't have an active coaching relationship with this client, so you can't view their workouts", "FORBIDDEN")
 	}
 
 	workouts := make([]*models.Workout, 0)

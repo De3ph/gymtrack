@@ -62,21 +62,21 @@ type UpdateBodyMeasurementRequest struct {
 // @Param request body CreateBodyMeasurementRequest true "Create body measurement request"
 // @Success 201 {object} models.BodyMeasurement "Body measurement created successfully"
 // @Failure 400 {object} map[string]any "Invalid request body or validation error"
-// @Failure 401 {object} map[string]any "User not authenticated"
+// @Failure 401 {object} map[string]any "You need to log in to continue. Please log in and try again"
 // @Failure 403 {object} map[string]any "User is not an athlete"
 // @Failure 500 {object} map[string]any "Failed to create body measurement"
 // @Router /measurements [post]
 func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 	athleteID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 	userRole, _ := c.Get("userRole")
 
 	var req CreateBodyMeasurementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement data. Please check the date, weight and body fat values and try again"})
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -128,7 +128,7 @@ func (h *BodyMeasurementHandler) GetBodyMeasurement(c *gin.Context) {
 	measurementIDStr := c.Param("id")
 	measurementID, err := strconv.Atoi(measurementIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid measurement id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
@@ -136,7 +136,7 @@ func (h *BodyMeasurementHandler) GetBodyMeasurement(c *gin.Context) {
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -176,13 +176,13 @@ func (h *BodyMeasurementHandler) GetBodyMeasurements(c *gin.Context) {
 
 	limit, offset, startDate, endDate, err := services.ParseBodyMeasurementQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid search parameters. Please check the date format (RFC3339, e.g. 2026-09-06T00:00:00Z) and try again"})
 		return
 	}
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -228,7 +228,7 @@ func (h *BodyMeasurementHandler) GetLatestBodyMeasurement(c *gin.Context) {
 		var err error
 		athleteID, err = strconv.Atoi(athleteIDStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid athlete id"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid athlete ID. Please check the URL and try again"})
 			return
 		}
 	} else {
@@ -237,7 +237,7 @@ func (h *BodyMeasurementHandler) GetLatestBodyMeasurement(c *gin.Context) {
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -279,14 +279,14 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 	measurementIDStr := c.Param("id")
 	measurementID, err := strconv.Atoi(measurementIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid measurement id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
 
 	var req UpdateBodyMeasurementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement data. Please check the date, weight and body fat values and try again"})
 		return
 	}
 
@@ -297,7 +297,7 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -337,14 +337,14 @@ func (h *BodyMeasurementHandler) DeleteBodyMeasurement(c *gin.Context) {
 	measurementIDStr := c.Param("id")
 	measurementID, err := strconv.Atoi(measurementIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid measurement id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -384,19 +384,19 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 		return
 	}
 	if athlete == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
 
 	limit, offset, startDate, endDate, err := services.ParseBodyMeasurementQueryParams(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the submitted data and try again"})
 		return
 	}
 
 	trainerIDInt, err := strconv.Atoi(trainerID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -421,6 +421,3 @@ func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 		"count":        result.Count,
 	})
 }
-
-
-

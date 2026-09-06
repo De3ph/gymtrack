@@ -60,10 +60,10 @@ func (s *AvailabilityService) BookSlot(ctx context.Context, slotID int) error {
 		return fmt.Errorf("failed to get availability slot: %w", err)
 	}
 	if slot == nil {
-		return fmt.Errorf("availability slot not found")
+		return fmt.Errorf("availability slot not found. It may have been deleted or the ID is incorrect")
 	}
 	if slot.IsBooked {
-		return fmt.Errorf("slot already booked")
+		return fmt.Errorf("this time slot is already booked. Please choose a different slot")
 	}
 
 	return s.availabilityRepo.BookSlotAtomic(ctx, slotID)

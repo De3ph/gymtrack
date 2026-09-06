@@ -56,32 +56,32 @@ type UpdateMealRequest struct {
 // @Param request body handlers.CreateMealRequest true "Create meal request"
 // @Success 201 {object} models.Meal "Meal created successfully"
 // @Failure 400 {object} map[string]string "Invalid request body or validation failed"
-// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 401 {object} map[string]string "You need to log in to continue. Please log in and try again"
 // @Failure 403 {object} map[string]string "Only athletes can create meals"
 // @Failure 500 {object} map[string]string "Failed to create meal"
 // @Router /meals [post]
 func (h *MealHandler) CreateMeal(c *gin.Context) {
 	athleteID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, exists := c.Get("userRole")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User role not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
 		return
 	}
 
 	var req CreateMealRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal data. Please check the date, meal type and items and try again"})
 		return
 	}
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -119,7 +119,7 @@ func (h *MealHandler) GetMeal(c *gin.Context) {
 	mealIDStr := c.Param("id")
 	mealID, err := strconv.Atoi(mealIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid meal id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
@@ -127,7 +127,7 @@ func (h *MealHandler) GetMeal(c *gin.Context) {
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -178,7 +178,7 @@ func (h *MealHandler) GetMeals(c *gin.Context) {
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -224,20 +224,20 @@ func (h *MealHandler) UpdateMeal(c *gin.Context) {
 	mealIDStr := c.Param("id")
 	mealID, err := strconv.Atoi(mealIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid meal id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
 
 	var req UpdateMealRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal data. Please check the date, meal type and items and try again"})
 		return
 	}
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -276,14 +276,14 @@ func (h *MealHandler) DeleteMeal(c *gin.Context) {
 	mealIDStr := c.Param("id")
 	mealID, err := strconv.Atoi(mealIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid meal id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal ID. Please check the URL and try again"})
 		return
 	}
 	athleteID, _ := c.Get("userID")
 
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -339,13 +339,13 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 		return
 	}
 	if athlete == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
 
 	trainerIDInt, err := strconv.Atoi(trainerID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -371,4 +371,3 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 		"count": result.Count,
 	})
 }
-

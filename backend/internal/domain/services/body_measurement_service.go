@@ -47,7 +47,7 @@ type CreateBodyMeasurementInput struct {
 
 func (s *BodyMeasurementService) CreateBodyMeasurement(ctx context.Context, input CreateBodyMeasurementInput) (*models.BodyMeasurement, error) {
 	if input.UserRole != models.RoleAthlete {
-		return nil, NewServiceError("Only athletes can log body measurements", "FORBIDDEN")
+		return nil, NewServiceError("Only athletes can log body measurements. Trainers cannot log measurements on behalf of clients", "FORBIDDEN")
 	}
 
 	if err := s.validator.Struct(input); err != nil {
@@ -55,7 +55,7 @@ func (s *BodyMeasurementService) CreateBodyMeasurement(ctx context.Context, inpu
 	}
 
 	if input.Weight <= 0 {
-		return nil, NewServiceError("Weight must be greater than 0", "VALIDATION")
+		return nil, NewServiceError("Weight must be greater than 0 kg. Please enter a valid positive weight", "VALIDATION")
 	}
 
 	measurement := models.NewBodyMeasurement(
@@ -92,7 +92,7 @@ func (s *BodyMeasurementService) GetBodyMeasurement(ctx context.Context, input G
 
 	if input.RequesterRole == models.RoleAthlete {
 		if measurement.AthleteID != input.RequesterID {
-			return nil, NewServiceError("Access denied", "FORBIDDEN")
+			return nil, NewServiceError("This measurement belongs to another athlete. You can only view your own measurements", "FORBIDDEN")
 		}
 	} else if input.RequesterRole == models.RoleTrainer {
 		hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, input.RequesterID, measurement.AthleteID)
@@ -100,7 +100,7 @@ func (s *BodyMeasurementService) GetBodyMeasurement(ctx context.Context, input G
 			return nil, fmt.Errorf("failed to verify relationship: %w", err)
 		}
 		if !hasActive {
-			return nil, NewServiceError("You don't have an active relationship with this athlete", "FORBIDDEN")
+			return nil, NewServiceError("You don't have an active coaching relationship with this athlete, so you can't view their measurements", "FORBIDDEN")
 		}
 	}
 
@@ -123,7 +123,7 @@ type GetBodyMeasurementsOutput struct {
 
 func (s *BodyMeasurementService) GetBodyMeasurements(ctx context.Context, input GetBodyMeasurementsInput) (*GetBodyMeasurementsOutput, error) {
 	if input.UserRole != models.RoleAthlete {
-		return nil, NewServiceError("Only athletes can list their body measurements", "FORBIDDEN")
+		return nil, NewServiceError("Only athletes can view their measurement history. Trainers, please use the client measurements view", "FORBIDDEN")
 	}
 
 	measurements := make([]*models.BodyMeasurement, 0)
@@ -166,15 +166,15 @@ func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, inpu
 	}
 
 	if measurement.AthleteID != input.AthleteID {
-		return nil, NewServiceError("Access denied", "FORBIDDEN")
+		return nil, NewServiceError("You can only edit your own body measurements", "FORBIDDEN")
 	}
 
 	if !measurement.CanEdit() {
-		return nil, NewServiceError("Cannot edit body measurement after 24 hours", "FORBIDDEN")
+		return nil, NewServiceError("This measurement can no longer be edited because more than 24 hours have passed since it was logged", "FORBIDDEN")
 	}
 
 	if input.Weight <= 0 {
-		return nil, NewServiceError("Weight must be greater than 0", "VALIDATION")
+		return nil, NewServiceError("Weight must be greater than 0 kg. Please enter a valid positive weight", "VALIDATION")
 	}
 
 	measurement.Date = input.Date
@@ -201,11 +201,11 @@ func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, meas
 	}
 
 	if measurement.AthleteID != athleteID {
-		return NewServiceError("Access denied", "FORBIDDEN")
+		return NewServiceError("You can only delete your own body measurements", "FORBIDDEN")
 	}
 
 	if !measurement.CanEdit() {
-		return NewServiceError("Cannot delete body measurement after 24 hours", "FORBIDDEN")
+		return NewServiceError("This measurement can no longer be deleted because more than 24 hours have passed since it was logged", "FORBIDDEN")
 	}
 
 	if err := s.measurementRepo.Delete(ctx, measurementID); err != nil {
@@ -231,7 +231,7 @@ func (s *BodyMeasurementService) GetClientBodyMeasurements(ctx context.Context, 
 	}
 
 	if !hasActive {
-		return nil, NewServiceError("You don't have an active relationship with this client", "FORBIDDEN")
+		return nil, NewServiceError("You don't have an active coaching relationship with this client, so you can't view their measurements", "FORBIDDEN")
 	}
 
 	measurements := make([]*models.BodyMeasurement, 0)
@@ -260,7 +260,7 @@ type GetLatestBodyMeasurementInput struct {
 func (s *BodyMeasurementService) GetLatestBodyMeasurement(ctx context.Context, input GetLatestBodyMeasurementInput) (*models.BodyMeasurement, error) {
 	if input.RequesterRole == models.RoleAthlete {
 		if input.AthleteID != input.RequesterID {
-			return nil, NewServiceError("Access denied", "FORBIDDEN")
+			return nil, NewServiceError("You can only view your own latest measurement", "FORBIDDEN")
 		}
 	} else if input.RequesterRole == models.RoleTrainer {
 		hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, input.RequesterID, input.AthleteID)
@@ -268,7 +268,7 @@ func (s *BodyMeasurementService) GetLatestBodyMeasurement(ctx context.Context, i
 			return nil, fmt.Errorf("failed to verify relationship: %w", err)
 		}
 		if !hasActive {
-			return nil, NewServiceError("You don't have an active relationship with this athlete", "FORBIDDEN")
+			return nil, NewServiceError("You don't have an active coaching relationship with this athlete, so you can't view their measurements", "FORBIDDEN")
 		}
 	}
 

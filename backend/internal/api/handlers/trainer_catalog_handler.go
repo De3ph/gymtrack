@@ -92,7 +92,7 @@ func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
 	trainerIDStr := c.Param("id")
 	trainerID, err := strconv.Atoi(trainerIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid trainer ID. Please check the URL and try again"})
 		return
 	}
 
@@ -102,7 +102,7 @@ func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
 		return
 	}
 	if trainer == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "trainer not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Trainer not found. Please check the ID and try again"})
 		return
 	}
 
@@ -124,19 +124,19 @@ func (h *TrainerCatalogHandler) GetTrainerByID(c *gin.Context) {
 func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	var profile models.TrainerProfile
 	if err := c.ShouldBindJSON(&profile); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile data. Please check the submitted fields and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -164,20 +164,20 @@ func (h *TrainerCatalogHandler) UpdateMyProfile(c *gin.Context) {
 func (h *TrainerCatalogHandler) GetMyProfile(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	// Check if user is a trainer
 	userRole, exists := c.Get("userRole")
 	if !exists || userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can access profile"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can access this profile section. Please log in as a trainer"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -187,7 +187,7 @@ func (h *TrainerCatalogHandler) GetMyProfile(c *gin.Context) {
 		return
 	}
 	if profile == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "trainer profile not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Trainer profile not found. The trainer may not have set up their profile yet"})
 		return
 	}
 

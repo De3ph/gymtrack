@@ -163,14 +163,14 @@ func (s *AuthService) RestoreAccount(ctx context.Context, identifier, password s
 	}
 
 	if user.Status != models.UserStatusDeleted {
-		return nil, NewServiceError("account is not in deleted state", "ACCOUNT_NOT_DELETED")
+		return nil, NewServiceError("This account is not deleted, so there's nothing to restore. Please log in normally", "ACCOUNT_NOT_DELETED")
 	}
 
 	if user.DeletedAt == nil {
 		return nil, ErrAccountDeleted
 	}
 	if s.clock.Now().After(user.DeletedAt.Add(30 * 24 * time.Hour)) {
-		return nil, NewServiceError("restore period expired", "RESTORE_EXPIRED")
+		return nil, NewServiceError("The 30-day restore period has expired, so this account can no longer be restored. Please create a new account", "RESTORE_EXPIRED")
 	}
 
 	if err := s.userRepo.RestoreUser(ctx, user.UserID); err != nil {

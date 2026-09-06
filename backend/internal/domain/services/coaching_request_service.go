@@ -34,10 +34,9 @@ func NewCoachingRequestService(
 }
 
 func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athleteID int, trainerID int, message string) (*models.CoachingRequest, error) {
-	// Check if athlete already has an active relationship
 	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
 	if err == nil && activeRelationship != nil {
-		return nil, fmt.Errorf("athlete already has an active trainer")
+		return nil, fmt.Errorf("you already have an active trainer. Please end your current coaching relationship before requesting a new one")
 	}
 
 	// Check if there's already a pending request between these users
@@ -48,17 +47,16 @@ func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athl
 
 	for _, req := range existingRequests {
 		if req.TrainerID == trainerID && req.Status == models.CoachingRequestStatusPending {
-			return nil, fmt.Errorf("already have a pending request to this trainer")
+			return nil, fmt.Errorf("you already have a pending request to this trainer. Please wait for them to respond")
 		}
 	}
 
-	// Verify trainer exists and is actually a trainer
 	trainer, err := s.userRepo.GetUserByID(ctx, trainerID)
 	if err != nil {
-		return nil, fmt.Errorf("trainer not found: %w", err)
+		return nil, fmt.Errorf("trainer not found. Please check the trainer ID and try again: %w", err)
 	}
 	if trainer.Role != "trainer" {
-		return nil, fmt.Errorf("user is not a trainer")
+		return nil, fmt.Errorf("the selected user is not a trainer. Please choose a trainer account")
 	}
 
 	// Create the coaching request
@@ -82,23 +80,20 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	// Get the coaching request
 	request, err := s.coachingRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
-		return nil, fmt.Errorf("coaching request not found: %w", err)
+		return nil, fmt.Errorf("coaching request not found. It may have been deleted or the ID is incorrect: %w", err)
 	}
 
-	// Verify the trainer owns this request
 	if request.TrainerID != trainerID {
-		return nil, fmt.Errorf("unauthorized: this request is not for you")
+		return nil, fmt.Errorf("this coaching request was sent to a different trainer. You can only respond to your own requests")
 	}
 
-	// Check if request is still pending
 	if request.Status != models.CoachingRequestStatusPending {
-		return nil, fmt.Errorf("request has already been %s", request.Status)
+		return nil, fmt.Errorf("this request has already been %s and can no longer be accepted", request.Status)
 	}
 
-	// Check if athlete already has an active relationship
 	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, request.AthleteID)
 	if err == nil && activeRelationship != nil {
-		return nil, fmt.Errorf("athlete already has an active trainer")
+		return nil, fmt.Errorf("this athlete already has an active trainer, so the request can't be accepted")
 	}
 
 	// Create the relationship
@@ -141,20 +136,17 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 }
 
 func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requestID int, trainerID int) error {
-	// Get the coaching request
 	request, err := s.coachingRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
-		return fmt.Errorf("coaching request not found: %w", err)
+		return fmt.Errorf("coaching request not found. It may have been deleted or the ID is incorrect: %w", err)
 	}
 
-	// Verify the trainer owns this request
 	if request.TrainerID != trainerID {
-		return fmt.Errorf("unauthorized: this request is not for you")
+		return fmt.Errorf("this coaching request was sent to a different trainer. You can only respond to your own requests")
 	}
 
-	// Check if request is still pending
 	if request.Status != models.CoachingRequestStatusPending {
-		return fmt.Errorf("request has already been %s", request.Status)
+		return fmt.Errorf("this request has already been %s and can no longer be rejected", request.Status)
 	}
 
 	// Update the coaching request status
@@ -178,7 +170,7 @@ func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, 
 	case models.RoleTrainer:
 		requests, err = s.coachingRequestRepo.GetByTrainerID(ctx, userID)
 	default:
-		return nil, fmt.Errorf("invalid user role")
+		return nil, fmt.Errorf("your account role is invalid. Please contact support")
 	}
 
 	if err != nil {

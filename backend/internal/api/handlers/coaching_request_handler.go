@@ -41,31 +41,31 @@ type CreateCoachingRequestRequest struct {
 func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, _ := c.Get("userRole")
 	if userRole != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "only athletes can create coaching requests"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can send coaching requests. Please log in as an athlete"})
 		return
 	}
 
 	var req CreateCoachingRequestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid coaching request data. Please check the trainer and message and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	request, err := h.service.CreateCoachingRequest(c.Request.Context(), userIDInt, req.TrainerID, req.Message)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid coaching request"})
+		handleBusinessError(c, err)
 		return
 	}
 
@@ -85,7 +85,7 @@ func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
@@ -93,7 +93,7 @@ func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -122,32 +122,32 @@ func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, _ := c.Get("userRole")
 	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "only trainers can accept coaching requests"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can accept coaching requests. Please log in as a trainer"})
 		return
 	}
 
 	requestIDStr := c.Param("id")
 	requestID, err := strconv.Atoi(requestIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid coaching request ID. Please check the URL and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	relationship, err := h.service.AcceptCoachingRequest(c.Request.Context(), requestID, userIDInt)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		handleBusinessError(c, err)
 		return
 	}
 
@@ -173,32 +173,32 @@ func (h *CoachingRequestHandler) AcceptCoachingRequest(c *gin.Context) {
 func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, _ := c.Get("userRole")
 	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "only trainers can reject coaching requests"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can reject coaching requests. Please log in as a trainer"})
 		return
 	}
 
 	requestIDStr := c.Param("id")
 	requestID, err := strconv.Atoi(requestIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid coaching request ID. Please check the URL and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	err = h.service.RejectCoachingRequest(c.Request.Context(), requestID, userIDInt)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		handleBusinessError(c, err)
 		return
 	}
 
@@ -219,19 +219,19 @@ func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 func (h *CoachingRequestHandler) GetPendingRequests(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, _ := c.Get("userRole")
 	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "only trainers can view pending requests"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view pending coaching requests. Please log in as a trainer"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -243,5 +243,3 @@ func (h *CoachingRequestHandler) GetPendingRequests(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"requests": requests})
 }
-
-

@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	ErrTargetNotFound = errors.New("target not found")
-	ErrAccessDenied   = errors.New("access denied")
-	ErrNotAuthor      = errors.New("only the comment author can perform this action")
+	ErrTargetNotFound = errors.New("the workout or meal you are commenting on was not found")
+	ErrAccessDenied   = errors.New("you don't have permission to comment on this workout or meal")
+	ErrNotAuthor      = errors.New("only the author of this comment can edit or delete it")
 )
 
 // CommentService encapsulates comment authorization and target resolution.
@@ -54,7 +54,7 @@ func (s *CommentService) ResolveTargetAthlete(ctx context.Context, targetType mo
 		}
 		return meal.AthleteID, nil
 	default:
-		return 0, fmt.Errorf("invalid target type: %s", targetType)
+		return 0, fmt.Errorf("invalid comment target type %q. Must be \"workout\" or \"meal\"", targetType)
 	}
 }
 

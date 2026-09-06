@@ -8,8 +8,8 @@ import (
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
 
-	logger "gymtrack-backend/internal/infrastructure/log"
 	"go.uber.org/zap"
+	logger "gymtrack-backend/internal/infrastructure/log"
 )
 
 // InvitationMethod defines the storage interface for invitation codes.
@@ -64,7 +64,7 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
 	}
 	if existingRelationship != nil && existingRelationship.IsActive() {
-		return nil, fmt.Errorf("you already have an active trainer")
+		return nil, fmt.Errorf("you already have an active trainer. Please end your current coaching relationship before accepting a new invitation")
 	}
 
 	// Create new relationship

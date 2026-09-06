@@ -34,7 +34,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID int, athlete
 	}
 
 	if !hasActiveRelationship {
-		return nil, fmt.Errorf("you must have an active relationship with this trainer to leave a review")
+		return nil, fmt.Errorf("you can only review a trainer while you have an active coaching relationship with them")
 	}
 
 	// Check if athlete already reviewed this trainer
@@ -43,7 +43,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID int, athlete
 		return nil, fmt.Errorf("failed to check existing review: %w", err)
 	}
 	if existingReview != nil {
-		return nil, fmt.Errorf("you have already reviewed this trainer")
+		return nil, fmt.Errorf("you've already reviewed this trainer. You can edit or delete your existing review instead")
 	}
 
 	now := s.clock.Now()
@@ -72,7 +72,7 @@ func (s *ReviewService) UpdateReview(ctx context.Context, reviewID int, athleteI
 		return fmt.Errorf("failed to get review: %w", err)
 	}
 	if review == nil {
-		return fmt.Errorf("review not found")
+		return fmt.Errorf("review not found. It may have been deleted or the ID is incorrect")
 	}
 
 	if review.AthleteID != athleteID {
@@ -97,7 +97,7 @@ func (s *ReviewService) DeleteReview(ctx context.Context, reviewID int, userID i
 		return fmt.Errorf("failed to get review: %w", err)
 	}
 	if review == nil {
-		return fmt.Errorf("review not found")
+		return fmt.Errorf("review not found. It may have been deleted or the ID is incorrect")
 	}
 
 	if review.AthleteID != userID {

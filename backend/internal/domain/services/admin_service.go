@@ -14,19 +14,19 @@ import (
 )
 
 type AdminService struct {
-	userRepo    repositories.UserRepository
-	workoutRepo repositories.WorkoutRepository
-	mealRepo    repositories.MealRepository
-	commentRepo repositories.CommentRepository
+	userRepo     repositories.UserRepository
+	workoutRepo  repositories.WorkoutRepository
+	mealRepo     repositories.MealRepository
+	commentRepo  repositories.CommentRepository
 	exerciseRepo repositories.ExerciseRepository
 }
 
 func NewAdminService(userRepo repositories.UserRepository, workoutRepo repositories.WorkoutRepository, mealRepo repositories.MealRepository, commentRepo repositories.CommentRepository, exerciseRepo repositories.ExerciseRepository) *AdminService {
 	return &AdminService{
-		userRepo:    userRepo,
-		workoutRepo: workoutRepo,
-		mealRepo:    mealRepo,
-		commentRepo: commentRepo,
+		userRepo:     userRepo,
+		workoutRepo:  workoutRepo,
+		mealRepo:     mealRepo,
+		commentRepo:  commentRepo,
 		exerciseRepo: exerciseRepo,
 	}
 }
@@ -169,7 +169,7 @@ func (s *AdminService) ChangePassword(ctx context.Context, req ChangePasswordReq
 
 	// Verify old password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
-		return NewServiceError("current password is incorrect", "INVALID_PASSWORD")
+		return NewServiceError("The current password you entered is incorrect. Please try again", "INVALID_PASSWORD")
 	}
 
 	// Hash new password
@@ -192,7 +192,7 @@ func (s *AdminService) ChangePassword(ctx context.Context, req ChangePasswordReq
 func (s *AdminService) UpdateUserRole(ctx context.Context, adminID int, targetUserID int, newRole models.UserRole) error {
 	// Prevent self-demotion
 	if adminID == targetUserID {
-		return NewServiceError("cannot change your own role", "SELF_ROLE_CHANGE")
+		return NewServiceError("You cannot change your own role. Ask another admin to change it for you", "SELF_ROLE_CHANGE")
 	}
 
 	target, err := s.userRepo.GetUserByID(ctx, targetUserID)
@@ -210,7 +210,7 @@ func (s *AdminService) UpdateUserRole(ctx context.Context, adminID int, targetUs
 			return fmt.Errorf("failed to count admins: %w", err)
 		}
 		if adminCount <= 1 {
-			return NewServiceError("cannot demote the last admin", "LAST_ADMIN")
+			return NewServiceError("You cannot demote the last admin. Promote another user to admin first", "LAST_ADMIN")
 		}
 	}
 
@@ -236,7 +236,7 @@ func (s *AdminService) UpdateUserStatus(ctx context.Context, targetUserID int, s
 			return fmt.Errorf("failed to count admins: %w", err)
 		}
 		if adminCount <= 1 {
-			return NewServiceError("cannot suspend/ban the last admin", "LAST_ADMIN")
+			return NewServiceError("You cannot suspend or ban the last admin. Promote another user to admin first", "LAST_ADMIN")
 		}
 	}
 
@@ -276,7 +276,7 @@ func (s *AdminService) DeleteComment(ctx context.Context, commentID int) error {
 	err := s.commentRepo.Delete(ctx, commentID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
-			return NewServiceError("comment not found", "COMMENT_NOT_FOUND")
+			return NewServiceError("Comment not found. It may have already been deleted", "COMMENT_NOT_FOUND")
 		}
 		return fmt.Errorf("failed to delete comment: %w", err)
 	}
@@ -301,12 +301,9 @@ func (s *AdminService) DeleteExercise(ctx context.Context, exerciseID int) error
 	err := s.exerciseRepo.DeleteExercise(ctx, exerciseID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
-			return NewServiceError("exercise not found", "EXERCISE_NOT_FOUND")
+			return NewServiceError("Exercise not found. It may have already been deleted", "EXERCISE_NOT_FOUND")
 		}
 		return fmt.Errorf("failed to delete exercise: %w", err)
 	}
 	return nil
 }
-
-
-

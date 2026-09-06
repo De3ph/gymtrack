@@ -58,38 +58,38 @@ type UpdateReviewRequest struct {
 func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, _ := c.Get("userRole")
 	if userRole.(models.UserRole) != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "only athletes can create reviews"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can write reviews. Please log in as an athlete"})
 		return
 	}
 
 	trainerIDStr := c.Param("id")
 	trainerID, err := strconv.Atoi(trainerIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid trainer ID. Please check the URL and try again"})
 		return
 	}
 
 	var req CreateReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review data. Please check the rating (1-5) and comment and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	review, err := h.service.CreateReview(c.Request.Context(), trainerID, userIDInt, req.Rating, req.Comment)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review request"})
+		handleBusinessError(c, err)
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *ReviewHandler) GetTrainerReviews(c *gin.Context) {
 	trainerIDStr := c.Param("id")
 	trainerID, err := strconv.Atoi(trainerIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid trainer ID. Please check the URL and try again"})
 		return
 	}
 
@@ -141,32 +141,32 @@ func (h *ReviewHandler) GetTrainerReviews(c *gin.Context) {
 func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	reviewIDStr := c.Param("id")
 	reviewID, err := strconv.Atoi(reviewIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid review id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review ID. Please check the URL and try again"})
 		return
 	}
 
 	var req UpdateReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review data. Please check the rating (1-5) and comment and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	err = h.service.UpdateReview(c.Request.Context(), reviewID, userIDInt, req.Rating, req.Comment)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		handleBusinessError(c, err)
 		return
 	}
 
@@ -190,29 +190,28 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	reviewIDStr := c.Param("id")
 	reviewID, err := strconv.Atoi(reviewIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid review id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review ID. Please check the URL and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	err = h.service.DeleteReview(c.Request.Context(), reviewID, userIDInt)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		handleBusinessError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "review deleted successfully"})
 }
-

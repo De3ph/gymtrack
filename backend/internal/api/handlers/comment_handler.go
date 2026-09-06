@@ -68,7 +68,7 @@ type UpdateCommentRequest struct {
 // @Param request body handlers.CreateCommentRequest true "Create comment request"
 // @Success 201 {object} models.Comment "Comment created successfully"
 // @Failure 400 {object} map[string]string "Invalid request body or validation failed"
-// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 401 {object} map[string]string "You need to log in to continue. Please log in and try again"
 // @Failure 403 {object} map[string]string "Access denied or cannot comment on this target"
 // @Failure 404 {object} map[string]string "Target (workout or meal) not found"
 // @Failure 500 {object} map[string]string "Failed to create comment"
@@ -76,34 +76,34 @@ type UpdateCommentRequest struct {
 func (h *CommentHandler) CreateComment(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 	userRole, ok := c.Get("userRole")
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User role not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
 		return
 	}
 
 	var req CreateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment data. Please check the content and try again"})
 		return
 	}
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed. Please check the comment content (1-2000 characters) and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	targetIDInt, err := strconv.Atoi(req.TargetID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid target id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target ID. Please check the workout or meal ID and try again"})
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	if req.ParentCommentID != nil && *req.ParentCommentID != "" {
 		id, err := strconv.Atoi(*req.ParentCommentID)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parent comment id"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parent comment ID. Please check the reply reference and try again"})
 			return
 		}
 		parentCommentIDInt = &id
@@ -128,11 +128,11 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	if parentCommentIDInt != nil {
 		parent, err := h.commentRepo.GetByID(c.Request.Context(), *parentCommentIDInt)
 		if err != nil || parent == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Parent comment not found"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Parent comment not found. It may have been deleted"})
 			return
 		}
 		if parent.TargetID != targetIDInt || parent.TargetType != req.TargetType {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Parent comment does not belong to this target"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "This reply doesn't belong to the selected workout or meal. Please check and try again"})
 			return
 		}
 	}
@@ -160,7 +160,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 // @Param targetId query string true "ID of the target (workout or meal)"
 // @Success 200 {object} map[string]any "Comments retrieved successfully"
 // @Failure 400 {object} map[string]string "Missing or invalid query parameters"
-// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 401 {object} map[string]string "You need to log in to continue. Please log in and try again"
 // @Failure 403 {object} map[string]string "Access denied"
 // @Failure 404 {object} map[string]string "Target not found"
 // @Failure 500 {object} map[string]string "Failed to retrieve comments"
@@ -168,35 +168,35 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 func (h *CommentHandler) GetComments(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 	userRole, ok := c.Get("userRole")
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User role not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
 		return
 	}
 
 	targetTypeStr := c.Query("targetType")
 	targetIDStr := c.Query("targetId")
 	if targetTypeStr == "" || targetIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "targetType and targetId are required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide both targetType (workout or meal) and targetId"})
 		return
 	}
 	targetID, err := strconv.Atoi(targetIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid target id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target ID. Please check the workout or meal ID and try again"})
 		return
 	}
 	targetType := models.TargetType(targetTypeStr)
 	if targetType != models.TargetTypeWorkout && targetType != models.TargetTypeMeal {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "targetType must be workout or meal"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target type. Must be \"workout\" or \"meal\""})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -227,7 +227,7 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 // @Param request body handlers.UpdateCommentRequest true "Update comment request"
 // @Success 200 {object} models.Comment "Comment updated successfully"
 // @Failure 400 {object} map[string]string "Invalid request body or validation failed"
-// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 401 {object} map[string]string "You need to log in to continue. Please log in and try again"
 // @Failure 403 {object} map[string]string "Only the comment author can edit it"
 // @Failure 404 {object} map[string]string "Comment not found"
 // @Failure 500 {object} map[string]string "Failed to update comment"
@@ -235,19 +235,19 @@ func (h *CommentHandler) GetComments(c *gin.Context) {
 func (h *CommentHandler) UpdateComment(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 	commentIDStr := c.Param("id")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid comment id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment ID. Please check the URL and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -261,17 +261,17 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 
 	var req UpdateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment data. Please check the content and try again"})
 		return
 	}
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed. Please check the comment content (1-2000 characters) and try again"})
 		return
 	}
 
 	comment, err := h.commentRepo.GetByID(c.Request.Context(), commentID)
 	if err != nil || comment == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found. It may have been deleted"})
 		return
 	}
 	comment.Edit(req.Content)
@@ -291,7 +291,7 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Comment ID"
 // @Success 200 {object} map[string]string "Comment deleted successfully"
-// @Failure 401 {object} map[string]string "User not authenticated"
+// @Failure 401 {object} map[string]string "You need to log in to continue. Please log in and try again"
 // @Failure 403 {object} map[string]string "Only the comment author can delete it"
 // @Failure 404 {object} map[string]string "Comment not found"
 // @Failure 500 {object} map[string]string "Failed to delete comment"
@@ -299,19 +299,19 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 func (h *CommentHandler) DeleteComment(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 	commentIDStr := c.Param("id")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid comment id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment ID. Please check the URL and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 

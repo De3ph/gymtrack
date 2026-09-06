@@ -104,7 +104,7 @@ func (h *AdminHandler) GetUserDetail(c *gin.Context) {
 	userIDStr := c.Param("id")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID. Please check the URL and try again"})
 		return
 	}
 
@@ -172,19 +172,19 @@ type ChangePasswordRequest struct {
 func (h *AdminHandler) ChangePassword(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is invalid or expired. Please log in again"})
 		return
 	}
 
 	var req ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data. Please check the submitted fields and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -228,24 +228,24 @@ func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
 	userIDStr := c.Param("id")
 	targetUserID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID. Please check the URL and try again"})
 		return
 	}
 
 	adminIDStr, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is invalid or expired. Please log in again"})
 		return
 	}
 	adminID, err := strconv.Atoi(adminIDStr.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid admin identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your admin session is invalid. Please log in again"})
 		return
 	}
 
 	var req UpdateRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data. Please check the submitted fields and try again"})
 		return
 	}
 
@@ -285,13 +285,13 @@ func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
 	userIDStr := c.Param("id")
 	targetUserID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID. Please check the URL and try again"})
 		return
 	}
 
 	var req UpdateStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data. Please check the submitted fields and try again"})
 		return
 	}
 
@@ -309,23 +309,23 @@ func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
 
 // AdminCommentListItem is the comment object returned in admin list endpoints.
 type AdminCommentListItem struct {
-	CommentID        int                 `json:"commentId"`
-	TargetType       string              `json:"targetType"`
-	TargetID         int                 `json:"targetId"`
-	AuthorID         int                 `json:"authorId"`
-	AuthorRole       string              `json:"authorRole"`
-	Content          string              `json:"content"`
-	ParentCommentID  *int                `json:"parentCommentId,omitempty"`
-	CreatedAt        string              `json:"createdAt"`
-	EditedAt         *string             `json:"editedAt,omitempty"`
+	CommentID       int     `json:"commentId"`
+	TargetType      string  `json:"targetType"`
+	TargetID        int     `json:"targetId"`
+	AuthorID        int     `json:"authorId"`
+	AuthorRole      string  `json:"authorRole"`
+	Content         string  `json:"content"`
+	ParentCommentID *int    `json:"parentCommentId,omitempty"`
+	CreatedAt       string  `json:"createdAt"`
+	EditedAt        *string `json:"editedAt,omitempty"`
 }
 
 // AdminCommentListResponse wraps a list of comments with pagination metadata.
 type AdminCommentListResponse struct {
 	Comments []AdminCommentListItem `json:"comments"`
-	Total    int                      `json:"total"`
-	Limit    int                      `json:"limit"`
-	Offset   int                      `json:"offset"`
+	Total    int                    `json:"total"`
+	Limit    int                    `json:"limit"`
+	Offset   int                    `json:"offset"`
 }
 
 // @Summary List all comments (Admin only)
@@ -396,7 +396,7 @@ func (h *AdminHandler) DeleteComment(c *gin.Context) {
 	commentIDStr := c.Param("id")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid comment id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment ID. Please check the URL and try again"})
 		return
 	}
 
@@ -429,7 +429,7 @@ func (h *AdminHandler) VerifyExercise(c *gin.Context) {
 	exerciseIDStr := c.Param("id")
 	exerciseID, err := strconv.Atoi(exerciseIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exercise id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid exercise ID. Please check the URL and try again"})
 		return
 	}
 
@@ -462,7 +462,7 @@ func (h *AdminHandler) DeleteExercise(c *gin.Context) {
 	exerciseIDStr := c.Param("id")
 	exerciseID, err := strconv.Atoi(exerciseIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exercise id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid exercise ID. Please check the URL and try again"})
 		return
 	}
 

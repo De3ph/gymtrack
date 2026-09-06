@@ -47,12 +47,12 @@ type RegisterRequest struct {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid registration data. Please check the username, email and password requirements and try again"})
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid registration data. Please check the highlighted fields and try again"})
 		return
 	}
 
@@ -64,11 +64,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if req.Profile != nil {
 		profileBytes, err := json.Marshal(req.Profile)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid profile format"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile data. Please check the profile fields and try again"})
 			return
 		}
 		if err := json.Unmarshal(profileBytes, &profile); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid profile format"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile data. Please check the profile fields and try again"})
 			return
 		}
 	}
@@ -112,12 +112,12 @@ type LoginRequest struct {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
 
@@ -176,12 +176,12 @@ type RefreshTokenRequest struct {
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
 
@@ -239,12 +239,12 @@ type RestoreAccountRequest struct {
 func (h *AuthHandler) RestoreAccount(c *gin.Context) {
 	var req RestoreAccountRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
 

@@ -119,10 +119,10 @@ func (s *TrainerCatalogService) UpdateTrainerProfile(ctx context.Context, traine
 
 func (s *TrainerCatalogService) ValidateProfileUpdate(profile *models.TrainerProfile) error {
 	if profile.HourlyRate < 0 {
-		return fmt.Errorf("hourly rate cannot be negative")
+		return fmt.Errorf("hourly rate cannot be negative. Please enter 0 or a positive amount")
 	}
 	if profile.YearsOfExperience < 0 {
-		return fmt.Errorf("years of experience cannot be negative")
+		return fmt.Errorf("years of experience cannot be negative. Please enter 0 or a positive number")
 	}
 	return nil
 }

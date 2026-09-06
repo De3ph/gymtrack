@@ -41,12 +41,12 @@ type RequestPasswordResetRequest struct {
 func (h *PasswordResetHandler) RequestPasswordReset(c *gin.Context) {
 	var req RequestPasswordResetRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the email address and try again"})
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the email address and try again"})
 		return
 	}
 
@@ -80,12 +80,12 @@ type ConfirmPasswordResetRequest struct {
 func (h *PasswordResetHandler) ConfirmPasswordReset(c *gin.Context) {
 	var req ConfirmPasswordResetRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the email address and try again"})
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the email address and try again"})
 		return
 	}
 

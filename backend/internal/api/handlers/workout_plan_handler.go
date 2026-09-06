@@ -43,30 +43,30 @@ type AssignPlanRequest struct {
 func (h *WorkoutPlanHandler) CreatePlan(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, exists := c.Get("userRole")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User role not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
 		return
 	}
 	role := userRole.(models.UserRole)
 	if role != models.RoleTrainer && role != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can create workout plans"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can create workout plans. Please log in with a trainer or athlete account"})
 		return
 	}
 
 	var req CreatePlanRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan data. Please check the name and exercises and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -89,13 +89,13 @@ func (h *WorkoutPlanHandler) GetPlans(c *gin.Context) {
 
 	role := userRole.(models.UserRole)
 	if role != models.RoleTrainer && role != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can list their workout plans"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can view workout plans. Please log in with a trainer or athlete account"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -116,7 +116,7 @@ func (h *WorkoutPlanHandler) GetPlan(c *gin.Context) {
 	planIDStr := c.Param("id")
 	planID, err := strconv.Atoi(planIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
@@ -124,7 +124,7 @@ func (h *WorkoutPlanHandler) GetPlan(c *gin.Context) {
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -145,7 +145,7 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 	planIDStr := c.Param("id")
 	planID, err := strconv.Atoi(planIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
@@ -153,19 +153,19 @@ func (h *WorkoutPlanHandler) UpdatePlan(c *gin.Context) {
 
 	role := userRole.(models.UserRole)
 	if role != models.RoleTrainer && role != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can update workout plans"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can edit workout plans. Please log in with the account that created the plan"})
 		return
 	}
 
 	var req UpdatePlanRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan data. Please check the name and exercises and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -186,7 +186,7 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 	planIDStr := c.Param("id")
 	planID, err := strconv.Atoi(planIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
@@ -194,7 +194,7 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 
 	role := userRole.(models.UserRole)
 	if role != models.RoleTrainer && role != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can delete workout plans"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can delete workout plans. You can only delete plans you created"})
 		return
 	}
 
@@ -202,7 +202,7 @@ func (h *WorkoutPlanHandler) DeletePlan(c *gin.Context) {
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -223,26 +223,26 @@ func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
 	planIDStr := c.Param("id")
 	planID, err := strconv.Atoi(planIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
 	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can assign workout plans"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can assign workout plans to athletes"})
 		return
 	}
 
 	var req AssignPlanRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan data. Please check the name and exercises and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -250,7 +250,7 @@ func (h *WorkoutPlanHandler) AssignPlan(c *gin.Context) {
 	for i, idStr := range req.AthleteIDs {
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid athlete id in list"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid athlete ID. Please check the selected athletes and try again"})
 			return
 		}
 		athleteIDInts[i] = id
@@ -276,20 +276,20 @@ func (h *WorkoutPlanHandler) GetAssignments(c *gin.Context) {
 	planIDStr := c.Param("id")
 	planID, err := strconv.Atoi(planIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
 	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view plan assignments"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view plan assignments for plans they created"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -314,13 +314,13 @@ func (h *WorkoutPlanHandler) GetMyPlans(c *gin.Context) {
 	userRole, _ := c.Get("userRole")
 
 	if userRole.(models.UserRole) != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can view their assigned plans"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can view their assigned workout plans. Please log in as an athlete"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -341,20 +341,20 @@ func (h *WorkoutPlanHandler) StartWorkoutFromPlan(c *gin.Context) {
 	planIDStr := c.Param("id")
 	planID, err := strconv.Atoi(planIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout plan ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
 	if userRole.(models.UserRole) != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can start a workout from a plan"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can start a workout from an assigned plan. Please log in as an athlete"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -377,7 +377,7 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 	userRole, _ := c.Get("userRole")
 
 	if userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client plans"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view their clients' workout plans"})
 		return
 	}
 
@@ -387,13 +387,13 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 		return
 	}
 	if athlete == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
 
 	trainerIDInt, err := strconv.Atoi(trainerID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 

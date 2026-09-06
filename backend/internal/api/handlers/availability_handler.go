@@ -33,13 +33,13 @@ func NewAvailabilityHandler(service *services.AvailabilityService) *Availability
 func (h *AvailabilityHandler) GetMyAvailability(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -67,19 +67,19 @@ func (h *AvailabilityHandler) GetMyAvailability(c *gin.Context) {
 func (h *AvailabilityHandler) SetMyAvailability(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	var slots []models.TrainerAvailability
 	if err := c.ShouldBindJSON(&slots); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid availability data. Please check the days and time slots and try again"})
 		return
 	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h *AvailabilityHandler) GetTrainerAvailability(c *gin.Context) {
 	trainerIDStr := c.Param("id")
 	trainerID, err := strconv.Atoi(trainerIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trainer id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid trainer ID. Please check the URL and try again"})
 		return
 	}
 
@@ -136,7 +136,7 @@ func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
 	slotIDStr := c.Param("slotId")
 	slotID, err := strconv.Atoi(slotIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid slot id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid availability slot ID. Please check the URL and try again"})
 		return
 	}
 
@@ -148,4 +148,3 @@ func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "slot deleted successfully"})
 }
-

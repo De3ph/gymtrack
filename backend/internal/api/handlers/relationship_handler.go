@@ -127,7 +127,7 @@ type GetClientStatsResponse struct {
 // @Produce json
 // @Security BearerAuth
 // @Success 201 {object} map[string]any "Invitation generated successfully" {"message":"Invitation generated successfully","invitation":{"code":"string","expiresAt":"string"}}
-// @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
+// @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can generate invitations"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to generate invitation","details":"error message"}
 // @Router /relationships/invite [post]
@@ -135,21 +135,21 @@ func (h *RelationshipHandler) GenerateInvitation(c *gin.Context) {
 	// Extract trainer ID from JWT token
 	trainerID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	// Check if user is a trainer
 	userRole, exists := c.Get("userRole")
 	if !exists || userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can generate invitations"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can generate invitation codes. Please log in as a trainer"})
 		return
 	}
 
 	// Generate invitation
 	trainerIDInt, err := strconv.Atoi(trainerID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -178,46 +178,46 @@ func (h *RelationshipHandler) GenerateInvitation(c *gin.Context) {
 // @Param request body AcceptInvitationRequest true "Invitation acceptance request"
 // @Success 200 {object} map[string]any "Invitation accepted successfully" {"message":"Invitation accepted successfully","relationship": models.Relationship}
 // @Failure 400 {object} map[string]string "Bad request" {"error":"Invalid request body"} or {"error":"Validation failed"} or {"error":"Invalid invitation code"}
-// @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
+// @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only athletes can accept invitations"}
 // @Router /relationships/accept [post]
 func (h *RelationshipHandler) AcceptInvitation(c *gin.Context) {
 	// Extract athlete ID from JWT token
 	athleteID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	// Check if user is an athlete
 	userRole, exists := c.Get("userRole")
 	if !exists || userRole.(models.UserRole) != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can accept invitations"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can accept invitations. Please log in as an athlete"})
 		return
 	}
 
 	var req AcceptInvitationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid invitation data. Please check the invitation code and try again"})
 		return
 	}
 
 	// Validate request
 	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed. Please check the invitation code and try again"})
 		return
 	}
 
 	// Accept invitation
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	relationship, err := h.invitationService.AcceptInvitation(c.Request.Context(), req.Code, athleteIDInt)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot accept invitation"})
+		handleBusinessError(c, err)
 		return
 	}
 
@@ -234,7 +234,7 @@ func (h *RelationshipHandler) AcceptInvitation(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} map[string]any "Success" {"pendingInvitations": []models.Invitation, "activeTrainer": map[string]any{"relationship": models.Relationship, "trainer": models.User}}
-// @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
+// @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only athletes can view their trainer"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to retrieve invitations/relationships"}
 // @Router /relationships/my-trainer [get]
@@ -242,21 +242,21 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 	// Extract athlete ID from JWT token
 	athleteID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	// Check if user is an athlete
 	userRole, exists := c.Get("userRole")
 	if !exists || userRole.(models.UserRole) != models.RoleAthlete {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can view their trainer"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only athletes can view their trainer. Please log in as an athlete"})
 		return
 	}
 
 	// Get pending invitations
 	athleteIDInt, convErr := strconv.Atoi(athleteID.(string))
 	if convErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -306,7 +306,7 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} map[string]any "Success" {"clients": []ClientWithAthlete, "count": int}
-// @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
+// @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can view their clients"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to retrieve clients"}
 // @Router /relationships/my-clients [get]
@@ -314,21 +314,21 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 	// Extract trainer ID from JWT token
 	trainerID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	// Check if user is a trainer
 	userRole, exists := c.Get("userRole")
 	if !exists || userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view their clients"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view their clients. Please log in as a trainer"})
 		return
 	}
 
 	// Get all relationships for this trainer
 	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
 	if convErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -378,7 +378,7 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 // @Security BearerAuth
 // @Param username path string true "Client (athlete) username" example("johndoe")
 // @Success 200 {object} GetClientDetailsResponse "Success"
-// @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
+// @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can view client details"} or {"error":"You don't have an active relationship with this client"}
 // @Failure 404 {object} map[string]string "Not found" {"error":"Client not found"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to verify relationship/get athlete details"}
@@ -387,13 +387,13 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 	username := c.Param("username")
 	trainerID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, exists := c.Get("userRole")
 	if !exists || userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client details"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client details. Please log in as a trainer"})
 		return
 	}
 
@@ -404,14 +404,14 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 		return
 	}
 	if athlete == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
 
 	// Verify relationship
 	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
 	if convErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -430,7 +430,7 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 	}
 
 	if clientRelationship == nil {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active relationship with this client"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active coaching relationship with this client"})
 		return
 	}
 
@@ -476,7 +476,7 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Relationship ID" example("rel-123")
 // @Success 200 {object} map[string]any "Relationship terminated successfully" {"message":"Relationship terminated successfully","relationship": models.Relationship}
-// @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
+// @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"You are not authorized to terminate this relationship"}
 // @Failure 404 {object} map[string]string "Not found" {"error":"Relationship not found"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to terminate relationship/get athlete/update profile"}
@@ -485,7 +485,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 	relationshipIDStr := c.Param("id")
 	relationshipID, err := strconv.Atoi(relationshipIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid relationship id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid relationship ID. Please check the URL and try again"})
 		return
 	}
 	userID, _ := c.Get("userID")
@@ -493,14 +493,14 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
 	// Get the relationship
 	relationship, err := h.relationshipRepo.GetByID(c.Request.Context(), relationshipID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Relationship not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Relationship not found. It may have already been terminated"})
 		return
 	}
 
@@ -513,7 +513,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 	}
 
 	if !isAuthorized {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to terminate this relationship"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to terminate this relationship. Only the trainer or athlete involved can do this"})
 		return
 	}
 
@@ -550,7 +550,7 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 // @Security BearerAuth
 // @Param username path string true "Client (athlete) username" example("johndoe")
 // @Success 200 {object} GetClientStatsResponse "Success" {"workoutStats": WorkoutStats, "mealStats": MealStats}
-// @Failure 401 {object} map[string]string "Unauthorized" {"error":"User not authenticated"}
+// @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can view client stats"} or {"error":"You don't have an active relationship with this client"}
 // @Failure 404 {object} map[string]string "Not found" {"error":"Client not found"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to verify relationship"}
@@ -559,13 +559,13 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 	username := c.Param("username")
 	trainerID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
 
 	userRole, exists := c.Get("userRole")
 	if !exists || userRole.(models.UserRole) != models.RoleTrainer {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client stats"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client statistics. Please log in as a trainer"})
 		return
 	}
 
@@ -576,14 +576,14 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 		return
 	}
 	if athlete == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
 
 	// Verify relationship
 	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
 	if convErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user identity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
@@ -602,7 +602,7 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 	}
 
 	if !hasActiveRelationship {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active relationship with this client"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active coaching relationship with this client"})
 		return
 	}
 
