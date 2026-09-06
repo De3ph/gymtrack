@@ -1,0 +1,49 @@
+groups:
+  - name: gymtrack-backend
+    rules:
+      # Backend instance unreachable — scrape failing.
+      - alert: GymtrackBackendDown
+        expr: up{job="gymtrack-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "gymtrack-backend scrape target down"
+          description: "Prometheus has failed to scrape {{ $labels.instance }} for more than 1 minute."
+
+      # 5xx error rate above 5% over 5 minutes.
+      - alert: GymtrackHighErrorRate
+        expr: |
+          sum(rate(gymtrack_http_requests_total{status=~"5.."}[5m]))
+          /
+          sum(rate(gymtrack_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx error rate ({{ $value | humanizePercentage }})"
+          description: "5xx responses exceed 5% of total requests for 5 minutes."
+
+      # P99 request latency above 1 second.
+      - alert: GymtrackHighLatencyP99
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum(rate(gymtrack_http_request_duration_seconds_bucket[5m])) by (le, path)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P99 latency above 1s on {{ $labels.path }}"
+          description: "99th percentile request latency exceeds 1 second for 10 minutes."
+
+      # Too many concurrent requests — possible saturation or slow dependency.
+      - alert: GymtrackRequestsInFlightHigh
+        expr: gymtrack_http_requests_in_flight > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "In-flight requests above 100 ({{ $value }})"
+          description: "Concurrent in-flight requests stayed above 100 for 5 minutes."

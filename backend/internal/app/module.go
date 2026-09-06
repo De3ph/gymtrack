@@ -17,6 +17,7 @@ import (
 	"gymtrack-backend/internal/infrastructure/email"
 	"gymtrack-backend/internal/infrastructure/persistence"
 	"gymtrack-backend/internal/infrastructure/persistence/postgres"
+	"gymtrack-backend/internal/infrastructure/tracing"
 	"gymtrack-backend/internal/utils"
 
 	"github.com/gin-contrib/cors"
@@ -45,26 +46,26 @@ var RepositoryModule = fx.Module("repositories",
 		},
 
 		// Cache adapter factories (one per domain, separate metrics per instance)
-		func(cfg *config.Config) cache.Cache[*models.User] {
-			return cache.NewUserCacheNoMetrics(cfg.CacheEnabled)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[*models.User] {
+			return cache.NewUserCache(reg, cfg.CacheEnabled)
 		},
-		func(cfg *config.Config) cache.Cache[[]models.Exercise] {
-			return cache.NewExerciseCacheNoMetrics(cfg.CacheEnabled)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.Exercise] {
+			return cache.NewExerciseCache(reg, cfg.CacheEnabled)
 		},
-		func(cfg *config.Config) cache.Cache[[]models.MuscleGroupDefinition] {
-			return cache.NewMuscleGroupCacheNoMetrics(cfg.CacheEnabled)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.MuscleGroupDefinition] {
+			return cache.NewMuscleGroupCache(reg, cfg.CacheEnabled)
 		},
-		func(cfg *config.Config) cache.Cache[[]models.EquipmentDefinition] {
-			return cache.NewEquipmentCacheNoMetrics(cfg.CacheEnabled)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.EquipmentDefinition] {
+			return cache.NewEquipmentCache(reg, cfg.CacheEnabled)
 		},
-		func(cfg *config.Config) cache.Cache[[]*models.Relationship] {
-			return cache.NewRelationshipCacheNoMetrics(cfg.CacheEnabled)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]*models.Relationship] {
+			return cache.NewRelationshipCache(reg, cfg.CacheEnabled)
 		},
-		func(cfg *config.Config) cache.Cache[*models.TrainerWithProfile] {
-			return cache.NewTrainerIDCacheNoMetrics(cfg.CacheEnabled)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[*models.TrainerWithProfile] {
+			return cache.NewTrainerIDCache(reg, cfg.CacheEnabled)
 		},
-		func(cfg *config.Config) cache.Cache[[]models.TrainerWithProfile] {
-			return cache.NewTrainerPublicCacheNoMetrics(cfg.CacheEnabled)
+		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[[]models.TrainerWithProfile] {
+			return cache.NewTrainerPublicCache(reg, cfg.CacheEnabled)
 		},
 
 		// Cached repositories (implement same interfaces, transparent to services)
@@ -201,6 +202,27 @@ var RepositoryModule = fx.Module("repositories",
 		},
 	),
 
+	// Initialize OpenTelemetry tracer provider before the server starts
+	// (fx runs OnStart hooks in registration order), flush on shutdown.
+	fx.Invoke(func(lc fx.Lifecycle, cfg *config.Config) {
+		var shutdownTracing func(context.Context) error
+		lc.Append(fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				var err error
+				shutdownTracing, err = tracing.Init(cfg.OTelEndpoint, cfg.TraceSamplingRatio)
+				return err
+			},
+			OnStop: func(ctx context.Context) error {
+				if shutdownTracing == nil {
+					return nil
+				}
+				shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				return shutdownTracing(shutdownCtx)
+			},
+		})
+	}),
+
 	fx.Invoke(func(
 		authHandler *handlers.AuthHandler,
 		userHandler *handlers.UserHandler,
@@ -236,6 +258,14 @@ var RepositoryModule = fx.Module("repositories",
 
 		router.Use(cors.New(corsConfig))
 		router.Use(middleware.BodyLimitMiddleware(middleware.DefaultMaxBodyBytes))
+
+		// Distributed tracing: server span per request (enables trace_id in logs)
+		router.Use(middleware.TracingMiddleware())
+		// Structured HTTP access logs with trace correlation
+		router.Use(middleware.AccessLogMiddleware())
+
+		// pprof profiling endpoints (PPROF_ENABLED=true)
+		routes.RegisterProfilingRoutes(router, cfg.PProfEnabled)
 
 		// Prometheus metrics
 		router.Use(metricsMw)

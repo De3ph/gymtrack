@@ -7,6 +7,9 @@ import (
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
+
+	logger "gymtrack-backend/internal/infrastructure/log"
+	"go.uber.org/zap"
 )
 
 // InvitationMethod defines the storage interface for invitation codes.
@@ -86,7 +89,10 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 	// Mark invitation as used with concurrency safety
 	if err := s.method.MarkInvitationUsed(ctx, invitation.InvitationID); err != nil {
 		// Log error but don't fail the operation
-		fmt.Printf("Warning: failed to mark invitation as used: %v\n", err)
+		logger.From(ctx).Warn("failed to mark invitation as used",
+			zap.Int("invitationId", invitation.InvitationID),
+			zap.Error(err),
+		)
 	}
 
 	return relationship, nil
