@@ -1,4 +1,4 @@
-﻿import { useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,14 @@ const QUICK_ACTIONS = [
   { key: "measurements", icon: "📏", route: "/(tabs)/measurements" as const },
   { key: "trainers", icon: "👤", route: "/trainer-catalog" as const },
 ] as const;
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export function DashboardScreen() {
   const c = useThemeColors();
@@ -82,8 +90,6 @@ export function DashboardScreen() {
       </View>
     );
   }
-
-  const formatDate = (d: string) => new Date(d).toLocaleDateString(undefined, { weekday: "short" as const, month: "short" as const, day: "numeric" as const });
 
   return (
     <ScrollView

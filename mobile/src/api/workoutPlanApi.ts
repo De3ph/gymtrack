@@ -19,14 +19,5 @@ export const workoutPlanApi = {
   assign: (id: string | number, data: { athleteId: number; startDate?: string; endDate?: string }) =>
     apiRequest<void>(`/workout-plans/${id}/assign`, { method: "POST", body: data }),
 
-  getAssignments: (id: string | number) =>
-    apiRequest<{ assignments: { id: number; athleteId: number; startDate: string; endDate?: string }[] }>(`/workout-plans/${id}/assignments`),
-
   getMyPlans: () => apiRequest<{ plans: WorkoutPlan[] }>("/workout-plans/assigned"),
-
-  startWorkout: (id: string | number) =>
-    apiRequest<void>(`/workout-plans/${id}/start`, { method: "POST", body: {} }),
-
-  getClientPlans: (username: string) =>
-    apiRequest<{ plans: WorkoutPlan[] }>(`/clients/${username}/workout-plans`),
 };

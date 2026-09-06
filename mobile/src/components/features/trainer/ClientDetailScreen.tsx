@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -48,8 +48,14 @@ export function ClientDetailScreen() {
   });
 
   const tabs: Tab[] = ["overview", "workouts", "meals", "measurements"];
-  const isLoading = tab === "overview" ? loadingStats : tab === "workouts" ? loadingWorkouts : tab === "meals" ? loadingMeals : loadingMeasurements;
-  const isError = tab === "overview" ? statsError : tab === "workouts" ? workoutsError : tab === "meals" ? mealsError : measurementsError;
+  const tabQueries: Record<Tab, { loading: boolean; error: boolean }> = {
+    overview: { loading: loadingStats, error: statsError },
+    workouts: { loading: loadingWorkouts, error: workoutsError },
+    meals: { loading: loadingMeals, error: mealsError },
+    measurements: { loading: loadingMeasurements, error: measurementsError },
+  };
+  const isLoading = tabQueries[tab].loading;
+  const isError = tabQueries[tab].error;
   const st = stats as { totalWorkouts?: number; totalMeals?: number; consistency?: number; totalVolume?: number };
 
   const refetchFailed = () => {
@@ -71,30 +77,30 @@ export function ClientDetailScreen() {
     return (measurements as { measurements?: { measurementId?: number; date?: string; weight?: number }[] })?.measurements ?? [];
   }, [measurements]);
 
-  const renderWorkoutItem = useCallback(({ item }: { item: { workoutId?: number; date?: string; exercises?: unknown[] } }) => (
+  const renderWorkoutItem = ({ item }: { item: { workoutId?: number; date?: string; exercises?: unknown[] } }) => (
     <View style={styles.listCard}>
       <Text style={styles.listTitle}>{item.date}</Text>
       <Text style={styles.listSub}>{item.exercises?.length ?? 0} exercises</Text>
     </View>
-  ), []);
+  );
 
-  const renderMealItem = useCallback(({ item }: { item: { mealId?: number; date?: string; mealType?: string; items?: unknown[] } }) => (
+  const renderMealItem = ({ item }: { item: { mealId?: number; date?: string; mealType?: string; items?: unknown[] } }) => (
     <View style={styles.listCard}>
       <Text style={styles.listTitle}>{item.mealType} - {item.date}</Text>
       <Text style={styles.listSub}>{item.items?.length ?? 0} items</Text>
     </View>
-  ), []);
+  );
 
-  const renderMeasurementItem = useCallback(({ item }: { item: { measurementId?: number; date?: string; weight?: number } }) => (
+  const renderMeasurementItem = ({ item }: { item: { measurementId?: number; date?: string; weight?: number } }) => (
     <View style={styles.listCard}>
       <Text style={styles.listTitle}>{item.date}</Text>
       <Text style={styles.listSub}>{item.weight ? `${item.weight} kg` : "N/A"}</Text>
     </View>
-  ), []);
+  );
 
-  const keyExtractorWorkout = useCallback((item: { workoutId?: number; date?: string }) => String(item.workoutId ?? ""), []);
-  const keyExtractorMeal = useCallback((item: { mealId?: number; date?: string }) => String(item.mealId ?? ""), []);
-  const keyExtractorMeasurement = useCallback((item: { measurementId?: number; date?: string }) => String(item.measurementId ?? ""), []);
+  const keyExtractorWorkout = (item: { workoutId?: number; date?: string }) => String(item.workoutId ?? "");
+  const keyExtractorMeal = (item: { mealId?: number; date?: string }) => String(item.mealId ?? "");
+  const keyExtractorMeasurement = (item: { measurementId?: number; date?: string }) => String(item.measurementId ?? "");
 
   return (
     <View style={styles.flex}>

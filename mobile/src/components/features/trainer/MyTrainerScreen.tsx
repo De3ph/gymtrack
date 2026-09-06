@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ export function MyTrainerScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const styles = createStyles(c);
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["myTrainer"],
     queryFn: () => relationshipApi.getMyTrainer(),
   });
@@ -35,21 +35,17 @@ export function MyTrainerScreen() {
 
   const { mutate: acceptInvite, isPending: accepting } = useMutation({
     mutationFn: (code: string) => relationshipApi.acceptInvitation(code),
-    onSuccess: () => {
+    onSuccess: async () => {
       setInviteCode("");
       setShowSuccess(true);
-      queryClient.invalidateQueries({ queryKey: ["myTrainer"] });
       Alert.alert("Success", "Invitation accepted! You are now connected with your trainer.");
+      await queryClient.invalidateQueries({ queryKey: ["myTrainer"] });
+      setShowSuccess(false);
     },
     onError: (err: Error) => {
       Alert.alert("Error", err.message || "Failed to accept invitation");
     },
   });
-
-  // Clear success flag once the refetch triggered by invalidation completes
-  useEffect(() => {
-    if (showSuccess && !isFetching) setShowSuccess(false);
-  }, [showSuccess, isFetching]);
 
   const handleAcceptInvite = useCallback(() => {
     if (inviteCode.trim()) {

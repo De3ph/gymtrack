@@ -8,9 +8,6 @@ export const relationshipApi = {
   getMyClients: () =>
     apiRequest<{ clients: Relationship[] }>("/relationships/my-clients"),
 
-  getClientDetails: (username: string) =>
-    apiRequest<Relationship>(`/relationships/client/${username}`),
-
   acceptInvitation: (code: string) =>
     apiRequest<Relationship>("/relationships/accept", { method: "POST", body: { code } }),
 

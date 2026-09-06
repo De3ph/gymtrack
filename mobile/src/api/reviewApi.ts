@@ -13,13 +13,4 @@ export const reviewApi = {
 
   getTrainerReviews: (trainerId: string | number) =>
     apiRequest<{ reviews: TrainerReview[] }>(`/trainers/${trainerId}/reviews`),
-
-  updateReview: (
-    reviewId: string | number,
-    data: Partial<Omit<TrainerReview, "reviewId" | "createdAt" | "updatedAt" | "trainerId" | "athleteId">>
-  ) =>
-    apiRequest<TrainerReview>(`/reviews/${reviewId}`, { method: "PUT", body: data }),
-
-  deleteReview: (reviewId: string | number) =>
-    apiRequest<void>(`/reviews/${reviewId}`, { method: "DELETE" }),
 };

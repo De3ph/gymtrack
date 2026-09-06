@@ -35,7 +35,7 @@ export function WorkoutPlansScreen() {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["workoutPlans"],
     queryFn: () => workoutPlanApi.getAll(),
   });
@@ -103,7 +103,7 @@ export function WorkoutPlansScreen() {
           keyExtractor={(item) => String(item.planId ?? "")}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
           ListEmptyComponent={<View style={styles.center}><Text style={styles.emptyText}>No plans yet</Text></View>}
         />
       )}

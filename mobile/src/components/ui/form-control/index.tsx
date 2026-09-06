@@ -7,6 +7,16 @@ import { StyledUIIcon } from "@/components/ui/icon";
 
 const SCOPE = "FORM_CONTROL";
 
+const sharedTextVariants = {
+  isTruncated: { true: "web:truncate" },
+  bold: { true: "font-bold" },
+  underline: { true: "underline" },
+  strikeThrough: { true: "line-through" },
+  sub: { true: "text-xs" },
+  italic: { true: "italic" },
+  highlight: { true: "bg-warning-surface" },
+};
+
 const formControlStyle = tva({
   base: "flex flex-col",
 });
@@ -21,15 +31,7 @@ const formControlErrorStyle = tva({
 
 const formControlErrorTextStyle = tva({
   base: "text-xs text-danger",
-  variants: {
-    isTruncated: { true: "web:truncate" },
-    bold: { true: "font-bold" },
-    underline: { true: "underline" },
-    strikeThrough: { true: "line-through" },
-    sub: { true: "text-xs" },
-    italic: { true: "italic" },
-    highlight: { true: "bg-warning-surface" },
-  },
+  variants: sharedTextVariants,
 });
 
 const formControlHelperStyle = tva({
@@ -38,15 +40,7 @@ const formControlHelperStyle = tva({
 
 const formControlHelperTextStyle = tva({
   base: "text-sm text-text/70",
-  variants: {
-    isTruncated: { true: "web:truncate" },
-    bold: { true: "font-bold" },
-    underline: { true: "underline" },
-    strikeThrough: { true: "line-through" },
-    sub: { true: "text-xs" },
-    italic: { true: "italic" },
-    highlight: { true: "bg-warning-surface" },
-  },
+  variants: sharedTextVariants,
 });
 
 const formControlLabelStyle = tva({
@@ -55,28 +49,12 @@ const formControlLabelStyle = tva({
 
 const formControlLabelTextStyle = tva({
   base: "text-base font-medium text-text",
-  variants: {
-    isTruncated: { true: "web:truncate" },
-    bold: { true: "font-bold" },
-    underline: { true: "underline" },
-    strikeThrough: { true: "line-through" },
-    sub: { true: "text-xs" },
-    italic: { true: "italic" },
-    highlight: { true: "bg-warning-surface" },
-  },
+  variants: sharedTextVariants,
 });
 
 const formControlLabelAstrickStyle = tva({
   base: "text-base font-medium text-text",
-  variants: {
-    isTruncated: { true: "web:truncate" },
-    bold: { true: "font-bold" },
-    underline: { true: "underline" },
-    strikeThrough: { true: "line-through" },
-    sub: { true: "text-xs" },
-    italic: { true: "italic" },
-    highlight: { true: "bg-warning-surface" },
-  },
+  variants: sharedTextVariants,
 });
 
 type IFormControlLabelAstrickProps = React.ComponentPropsWithoutRef<typeof Text> &

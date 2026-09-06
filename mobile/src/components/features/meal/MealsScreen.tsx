@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -22,8 +22,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Meal, MealListResponse } from "@/types"
 import { useThemeColors } from "@/components/useThemeColors"
 import type { ThemeColors } from "@/constants/Colors"
-
-// ------- helpers -------
+import { canEdit } from "@/lib/canEdit"
 
 function todayString(): string {
   const d = new Date()
@@ -33,22 +32,12 @@ function todayString(): string {
   return yyyy + "-" + mm + "-" + dd
 }
 
-const MEAL_TYPES: Array<"breakfast" | "lunch" | "dinner" | "snack"> = [
+const MEAL_TYPES: ("breakfast" | "lunch" | "dinner" | "snack")[] = [
   "breakfast",
   "lunch",
   "dinner",
   "snack"
 ]
-
-/** Returns true if the item was created within the last 24 hours */
-function canEdit(createdAt?: string): boolean {
-  if (!createdAt) return false
-  const created = new Date(createdAt).getTime()
-  const now = Date.now()
-  return now - created < 24 * 60 * 60 * 1000
-}
-
-// ------- types for local form state -------
 
 interface NewFoodItem {
   id: string
@@ -91,7 +80,7 @@ function mealToItems(meal: Meal): NewFoodItem[] {
   }))
 }
 
-// ------- meal card for flatlist -------
+// Meal card for the list
 
 interface MealCardProps {
   meal: Meal
@@ -114,10 +103,10 @@ function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
     String(meal.mealType).slice(1)
 
   const formattedDate = new Date(meal.date).toLocaleDateString(undefined, {
-    weekday: "short" as const,
-    year: "numeric" as const,
-    month: "short" as const,
-    day: "numeric" as const
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric"
   })
 
   return (
@@ -167,8 +156,6 @@ function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
   )
 }
 
-// ------- main screen -------
-
 export function MealsScreen() {
   const c = useThemeColors()
   const { t } = useI18n()
@@ -181,7 +168,6 @@ export function MealsScreen() {
     router.push(("/meals/" + String(m.mealId)) as Href)
   }, [router])
 
-  // --- data ---
   const { data, isLoading, isError, error, refetch, isRefetching } =
     useQuery<MealListResponse>({
       queryKey: ["meals", "list"],
@@ -190,7 +176,6 @@ export function MealsScreen() {
 
   const meals: Meal[] = data?.meals ?? []
 
-  // --- form state ---
   const [modalVisible, setModalVisible] = useState(false)
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null)
   const [newDate, setNewDate] = useState(todayString)
@@ -200,7 +185,6 @@ export function MealsScreen() {
   const [newItems, setNewItems] = useState<NewFoodItem[]>([createEmptyItem()])
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // --- create mutation ---
   const createMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) => mealApi.create(payload),
     onSuccess: () => {
@@ -213,7 +197,6 @@ export function MealsScreen() {
     }
   })
 
-  // --- update mutation ---
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Record<string, unknown> }) =>
       mealApi.update(id, data),
@@ -227,7 +210,6 @@ export function MealsScreen() {
     }
   })
 
-  // --- delete mutation ---
   const deleteMutation = useMutation({
     mutationFn: (id: number) => mealApi.delete(id),
     onSuccess: () => {
@@ -240,7 +222,6 @@ export function MealsScreen() {
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
-  // --- form helpers ---
   function resetForm() {
     setEditingMeal(null)
     setNewDate(todayString)
@@ -321,8 +302,7 @@ export function MealsScreen() {
       return
     }
 
-    const payloadItems = newItems
-      .filter((item) => item.food.trim() && item.quantity.trim())
+    const payloadItems = filledItems
       .map((item) => {
         const calories = parseFloat(item.calories) || 0
         const protein = parseFloat(item.protein) || 0
@@ -355,7 +335,6 @@ export function MealsScreen() {
     }
   }
 
-  // --- render helpers ---
   const renderMealItem = useCallback(
     ({ item }: ListRenderItemInfo<Meal>) => (
       <MealCard
@@ -374,7 +353,6 @@ export function MealsScreen() {
     []
   )
 
-  // --- loading state ---
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -384,7 +362,6 @@ export function MealsScreen() {
     )
   }
 
-  // --- error state ---
   if (isError && meals.length === 0) {
     const errorMessage = (error as Error)?.message || t("common.errors.generic")
     return (
@@ -400,7 +377,6 @@ export function MealsScreen() {
     )
   }
 
-  // --- empty state ---
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>🍽️</Text>

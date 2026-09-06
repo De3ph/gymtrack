@@ -22,6 +22,7 @@ import type { Workout, WorkoutListResponse } from "@/types";
 import { ExercisePicker } from "./ExercisePicker";
 import { useThemeColors } from "@/components/useThemeColors";
 import type { ThemeColors } from "@/constants/Colors";
+import { canEdit } from "@/lib/canEdit";
 
 interface NewSet {
   id: string;
@@ -69,14 +70,6 @@ function todayString(): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return yyyy + "-" + mm + "-" + dd;
-}
-
-/** Returns true if the item was created within the last 24 hours */
-function canEdit(createdAt?: string): boolean {
-  if (!createdAt) return false;
-  const created = new Date(createdAt).getTime();
-  const now = Date.now();
-  return now - created < 24 * 60 * 60 * 1000;
 }
 
 /** Convert a Workout's exercises to the editable NewExercise[] shape */
@@ -183,7 +176,6 @@ export function WorkoutsScreen() {
 
   const workouts = useMemo(() => data?.workouts ?? [], [data]);
 
-  // --- modal state (shared for create & edit) ---
   const [modalVisible, setModalVisible] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [newDate, setNewDate] = useState(todayString);
@@ -211,7 +203,6 @@ export function WorkoutsScreen() {
     [pickingForExId]
   );
 
-  // --- create mutation ---
   const createMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => workoutApi.create(data),
     onSuccess: () => {
@@ -223,7 +214,6 @@ export function WorkoutsScreen() {
     },
   });
 
-  // --- update mutation ---
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Record<string, unknown> }) =>
       workoutApi.update(id, data),
@@ -236,7 +226,6 @@ export function WorkoutsScreen() {
     },
   });
 
-  // --- delete mutation ---
   const deleteMutation = useMutation({
     mutationFn: (id: number) => workoutApi.delete(id),
     onSuccess: () => {
@@ -249,7 +238,6 @@ export function WorkoutsScreen() {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  // --- open create modal ---
   const openCreateModal = useCallback(() => {
     resetExerciseAndSetCounters();
     setEditingWorkout(null);
@@ -259,7 +247,6 @@ export function WorkoutsScreen() {
     setModalVisible(true);
   }, []);
 
-  // --- open edit modal ---
   const openEditModal = useCallback(
     (workout: Workout) => {
       setEditingWorkout(workout);
@@ -271,7 +258,6 @@ export function WorkoutsScreen() {
     []
   );
 
-  // --- handle delete ---
   const handleDelete = useCallback(
     (workout: Workout) => {
       const id = workout.workoutId;

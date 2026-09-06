@@ -52,11 +52,6 @@ const Icon = React.forwardRef<React.ComponentRef<typeof UIIcon>, IIConProps>(
         />
       );
     }
-    if ((props.height !== undefined || props.width !== undefined) && size === undefined) {
-      return (
-        <StyledUIIcon ref={ref} {...props} className={iconStyle({ class: className })} />
-      );
-    }
     return (
       <StyledUIIcon
         ref={ref}

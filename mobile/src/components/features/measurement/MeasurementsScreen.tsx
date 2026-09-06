@@ -17,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { bodyMeasurementApi } from "@/api/bodyMeasurementApi"
 import { useThemeColors } from "@/components/useThemeColors"
 import type { ThemeColors } from "@/constants/Colors"
+import { canEdit } from "@/lib/canEdit"
 
 interface Measurement {
   measurementId?: number
@@ -39,12 +40,24 @@ const BODY_PARTS = [
   "neck"
 ]
 
-/** Returns true if the item was created within the last 24 hours */
-function canEdit(createdAt?: string): boolean {
-  if (!createdAt) return false
-  const created = new Date(createdAt).getTime()
-  const now = Date.now()
-  return now - created < 24 * 60 * 60 * 1000
+function buildMeasurementBody(
+  date: string,
+  weight: string,
+  bodyFat: string,
+  notes: string,
+  parts: Record<string, string>
+): Record<string, unknown> {
+  const body: Record<string, unknown> = { date }
+  if (weight) body.weight = Number(weight)
+  if (bodyFat) body.bodyFatPct = Number(bodyFat)
+  if (notes.trim()) body.notes = notes.trim()
+  body.weightUnit = "kg"
+  const pv: Record<string, number> = {}
+  Object.entries(parts).forEach(([k, v]) => {
+    if (v) pv[k] = Number(v)
+  })
+  if (Object.keys(pv).length > 0) body.parts = pv
+  return body
 }
 
 function isValidNumber(value: string): boolean {
@@ -115,22 +128,17 @@ export function MeasurementsScreen() {
     queryFn: () => bodyMeasurementApi.getLatest()
   })
 
-  // --- create mutation ---
   const { mutate: create, isPending: creating } = useMutation({
-    mutationFn: () => {
-      const body: Record<string, unknown> = {
-        date: new Date().toISOString().split("T")[0]
-      }
-      if (weight) body.weight = Number(weight)
-      if (bodyFat) body.bodyFatPct = Number(bodyFat)
-      if (notes.trim()) body.notes = notes.trim()
-      const pv: Record<string, number> = {}
-      Object.entries(parts).forEach(([k, v]) => {
-        if (v) pv[k] = Number(v)
-      })
-      if (Object.keys(pv).length > 0) body.parts = pv
-      return bodyMeasurementApi.create(body)
-    },
+    mutationFn: () =>
+      bodyMeasurementApi.create(
+        buildMeasurementBody(
+          new Date().toISOString().split("T")[0],
+          weight,
+          bodyFat,
+          notes,
+          parts
+        )
+      ),
     onSuccess: () => {
       closeForm()
       qc.invalidateQueries({ queryKey: ["measurements"] })
@@ -138,7 +146,6 @@ export function MeasurementsScreen() {
     }
   })
 
-  // --- update mutation ---
   const { mutate: update, isPending: updating } = useMutation({
     mutationFn: ({ id, body }: { id: number; body: Record<string, unknown> }) =>
       bodyMeasurementApi.update(id, body),
@@ -152,7 +159,6 @@ export function MeasurementsScreen() {
     }
   })
 
-  // --- delete mutation ---
   const { mutate: remove } = useMutation({
     mutationFn: (id: number) => bodyMeasurementApi.delete(id),
     onSuccess: () => {
@@ -167,12 +173,7 @@ export function MeasurementsScreen() {
   const isPending = creating || updating
 
   function openCreateForm() {
-    setEditingMeasurement(null)
-    setWeight("")
-    setBodyFat("")
-    setNotes("")
-    setParts({})
-    setFormError("")
+    closeForm()
     setShowAdd(true)
   }
 
@@ -213,18 +214,13 @@ export function MeasurementsScreen() {
       return
     }
     setFormError("")
-    const body: Record<string, unknown> = {
-      date: editingMeasurement?.date ?? new Date().toISOString().split("T")[0]
-    }
-    if (weight) body.weight = Number(weight)
-    if (bodyFat) body.bodyFatPct = Number(bodyFat)
-    if (notes.trim()) body.notes = notes.trim()
-    body.weightUnit = "kg"
-    const pv: Record<string, number> = {}
-    Object.entries(parts).forEach(([k, v]) => {
-      if (v) pv[k] = Number(v)
-    })
-    if (Object.keys(pv).length > 0) body.parts = pv
+    const body = buildMeasurementBody(
+      editingMeasurement?.date ?? new Date().toISOString().split("T")[0],
+      weight,
+      bodyFat,
+      notes,
+      parts
+    )
 
     if (editingMeasurement?.measurementId != null) {
       update({ id: editingMeasurement.measurementId, body })
@@ -253,8 +249,10 @@ export function MeasurementsScreen() {
     [remove]
   )
 
-  const measurements: Measurement[] =
-    (data as { measurements?: Measurement[] })?.measurements ?? []
+  const measurements = useMemo<Measurement[]>(
+    () => (data as { measurements?: Measurement[] })?.measurements ?? [],
+    [data]
+  )
   const latestM = latest as Measurement | undefined
   const wData = useMemo(
     () =>

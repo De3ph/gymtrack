@@ -23,11 +23,5 @@ export const authApi = {
   logout: () =>
     apiRequest<void>("/auth/logout", { method: "POST" }),
 
-  refresh: (refreshToken: string) =>
-    apiRequest<{ accessToken: string }>("/auth/refresh", {
-      method: "POST",
-      body: { refreshToken },
-    }),
-
   getMe: () => apiRequest<User>("/users/me"),
 };

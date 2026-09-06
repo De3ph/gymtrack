@@ -16,12 +16,26 @@ import { AssignClientModal } from "./AssignClientModal";
 import { useState } from "react";
 import { useThemeColors } from "@/components/useThemeColors";
 import type { ThemeColors } from "@/constants/Colors";
+import type { WorkoutPlanExercise } from "@/types";
 
 interface PlanDetail {
   planId?: number;
   name?: string;
   description?: string;
   exercises?: { name?: string; sets?: number; reps?: number; weight?: number }[];
+}
+
+function flattenExercises(
+  exercises: WorkoutPlanExercise[] | undefined
+): NonNullable<PlanDetail["exercises"]> {
+  return (
+    exercises?.map((e) => ({
+      name: e.name,
+      sets: e.sets?.length,
+      reps: e.sets?.[0]?.reps,
+      weight: e.sets?.[0]?.weight,
+    })) ?? []
+  );
 }
 
 export function WorkoutPlanDetailScreen() {
@@ -99,12 +113,7 @@ export function WorkoutPlanDetailScreen() {
     if (!data) return;
     setEditName(data.name ?? "");
     setEditDescription(data.description ?? "");
-    setEditExercises(data.exercises?.map((e) => ({
-      name: e.name,
-      sets: e.sets?.length,
-      reps: e.sets?.[0]?.reps,
-      weight: e.sets?.[0]?.weight,
-    })) ?? []);
+    setEditExercises(flattenExercises(data.exercises));
     setIsEditing(true);
   };
 
@@ -124,12 +133,7 @@ export function WorkoutPlanDetailScreen() {
     planId: data.planId,
     name: data.name,
     description: data.description,
-    exercises: data.exercises?.map(ex => ({
-      name: ex.name,
-      sets: ex.sets?.length,
-      reps: ex.sets?.[0]?.reps,
-      weight: ex.sets?.[0]?.weight
-    })) ?? []
+    exercises: flattenExercises(data.exercises)
   };
 
   return (

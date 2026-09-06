@@ -75,10 +75,8 @@ export function TrainerDetailScreen() {
   });
 
   const { mutate: submitReviewMutate, isPending: submittingReview } = useMutation({
-    mutationFn: (data: { rating: number; comment?: string }) => {
-      if (!id) return Promise.reject(new Error("Trainer ID is missing"));
-      return reviewApi.createReview(id, data);
-    },
+    mutationFn: (data: { rating: number; comment?: string }) =>
+      reviewApi.createReview(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews", id] });
       Alert.alert("Review Submitted");

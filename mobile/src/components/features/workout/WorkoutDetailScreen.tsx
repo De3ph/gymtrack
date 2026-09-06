@@ -40,9 +40,9 @@ export function WorkoutDetailScreen() {
   if (isError || !data) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>Failed to load workout</Text>
+        <Text style={styles.errorText}>{t("common.errors.generic")}</Text>
         <Pressable onPress={() => refetch()} style={styles.retryButton}>
-          <Text style={styles.retryText}>Retry</Text>
+          <Text style={styles.retryText}>{t("common.actions.retry")}</Text>
         </Pressable>
       </View>
     );

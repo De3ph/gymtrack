@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -157,11 +157,6 @@ export function CommentSection({
     [currentUserId, readOnly, handleDelete, t, styles]
   );
 
-  const keyExtractor = useCallback(
-    (item: Comment) => String(item.commentId ?? item.createdAt ?? Date.now().toString()),
-    []
-  );
-
   const countLabel = t("comment.list.comments_count").replace(
     "{count}",
     String(comments.length)
@@ -191,8 +186,9 @@ export function CommentSection({
         <FlashList
           data={comments}
           renderItem={renderComment}
-          keyExtractor={keyExtractor}
-          
+          keyExtractor={(item: Comment) =>
+            String(item.commentId ?? item.createdAt ?? "")
+          }
           scrollEnabled={false}
           ListEmptyComponent={
             <Text style={styles.emptyText}>

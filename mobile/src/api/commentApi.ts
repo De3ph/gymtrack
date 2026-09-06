@@ -11,10 +11,7 @@ export const commentApi = {
     }),
 
   create: (data: Record<string, unknown>) =>
-    apiRequest<Comment>("/comments", { method: "POST", body: data as Record<string, unknown> }),
-
-  update: (id: string | number, data: Record<string, unknown>) =>
-    apiRequest<Comment>(`/comments/${id}`, { method: "PUT", body: data as Record<string, unknown> }),
+    apiRequest<Comment>("/comments", { method: "POST", body: data }),
 
   delete: (id: string | number) =>
     apiRequest<void>(`/comments/${id}`, { method: "DELETE" }),
