@@ -106,4 +106,4 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 - No E2E test suite. Repository-level and unit tests exist, but integration across the full HTTP layer is limited.
 - Schema is managed by `golang-migrate/migrate/v4` (`internal/migrate/migrations/` embedded via `embed.FS`). SQL files must also live in `backend/migrations/` for the CI workflow, which installs the migrate CLI and runs against a fresh Postgres service container. New files follow `{version}_{name}.up.sql` / `{version}_{name}.down.sql`. Idempotent — run `go run cmd/migrate/main.go` after adding a file. `cmd/ensure-schema` is a destructive local reset (drops the public schema, applies all migrations, seeds lookup tables).
 - JSONB columns (`workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises`) are stored as untyped `[]byte` in Go; there is no struct deserialization layer over them.
-- PostgreSQL is the sole persistence backend; Couchbase references remain only in historical `doc.go` comments.
+- PostgreSQL is the sole persistence backend; all historical Couchbase references have been removed.
