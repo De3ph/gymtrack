@@ -2,35 +2,41 @@ package testutils
 
 import (
 	"context"
-	"embed"
-	_ "embed"
+	"errors"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	migratelib "gymtrack-backend/internal/migrate"
 )
 
-//go:embed migrations/*.sql
-var migrationsFS embed.FS
-
-// applyMigrations runs every migration file in filename order (001, 002, ...).
-func applyMigrations(ctx context.Context, pool *pgxpool.Pool) error {
-	entries, err := migrationsFS.ReadDir("migrations")
+// applyMigrations runs all pending migrations using the embedded migration FS.
+func applyMigrations(dsn string) error {
+	src, err := iofs.New(migratelib.MigrationsFS(), ".")
 	if err != nil {
 		return err
 	}
-	for _, entry := range entries {
-		sql, err := migrationsFS.ReadFile("migrations/" + entry.Name())
-		if err != nil {
-			return err
+	m, err := migrate.NewWithSourceInstance("iofs", src, dsn)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		sErr, dErr := m.Close()
+		if sErr != nil {
+			_ = dErr
 		}
-		if _, err := pool.Exec(ctx, string(sql)); err != nil {
-			return err
-		}
+	}()
+	err = m.Up()
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
 	}
 	return nil
 }
@@ -59,7 +65,7 @@ func SetupTestPostgresDB(t testing.TB) (*pgxpool.Pool, func()) {
 			pool.Close()
 			t.Fatalf("failed to reset schema via POSTGRES_TEST_DSN: %v", err)
 		}
-		if err := applyMigrations(ctx, pool); err != nil {
+		if err := applyMigrations(dsn); err != nil {
 			pool.Close()
 			t.Fatalf("failed to apply schema via POSTGRES_TEST_DSN: %v", err)
 		}
@@ -88,15 +94,14 @@ func SetupTestPostgresDB(t testing.TB) (*pgxpool.Pool, func()) {
 		t.Fatalf("failed to get connection string: %v", err)
 	}
 
+	if err := applyMigrations(dsn); err != nil {
+		pgContainer.Terminate(ctx)
+		t.Fatalf("failed to apply schema: %v", err)
+	}
+
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		t.Fatalf("failed to create pool: %v", err)
-	}
-
-	// Apply schema migrations
-	if err := applyMigrations(ctx, pool); err != nil {
-		pool.Close()
-		t.Fatalf("failed to apply schema: %v", err)
 	}
 
 	// Seed lookup tables

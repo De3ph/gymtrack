@@ -55,7 +55,7 @@ internal/
       repository.go        — RepositoryFactory creating all repositories
     cache/                 — In-memory cache adapters (gocache) + Prometheus metrics
     log/                   — Zap logger setup
-  testutils/               — Mock helpers (mocks.go, testutils.go, migrations/)
+  testutils/               — Mock helpers (mocks.go, testutils.go)
   utils/                   — clock.go (Clock interface + RealClock for testable time)
 ```
 
@@ -68,7 +68,7 @@ internal/
 - **Tables**: `users`, `relationships`, `workouts`, `meals`, `comments`, `invitations`, `exercises`, `equipment`, `muscle_groups`, `coaching_requests`, `trainer_reviews`, `trainer_availabilities`, `workout_plans`, `workout_plan_assignments`, `body_measurements`.
 - **Schema management**: Tables are created via migration scripts. Run `go run ./cmd/migrate` to apply migrations.
 - **Migration library**: `golang-migrate/migrate/v4` with `iofs` source (reading from the embedded `internal/migrate/migrations/` FS) and `database/postgres` driver. Tracking table is `schema_migrations` (managed by the library; `version INT`, `dirty BOOLEAN`). Same table format as the previous custom runner, so existing databases are picked up automatically — no manual re-baselining.
-- **Adding a migration**: Create `internal/migrate/migrations/NNN_<name>.up.sql` + matching `.down.sql` (and copy to `backend/migrations/` for the CI workflow). Then `go run cmd/migrate/main.go`. The CI job (`.github/workflows/migrate.yml`) runs against a fresh Postgres 16 service container and verifies `schema_migrations` ends clean (`dirty=false`).
+- **Adding a migration**: Create `internal/migrate/migrations/NNN_<name>.up.sql` + matching `.down.sql`. Then `go run cmd/migrate/main.go`. The CI job (`.github/workflows/migrate.yml`) runs `go run ./cmd/migrate` against a fresh Postgres 16 service container and verifies `schema_migrations` ends clean (`dirty=false`).
 - **Primary keys**: All tables use `id SERIAL PRIMARY KEY`. Foreign keys reference these integer IDs.
 - **JSONB columns**: `workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises` store arrays as JSONB.
 
@@ -104,6 +104,5 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 ## Known gaps
 
 - No E2E test suite. Repository-level and unit tests exist, but integration across the full HTTP layer is limited.
-- Schema is managed by `golang-migrate/migrate/v4` (`internal/migrate/migrations/` embedded via `embed.FS`). SQL files must also live in `backend/migrations/` for the CI workflow, which installs the migrate CLI and runs against a fresh Postgres service container. New files follow `{version}_{name}.up.sql` / `{version}_{name}.down.sql`. Idempotent — run `go run cmd/migrate/main.go` after adding a file. `cmd/ensure-schema` is a destructive local reset (drops the public schema, applies all migrations, seeds lookup tables).
+- Schema is managed by `golang-migrate/migrate/v4` (`internal/migrate/migrations/` embedded via `embed.FS`). New files follow `{version}_{name}.up.sql` / `{version}_{name}.down.sql`. Idempotent — run `go run cmd/migrate/main.go` after adding a file. `cmd/ensure-schema` is a destructive local reset (drops the public schema, applies all migrations, seeds lookup tables).
 - JSONB columns (`workouts.exercises`, `meals.items`, `body_measurements.parts`, `workout_plans.exercises`) are stored as untyped `[]byte` in Go; there is no struct deserialization layer over them.
-- PostgreSQL is the sole persistence backend; all historical Couchbase references have been removed.
