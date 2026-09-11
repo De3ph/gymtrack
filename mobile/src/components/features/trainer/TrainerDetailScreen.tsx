@@ -1,14 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-  TextInput,
-} from "react-native";
+import { ScrollView, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trainerCatalogApi } from "@/api/trainerCatalogApi";
@@ -17,8 +8,20 @@ import { coachingRequestApi } from "@/api/coachingRequestApi";
 import { availabilityApi } from "@/api/availabilityApi";
 import { useAuthStore } from "@/stores/authStore";
 import { StarRatingInput } from "./StarRatingInput";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { Textarea, TextareaInput } from "@/components/ui/textarea";
+import {
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+} from "@/components/ui/form-control";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Pressable } from "@/components/ui/pressable";
+import { Spinner } from "@/components/ui/spinner";
+import { Icon, StarIcon } from "@/components/ui/icon";
 
 interface TrainerData {
   userId?: number;
@@ -33,7 +36,6 @@ interface ReviewItem {
 }
 
 export function TrainerDetailScreen() {
-  const c = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
@@ -42,8 +44,6 @@ export function TrainerDetailScreen() {
   const [rating, setRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
-
-  const styles = createStyles(c);
 
   const { data: trainer, isLoading, isError, refetch } = useQuery({
     queryKey: ["trainer", id],
@@ -87,28 +87,31 @@ export function TrainerDetailScreen() {
     onError: (err: Error) => Alert.alert("Error", err.message),
   });
 
-  if (isLoading) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
-  if (isError || !trainer) return (
-    <View style={styles.center}>
-      <Text style={styles.errorText}>Failed to load trainer</Text>
-      <Pressable onPress={() => refetch()} style={styles.retryButton}>
-        <Text style={styles.retryText}>Retry</Text>
-      </Pressable>
-    </View>
-  );
+  if (isLoading)
+    return (
+      <Box className="flex-1 items-center justify-center bg-background">
+        <Spinner size="large" />
+      </Box>
+    );
+  if (isError || !trainer)
+    return (
+      <Box className="flex-1 items-center justify-center bg-background">
+        <Text className="mb-3 text-[15px] text-danger">Failed to load trainer</Text>
+        <Host matchContents>
+          <Button label="Retry" onPress={() => refetch()} />
+        </Host>
+      </Box>
+    );
 
   const tData = trainer as TrainerData;
-  const reviews = useMemo(() => {
-    return (reviewsData as { reviews?: ReviewItem[] })?.reviews ?? [];
-  }, [reviewsData]);
+  const reviews = ((reviewsData as { reviews?: ReviewItem[] })?.reviews ?? []) as ReviewItem[];
 
-  const slots = useMemo(() => {
-    return availData?.slots?.map(slot => ({
+  const slots =
+    availData?.slots?.map((slot) => ({
       dayOfWeek: String(slot.dayOfWeek),
       startTime: slot.startTime || "",
-      endTime: slot.endTime || ""
+      endTime: slot.endTime || "",
     })) ?? [];
-  }, [availData]);
 
   const handleSendRequest = () => {
     if (!id) return;
@@ -120,186 +123,177 @@ export function TrainerDetailScreen() {
   };
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{(tData.username ?? "?")[0].toUpperCase()}</Text></View>
-        <Text style={styles.name}>{tData.profile?.name || tData.username}</Text>
-        {tData.profile?.bio ? <Text style={styles.bio}>{tData.profile.bio}</Text> : null}
-      </View>
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="p-6 pb-12"
+    >
+      <Box className="mb-6 items-center">
+        <Box className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-primary">
+          <Text className="text-[32px] font-extrabold text-primary-foreground">
+            {(tData.username ?? "?")[0].toUpperCase()}
+          </Text>
+        </Box>
+        <Text className="mb-1.5 text-2xl font-bold text-text">
+          {tData.profile?.name || tData.username}
+        </Text>
+        {tData.profile?.bio ? (
+          <Text className="text-center text-sm text-text-secondary">{tData.profile.bio}</Text>
+        ) : null}
+      </Box>
 
       {tData.profile?.specializations ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Specializations</Text>
-          <View style={styles.tags}>
+        <Box className="mb-4 rounded-xl bg-card p-4">
+          <Text className="mb-2.5 text-sm font-bold uppercase tracking-[1px] text-text-secondary">
+            Specializations
+          </Text>
+          <HStack space="xs" className="flex-wrap">
             {tData.profile.specializations.split(",").map((s, i) => (
-              <View key={i} style={styles.tag}><Text style={styles.tagText}>{s.trim()}</Text></View>
+              <Box key={i} className="rounded-lg bg-brand-surface px-2.5 py-1">
+                <Text className="text-xs font-semibold text-brand-on-light">{s.trim()}</Text>
+              </Box>
             ))}
-          </View>
-        </View>
+          </HStack>
+        </Box>
       ) : null}
 
       {slots.length > 0 ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Availability</Text>
+        <Box className="mb-4 rounded-xl bg-card p-4">
+          <Text className="mb-2.5 text-sm font-bold uppercase tracking-[1px] text-text-secondary">
+            Availability
+          </Text>
           {slots.map((slot, i) => (
-            <Text key={i} style={styles.slotText}>{slot.dayOfWeek}: {slot.startTime} - {slot.endTime}</Text>
+            <Text key={i} className="py-[3px] text-sm text-text">
+              {slot.dayOfWeek}: {slot.startTime} - {slot.endTime}
+            </Text>
           ))}
-        </View>
+        </Box>
       ) : null}
 
       {reviews.length > 0 ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reviews ({reviews.length})</Text>
+        <Box className="mb-4 rounded-xl bg-card p-4">
+          <Text className="mb-2.5 text-sm font-bold uppercase tracking-[1px] text-text-secondary">
+            Reviews ({reviews.length})
+          </Text>
           {reviews.map((r) => (
-            <View key={r.reviewId} style={styles.reviewCard}>
-              <Text style={styles.rating}>{"★".repeat(r.rating ?? 0)}</Text>
-              {r.comment ? <Text style={styles.reviewComment}>{r.comment}</Text> : null}
-            </View>
+            <Box key={r.reviewId} className="border-b border-border py-2.5">
+              <HStack space="xs" className="mb-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Icon
+                    key={star}
+                    as={StarIcon}
+                    className={
+                      star <= (r.rating ?? 0)
+                        ? "text-warning"
+                        : "text-neutral-300 dark:text-neutral-700"
+                    }
+                  />
+                ))}
+              </HStack>
+              {r.comment ? (
+                <Text className="text-sm text-text-body">{r.comment}</Text>
+              ) : null}
+            </Box>
           ))}
-        </View>
+        </Box>
       ) : null}
 
       {user?.role === "athlete" && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Write a Review</Text>
+        <Box className="mb-4 rounded-xl bg-card p-4">
+          <Text className="mb-2.5 text-sm font-bold uppercase tracking-[1px] text-text-secondary">
+            Write a Review
+          </Text>
           {showReviewForm ? (
-            <View style={styles.reviewForm}>
+            <VStack space="md">
               <StarRatingInput value={rating} onChange={setRating} label="Your rating" />
-              <TextInput
-                style={styles.messageInput}
-                value={reviewComment}
-                onChangeText={setReviewComment}
-                placeholder="Add a comment (optional)..."
-                placeholderTextColor={c.textTertiary}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
-              <View style={styles.formButtons}>
-                <Pressable
-                  style={[styles.cancelBtn, submittingReview && styles.buttonDisabled]}
-                  onPress={() => {
-                    if (!submittingReview) {
-                      setShowReviewForm(false);
-                      setRating(0);
-                      setReviewComment("");
-                    }
-                  }}
-                >
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.sendBtn, rating === 0 && styles.sendBtnDisabled]}
-                  onPress={handleSubmitReview}
-                  disabled={!id || rating === 0 || submittingReview}
-                >
-                  {submittingReview ? (
-                    <ActivityIndicator color={c.onAccent} size="small" />
-                  ) : (
-                    <Text style={styles.sendBtnText}>Submit Review</Text>
-                  )}
-                </Pressable>
-              </View>
-            </View>
+              <FormControl>
+                <Textarea>
+                  <TextareaInput
+                    value={reviewComment}
+                    onChangeText={setReviewComment}
+                    placeholder="Add a comment (optional)..."
+                  />
+                </Textarea>
+              </FormControl>
+              <HStack space="sm">
+                <Host matchContents>
+                  <Button
+                    label="Cancel"
+                    variant="outlined"
+                    onPress={() => {
+                      if (!submittingReview) {
+                        setShowReviewForm(false);
+                        setRating(0);
+                        setReviewComment("");
+                      }
+                    }}
+                    disabled={submittingReview}
+                  />
+                </Host>
+                <Host matchContents>
+                  <Button
+                    label="Submit Review"
+                    onPress={handleSubmitReview}
+                    disabled={!id || rating === 0 || submittingReview}
+                  />
+                </Host>
+              </HStack>
+            </VStack>
           ) : (
-            <Pressable
-              style={styles.reviewButton}
-              onPress={() => setShowReviewForm(true)}
-            >
-              <Text style={styles.reviewText}>Rate This Trainer</Text>
-            </Pressable>
+            <Host matchContents>
+              <Button
+                label="Rate This Trainer"
+                onPress={() => setShowReviewForm(true)}
+              />
+            </Host>
           )}
-        </View>
+        </Box>
       )}
 
       {user?.role === "athlete" && (
-        <View style={styles.actionSection}>
+        <Box className="mt-2">
           {showRequestForm ? (
-            <View style={styles.requestForm}>
-              <TextInput
-                style={styles.messageInput}
-                value={message}
-                onChangeText={setMessage}
-                placeholder="Add a message (optional)..."
-                placeholderTextColor={c.textTertiary}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
-              <View style={styles.formButtons}>
-                <Pressable
-                  style={[styles.cancelBtn, sending && styles.buttonDisabled]}
-                  onPress={() => {
-                    if (!sending) {
-                      setShowRequestForm(false);
-                    }
-                  }}
-                >
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
-                </Pressable>
-                <Pressable
-                  style={styles.sendBtn}
-                  onPress={handleSendRequest}
-                  disabled={sending}
-                >
-                  {sending ? (
-                    <ActivityIndicator color={c.onAccent} size="small" />
-                  ) : (
-                    <Text style={styles.sendBtnText}>Send Request</Text>
-                  )}
-                </Pressable>
-              </View>
-            </View>
+            <VStack space="md">
+              <FormControl>
+                <Textarea>
+                  <TextareaInput
+                    value={message}
+                    onChangeText={setMessage}
+                    placeholder="Add a message (optional)..."
+                  />
+                </Textarea>
+              </FormControl>
+              <HStack space="sm">
+                <Host matchContents>
+                  <Button
+                    label="Cancel"
+                    variant="outlined"
+                    onPress={() => {
+                      if (!sending) {
+                        setShowRequestForm(false);
+                      }
+                    }}
+                    disabled={sending}
+                  />
+                </Host>
+                <Host matchContents>
+                  <Button
+                    label="Send Request"
+                    onPress={handleSendRequest}
+                    disabled={sending}
+                  />
+                </Host>
+              </HStack>
+            </VStack>
           ) : (
-            <Pressable
-              style={styles.requestButton}
-              onPress={() => setShowRequestForm(true)}
-            >
-              <Text style={styles.requestText}>Request Coaching</Text>
-            </Pressable>
+            <Host matchContents>
+              <Button
+                label="Request Coaching"
+                onPress={() => setShowRequestForm(true)}
+              />
+            </Host>
           )}
-        </View>
+        </Box>
       )}
     </ScrollView>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.background },
-    container: { padding: 24, paddingBottom: 48 },
-    center: { flex: 1, justifyContent: "center", alignItems: "center" },
-    header: { alignItems: "center", marginBottom: 24 },
-    avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: c.accent, alignItems: "center", justifyContent: "center", marginBottom: 12 },
-    avatarText: { color: c.onAccent, fontSize: 32, fontWeight: "800" },
-    name: { fontSize: 24, fontWeight: "700", color: c.text, marginBottom: 6 },
-    bio: { fontSize: 14, color: c.textSecondary, textAlign: "center" },
-    section: { backgroundColor: c.card, borderRadius: 12, padding: 16, marginBottom: 16 },
-    sectionTitle: { fontSize: 14, fontWeight: "700", color: c.textSecondary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
-    tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-    tag: { backgroundColor: c.accentSurface, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-    tagText: { fontSize: 12, fontWeight: "600", color: c.accentOnLight },
-    slotText: { fontSize: 14, color: c.text, paddingVertical: 3 },
-    reviewCard: { paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: c.border },
-    rating: { fontSize: 14, color: c.warning, letterSpacing: 1, marginBottom: 4 },
-    reviewComment: { fontSize: 14, color: c.textBody },
-    actionSection: { marginTop: 8 },
-    requestButton: { backgroundColor: c.accent, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
-    requestText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
-    requestForm: { gap: 12 },
-    messageInput: { backgroundColor: c.card, borderWidth: 1, borderColor: c.borderStrong, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: c.text, minHeight: 80, textAlignVertical: "top" },
-    formButtons: { flexDirection: "row", gap: 10 },
-    cancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: c.borderStrong, alignItems: "center" },
-    cancelBtnText: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
-    sendBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.accent, alignItems: "center" },
-    sendBtnText: { fontSize: 14, fontWeight: "600", color: c.onAccent },
-    sendBtnDisabled: { backgroundColor: c.textTertiary },
-    reviewForm: { gap: 12 },
-    reviewButton: { backgroundColor: c.warning, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
-    reviewText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
-    buttonDisabled: { opacity: 0.5 },
-    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
-    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
-    retryText: { color: c.onAccent, fontWeight: "600" },
-  });
 }

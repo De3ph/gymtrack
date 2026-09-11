@@ -1,699 +1,673 @@
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, memo } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
-  TextInput,
-  Modal,
   ScrollView,
-  Alert
-} from "react-native"
-import Svg, { Polyline, Circle } from "react-native-svg"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { bodyMeasurementApi } from "@/api/bodyMeasurementApi"
-import { useThemeColors } from "@/components/useThemeColors"
-import type { ThemeColors } from "@/constants/Colors"
-import { canEdit } from "@/lib/canEdit"
+  Alert,
+  useWindowDimensions,
+} from "react-native";
+import Svg, { Polyline, Circle } from "react-native-svg";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { bodyMeasurementApi } from "@/api/bodyMeasurementApi";
+import { canEdit } from "@/lib/canEdit";
+import { useI18n } from "@/lib/i18n";
+import type { BodyMeasurement } from "@/types";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host, RNHostView } from "@expo/ui";
+import { PlusIcon } from "@/components/icons";
+import { Input, InputField } from "@/components/ui/input";
+import { Textarea, TextareaInput } from "@/components/ui/textarea";
+import {
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+} from "@/components/ui/form-control";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Pressable } from "@/components/ui/pressable";
+import {
+  Modal,
+  ModalBackdrop,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+} from "@/components/ui/modal";
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { Icon, CloseIcon } from "@/components/ui/icon";
+import { isSessionExpiredError } from "@/api/client";
+import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
 
-interface Measurement {
-  measurementId?: number
-  date?: string
-  weight?: number
-  bodyFatPct?: number
-  parts?: Record<string, number>
-  notes?: string
-  createdAt?: string
-}
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>,
+) => string;
 
+/** Matches backend models.SupportedBodyParts. */
 const BODY_PARTS = [
   "chest",
   "waist",
   "hips",
-  "arms",
-  "thighs",
-  "calves",
+  "neck",
   "shoulders",
-  "neck"
-]
+  "bicepLeft",
+  "bicepRight",
+  "forearmLeft",
+  "forearmRight",
+  "thighLeft",
+  "thighRight",
+  "calfLeft",
+  "calfRight",
+];
+
+const labelClassName =
+  "text-xs font-bold uppercase tracking-[1px] text-text-secondary";
+
+const PART_LABEL_PREFIX = "body_measurement.list.part_labels.";
+
+function partLabel(t: TranslateFn, key: string): string {
+  const translated = t(PART_LABEL_PREFIX + key);
+  return translated === PART_LABEL_PREFIX + key ? key : translated;
+}
+
+function todayISO(): string {
+  return new Date().toISOString().split("T")[0];
+}
 
 function buildMeasurementBody(
   date: string,
   weight: string,
   bodyFat: string,
   notes: string,
-  parts: Record<string, string>
+  parts: Record<string, string>,
 ): Record<string, unknown> {
-  const body: Record<string, unknown> = { date }
-  if (weight) body.weight = Number(weight)
-  if (bodyFat) body.bodyFatPct = Number(bodyFat)
-  if (notes.trim()) body.notes = notes.trim()
-  body.weightUnit = "kg"
-  const pv: Record<string, number> = {}
+  const body: Record<string, unknown> = { date };
+  if (weight) body.weight = Number(weight);
+  if (bodyFat) body.bodyFatPct = Number(bodyFat);
+  if (notes.trim()) body.notes = notes.trim();
+  body.weightUnit = "kg";
+  // Backend expects parts as Record<string, { value: number }>
+  const pv: Record<string, { value: number }> = {};
   Object.entries(parts).forEach(([k, v]) => {
-    if (v) pv[k] = Number(v)
-  })
-  if (Object.keys(pv).length > 0) body.parts = pv
-  return body
+    if (v) pv[k] = { value: Number(v) };
+  });
+  if (Object.keys(pv).length > 0) body.parts = pv;
+  return body;
 }
 
 function isValidNumber(value: string): boolean {
-  if (!value.trim()) return true
-  const n = Number(value)
-  return !Number.isNaN(n) && n >= 0
+  if (!value.trim()) return true;
+  const n = Number(value);
+  return !Number.isNaN(n) && n >= 0;
 }
 
 function Sparkline({
   data,
-  w,
-  h,
-  c
+  color,
+  height,
 }: {
-  data: number[]
-  w: number
-  h: number
-  c: string
+  data: number[];
+  color: string;
+  height: number;
 }) {
-  if (data.length < 2) return null
-  const min = Math.min(...data),
-    max = Math.max(...data),
-    rng = max - min || 1
-  const pts = data
+  const { width: windowWidth } = useWindowDimensions();
+  if (data.length < 2) return null;
+  const w = Math.min(Math.max(windowWidth - 96, 200), 400);
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const points = data
     .map(
-      (v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / rng) * h}`
+      (v, i) =>
+        `${(i / (data.length - 1)) * w},${height - ((v - min) / range) * height}`,
     )
-    .join(" ")
+    .join(" ");
+  const lastX = w;
+  const lastY = height - ((data[data.length - 1] - min) / range) * height;
   return (
-    <Svg width={w} height={h}>
+    <Svg width={w} height={height}>
       <Polyline
-        points={pts}
-        fill='none'
-        stroke={c}
+        points={points}
+        fill="none"
+        stroke={color}
         strokeWidth={2}
-        strokeLinejoin='round'
+        strokeLinejoin="round"
       />
-      <Circle
-        cx={((data.length - 1) / Math.max(data.length - 1, 1)) * w}
-        cy={h - ((data[data.length - 1] - min) / rng) * h}
-        r={3}
-        fill={c}
-      />
+      <Circle cx={lastX} cy={lastY} r={3} fill={color} />
     </Svg>
-  )
+  );
 }
 
+interface MeasurementCardProps {
+  measurement: BodyMeasurement;
+  onEdit: (m: BodyMeasurement) => void;
+  onDelete: (m: BodyMeasurement) => void;
+}
+
+const MeasurementCard = memo(function MeasurementCard({
+  measurement,
+  onEdit,
+  onDelete,
+}: MeasurementCardProps) {
+  const { t } = useI18n();
+  const editable = canEdit(measurement.createdAt);
+  const partEntries = Object.entries(measurement.parts ?? {});
+
+  return (
+    <Box className="rounded-xl border border-border bg-card p-3.5">
+      <HStack className="mb-1.5 items-center justify-between">
+        <Text className="text-sm font-semibold text-text">
+          {measurement.date}
+        </Text>
+        <HStack space="md">
+          {measurement.weight ? (
+            <Text className="text-[13px] font-bold text-primary">
+              {measurement.weight} {t("body_measurement.charts.weight_unit_kg")}
+            </Text>
+          ) : null}
+          {measurement.bodyFatPct ? (
+            <Text className="text-[13px] font-bold text-primary">
+              {t("body_measurement.list.body_fat_short", {
+                value: measurement.bodyFatPct,
+              })}
+            </Text>
+          ) : null}
+        </HStack>
+      </HStack>
+      {partEntries.length > 0 && (
+        <Box className="mt-1.5 flex-row flex-wrap gap-1.5">
+          {partEntries.slice(0, 4).map(([k, part]) => (
+            <Box key={k} className="rounded bg-surface-subtle px-2 py-0.5">
+              <Text className="text-[11px] text-text-secondary">
+                {partLabel(t, k)}: {part?.value ?? 0}
+                {t("body_measurement.list.unit_cm")}
+              </Text>
+            </Box>
+          ))}
+        </Box>
+      )}
+      {measurement.notes ? (
+        <Text className="mt-1.5 text-xs text-text-tertiary" numberOfLines={2}>
+          {measurement.notes}
+        </Text>
+      ) : null}
+      {editable && (
+        <HStack className="mt-2.5 justify-end gap-4 border-t border-border pt-2">
+          <Pressable onPress={() => onEdit(measurement)} className="px-2 py-1">
+            <Text className="text-[13px] font-semibold text-primary">
+              {t("common.actions.edit")}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => onDelete(measurement)}
+            className="px-2 py-1"
+          >
+            <Text className="text-[13px] font-semibold text-danger">
+              {t("common.actions.delete")}
+            </Text>
+          </Pressable>
+        </HStack>
+      )}
+    </Box>
+  );
+});
+
 export function MeasurementsScreen() {
-  const c = useThemeColors()
-  const qc = useQueryClient()
-  const [showAdd, setShowAdd] = useState(false)
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
   const [editingMeasurement, setEditingMeasurement] =
-    useState<Measurement | null>(null)
+    useState<BodyMeasurement | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<BodyMeasurement | null>(
+    null,
+  );
   const [weight, setWeight] = useState(""),
-    [bodyFat, setBodyFat] = useState("")
-  const [notes, setNotes] = useState("")
-  const [parts, setParts] = useState<Record<string, string>>({})
-  const [formError, setFormError] = useState("")
+    [bodyFat, setBodyFat] = useState("");
+  const [notes, setNotes] = useState("");
+  const [parts, setParts] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState("");
 
-  const s = createStyles(c)
-
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isRefetching, isError, error, refetch } = useQuery({
     queryKey: ["measurements"],
-    queryFn: () => bodyMeasurementApi.getAll()
-  })
+    queryFn: () => bodyMeasurementApi.getAll(),
+  });
   const { data: latest } = useQuery({
     queryKey: ["latestMeasurement"],
-    queryFn: () => bodyMeasurementApi.getLatest()
-  })
+    queryFn: () => bodyMeasurementApi.getLatest(),
+  });
+
+  const invalidateMeasurementQueries = useCallback(() => {
+    qc.invalidateQueries({ queryKey: ["measurements"] });
+    qc.invalidateQueries({ queryKey: ["latestMeasurement"] });
+  }, [qc]);
 
   const { mutate: create, isPending: creating } = useMutation({
-    mutationFn: () =>
-      bodyMeasurementApi.create(
-        buildMeasurementBody(
-          new Date().toISOString().split("T")[0],
-          weight,
-          bodyFat,
-          notes,
-          parts
-        )
-      ),
+    mutationFn: (body: Record<string, unknown>) =>
+      bodyMeasurementApi.create(body),
     onSuccess: () => {
-      closeForm()
-      qc.invalidateQueries({ queryKey: ["measurements"] })
-      qc.invalidateQueries({ queryKey: ["latestMeasurement"] })
-    }
-  })
+      closeForm();
+      invalidateMeasurementQueries();
+    },
+    onError: (err: Error) => {
+      Alert.alert(t("common.errors.generic"), err.message);
+    },
+  });
 
   const { mutate: update, isPending: updating } = useMutation({
     mutationFn: ({ id, body }: { id: number; body: Record<string, unknown> }) =>
       bodyMeasurementApi.update(id, body),
     onSuccess: () => {
-      closeForm()
-      qc.invalidateQueries({ queryKey: ["measurements"] })
-      qc.invalidateQueries({ queryKey: ["latestMeasurement"] })
+      closeForm();
+      invalidateMeasurementQueries();
     },
     onError: (err: Error) => {
-      Alert.alert("Error", err.message)
-    }
-  })
+      Alert.alert(t("common.errors.generic"), err.message);
+    },
+  });
 
   const { mutate: remove } = useMutation({
     mutationFn: (id: number) => bodyMeasurementApi.delete(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["measurements"] })
-      qc.invalidateQueries({ queryKey: ["latestMeasurement"] })
-    },
+    onSuccess: invalidateMeasurementQueries,
     onError: (err: Error) => {
-      Alert.alert("Error", err.message)
-    }
-  })
+      Alert.alert(t("common.errors.generic"), err.message);
+    },
+  });
 
-  const isPending = creating || updating
+  const isPending = creating || updating;
 
-  function openCreateForm() {
-    closeForm()
-    setShowAdd(true)
-  }
+  const closeForm = useCallback(() => {
+    setShowAdd(false);
+    setEditingMeasurement(null);
+    setWeight("");
+    setBodyFat("");
+    setNotes("");
+    setParts({});
+    setFormError("");
+  }, []);
 
-  function openEditForm(m: Measurement) {
-    setEditingMeasurement(m)
-    setWeight(m.weight != null ? String(m.weight) : "")
-    setBodyFat(m.bodyFatPct != null ? String(m.bodyFatPct) : "")
-    setNotes(m.notes ?? "")
-    const partsStr: Record<string, string> = {}
-    if (m.parts) {
-      Object.entries(m.parts).forEach(([k, v]) => {
-        partsStr[k] = String(v)
-      })
-    }
-    setParts(partsStr)
-    setFormError("")
-    setShowAdd(true)
-  }
+  const openCreateForm = useCallback(() => {
+    closeForm();
+    setShowAdd(true);
+  }, [closeForm]);
 
-  function closeForm() {
-    setShowAdd(false)
-    setEditingMeasurement(null)
-    setWeight("")
-    setBodyFat("")
-    setNotes("")
-    setParts({})
-    setFormError("")
-  }
+  const openEditForm = useCallback((m: BodyMeasurement) => {
+    setEditingMeasurement(m);
+    setWeight(m.weight != null ? String(m.weight) : "");
+    setBodyFat(m.bodyFatPct != null ? String(m.bodyFatPct) : "");
+    setNotes(m.notes ?? "");
+    const partsStr: Record<string, string> = {};
+    Object.entries(m.parts ?? {}).forEach(([k, part]) => {
+      if (part?.value != null) partsStr[k] = String(part.value);
+    });
+    setParts(partsStr);
+    setFormError("");
+    setShowAdd(true);
+  }, []);
 
   function handleSave() {
     if (!isValidNumber(weight) || !isValidNumber(bodyFat)) {
-      setFormError("Weight and body fat must be non-negative numbers")
-      return
+      setFormError(t("body_measurement.form.validation.invalid_number"));
+      return;
     }
-    const badPart = Object.entries(parts).find(([, v]) => !isValidNumber(v))
+    const badPart = Object.entries(parts).find(([, v]) => !isValidNumber(v));
     if (badPart) {
-      setFormError(`${badPart[0]} must be a non-negative number`)
-      return
+      setFormError(
+        t("body_measurement.form.validation.part_invalid", {
+          part: partLabel(t, badPart[0]),
+        }),
+      );
+      return;
     }
-    setFormError("")
+    setFormError("");
     const body = buildMeasurementBody(
-      editingMeasurement?.date ?? new Date().toISOString().split("T")[0],
+      editingMeasurement?.date ?? todayISO(),
       weight,
       bodyFat,
       notes,
-      parts
-    )
+      parts,
+    );
 
     if (editingMeasurement?.measurementId != null) {
-      update({ id: editingMeasurement.measurementId, body })
+      update({ id: editingMeasurement.measurementId, body });
     } else {
-      create()
+      create(body);
     }
   }
 
-  const handleDelete = useCallback(
-    (m: Measurement) => {
-      const id = m.measurementId
-      if (id == null) return
-      Alert.alert(
-        "Delete Measurement",
-        "Are you sure you want to delete this measurement?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => remove(id)
-          }
-        ]
-      )
-    },
-    [remove]
-  )
+  const handleDelete = useCallback((m: BodyMeasurement) => {
+    if (m.measurementId == null) return;
+    setPendingDelete(m);
+  }, []);
 
-  const measurements = useMemo<Measurement[]>(
-    () => (data as { measurements?: Measurement[] })?.measurements ?? [],
-    [data]
-  )
-  const latestM = latest as Measurement | undefined
+  const confirmDelete = useCallback(() => {
+    const id = pendingDelete?.measurementId;
+    setPendingDelete(null);
+    if (id == null) return;
+    remove(id);
+  }, [pendingDelete, remove]);
+
+  const measurements = useMemo<BodyMeasurement[]>(
+    () => data?.measurements ?? [],
+    [data],
+  );
+  const latestM = latest ?? null;
   const wData = useMemo(
     () =>
       [...measurements]
         .reverse()
         .map((m) => m.weight ?? 0)
         .filter((w) => w > 0),
-    [measurements]
-  )
+    [measurements],
+  );
 
-  const rItem = useCallback(
-    ({ item }: { item: Measurement }) => {
-      const editable = canEdit(item.createdAt)
-      return (
-        <View style={s.card}>
-          <View style={s.cardH}>
-            <Text style={s.cardD}>{item.date}</Text>
-            <View style={s.mets}>
-              {item.weight ? <Text style={s.met}>{item.weight} kg</Text> : null}
-              {item.bodyFatPct ? (
-                <Text style={s.met}>{item.bodyFatPct}% BF</Text>
-              ) : null}
-            </View>
-          </View>
-          {item.parts && Object.keys(item.parts).length > 0 && (
-            <View style={s.pRow}>
-              {Object.entries(item.parts)
-                .slice(0, 4)
-                .map(([k, v]) => (
-                  <View key={k} style={s.pTag}>
-                    <Text style={s.pTxt}>
-                      {k}: {v}cm
-                    </Text>
-                  </View>
-                ))}
-            </View>
-          )}
-          {item.notes ? (
-            <Text style={s.note} numberOfLines={2}>
-              {item.notes}
-            </Text>
-          ) : null}
-          {editable && (
-            <View style={s.cardActions}>
-              <TouchableOpacity
-                style={s.cardActionBtn}
-                onPress={() => openEditForm(item)}
-                activeOpacity={0.7}
-              >
-                <Text style={s.cardActionEdit}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={s.cardActionBtn}
-                onPress={() => handleDelete(item)}
-                activeOpacity={0.7}
-              >
-                <Text style={s.cardActionDelete}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      )
-    },
-    [handleDelete, s]
-  )
+  const renderItem = useCallback(
+    ({ item }: { item: BodyMeasurement }) => (
+      <MeasurementCard
+        measurement={item}
+        onEdit={openEditForm}
+        onDelete={handleDelete}
+      />
+    ),
+    [openEditForm, handleDelete],
+  );
 
   const modalTitle = editingMeasurement
-    ? "Edit Measurement"
-    : "Record Measurement"
-  const saveLabel = editingMeasurement ? "Update" : "Save"
+    ? t("body_measurement.edit.title")
+    : t("body_measurement.form.create_title");
+  const saveLabel = editingMeasurement
+    ? t("common.actions.update")
+    : t("common.actions.save");
 
   return (
-    <View style={s.f}>
+    <Box className="flex-1 bg-background">
       {isLoading ? (
-        <View style={s.c}>
-          <ActivityIndicator size='large' color={c.accent} />
-        </View>
+        <Box className="flex-1 items-center justify-center p-6">
+          <Spinner size="large" className="text-primary" />
+        </Box>
       ) : isError ? (
-        <View style={s.c}>
-          <Text style={s.err}>Failed to load</Text>
-          <TouchableOpacity onPress={() => refetch()} style={s.retry}>
-            <Text style={s.retryT}>Retry</Text>
-          </TouchableOpacity>
-        </View>
+        isSessionExpiredError(error) ? (
+          <SessionExpiredView message={(error as Error)?.message} />
+        ) : (
+          <Box className="flex-1 items-center justify-center p-6">
+            <Text className="mb-3 text-[15px] text-danger">
+              {t("body_measurement.list.load_failed")}
+            </Text>
+            <Host matchContents>
+              <Button
+                label={t("common.actions.retry")}
+                onPress={() => refetch()}
+              />
+            </Host>
+          </Box>
+        )
       ) : (
         <FlatList
           data={measurements}
-          keyExtractor={(i) => String(i.measurementId ?? "")}
-          renderItem={rItem}
-          contentContainerStyle={s.list}
+          keyExtractor={(item, index) =>
+            String(item.measurementId ?? `measurement-${index}`)
+          }
+          renderItem={renderItem}
+          contentContainerClassName="gap-3 p-4 pb-20"
           refreshControl={
-            <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
           }
           ListHeaderComponent={
             <>
               {latestM && (
-                <View style={s.sum}>
-                  <Text style={s.sumT}>Latest</Text>
-                  <View style={s.sumR}>
+                <Box className="mb-4 rounded-2xl border border-border bg-card p-5">
+                  <Text className="mb-3.5 text-[13px] font-bold uppercase tracking-[1px] text-text-secondary">
+                    {t("body_measurement.list.latest")}
+                  </Text>
+                  <HStack space="xl" className="mb-2">
                     {latestM.weight ? (
-                      <View style={s.sumI}>
-                        <Text style={s.sumV}>{latestM.weight}</Text>
-                        <Text style={s.sumL}>kg</Text>
-                      </View>
+                      <Box className="items-start">
+                        <Text className="text-[32px] font-extrabold text-primary">
+                          {latestM.weight}
+                        </Text>
+                        <Text className="mt-0.5 text-xs font-semibold text-text-secondary">
+                          {t("body_measurement.charts.weight_unit_kg")}
+                        </Text>
+                      </Box>
                     ) : null}
                     {latestM.bodyFatPct != null ? (
-                      <View style={s.sumI}>
-                        <Text style={s.sumV}>{latestM.bodyFatPct}%</Text>
-                        <Text style={s.sumL}>Body Fat</Text>
-                      </View>
+                      <Box className="items-start">
+                        <Text className="text-[32px] font-extrabold text-primary">
+                          {latestM.bodyFatPct}%
+                        </Text>
+                        <Text className="mt-0.5 text-xs font-semibold text-text-secondary">
+                          {t("body_measurement.charts.body_fat_label")}
+                        </Text>
+                      </Box>
                     ) : null}
-                  </View>
-                  <Text style={s.sumD}>{latestM.date}</Text>
+                  </HStack>
+                  <Text className="mt-1 text-[13px] text-text-tertiary">
+                    {latestM.date}
+                  </Text>
                   {latestM.parts && Object.keys(latestM.parts).length > 0 && (
-                    <View style={s.pDet}>
-                      {Object.entries(latestM.parts).map(([k, v]) => (
-                        <View key={k} style={s.pR}>
-                          <Text style={s.pL}>{k}</Text>
-                          <View style={s.pB}>
-                            <View
-                              style={[
-                                s.pF,
-                                {
-                                  width: `${Math.min((v / 150) * 100, 100)}%`
-                                }
-                              ]}
-                            />
-                          </View>
-                          <Text style={s.pV}>{v} cm</Text>
-                        </View>
-                      ))}
-                    </View>
+                    <VStack space="sm" className="mt-4">
+                      {Object.entries(latestM.parts).map(([k, part]) => {
+                        const value = part?.value ?? 0;
+                        return (
+                          <HStack key={k} space="sm" className="items-center">
+                            <Text
+                              className="w-[90px] text-xs font-semibold text-text-secondary"
+                              numberOfLines={1}
+                            >
+                              {partLabel(t, k)}
+                            </Text>
+                            <Box className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+                              <Box
+                                className="h-full rounded-full bg-primary"
+                                style={{
+                                  width: `${Math.min((value / 150) * 100, 100)}%`,
+                                }}
+                              />
+                            </Box>
+                            <Text className="w-[50px] text-right text-xs font-semibold text-text">
+                              {value} {t("body_measurement.list.unit_cm")}
+                            </Text>
+                          </HStack>
+                        );
+                      })}
+                    </VStack>
                   )}
-                </View>
+                </Box>
               )}
               {wData.length >= 2 && (
-                <View style={s.chart}>
-                  <Text style={s.chT}>Weight Trend</Text>
+                <Box className="mb-4 items-center rounded-2xl border border-border bg-card p-4">
+                  <Text className="mb-3 text-[13px] font-bold uppercase tracking-[1px] text-text-secondary">
+                    {t("body_measurement.list.weight_trend")}
+                  </Text>
                   <Sparkline
                     data={wData.slice(-14)}
-                    w={300}
-                    h={80}
-                    c={c.accent}
+                    color="#22c55e"
+                    height={80}
                   />
-                </View>
+                </Box>
               )}
             </>
           }
           ListEmptyComponent={
-            <View style={s.c}>
-              <Text style={s.empty}>No measurements yet</Text>
-            </View>
+            <Box className="flex-1 items-center justify-center p-6">
+              <Text className="text-[15px] text-text-secondary">
+                {t("body_measurement.list.no_measurements")}
+              </Text>
+            </Box>
           }
         />
       )}
-      <TouchableOpacity style={s.fab} onPress={openCreateForm}>
-        <Text style={s.fabT}>+</Text>
-      </TouchableOpacity>
-      <Modal visible={showAdd} animationType='slide' transparent>
-        <View style={s.mOver}>
-          <ScrollView contentContainerStyle={s.mCont}>
-            <Text style={s.mTtl}>{modalTitle}</Text>
-            <Text style={s.lbl}>Weight (kg)</Text>
-            <TextInput
-              style={s.inp}
-              value={weight}
-              onChangeText={setWeight}
-              keyboardType='numeric'
-              placeholder='75.0'
-              placeholderTextColor={c.textTertiary}
+      {!showAdd && (
+        <Host
+          matchContents
+          style={{ position: "absolute", bottom: 24, right: 24 }}
+        >
+          <Button
+            onPress={openCreateForm}
+            style={{ width: 56, height: 56, borderRadius: 28 }}
+          >
+          <RNHostView
+            style={{
+              width: 32,
+              height: 32,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <PlusIcon
+              size={32}
+              color="#ffffff"
+              style={{ width: 32, lineHeight: 32, textAlign: "center" }}
             />
-            <Text style={s.lbl}>Body Fat %</Text>
-            <TextInput
-              style={s.inp}
-              value={bodyFat}
-              onChangeText={setBodyFat}
-              keyboardType='numeric'
-              placeholder='15.0'
-              placeholderTextColor={c.textTertiary}
-            />
-            <Text style={s.lbl}>Notes</Text>
-            <TextInput
-              style={[s.inp, s.ta]}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder='Optional...'
-              placeholderTextColor={c.textTertiary}
-              multiline
-              numberOfLines={2}
-              textAlignVertical='top'
-            />
-            <Text style={s.lbl}>Body Parts (cm)</Text>
-            <View style={s.pGrid}>
+          </RNHostView>
+          </Button>
+        </Host>
+      )}
+      <Modal isOpen={showAdd} onClose={closeForm} size="lg">
+        <ModalBackdrop />
+        <ModalContent className="max-h-[85%] p-0">
+          <ScrollView contentContainerClassName="gap-2.5 bg-card p-6 pb-10">
+            <ModalHeader>
+              <Text className="mb-1.5 text-xl font-bold text-text">
+                {modalTitle}
+              </Text>
+              <ModalCloseButton>
+                <Icon as={CloseIcon} className="text-text-secondary" />
+              </ModalCloseButton>
+            </ModalHeader>
+            <FormControl>
+              <FormControlLabel>
+                <FormControlLabelText className={labelClassName}>
+                  {t("body_measurement.form.weight_label")}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Input>
+                <InputField
+                  value={weight}
+                  onChangeText={setWeight}
+                  keyboardType="numeric"
+                  placeholder="75.0"
+                />
+              </Input>
+            </FormControl>
+            <FormControl>
+              <FormControlLabel>
+                <FormControlLabelText className={labelClassName}>
+                  {t("body_measurement.form.body_fat_label")}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Input>
+                <InputField
+                  value={bodyFat}
+                  onChangeText={setBodyFat}
+                  keyboardType="numeric"
+                  placeholder="15.0"
+                />
+              </Input>
+            </FormControl>
+            <FormControl>
+              <FormControlLabel>
+                <FormControlLabelText className={labelClassName}>
+                  {t("body_measurement.form.notes_label")}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Textarea>
+                <TextareaInput
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder={t("body_measurement.form.notes_placeholder")}
+                />
+              </Textarea>
+            </FormControl>
+            <Text className={labelClassName}>
+              {t("body_measurement.form.parts_label")}
+            </Text>
+            <VStack space="sm">
               {BODY_PARTS.map((p) => (
-                <View key={p} style={s.pIR}>
-                  <Text style={s.pIL}>{p}</Text>
-                  <TextInput
-                    style={s.pI}
-                    value={parts[p] ?? ""}
-                    onChangeText={(v) => setParts((pr) => ({ ...pr, [p]: v }))}
-                    keyboardType='numeric'
-                    placeholder='--'
-                    placeholderTextColor={c.borderStrong}
-                  />
-                </View>
+                <HStack key={p} space="sm" className="items-center">
+                  <Text className="w-24 shrink-0 text-[13px] font-semibold text-text-body">
+                    {partLabel(t, p)}
+                  </Text>
+                  <Input className="flex-1">
+                    <InputField
+                      value={parts[p] ?? ""}
+                      onChangeText={(v) =>
+                        setParts((pr) => ({ ...pr, [p]: v }))
+                      }
+                      keyboardType="numeric"
+                      placeholder="--"
+                    />
+                  </Input>
+                </HStack>
               ))}
-            </View>
+            </VStack>
             {formError ? (
-              <View style={s.errorBanner}>
-                <Text style={s.errorBannerText}>{formError}</Text>
-              </View>
+              <Box className="mb-4 rounded border-l-4 border-l-danger bg-danger-surface p-3">
+                <Text className="text-sm font-medium text-danger-text">
+                  {formError}
+                </Text>
+              </Box>
             ) : null}
-            <View style={s.mBtns}>
-              <TouchableOpacity style={s.cBtn} onPress={closeForm}>
-                <Text style={s.cTxt}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={s.sBtn}
-                onPress={handleSave}
-                disabled={isPending}
-              >
-                {isPending ? (
-                  <ActivityIndicator color={c.onAccent} size='small' />
-                ) : (
-                  <Text style={s.sTxt}>{saveLabel}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            <HStack space="sm" className="mt-2">
+              <Host matchContents>
+                <Button
+                  label={t("common.actions.cancel")}
+                  variant="outlined"
+                  onPress={closeForm}
+                />
+              </Host>
+              <Host matchContents>
+                <Button
+                  label={saveLabel}
+                  onPress={handleSave}
+                  disabled={isPending}
+                />
+              </Host>
+            </HStack>
           </ScrollView>
-        </View>
+        </ModalContent>
       </Modal>
-    </View>
-  )
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    f: { flex: 1, backgroundColor: c.background },
-    c: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 24
-    },
-    list: { padding: 16, gap: 12, paddingBottom: 80 },
-    sum: {
-      backgroundColor: c.card,
-      borderRadius: 16,
-      padding: 20,
-      marginBottom: 16,
-      borderWidth: 0.5,
-      borderColor: c.border
-    },
-    sumT: {
-      fontSize: 13,
-      fontWeight: "700",
-      color: c.textSecondary,
-      textTransform: "uppercase",
-      letterSpacing: 1,
-      marginBottom: 14
-    },
-    sumR: { flexDirection: "row", gap: 24, marginBottom: 8 },
-    sumI: { alignItems: "flex-start" },
-    sumV: { fontSize: 32, fontWeight: "800", color: c.accent },
-    sumL: { fontSize: 12, fontWeight: "600", color: c.textSecondary, marginTop: 2 },
-    sumD: { fontSize: 13, color: c.textTertiary, marginTop: 4 },
-    pDet: { marginTop: 16, gap: 8 },
-    pR: { flexDirection: "row", alignItems: "center", gap: 10 },
-    pL: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: c.textSecondary,
-      width: 70,
-      textTransform: "capitalize"
-    },
-    pB: {
-      flex: 1,
-      height: 6,
-      backgroundColor: c.border,
-      borderRadius: 3,
-      overflow: "hidden"
-    },
-    pF: { height: "100%", backgroundColor: c.accent, borderRadius: 3 },
-    pV: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: c.text,
-      width: 50,
-      textAlign: "right"
-    },
-    chart: {
-      backgroundColor: c.card,
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 16,
-      alignItems: "center"
-    },
-    chT: {
-      fontSize: 13,
-      fontWeight: "700",
-      color: c.textSecondary,
-      textTransform: "uppercase",
-      letterSpacing: 1,
-      marginBottom: 12
-    },
-    card: {
-      backgroundColor: c.card,
-      borderRadius: 12,
-      padding: 14,
-      borderWidth: 0.5,
-      borderColor: c.border
-    },
-    cardH: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 6
-    },
-    cardD: { fontSize: 14, fontWeight: "600", color: c.text },
-    mets: { flexDirection: "row", gap: 12 },
-    met: { fontSize: 13, fontWeight: "700", color: c.accent },
-    pRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
-    pTag: {
-      backgroundColor: c.surfaceSubtle,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 4
-    },
-    pTxt: { fontSize: 11, color: c.textSecondary },
-    note: { fontSize: 12, color: c.textTertiary, marginTop: 6 },
-    cardActions: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: 16,
-      marginTop: 10,
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderTopColor: c.surfaceSubtle
-    },
-    cardActionBtn: { paddingVertical: 4, paddingHorizontal: 8 },
-    cardActionEdit: { fontSize: 13, fontWeight: "600", color: c.accent },
-    cardActionDelete: { fontSize: 13, fontWeight: "600", color: c.danger },
-    empty: { fontSize: 15, color: c.textSecondary },
-    err: { fontSize: 15, color: c.danger, marginBottom: 12 },
-    retry: {
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      backgroundColor: c.accent,
-      borderRadius: 8
-    },
-    retryT: { color: c.onAccent, fontWeight: "600" },
-    fab: {
-      position: "absolute",
-      bottom: 24,
-      right: 24,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: c.accent,
-      alignItems: "center",
-      justifyContent: "center",
-      elevation: 6
-    },
-    fabT: { color: c.onAccent, fontSize: 28, fontWeight: "300", lineHeight: 30 },
-    mOver: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.4)",
-      justifyContent: "flex-end"
-    },
-    mCont: {
-      backgroundColor: c.card,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 24,
-      paddingBottom: 40,
-      gap: 10
-    },
-    mTtl: { fontSize: 20, fontWeight: "700", color: c.text, marginBottom: 6 },
-    lbl: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: c.textSecondary,
-      textTransform: "uppercase",
-      letterSpacing: 0.5
-    },
-    inp: {
-      backgroundColor: c.background,
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: 15,
-      color: c.text
-    },
-    ta: { minHeight: 50, paddingTop: 10 },
-    pGrid: { gap: 8 },
-    pIR: { flexDirection: "row", alignItems: "center", gap: 10 },
-    pIL: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: c.textBody,
-      width: 80,
-      textTransform: "capitalize"
-    },
-    pI: {
-      flex: 1,
-      backgroundColor: c.background,
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-      borderRadius: 6,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      fontSize: 14,
-      color: c.text
-    },
-    mBtns: { flexDirection: "row", gap: 10, marginTop: 8 },
-    cBtn: {
-      flex: 1,
-      paddingVertical: 12,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-      alignItems: "center"
-    },
-    cTxt: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
-    sBtn: {
-      flex: 1,
-      paddingVertical: 12,
-      borderRadius: 8,
-      backgroundColor: c.accent,
-      alignItems: "center"
-    },
-    sTxt: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
-    errorBanner: {
-      backgroundColor: c.dangerSurface,
-      borderWidth: 1,
-      borderColor: c.dangerBorder,
-      borderRadius: 8,
-      padding: 12
-    },
-    errorBannerText: { fontSize: 14, color: c.danger }
-  })
+      <AlertDialog
+        isOpen={pendingDelete != null}
+        onClose={() => setPendingDelete(null)}
+      >
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Text className="text-lg font-bold text-text">
+              {t("body_measurement.delete.title")}
+            </Text>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <Text className="text-sm text-text-secondary">
+              {t("body_measurement.delete.description_generic")}
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Host matchContents>
+              <Button
+                label={t("body_measurement.delete.cancel")}
+                variant="outlined"
+                onPress={() => setPendingDelete(null)}
+              />
+            </Host>
+            <Host matchContents>
+              <Button
+                label={t("body_measurement.delete.confirm")}
+                style={{ backgroundColor: "#dc2626" }}
+                onPress={confirmDelete}
+              />
+            </Host>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Box>
+  );
 }

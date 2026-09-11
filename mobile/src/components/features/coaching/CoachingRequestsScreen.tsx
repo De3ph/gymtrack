@@ -1,17 +1,15 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from "react-native";
+import { FlatList, RefreshControl } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { coachingRequestApi } from "@/api/coachingRequestApi";
 import { useAuthStore } from "@/stores/authStore";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { Badge, BadgeText } from "@/components/ui/badge";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Center } from "@/components/ui/center";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Request {
   requestId?: number;
@@ -24,13 +22,22 @@ interface Request {
   createdAt?: string;
 }
 
+const statusBadgeClass: Record<string, string> = {
+  accepted: "bg-success-surface",
+  rejected: "bg-danger-surface",
+  pending: "bg-brand-surface",
+};
+
+const statusTextClass: Record<string, string> = {
+  accepted: "text-success-text",
+  rejected: "text-danger-text",
+  pending: "text-brand-on-light",
+};
+
 export function CoachingRequestsScreen() {
-  const c = useThemeColors();
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const isTrainer = user?.role === "trainer";
-
-  const styles = createStyles(c);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["coachingRequests", isTrainer],
@@ -49,81 +56,70 @@ export function CoachingRequestsScreen() {
 
   const requests: Request[] = (data as { requests?: Request[] })?.requests ?? [];
 
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "accepted": return { bg: c.successSurface, color: c.successText };
-      case "rejected": return { bg: c.dangerSurface, color: c.dangerText };
-      default: return { bg: c.warningSurface, color: c.warningText };
-    }
-  };
-
   const renderItem = ({ item }: { item: Request }) => {
-    const st = getStatusStyle(item.status);
+    const badgeClass = statusBadgeClass[item.status] ?? "bg-brand-surface";
+    const badgeTextClass = statusTextClass[item.status] ?? "text-brand-on-light";
     return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>{isTrainer ? item.athleteUsername : item.trainerUsername}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: st.bg }]}>
-            <Text style={[styles.statusText, { color: st.color }]}>{item.status}</Text>
-          </View>
-        </View>
-        {item.message ? <Text style={styles.message}>{item.message}</Text> : null}
+      <Box className="rounded-xl bg-card p-4 mb-3">
+        <HStack className="mb-2 items-center justify-between">
+          <Text className="text-base font-bold text-text">{isTrainer ? item.athleteUsername : item.trainerUsername}</Text>
+          <Badge className={`rounded-lg px-2.5 py-1 ${badgeClass}`}>
+            <BadgeText className={`text-xs font-bold capitalize ${badgeTextClass}`}>{item.status}</BadgeText>
+          </Badge>
+        </HStack>
+        {item.message ? <Text className="text-sm text-text-body">{item.message}</Text> : null}
         {isTrainer && item.status === "pending" && (
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.acceptBtn} onPress={() => item.requestId && accept(item.requestId)}>
-              <Text style={styles.acceptText}>Accept</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.rejectBtn} onPress={() => item.requestId && reject(item.requestId)}>
-              <Text style={styles.rejectText}>Reject</Text>
-            </TouchableOpacity>
-          </View>
+          <HStack space="sm" className="mt-3">
+            <Host matchContents>
+              <Button
+                label="Accept"
+                onPress={() => item.requestId && accept(item.requestId)}
+              />
+            </Host>
+            <Host matchContents>
+              <Button
+                label="Reject"
+                variant="outlined"
+                onPress={() => item.requestId && reject(item.requestId)}
+              />
+            </Host>
+          </HStack>
         )}
-      </View>
+      </Box>
     );
   };
 
   return (
-    <View style={styles.flex}>
+    <Box className="flex-1 bg-background">
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
+        <Center className="flex-1 p-6">
+          <Spinner />
+        </Center>
       ) : isError ? (
-        <View style={styles.center}>
-          <Text style={styles.errorText}>Failed to load requests</Text>
-          <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></TouchableOpacity>
-        </View>
+        <Center className="flex-1 p-6">
+          <VStack space="md" className="items-center">
+            <Box className="mb-4 rounded border-l-4 border-l-danger bg-danger-surface p-3">
+              <Text className="text-sm font-medium text-danger-text">Failed to load requests</Text>
+            </Box>
+            <Host matchContents>
+              <Button label="Retry" onPress={() => refetch()} />
+            </Host>
+          </VStack>
+        </Center>
       ) : (
         <FlatList
           data={requests}
           keyExtractor={(item) => String(item.requestId ?? "")}
           renderItem={renderItem}
-          contentContainerStyle={styles.list}
+          contentContainerClassName="p-4"
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
-          ListEmptyComponent={<View style={styles.center}><Text style={styles.emptyText}>No requests</Text></View>}
+          ListEmptyComponent={
+            <Center className="flex-1 p-6">
+              <Text className="text-[15px] text-text-secondary">No requests</Text>
+            </Center>
+          }
         />
       )}
-    </View>
+    </Box>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.background },
-    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-    list: { padding: 16, gap: 12 },
-    card: { backgroundColor: c.card, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: c.border },
-    cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-    cardTitle: { fontSize: 16, fontWeight: "700", color: c.text },
-    statusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
-    statusText: { fontSize: 12, fontWeight: "700", textTransform: "capitalize" },
-    message: { fontSize: 14, color: c.textSecondary, marginBottom: 10 },
-    actions: { flexDirection: "row", gap: 10, marginTop: 8 },
-    acceptBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: c.success, alignItems: "center" },
-    acceptText: { color: c.onAccent, fontWeight: "700", fontSize: 14 },
-    rejectBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: c.danger, alignItems: "center" },
-    rejectText: { color: c.danger, fontWeight: "700", fontSize: 14 },
-    emptyText: { fontSize: 15, color: c.textSecondary },
-    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
-    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
-    retryText: { color: c.onAccent, fontWeight: "600" },
-  });
 }

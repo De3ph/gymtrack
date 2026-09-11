@@ -1,19 +1,16 @@
 import React, { useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
-  Pressable,
-} from "react-native";
+import { Alert, RefreshControl } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { Pressable } from "@/components/ui/pressable";
+import { HStack } from "@/components/ui/hstack";
+import { VStack } from "@/components/ui/vstack";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Client {
   userId?: number;
@@ -23,9 +20,7 @@ interface Client {
 }
 
 export function ClientsScreen() {
-  const c = useThemeColors();
   const router = useRouter();
-  const styles = createStyles(c);
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["clients"],
     queryFn: () => relationshipApi.getMyClients(),
@@ -53,76 +48,55 @@ export function ClientsScreen() {
 
   const renderItem = ({ item }: { item: Client }) => (
     <Pressable
-      style={styles.card}
       onPress={() => router.push(`/trainer/client/${item.username}`)}
+      className="mb-2 flex-row items-center gap-3.5 rounded-xl border border-border bg-card p-3.5"
     >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{(item.username ?? "?")[0].toUpperCase()}</Text>
-      </View>
-      <View>
-        <Text style={styles.clientName}>{item.profile?.name || item.username}</Text>
-        <Text style={styles.clientUsername}>@{item.username}</Text>
-      </View>
+      <Box className="h-12 w-12 items-center justify-center rounded-full bg-primary">
+        <Text className="text-xl font-bold text-primary-foreground">{(item.username ?? "?")[0].toUpperCase()}</Text>
+      </Box>
+      <VStack>
+        <Text className="text-base font-bold text-text">{item.profile?.name || item.username}</Text>
+        <Text className="mt-0.5 text-[13px] text-text-secondary">@{item.username}</Text>
+      </VStack>
     </Pressable>
   );
 
   const keyExtractor = (item: Client) => String(item.userId ?? Date.now().toString());
 
   return (
-    <View style={styles.flex}>
+    <Box className="flex-1 bg-background">
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
+        <Box className="flex-1 items-center justify-center p-6"><Spinner /></Box>
       ) : isError ? (
-        <View style={styles.center}>
-          <Text style={styles.errorText}>Failed to load clients</Text>
-          <Pressable onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></Pressable>
-        </View>
+        <Box className="flex-1 items-center justify-center p-6">
+          <Text className="mb-3 text-[15px] text-danger">Failed to load clients</Text>
+          <Host matchContents>
+            <Button label="Retry" onPress={() => refetch()} />
+          </Host>
+        </Box>
       ) : (
         <FlashList
           data={clients}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          
-          contentContainerStyle={styles.list}
+          contentContainerClassName="p-4"
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           ListHeaderComponent={
-            <Pressable
-              style={[styles.inviteButton, generating && styles.buttonDisabled]}
-              onPress={generating ? undefined : () => generateCode()}
-            >
-              {generating ? (
-                <ActivityIndicator color={c.onAccent} size="small" />
-              ) : (
-                <Text style={styles.inviteText}>Generate Invite Code</Text>
-              )}
-            </Pressable>
+            <Host matchContents>
+              <Button
+                label="Generate Invite Code"
+                onPress={() => generateCode()}
+                disabled={generating}
+              />
+            </Host>
           }
-          ListEmptyComponent={<View style={styles.center}><Text style={styles.emptyText}>No clients yet</Text></View>}
+          ListEmptyComponent={
+            <Box className="flex-1 items-center justify-center p-6">
+              <Text className="text-[15px] text-text-secondary">No clients yet</Text>
+            </Box>
+          }
         />
       )}
-    </View>
+    </Box>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.background },
-    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-    list: { padding: 16, gap: 10 },
-    card: { backgroundColor: c.card, borderRadius: 12, padding: 14, flexDirection: "row", alignItems: "center", gap: 14, borderWidth: 0.5, borderColor: c.border },
-    avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: c.accent, alignItems: "center", justifyContent: "center" },
-    avatarText: { color: c.onAccent, fontSize: 20, fontWeight: "700" },
-    clientName: { fontSize: 16, fontWeight: "700", color: c.text },
-    clientUsername: { fontSize: 13, color: c.textSecondary, marginTop: 2 },
-    emptyText: { fontSize: 15, color: c.textSecondary },
-    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
-    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
-    retryText: { color: c.onAccent, fontWeight: "600" },
-    inviteButton: {
-      backgroundColor: c.invite, paddingVertical: 14, borderRadius: 10,
-      alignItems: "center", marginBottom: 12,
-    },
-    inviteText: { color: c.onAccent, fontWeight: "700", fontSize: 15 },
-    buttonDisabled: { opacity: 0.5 },
-  });
 }

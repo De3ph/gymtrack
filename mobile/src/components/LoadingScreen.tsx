@@ -1,10 +1,34 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { memo } from "react";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { Box } from "@/components/ui/box";
+import { VStack } from "@/components/ui/vstack";
+import { Text } from "@/components/ui/text";
+import { Spinner } from "@/components/ui/spinner";
 
-export function LoadingScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <ActivityIndicator size="large" />
-      <Text style={{ marginTop: 16 }}>Loading...</Text>
-    </View>
-  );
+interface LoadingScreenProps {
+  message?: string;
 }
+
+export const LoadingScreen = memo(function LoadingScreen({
+  message = "Loading…",
+}: LoadingScreenProps) {
+  return (
+    <Animated.View
+      entering={FadeIn.duration(200)}
+      className="flex-1 bg-background"
+    >
+      <Box className="flex-1 items-center justify-center" accessibilityLabel="Loading">
+        <VStack space="md" className="items-center">
+          <Animated.View entering={FadeInDown.delay(100).springify()}>
+            <Spinner size="large" className="text-primary" />
+          </Animated.View>
+          <Animated.View entering={FadeInDown.delay(200).springify()}>
+            <Text size="sm" className="text-textTertiary">
+              {message}
+            </Text>
+          </Animated.View>
+        </VStack>
+      </Box>
+    </Animated.View>
+  );
+});

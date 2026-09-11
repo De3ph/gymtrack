@@ -1,27 +1,22 @@
 import { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-  Pressable,
-} from "react-native";
+import { ScrollView } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { trainerClientApi } from "@/api/trainerClientApi";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { HStack } from "@/components/ui/hstack";
+import { Pressable } from "@/components/ui/pressable";
+import { Spinner } from "@/components/ui/spinner";
+import { Center } from "@/components/ui/center";
 
 type Tab = "overview" | "workouts" | "meals" | "measurements";
 
 export function ClientDetailScreen() {
-  const c = useThemeColors();
   const { username } = useLocalSearchParams<{ username: string }>();
   const [tab, setTab] = useState<Tab>("overview");
-
-  const styles = createStyles(c);
 
   const { data: stats, isLoading: loadingStats, isError: statsError, refetch: refetchStats } = useQuery({
     queryKey: ["clientStats", username],
@@ -78,24 +73,24 @@ export function ClientDetailScreen() {
   }, [measurements]);
 
   const renderWorkoutItem = ({ item }: { item: { workoutId?: number; date?: string; exercises?: unknown[] } }) => (
-    <View style={styles.listCard}>
-      <Text style={styles.listTitle}>{item.date}</Text>
-      <Text style={styles.listSub}>{item.exercises?.length ?? 0} exercises</Text>
-    </View>
+    <Box className="mb-2 rounded-xl border border-border bg-card p-3.5">
+      <Text className="text-[15px] font-semibold text-text">{item.date}</Text>
+      <Text className="mt-1 text-[13px] text-text-secondary">{item.exercises?.length ?? 0} exercises</Text>
+    </Box>
   );
 
   const renderMealItem = ({ item }: { item: { mealId?: number; date?: string; mealType?: string; items?: unknown[] } }) => (
-    <View style={styles.listCard}>
-      <Text style={styles.listTitle}>{item.mealType} - {item.date}</Text>
-      <Text style={styles.listSub}>{item.items?.length ?? 0} items</Text>
-    </View>
+    <Box className="mb-2 rounded-xl border border-border bg-card p-3.5">
+      <Text className="text-[15px] font-semibold text-text">{item.mealType} - {item.date}</Text>
+      <Text className="mt-1 text-[13px] text-text-secondary">{item.items?.length ?? 0} items</Text>
+    </Box>
   );
 
   const renderMeasurementItem = ({ item }: { item: { measurementId?: number; date?: string; weight?: number } }) => (
-    <View style={styles.listCard}>
-      <Text style={styles.listTitle}>{item.date}</Text>
-      <Text style={styles.listSub}>{item.weight ? `${item.weight} kg` : "N/A"}</Text>
-    </View>
+    <Box className="mb-2 rounded-xl border border-border bg-card p-3.5">
+      <Text className="text-[15px] font-semibold text-text">{item.date}</Text>
+      <Text className="mt-1 text-[13px] text-text-secondary">{item.weight ? `${item.weight} kg` : "N/A"}</Text>
+    </Box>
   );
 
   const keyExtractorWorkout = (item: { workoutId?: number; date?: string }) => String(item.workoutId ?? "");
@@ -103,46 +98,64 @@ export function ClientDetailScreen() {
   const keyExtractorMeasurement = (item: { measurementId?: number; date?: string }) => String(item.measurementId ?? "");
 
   return (
-    <View style={styles.flex}>
-      <View style={styles.tabBar}>
+    <Box className="flex-1 bg-background">
+      <HStack className="border-b border-border bg-card">
         {tabs.map((t) => (
           <Pressable
             key={t}
-            style={[styles.tab, tab === t && styles.tabActive]}
             onPress={() => setTab(t)}
+            className={`flex-1 items-center py-3.5 ${tab === t ? "border-b-2 border-b-primary" : ""}`}
           >
-            <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>{t}</Text>
+            <Text className={`text-[13px] font-semibold capitalize ${tab === t ? "text-primary" : "text-text-secondary"}`}>{t}</Text>
           </Pressable>
         ))}
-      </View>
+      </HStack>
 
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>
+        <Center className="flex-1">
+          <Spinner size="large" />
+        </Center>
       ) : isError ? (
-        <View style={styles.center}>
-          <Text style={styles.errorText}>Failed to load</Text>
-          <Pressable onPress={refetchFailed} style={styles.retryButton}>
-            <Text style={styles.retryText}>Retry</Text>
-          </Pressable>
-        </View>
+        <Center className="flex-1">
+          <Box className="mb-4 rounded border-l-4 border-l-danger bg-danger-surface p-3">
+            <Text className="text-sm font-medium text-danger-text">Failed to load</Text>
+          </Box>
+          <Host matchContents>
+            <Button label="Retry" onPress={refetchFailed} />
+          </Host>
+        </Center>
       ) : (
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          className="flex-1 bg-background"
+          contentContainerClassName="p-4"
+        >
           {tab === "overview" && st && (
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}><Text style={styles.statValue}>{st.totalWorkouts ?? 0}</Text><Text style={styles.statLabel}>Workouts</Text></View>
-              <View style={styles.statCard}><Text style={styles.statValue}>{st.totalMeals ?? 0}</Text><Text style={styles.statLabel}>Meals</Text></View>
-              <View style={styles.statCard}><Text style={styles.statValue}>{st.consistency ?? 0}%</Text><Text style={styles.statLabel}>Consistency</Text></View>
-              <View style={styles.statCard}><Text style={styles.statValue}>{st.totalVolume ?? 0}</Text><Text style={styles.statLabel}>Volume</Text></View>
-            </View>
+            <Box className="flex-row flex-wrap gap-2.5">
+              <Box className="min-w-[45%] flex-1 items-center rounded-xl border border-border bg-card p-4">
+                <Text className="text-2xl font-extrabold text-primary">{st.totalWorkouts ?? 0}</Text>
+                <Text className="mt-1 text-xs font-semibold text-text-secondary">Workouts</Text>
+              </Box>
+              <Box className="min-w-[45%] flex-1 items-center rounded-xl border border-border bg-card p-4">
+                <Text className="text-2xl font-extrabold text-primary">{st.totalMeals ?? 0}</Text>
+                <Text className="mt-1 text-xs font-semibold text-text-secondary">Meals</Text>
+              </Box>
+              <Box className="min-w-[45%] flex-1 items-center rounded-xl border border-border bg-card p-4">
+                <Text className="text-2xl font-extrabold text-primary">{st.consistency ?? 0}%</Text>
+                <Text className="mt-1 text-xs font-semibold text-text-secondary">Consistency</Text>
+              </Box>
+              <Box className="min-w-[45%] flex-1 items-center rounded-xl border border-border bg-card p-4">
+                <Text className="text-2xl font-extrabold text-primary">{st.totalVolume ?? 0}</Text>
+                <Text className="mt-1 text-xs font-semibold text-text-secondary">Volume</Text>
+              </Box>
+            </Box>
           )}
           {tab === "workouts" && (
             <FlashList
               data={workoutItems}
               keyExtractor={keyExtractorWorkout}
               renderItem={renderWorkoutItem}
-              
               scrollEnabled={false}
-              ListEmptyComponent={<Text style={styles.emptyText}>No workouts</Text>}
+              ListEmptyComponent={<Text className="mt-10 text-center text-sm text-text-secondary">No workouts</Text>}
             />
           )}
           {tab === "meals" && (
@@ -150,9 +163,8 @@ export function ClientDetailScreen() {
               data={mealItems}
               keyExtractor={keyExtractorMeal}
               renderItem={renderMealItem}
-              
               scrollEnabled={false}
-              ListEmptyComponent={<Text style={styles.emptyText}>No meals</Text>}
+              ListEmptyComponent={<Text className="mt-10 text-center text-sm text-text-secondary">No meals</Text>}
             />
           )}
           {tab === "measurements" && (
@@ -160,37 +172,12 @@ export function ClientDetailScreen() {
               data={measurementItems}
               keyExtractor={keyExtractorMeasurement}
               renderItem={renderMeasurementItem}
-              
               scrollEnabled={false}
-              ListEmptyComponent={<Text style={styles.emptyText}>No measurements</Text>}
+              ListEmptyComponent={<Text className="mt-10 text-center text-sm text-text-secondary">No measurements</Text>}
             />
           )}
         </ScrollView>
       )}
-    </View>
+    </Box>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.background },
-    center: { flex: 1, justifyContent: "center", alignItems: "center" },
-    tabBar: { flexDirection: "row", backgroundColor: c.card, borderBottomWidth: 0.5, borderBottomColor: c.border },
-    tab: { flex: 1, paddingVertical: 14, alignItems: "center" },
-    tabActive: { borderBottomWidth: 2, borderBottomColor: c.accent },
-    tabText: { fontSize: 13, fontWeight: "600", color: c.textSecondary, textTransform: "capitalize" },
-    tabTextActive: { color: c.accent },
-    content: { padding: 16 },
-    statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-    statCard: { flex: 1, minWidth: "45%", backgroundColor: c.card, borderRadius: 12, padding: 16, alignItems: "center", borderWidth: 0.5, borderColor: c.border },
-    statValue: { fontSize: 24, fontWeight: "800", color: c.accent },
-    statLabel: { fontSize: 12, fontWeight: "600", color: c.textSecondary, marginTop: 4 },
-    listCard: { backgroundColor: c.card, borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: c.border },
-    listTitle: { fontSize: 15, fontWeight: "600", color: c.text },
-    listSub: { fontSize: 13, color: c.textSecondary, marginTop: 3 },
-    emptyText: { textAlign: "center", color: c.textSecondary, fontSize: 14, marginTop: 40 },
-    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
-    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
-    retryText: { color: c.onAccent, fontWeight: "600" },
-  });
 }

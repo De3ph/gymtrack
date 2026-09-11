@@ -1,25 +1,30 @@
 import { useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-  TextInput,
-} from "react-native";
+import { ScrollView, Alert } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { relationshipApi } from "@/api/relationshipApi";
 import { useRouter } from "expo-router";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { Input, InputField } from "@/components/ui/input";
+import { Badge, BadgeText } from "@/components/ui/badge";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Pressable } from "@/components/ui/pressable";
+import { Center } from "@/components/ui/center";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from "@/components/ui/alert-dialog";
 
 export function MyTrainerScreen() {
-  const c = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const styles = createStyles(c);
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["myTrainer"],
     queryFn: () => relationshipApi.getMyTrainer(),
@@ -32,6 +37,7 @@ export function MyTrainerScreen() {
 
   const [inviteCode, setInviteCode] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showTerminateDialog, setShowTerminateDialog] = useState(false);
 
   const { mutate: acceptInvite, isPending: accepting } = useMutation({
     mutationFn: (code: string) => relationshipApi.acceptInvitation(code),
@@ -54,122 +60,141 @@ export function MyTrainerScreen() {
   }, [inviteCode, acceptInvite]);
 
   const handleTerminate = useCallback(() => {
-    Alert.alert("Terminate Relationship", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Terminate", style: "destructive", onPress: () => {
-        const trainer = (data as { trainer?: { relationshipId?: number } })?.trainer;
-        if (trainer?.relationshipId) {
-          terminate(trainer.relationshipId);
-        }
-      }},
-    ]);
+    setShowTerminateDialog(true);
+  }, []);
+
+  const confirmTerminate = useCallback(() => {
+    const trainer = (data as { trainer?: { relationshipId?: number } })?.trainer;
+    if (trainer?.relationshipId) {
+      terminate(trainer.relationshipId);
+    }
+    setShowTerminateDialog(false);
   }, [data, terminate]);
 
-  if (isLoading || showSuccess) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
-  if (isError || !data) return (
-    <View style={styles.center}>
-      <Text style={styles.emptyText}>No trainer assigned yet</Text>
-      <View style={styles.inviteSection}>
-        <Text style={styles.inviteLabel}>Have an invite code?</Text>
-        <TextInput
-          style={styles.inviteInput}
-          value={inviteCode}
-          onChangeText={setInviteCode}
-          placeholder="Enter 8-character code"
-          placeholderTextColor={c.textTertiary}
-          maxLength={8}
-          autoCapitalize="characters"
-          autoCorrect={false}
-        />
-        <Pressable
-          style={[
-            styles.acceptButton,
-            (!inviteCode.trim() || accepting) && styles.acceptButtonDisabled
-          ]}
-          onPress={handleAcceptInvite}
-          disabled={!inviteCode.trim() || accepting}
-        >
-          {accepting ? (
-            <ActivityIndicator color={c.onAccent} size="small" />
-          ) : (
-            <Text style={styles.acceptText}>Accept Invitation</Text>
-          )}
-        </Pressable>
-      </View>
-      <Pressable onPress={() => refetch()} style={styles.retryButton}><Text style={styles.retryText}>Retry</Text></Pressable>
-    </View>
-  );
+  if (isLoading || showSuccess)
+    return (
+      <Center className="flex-1 p-6">
+        <Spinner />
+      </Center>
+    );
+  if (isError || !data)
+    return (
+      <Center className="flex-1 p-6">
+        <Text className="mb-3 text-base text-text-secondary">No trainer assigned yet</Text>
+        <Box className="mb-4 w-full max-w-[320px] rounded-xl border border-border bg-card p-4">
+          <Text className="mb-2.5 text-center text-sm font-semibold text-text-body">
+            Have an invite code?
+          </Text>
+          <Box className="rounded-lg border border-dashed border-border-strong bg-surface-subtle p-3">
+            <Input className="border-0 bg-transparent">
+              <InputField
+                value={inviteCode}
+                onChangeText={setInviteCode}
+                placeholder="Enter 8-character code"
+                maxLength={8}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={!accepting}
+                className="text-center text-lg font-bold tracking-[4px]"
+              />
+            </Input>
+          </Box>
+          <Host matchContents>
+            <Button
+              label="Accept Invitation"
+              onPress={handleAcceptInvite}
+              disabled={!inviteCode.trim() || accepting}
+              style={{
+                backgroundColor:
+                  !inviteCode.trim() || accepting ? "#c4b5fd" : "#7c3aed",
+              }}
+            />
+          </Host>
+        </Box>
+        <Host matchContents>
+          <Button label="Retry" onPress={() => refetch()} />
+        </Host>
+      </Center>
+    );
 
   const trainer = (data as { trainer?: { relationshipId?: number; username?: string; email?: string; profile?: { name?: string; bio?: string; specializations?: string } } })?.trainer;
-  if (!trainer) return <View style={styles.center}><Text style={styles.emptyText}>No trainer assigned</Text></View>;
+  if (!trainer)
+    return (
+      <Center className="flex-1 p-6">
+        <Text className="mb-3 text-base text-text-secondary">No trainer assigned</Text>
+      </Center>
+    );
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{(trainer.username ?? "?")[0].toUpperCase()}</Text></View>
-        <Text style={styles.name}>{trainer.profile?.name || trainer.username}</Text>
-        {trainer.profile?.bio ? <Text style={styles.bio}>{trainer.profile.bio}</Text> : null}
-      </View>
+    <ScrollView className="flex-1 bg-background" contentContainerClassName="p-6 pb-12">
+      <Box className="mb-6 items-center">
+        <Box className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-primary">
+          <Text className="text-[32px] font-extrabold text-primary-foreground">
+            {(trainer.username ?? "?")[0].toUpperCase()}
+          </Text>
+        </Box>
+        <Text className="mb-1.5 text-2xl font-bold text-text">
+          {trainer.profile?.name || trainer.username}
+        </Text>
+        {trainer.profile?.bio ? (
+          <Text className="text-center text-sm text-text-secondary">{trainer.profile.bio}</Text>
+        ) : null}
+      </Box>
       {trainer.profile?.specializations ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Specializations</Text>
-          <View style={styles.tags}>
+        <Box className="mb-4 rounded-xl bg-card p-4">
+          <Text className="mb-2.5 text-sm font-bold uppercase tracking-[1px] text-text-secondary">
+            Specializations
+          </Text>
+          <HStack space="xs" className="flex-wrap">
             {trainer.profile.specializations.split(",").map((s: string, i: number) => (
-              <View key={i} style={styles.tag}><Text style={styles.tagText}>{s.trim()}</Text></View>
+              <Badge key={i} className="rounded-lg bg-brand-surface px-2.5 py-1">
+                <BadgeText className="text-xs font-semibold text-brand-on-light">
+                  {s.trim()}
+                </BadgeText>
+              </Badge>
             ))}
-          </View>
-        </View>
+          </HStack>
+        </Box>
       ) : null}
-      <View style={styles.dangerSection}>
-        <Pressable
-          style={[styles.terminateButton, terminating && styles.buttonDisabled]}
-          onPress={handleTerminate}
-          disabled={terminating}
-        >
-          <Text style={styles.terminateText}>{terminating ? "Terminating..." : "Terminate Relationship"}</Text>
-        </Pressable>
-      </View>
+      <VStack className="mt-2">
+        <Host matchContents>
+          <Button
+            label={terminating ? "Terminating..." : "Terminate Relationship"}
+            variant="outlined"
+            onPress={handleTerminate}
+            disabled={terminating}
+          />
+        </Host>
+      </VStack>
+
+      <AlertDialog isOpen={showTerminateDialog} onClose={() => setShowTerminateDialog(false)}>
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Text className="text-lg font-bold text-text">Terminate Relationship</Text>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <Text className="text-sm text-text-secondary">Are you sure?</Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Host matchContents>
+              <Button
+                label="Cancel"
+                variant="outlined"
+                onPress={() => setShowTerminateDialog(false)}
+              />
+            </Host>
+            <Host matchContents>
+              <Button
+                label="Terminate"
+                style={{ backgroundColor: "#dc2626" }}
+                onPress={confirmTerminate}
+                disabled={terminating}
+              />
+            </Host>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ScrollView>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.background },
-    container: { padding: 24, paddingBottom: 48 },
-    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-    header: { alignItems: "center", marginBottom: 24 },
-    avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: c.accent, alignItems: "center", justifyContent: "center", marginBottom: 12 },
-    avatarText: { color: c.onAccent, fontSize: 32, fontWeight: "800" },
-    name: { fontSize: 24, fontWeight: "700", color: c.text, marginBottom: 6 },
-    bio: { fontSize: 14, color: c.textSecondary, textAlign: "center" },
-    section: { backgroundColor: c.card, borderRadius: 12, padding: 16, marginBottom: 16 },
-    sectionTitle: { fontSize: 14, fontWeight: "700", color: c.textSecondary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
-    tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-    tag: { backgroundColor: c.accentSurface, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-    tagText: { fontSize: 12, fontWeight: "600", color: c.accentOnLight },
-    dangerSection: { marginTop: 8 },
-    terminateButton: { paddingVertical: 14, borderRadius: 8, borderWidth: 1.5, borderColor: c.danger, alignItems: "center" },
-    terminateText: { fontSize: 15, fontWeight: "700", color: c.danger },
-    emptyText: { fontSize: 16, color: c.textSecondary, marginBottom: 12 },
-    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
-    retryText: { color: c.onAccent, fontWeight: "600" },
-    buttonDisabled: { opacity: 0.5 },
-    inviteSection: {
-      width: "100%", maxWidth: 320, backgroundColor: c.card, borderRadius: 12,
-      padding: 16, marginBottom: 16, borderWidth: 1, borderColor: c.border,
-    },
-    inviteLabel: { fontSize: 14, fontWeight: "600", color: c.textBody, marginBottom: 10, textAlign: "center" },
-    inviteInput: {
-      backgroundColor: c.background, borderWidth: 1, borderColor: c.borderStrong,
-      borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18,
-      color: c.text, textAlign: "center", letterSpacing: 4, fontWeight: "700",
-      marginBottom: 12,
-    },
-    acceptButton: {
-      backgroundColor: c.invite, paddingVertical: 12, borderRadius: 8, alignItems: "center",
-    },
-    acceptButtonDisabled: { backgroundColor: c.inviteDisabled },
-    acceptText: { color: c.onAccent, fontWeight: "700", fontSize: 14 },
-  });
 }

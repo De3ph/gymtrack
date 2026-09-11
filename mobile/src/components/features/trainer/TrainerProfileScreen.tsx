@@ -1,21 +1,28 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { ScrollView, Alert } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trainerCatalogApi } from "@/api/trainerCatalogApi";
 import { availabilityApi } from "@/api/availabilityApi";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { Input, InputField } from "@/components/ui/input";
+import { Textarea, TextareaInput } from "@/components/ui/textarea";
+import {
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+} from "@/components/ui/form-control";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Pressable } from "@/components/ui/pressable";
+import { Spinner } from "@/components/ui/spinner";
+import { Icon, CloseCircleIcon } from "@/components/ui/icon";
 
 const DAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+const labelClassName =
+  "text-xs font-bold uppercase tracking-[1px] text-text-secondary";
 
 interface AvailabilitySlot {
   availabilityId?: number;
@@ -26,9 +33,7 @@ interface AvailabilitySlot {
 }
 
 export function TrainerProfileScreen() {
-  const c = useThemeColors();
   const queryClient = useQueryClient();
-  const styles = createStyles(c);
   const { data: profile, isLoading: loadingProfile, isError: profileError, refetch: refetchProfile } = useQuery({
     queryKey: ["trainerProfile"],
     queryFn: () => trainerCatalogApi.getMyProfile(),
@@ -175,241 +180,249 @@ export function TrainerProfileScreen() {
     [availSlots, deleteSlot]
   );
 
-  if (loadingProfile || loadingAvail) return <View style={styles.center}><ActivityIndicator size="large" color={c.accent} /></View>;
+  if (loadingProfile || loadingAvail)
+    return (
+      <Box className="flex-1 items-center justify-center bg-background">
+        <Spinner />
+      </Box>
+    );
 
-  if (profileError) return (
-    <View style={styles.center}>
-      <Text style={styles.loadErrorText}>Failed to load trainer profile</Text>
-      <Pressable onPress={() => refetchProfile()} style={styles.retryButton}>
-        <Text style={styles.retryText}>Retry</Text>
-      </Pressable>
-    </View>
-  );
+  if (profileError)
+    return (
+      <Box className="flex-1 items-center justify-center bg-background">
+        <Text className="mb-3 text-[15px] text-danger">Failed to load trainer profile</Text>
+        <Host matchContents>
+          <Button label="Retry" onPress={() => refetchProfile()} />
+        </Host>
+      </Box>
+    );
 
-  if (availError) return (
-    <View style={styles.center}>
-      <Text style={styles.loadErrorText}>Failed to load availability</Text>
-      <Pressable onPress={() => refetchAvail()} style={styles.retryButton}>
-        <Text style={styles.retryText}>Retry</Text>
-      </Pressable>
-    </View>
-  );
+  if (availError)
+    return (
+      <Box className="flex-1 items-center justify-center bg-background">
+        <Text className="mb-3 text-[15px] text-danger">Failed to load availability</Text>
+        <Host matchContents>
+          <Button label="Retry" onPress={() => refetchAvail()} />
+        </Host>
+      </Box>
+    );
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="p-6 pb-12"
+    >
       {error ? (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <Box className="mb-4 rounded border-l-4 border-l-danger bg-danger-surface p-3">
+          <Text className="text-sm font-medium text-danger-text">{error}</Text>
+        </Box>
       ) : null}
-      <Text style={styles.title}>Trainer Profile</Text>
+      <Text className="mb-5 text-2xl font-bold text-text">Trainer Profile</Text>
       {editing ? (
-        <View style={styles.form}>
-          <Text style={styles.label}>Name</Text>
-          <TextInput style={styles.input} value={name} onChangeText={setName} placeholderTextColor={c.textTertiary} />
-          <Text style={styles.label}>Bio</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={bio}
-            onChangeText={setBio}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            placeholderTextColor={c.textTertiary}
-          />
-          <Text style={styles.label}>Hourly Rate</Text>
-          <TextInput
-            style={styles.input}
-            value={hourlyRate}
-            onChangeText={setHourlyRate}
-            keyboardType="numeric"
-            placeholderTextColor={c.textTertiary}
-          />
-          <View style={styles.buttonRow}>
-            <Pressable
-              style={styles.cancelBtn}
-              onPress={() => {
-                setEditing(false);
-                setError("");
-              }}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.saveBtn, saving && styles.buttonDisabled]}
-              onPress={handleSaveProfile}
-              disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator color={c.onAccent} size="small" />
-              ) : (
-                <Text style={styles.saveText}>Save</Text>
-              )}
-            </Pressable>
-          </View>
-        </View>
+        <VStack space="md">
+          <FormControl>
+            <FormControlLabel>
+              <FormControlLabelText className={labelClassName}>
+                Name
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input>
+              <InputField value={name} onChangeText={setName} editable={!saving} />
+            </Input>
+          </FormControl>
+          <FormControl>
+            <FormControlLabel>
+              <FormControlLabelText className={labelClassName}>
+                Bio
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Textarea>
+              <TextareaInput value={bio} onChangeText={setBio} editable={!saving} />
+            </Textarea>
+          </FormControl>
+          <FormControl>
+            <FormControlLabel>
+              <FormControlLabelText className={labelClassName}>
+                Hourly Rate
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input>
+              <InputField
+                value={hourlyRate}
+                onChangeText={setHourlyRate}
+                keyboardType="numeric"
+                editable={!saving}
+              />
+            </Input>
+          </FormControl>
+          <HStack space="sm" className="mt-1">
+            <Host matchContents>
+              <Button
+                label="Cancel"
+                variant="outlined"
+                onPress={() => {
+                  setEditing(false);
+                  setError("");
+                }}
+              />
+            </Host>
+            <Host matchContents>
+              <Button
+                label="Save"
+                onPress={handleSaveProfile}
+                disabled={saving}
+              />
+            </Host>
+          </HStack>
+        </VStack>
       ) : (
-        <View style={styles.card}>
-          <View style={styles.row}><Text style={styles.label}>Name</Text><Text style={styles.value}>{p?.name || "Not set"}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Bio</Text><Text style={styles.value}>{p?.bio || "Not set"}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Rate</Text><Text style={styles.value}>{p?.hourlyRate ? `${p.hourlyRate}/hr` : "Not set"}</Text></View>
-          <Pressable
-            style={styles.editBtn}
-            onPress={() => {
-              setName(p?.name ?? "");
-              setBio(p?.bio ?? "");
-              setHourlyRate(String(p?.hourlyRate ?? ""));
-              setError("");
-              setEditing(true);
-            }}
-          >
-            <Text style={styles.editText}>Edit Profile</Text>
-          </Pressable>
-        </View>
+        <Box className="rounded-xl bg-card p-[18px]">
+          <HStack className="justify-between border-b border-border py-2.5">
+            <Text className="text-[13px] font-semibold text-text-secondary">Name</Text>
+            <Text className="max-w-[60%] text-right text-sm font-medium text-text">
+              {p?.name || "Not set"}
+            </Text>
+          </HStack>
+          <HStack className="justify-between border-b border-border py-2.5">
+            <Text className="text-[13px] font-semibold text-text-secondary">Bio</Text>
+            <Text className="max-w-[60%] text-right text-sm font-medium text-text">
+              {p?.bio || "Not set"}
+            </Text>
+          </HStack>
+          <HStack className="justify-between border-b border-border py-2.5">
+            <Text className="text-[13px] font-semibold text-text-secondary">Rate</Text>
+            <Text className="max-w-[60%] text-right text-sm font-medium text-text">
+              {p?.hourlyRate ? `${p.hourlyRate}/hr` : "Not set"}
+            </Text>
+          </HStack>
+          <Host matchContents>
+            <Button
+              label="Edit Profile"
+              variant="outlined"
+              onPress={() => {
+                setName(p?.name ?? "");
+                setBio(p?.bio ?? "");
+                setHourlyRate(String(p?.hourlyRate ?? ""));
+                setError("");
+                setEditing(true);
+              }}
+            />
+          </Host>
+        </Box>
       )}
 
-      <Text style={styles.sectionTitle}>Availability</Text>
+      <Text className="mb-3 mt-7 text-xl font-bold text-text">Availability</Text>
       {editingAvail ? (
-        <View style={styles.availForm}>
+        <Box className="rounded-xl bg-card p-4">
           {availSlots.map((slot, i) => (
-            <View key={i} style={styles.availSlot}>
-              <View style={styles.availHeader}>
-                <Text style={styles.availLabel}>Slot {i + 1}</Text>
-                <Pressable
-                  onPress={() => removeSlot(i)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.removeBtn}>✕</Text>
+            <Box
+              key={i}
+              className="mb-3 rounded-[10px] border border-border bg-background p-3.5"
+            >
+              <HStack className="mb-2.5 items-center justify-between">
+                <Text className={labelClassName}>Slot {i + 1}</Text>
+                <Pressable onPress={() => removeSlot(i)}>
+                  <Icon as={CloseCircleIcon} className="text-danger" size="md" />
                 </Pressable>
-              </View>
-              <View style={styles.dayRow}>
-                {DAY_NAMES.map((d, di) => (
-                  <Pressable
-                    key={di}
-                    style={[styles.dayBtn, slot.dayOfWeek === di && styles.dayBtnActive]}
-                    onPress={() => updateSlot(i, "dayOfWeek", di)}
-                  >
-                    <Text style={[styles.dayText, slot.dayOfWeek === di && styles.dayTextActive]}>{d}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <View style={styles.timeRow}>
-                <TextInput
-                  style={[styles.input, styles.timeInput]}
-                  value={slot.startTime}
-                  onChangeText={(v) => updateSlot(i, "startTime", v)}
-                  placeholder="09:00"
-                  placeholderTextColor={c.textTertiary}
-                />
-                <Text style={styles.timeSep}>to</Text>
-                <TextInput
-                  style={[styles.input, styles.timeInput]}
-                  value={slot.endTime}
-                  onChangeText={(v) => updateSlot(i, "endTime", v)}
-                  placeholder="17:00"
-                  placeholderTextColor={c.textTertiary}
-                />
-              </View>
-            </View>
+              </HStack>
+              <HStack space="xs" className="mb-2.5">
+                {DAY_NAMES.map((d, di) => {
+                  const active = slot.dayOfWeek === di;
+                  return (
+                    <Pressable
+                      key={di}
+                      onPress={() => updateSlot(i, "dayOfWeek", di)}
+                      className={`flex-1 items-center rounded-md border py-2 ${
+                        active ? "border-primary bg-primary" : "border-border-strong bg-card"
+                      }`}
+                    >
+                      <Text
+                        className={`text-xs font-semibold ${
+                          active ? "text-primary-foreground" : "text-text-secondary"
+                        }`}
+                      >
+                        {d}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </HStack>
+              <HStack space="sm" className="items-center">
+                <Input className="flex-1">
+                  <InputField
+                    value={slot.startTime}
+                    onChangeText={(v) => updateSlot(i, "startTime", v)}
+                    placeholder="09:00"
+                  />
+                </Input>
+                <Text className="text-[13px] font-medium text-text-secondary">to</Text>
+                <Input className="flex-1">
+                  <InputField
+                    value={slot.endTime}
+                    onChangeText={(v) => updateSlot(i, "endTime", v)}
+                    placeholder="17:00"
+                  />
+                </Input>
+              </HStack>
+            </Box>
           ))}
-          <Pressable style={styles.addSlotBtn} onPress={addSlot}>
-            <Text style={styles.addSlotText}>+ Add Slot</Text>
-          </Pressable>
-          <View style={styles.buttonRow}>
-            <Pressable
-              style={styles.cancelBtn}
-              onPress={() => setEditingAvail(false)}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.saveBtn, savingAvail && styles.buttonDisabled]}
-              onPress={() => saveAvail(availSlots)}
-              disabled={savingAvail}
-            >
-              {savingAvail ? (
-                <ActivityIndicator color={c.onAccent} size="small" />
-              ) : (
-                <Text style={styles.saveText}>Save</Text>
-              )}
-            </Pressable>
-          </View>
-        </View>
+          <Host matchContents>
+            <Button label="Add Slot" variant="outlined" onPress={addSlot} />
+          </Host>
+          <HStack space="sm" className="mt-1">
+            <Host matchContents>
+              <Button
+                label="Cancel"
+                variant="outlined"
+                onPress={() => setEditingAvail(false)}
+              />
+            </Host>
+            <Host matchContents>
+              <Button
+                label="Save"
+                onPress={() => saveAvail(availSlots)}
+                disabled={savingAvail}
+              />
+            </Host>
+          </HStack>
+        </Box>
       ) : serverSlots.length > 0 ? (
-        <View style={styles.card}>
+        <Box className="rounded-xl bg-card p-[18px]">
           {serverSlots.map((slot) => (
-            <View key={slot.availabilityId ?? slot.dayOfWeek} style={styles.availRow}>
-              <Text style={styles.availDay}>{DAY_NAMES[slot.dayOfWeek]}</Text>
-              <Text style={styles.availTime}>{slot.startTime} – {slot.endTime}</Text>
-            </View>
+            <HStack
+              key={slot.availabilityId ?? slot.dayOfWeek}
+              className="justify-between border-b border-border py-2.5"
+            >
+              <Text className="text-sm font-semibold text-primary">
+                {DAY_NAMES[slot.dayOfWeek]}
+              </Text>
+              <Text className="text-[13px] text-text-secondary">
+                {slot.startTime} – {slot.endTime}
+              </Text>
+            </HStack>
           ))}
-          <Pressable style={styles.editBtn} onPress={startEditAvail}>
-            <Text style={styles.editText}>Edit Availability</Text>
-          </Pressable>
-        </View>
+          <Host matchContents>
+            <Button
+              label="Edit Availability"
+              variant="outlined"
+              onPress={startEditAvail}
+            />
+          </Host>
+        </Box>
       ) : (
-        <View style={styles.card}>
-          <Text style={styles.emptyAvail}>No availability set</Text>
-          <Pressable style={styles.editBtn} onPress={startEditAvail}>
-            <Text style={styles.editText}>Set Availability</Text>
-          </Pressable>
-        </View>
+        <Box className="rounded-xl bg-card p-[18px]">
+          <Text className="py-3 text-center text-sm text-text-tertiary">
+            No availability set
+          </Text>
+          <Host matchContents>
+            <Button
+              label="Set Availability"
+              variant="outlined"
+              onPress={startEditAvail}
+            />
+          </Host>
+        </Box>
       )}
     </ScrollView>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.background },
-    container: { padding: 24, paddingBottom: 48 },
-    center: { flex: 1, justifyContent: "center", alignItems: "center" },
-    errorBox: { backgroundColor: c.dangerSurface, borderLeftWidth: 3, borderLeftColor: c.danger, padding: 12, marginBottom: 16, borderRadius: 4 },
-    errorText: { color: c.dangerText, fontSize: 14, fontWeight: "500" },
-    loadErrorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
-    retryButton: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.accent, borderRadius: 8 },
-    retryText: { color: c.onAccent, fontWeight: "600" },
-    title: { fontSize: 24, fontWeight: "700", color: c.text, marginBottom: 20 },
-    card: { backgroundColor: c.card, borderRadius: 12, padding: 18 },
-    row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: c.border },
-    label: { fontSize: 13, fontWeight: "600", color: c.textSecondary },
-    value: { fontSize: 14, color: c.text, fontWeight: "500", maxWidth: "60%", textAlign: "right" },
-    form: { gap: 10 },
-    input: { backgroundColor: c.card, borderWidth: 1, borderColor: c.borderStrong, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: c.text },
-    textArea: { minHeight: 80, paddingTop: 10 },
-    buttonRow: { flexDirection: "row", gap: 10, marginTop: 8 },
-    cancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: c.borderStrong, alignItems: "center" },
-    cancelText: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
-    saveBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.accent, alignItems: "center" },
-    saveText: { color: c.onAccent, fontWeight: "600", fontSize: 14 },
-    buttonDisabled: { opacity: 0.5 },
-    editBtn: { marginTop: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: c.accent, alignItems: "center" },
-    editText: { fontSize: 14, fontWeight: "600", color: c.accent },
-    sectionTitle: { fontSize: 20, fontWeight: "700", color: c.text, marginTop: 28, marginBottom: 12 },
-    availForm: { backgroundColor: c.card, borderRadius: 12, padding: 16 },
-    availSlot: {
-      backgroundColor: c.background, borderRadius: 10, padding: 14, marginBottom: 12,
-      borderWidth: 1, borderColor: c.border,
-    },
-    availHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-    availLabel: { fontSize: 13, fontWeight: "700", color: c.textSecondary, textTransform: "uppercase", letterSpacing: 0.5 },
-    removeBtn: { fontSize: 18, color: c.danger, fontWeight: "600", padding: 2 },
-    dayRow: { flexDirection: "row", gap: 4, marginBottom: 10 },
-    dayBtn: {
-      flex: 1, paddingVertical: 8, borderRadius: 6, borderWidth: 1,
-      borderColor: c.borderStrong, alignItems: "center", backgroundColor: c.card,
-    },
-    dayBtnActive: { backgroundColor: c.accent, borderColor: c.accent },
-    dayText: { fontSize: 12, fontWeight: "600", color: c.textSecondary },
-    dayTextActive: { color: c.onAccent },
-    timeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-    timeInput: { flex: 1, backgroundColor: c.card },
-    timeSep: { fontSize: 13, color: c.textSecondary, fontWeight: "500" },
-    addSlotBtn: { paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: c.borderStrong, alignItems: "center", marginBottom: 14 },
-    addSlotText: { fontSize: 14, fontWeight: "600", color: c.textSecondary },
-    availRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: c.border },
-    availDay: { fontSize: 14, fontWeight: "600", color: c.accent },
-    availTime: { fontSize: 13, color: c.textSecondary },
-    emptyAvail: { fontSize: 14, color: c.textTertiary, textAlign: "center", paddingVertical: 12 },
-  });
 }
