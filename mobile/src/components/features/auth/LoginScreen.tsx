@@ -1,243 +1,256 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import { useCallback, useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useI18n } from "@/lib/i18n";
-import { useAuthStore } from "@/stores/authStore";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { useLogin } from "@/hooks/useAuth";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
+import {
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlLabel,
+  FormControlLabelText,
+} from "@/components/ui/form-control";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Pressable } from "@/components/ui/pressable";
+import {
+  AlertCircleIcon,
+  EyeIcon,
+  EyeOffIcon,
+  Icon,
+  LockIcon,
+  MailIcon,
+} from "@/components/ui/icon";
+
+interface LoginFieldErrors {
+  identifier?: string;
+  password?: string;
+}
 
 export function LoginScreen() {
-  const c = useThemeColors();
   const { t } = useI18n();
   const router = useRouter();
-  const login = useAuthStore((s) => s.login);
+  const { mutateAsync: login, isPending: loading } = useLogin();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<LoginFieldErrors>({});
+  const [apiError, setApiError] = useState("");
 
-  const styles = createStyles(c);
-
-  const handleLogin = async () => {
-    setError("");
-
+  const validate = useCallback((): LoginFieldErrors => {
+    const next: LoginFieldErrors = {};
     if (!identifier.trim()) {
-      setError(t("auth.login.email.error.required"));
-      return;
+      next.identifier = t("auth.login.email.error.required");
     }
     if (!password) {
-      setError(t("auth.login.password.error.required"));
-      return;
+      next.password = t("auth.login.password.error.required");
+    } else if (password.length < 6) {
+      next.password = t("auth.login.password.error.min_length");
     }
-    if (password.length < 6) {
-      setError(t("auth.login.password.error.min_length"));
-      return;
-    }
+    return next;
+  }, [identifier, password, t]);
 
-    setLoading(true);
+  const clearIdentifierError = useCallback(() => {
+    setErrors((prev) =>
+      prev.identifier ? { ...prev, identifier: undefined } : prev,
+    );
+  }, []);
+
+  const clearPasswordError = useCallback(() => {
+    setErrors((prev) =>
+      prev.password ? { ...prev, password: undefined } : prev,
+    );
+  }, []);
+
+  const handleLogin = async () => {
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    setApiError("");
+    if (nextErrors.identifier || nextErrors.password) return;
+
     try {
-      await login(identifier.trim(), password);
-      router.replace('/(tabs)');
+      await login({ identifier: identifier.trim(), password });
+      router.replace("/(tabs)");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : t("common.errors.generic");
-      setError(message);
-    } finally {
-      setLoading(false);
+      setApiError(message);
     }
   };
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      className="flex-1"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerClassName="grow justify-center gap-6 bg-background px-8 py-8"
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
-        <View style={styles.header}>
-          <Text style={styles.brand}>GymTrack</Text>
-          <Text style={styles.title}>{t("auth.login.title")}</Text>
-        </View>
+        <Box className="items-center">
+          <Box
+            className="mb-6 h-20 w-20 items-center justify-center rounded-3xl bg-brand shadow-lg"
+            importantForAccessibility="no"
+          >
+            <Text className="text-[32px] font-black leading-none text-white">
+              G
+            </Text>
+          </Box>
+          <Text className="mb-3 text-xs font-bold uppercase tracking-[3px] text-text-tertiary">
+            GymTrack
+          </Text>
+          <Text className="text-center text-[26px] font-extrabold leading-tight text-text">
+            {t("auth.login.title")}
+          </Text>
+          <Text className="mt-2 text-center text-base leading-relaxed text-text-secondary">
+            {t("auth.login.subtitle")}
+          </Text>
+        </Box>
 
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
+        {apiError ? (
+          <HStack
+            space="md"
+            className="items-start rounded-xl border border-danger-border bg-danger-surface p-4"
+          >
+            <Icon
+              as={AlertCircleIcon}
+              size="md"
+              className="mt-0.5 shrink-0 text-danger"
+            />
+            <Text
+              className="flex-1 text-sm font-medium leading-snug text-danger-text"
+              selectable
+            >
+              {apiError}
+            </Text>
+          </HStack>
         ) : null}
 
-        <View style={styles.form}>
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              {t("auth.login.email.label")}
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={identifier}
-              onChangeText={setIdentifier}
-              placeholder={t("auth.login.email.placeholder")}
-              placeholderTextColor={c.textTertiary}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              textContentType="username"
-              editable={!loading}
-            />
-          </View>
+        <VStack space="xl">
+          <FormControl isInvalid={!!errors.identifier}>
+            <FormControlLabel>
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.login.email.label")}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input isInvalid={!!errors.identifier}>
+              <InputSlot>
+                <InputIcon as={MailIcon} className="text-text-tertiary" />
+              </InputSlot>
+              <InputField
+                value={identifier}
+                onChangeText={(value) => {
+                  setIdentifier(value);
+                  clearIdentifierError();
+                }}
+                placeholder={t("auth.login.email.placeholder")}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="username"
+                editable={!loading}
+              />
+            </Input>
+            {errors.identifier ? (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>{errors.identifier}</FormControlErrorText>
+              </FormControlError>
+            ) : null}
+          </FormControl>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              {t("auth.login.password.label")}
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={t("auth.login.password.placeholder")}
-              placeholderTextColor={c.textTertiary}
-              secureTextEntry
-              textContentType="password"
-              editable={!loading}
-              onSubmitEditing={handleLogin}
-            />
-          </View>
+          <FormControl isInvalid={!!errors.password}>
+            <FormControlLabel className="flex-row justify-between">
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.login.password.label")}
+              </FormControlLabelText>
+              <Pressable
+                onPress={() => {}}
+                accessibilityRole="button"
+                accessibilityHint={t("auth.login.forgot_password")}
+                hitSlop={8}
+              >
+                <Text className="text-xs font-semibold text-primary">
+                  {t("auth.login.forgot_password")}
+                </Text>
+              </Pressable>
+            </FormControlLabel>
+            <Input isInvalid={!!errors.password}>
+              <InputSlot>
+                <InputIcon as={LockIcon} className="text-text-tertiary" />
+              </InputSlot>
+              <InputField
+                value={password}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  clearPasswordError();
+                }}
+                placeholder={t("auth.login.password.placeholder")}
+                secureTextEntry={!showPassword}
+                textContentType="password"
+                editable={!loading}
+              />
+              <InputSlot
+                onPress={() => setShowPassword((visible) => !visible)}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showPassword
+                    ? t("auth.login.password.hide")
+                    : t("auth.login.password.show")
+                }
+                accessibilityState={{ selected: showPassword }}
+                hitSlop={8}
+              >
+                <InputIcon
+                  as={showPassword ? EyeOffIcon : EyeIcon}
+                  className="text-text-secondary"
+                />
+              </InputSlot>
+            </Input>
+            {errors.password ? (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>{errors.password}</FormControlErrorText>
+              </FormControlError>
+            ) : null}
+          </FormControl>
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color={c.onAccent} size="small" />
-            ) : (
-              <Text style={styles.buttonText}>
-                {t("auth.login.submit")}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+          <Box className="items-end">
+            <Host matchContents>
+              <Button
+                label={
+                  loading ? t("auth.login.submitting") : t("auth.login.submit")
+                }
+                onPress={handleLogin}
+                disabled={loading}
+              />
+            </Host>
+          </Box>
+        </VStack>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            {t("auth.login.no_account")}{" "}
+        <HStack space="xs" className="items-center justify-center">
+          <Text className="text-sm text-text-secondary">
+            {t("auth.login.no_account")}
           </Text>
-          <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-            <Text style={styles.link}>
+          <Pressable
+            onPress={() => router.push("/(auth)/register")}
+            accessibilityRole="link"
+            hitSlop={8}
+          >
+            <Text className="text-sm font-bold text-primary">
               {t("auth.login.sign_up")}
             </Text>
-          </TouchableOpacity>
-        </View>
+          </Pressable>
+        </HStack>
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1 },
-    container: {
-      flexGrow: 1,
-      justifyContent: "center",
-      padding: 24,
-      backgroundColor: c.background,
-    },
-    header: {
-      marginBottom: 32,
-      alignItems: "center",
-    },
-    brand: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: c.textTertiary,
-      letterSpacing: 2,
-      textTransform: "uppercase",
-      marginBottom: 8,
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: "800",
-      color: c.text,
-    },
-    errorBox: {
-      backgroundColor: c.dangerSurface,
-      borderLeftWidth: 3,
-      borderLeftColor: c.danger,
-      padding: 12,
-      marginBottom: 20,
-      borderRadius: 4,
-    },
-    errorText: {
-      color: c.dangerText,
-      fontSize: 14,
-      fontWeight: "500",
-    },
-    form: {
-      gap: 16,
-    },
-    field: {
-      gap: 6,
-    },
-    label: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: c.textSecondary,
-      letterSpacing: 1,
-      textTransform: "uppercase",
-    },
-    input: {
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-      borderRadius: 8,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-      fontSize: 16,
-      color: c.text,
-    },
-    button: {
-      backgroundColor: c.accent,
-      paddingVertical: 14,
-      borderRadius: 8,
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: 48,
-      marginTop: 8,
-    },
-    buttonDisabled: {
-      opacity: 0.6,
-    },
-    buttonText: {
-      color: c.onAccent,
-      fontSize: 16,
-      fontWeight: "700",
-    },
-    footer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      marginTop: 32,
-      alignItems: "center",
-    },
-    footerText: {
-      fontSize: 14,
-      color: c.textSecondary,
-    },
-    link: {
-      fontSize: 14,
-      fontWeight: "700",
-      color: c.accent,
-    },
-  });
 }

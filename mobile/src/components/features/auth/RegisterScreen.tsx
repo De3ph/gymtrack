@@ -1,290 +1,570 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import React, { useCallback, useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useI18n } from "@/lib/i18n";
-import { useAuthStore } from "@/stores/authStore";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { useRegister } from "@/hooks/useAuth";
+import {
+  useRegisterFormStore,
+  type RegisterRole,
+} from "@/stores/register-form-store";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host } from "@expo/ui";
+import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
+import { Textarea, TextareaInput } from "@/components/ui/textarea";
+import {
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlLabel,
+  FormControlLabelText,
+} from "@/components/ui/form-control";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Pressable } from "@/components/ui/pressable";
+import {
+  AlertCircleIcon,
+  AtSignIcon,
+  EyeIcon,
+  EyeOffIcon,
+  Icon,
+  LockIcon,
+  MailIcon,
+  UserIcon,
+} from "@/components/ui/icon";
 
-type Role = "athlete" | "trainer";
+interface FieldErrors {
+  username?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
 
-export function RegisterScreen() {
-  const c = useThemeColors();
+const ROLE_OPTIONS: { value: RegisterRole; icon: typeof UserIcon }[] = [
+  { value: "athlete", icon: UserIcon },
+  { value: "trainer", icon: UserIcon },
+];
+
+function RegisterScreenInner() {
   const { t } = useI18n();
   const router = useRouter();
-  const register = useAuthStore((s) => s.register);
+  const { mutateAsync: register, isPending: loading } = useRegister();
 
-  const [role, setRole] = useState<Role>("athlete");
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [age, setAge] = useState("");
-  const [weight, setWeight] = useState("");
-  const [height, setHeight] = useState("");
-  const [fitnessGoals, setFitnessGoals] = useState("");
-  const [certifications, setCertifications] = useState("");
-  const [specializations, setSpecializations] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const role = useRegisterFormStore((s) => s.role);
+  const error = useRegisterFormStore((s) => s.error);
+  const username = useRegisterFormStore((s) => s.username);
+  const name = useRegisterFormStore((s) => s.name);
+  const email = useRegisterFormStore((s) => s.email);
+  const password = useRegisterFormStore((s) => s.password);
+  const confirmPassword = useRegisterFormStore((s) => s.confirmPassword);
+  const age = useRegisterFormStore((s) => s.age);
+  const weight = useRegisterFormStore((s) => s.weight);
+  const height = useRegisterFormStore((s) => s.height);
+  const fitnessGoals = useRegisterFormStore((s) => s.fitnessGoals);
+  const certifications = useRegisterFormStore((s) => s.certifications);
+  const specializations = useRegisterFormStore((s) => s.specializations);
 
-  const styles = createStyles(c);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const handleRegister = async () => {
-    setError("");
-    if (!username.trim() || username.trim().length < 3) {
-      setError(t("auth.register.username.error.required"));
-      return;
+  const clearFieldError = useCallback((field: keyof FieldErrors) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      return { ...prev, [field]: undefined };
+    });
+  }, []);
+
+  const handleRegister = useCallback(async () => {
+    const form = useRegisterFormStore.getState();
+    form.setError("");
+    setFieldErrors({});
+
+    const nextErrors: FieldErrors = {};
+
+    if (!form.username.trim() || form.username.trim().length < 3) {
+      nextErrors.username = t("auth.register.username.error.required");
+    } else if (!/^[a-zA-Z0-9]+$/.test(form.username.trim())) {
+      nextErrors.username = t("auth.register.username.error.invalid");
     }
-    if (!/^[a-zA-Z0-9]+$/.test(username.trim())) {
-      setError(t("auth.register.username.error.invalid"));
-      return;
+
+    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) {
+      nextErrors.email = t("auth.register.email.error.invalid");
     }
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
-      setError(t("auth.register.email.error.invalid"));
-      return;
+
+    if (!form.password || form.password.length < 8) {
+      nextErrors.password = t("auth.register.password.error.min_length");
     }
-    if (!password || password.length < 8) {
-      setError(t("auth.register.password.error.min_length"));
-      return;
+
+    if (form.password !== form.confirmPassword) {
+      nextErrors.confirmPassword = t(
+        "auth.register.confirm_password.error.mismatch",
+      );
     }
-    if (password !== confirmPassword) {
-      setError(t("auth.register.confirm_password.error.mismatch"));
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
       return;
     }
 
     const profile: Record<string, unknown> = {};
-    if (name.trim()) profile.name = name.trim();
-    if (role === "athlete") {
-      if (age) profile.age = Number(age);
-      if (weight) profile.weight = Number(weight);
-      if (height) profile.height = Number(height);
-      if (fitnessGoals.trim()) profile.fitnessGoals = fitnessGoals.trim();
+    if (form.name.trim()) profile.name = form.name.trim();
+    if (form.role === "athlete") {
+      if (form.age) profile.age = Number(form.age);
+      if (form.weight) profile.weight = Number(form.weight);
+      if (form.height) profile.height = Number(form.height);
+      if (form.fitnessGoals.trim()) {
+        profile.fitnessGoals = form.fitnessGoals.trim();
+      }
     } else {
-      if (certifications.trim()) profile.certifications = certifications.trim();
-      if (specializations.trim()) profile.specializations = specializations.trim();
+      if (form.certifications.trim()) {
+        profile.certifications = form.certifications.trim();
+      }
+      if (form.specializations.trim()) {
+        profile.specializations = form.specializations.trim();
+      }
     }
 
-    setLoading(true);
     try {
       await register({
-        username: username.trim(),
-        email: email.trim(),
-        password,
-        role,
+        username: form.username.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        role: form.role,
         profile: Object.keys(profile).length > 0 ? profile : undefined,
       });
-      router.replace('/(tabs)');
+      form.resetForm();
+      router.replace("/(tabs)");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t("common.errors.generic");
-      setError(message);
-    } finally {
-      setLoading(false);
+      const message =
+        err instanceof Error ? err.message : t("common.errors.generic");
+      form.setError(message);
     }
-  };
+  }, [register, router, t]);
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      className="flex-1"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerClassName="grow bg-background px-6 pb-12 pt-12"
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
-        <View style={styles.header}>
-          <Text style={styles.brand}>GymTrack</Text>
-          <Text style={styles.title}>{t("auth.register.title")}</Text>
-        </View>
+        <Box className="mb-7 items-center">
+          <Box
+            className="mb-6 h-20 w-20 items-center justify-center rounded-3xl bg-primary shadow-lg"
+            importantForAccessibility="no"
+          >
+            <Text className="text-[32px] font-black leading-none text-primary-foreground">
+              G
+            </Text>
+          </Box>
+          <Text className="mb-2 text-[13px] font-semibold uppercase tracking-[2px] text-text-tertiary">
+            GymTrack
+          </Text>
+          <Text className="text-center text-[26px] font-extrabold leading-tight text-text">
+            {t("auth.register.title")}
+          </Text>
+        </Box>
 
         {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
+          <HStack
+            space="md"
+            className="mb-5 items-start rounded-xl border border-danger-border bg-danger-surface p-4"
+          >
+            <Icon
+              as={AlertCircleIcon}
+              size="md"
+              className="mt-0.5 shrink-0 text-danger"
+            />
+            <Text
+              className="flex-1 text-sm font-medium leading-snug text-danger-text"
+              selectable
+            >
+              {error}
+            </Text>
+          </HStack>
         ) : null}
 
-        <View style={styles.form}>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("auth.register.role.label")}</Text>
-            <View style={styles.roleRow}>
-              {(["athlete", "trainer"] as Role[]).map((r) => (
-                <TouchableOpacity
-                  key={r}
-                  style={[styles.roleButton, role === r && styles.roleButtonActive]}
-                  onPress={() => setRole(r)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.roleText, role === r && styles.roleTextActive]}>
-                    {t(`auth.register.role.${r}`)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+        <VStack space="xl">
+          <FormControl>
+            <FormControlLabel>
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.register.role.label")}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <HStack space="md">
+              {ROLE_OPTIONS.map(({ value: r, icon: RoleIcon }) => {
+                const active = role === r;
+                return (
+                  <Pressable
+                    key={r}
+                    onPress={() => useRegisterFormStore.getState().setRole(r)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t(`auth.register.role.${r}`)}
+                    accessibilityState={{ selected: active }}
+                    hitSlop={8}
+                    className={`flex-1 flex-row items-center justify-center gap-2 rounded-xl border-[1.5px] py-3.5 ${
+                      active
+                        ? "border-primary bg-primary"
+                        : "border-border-strong bg-card"
+                    }`}
+                  >
+                    <Icon
+                      as={RoleIcon}
+                      size="sm"
+                      className={
+                        active
+                          ? "text-primary-foreground"
+                          : "text-text-secondary"
+                      }
+                    />
+                    <Text
+                      className={`text-[15px] font-semibold ${
+                        active ? "text-primary-foreground" : "text-text-body"
+                      }`}
+                    >
+                      {t(`auth.register.role.${r}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </HStack>
+          </FormControl>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("auth.register.username.label")}</Text>
-            <TextInput
-              style={styles.input}
-              value={username}
-              onChangeText={setUsername}
-              placeholder={t("auth.register.username.placeholder")}
-              placeholderTextColor={c.textTertiary}
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
-          </View>
+          <FormControl isInvalid={!!fieldErrors.username}>
+            <FormControlLabel>
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.register.username.label")}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input isInvalid={!!fieldErrors.username}>
+              <InputSlot>
+                <InputIcon as={AtSignIcon} className="text-text-tertiary" />
+              </InputSlot>
+              <InputField
+                value={username}
+                onChangeText={(value) => {
+                  useRegisterFormStore.getState().setUsername(value);
+                  clearFieldError("username");
+                }}
+                placeholder={t("auth.register.username.placeholder")}
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="username"
+                editable={!loading}
+              />
+            </Input>
+            {fieldErrors.username ? (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>
+                  {fieldErrors.username}
+                </FormControlErrorText>
+              </FormControlError>
+            ) : null}
+          </FormControl>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("auth.register.name.label")}</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder={t("auth.register.name.placeholder")}
-              placeholderTextColor={c.textTertiary}
-              editable={!loading}
-            />
-          </View>
+          <FormControl>
+            <FormControlLabel>
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.register.name.label")}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input>
+              <InputSlot>
+                <InputIcon as={UserIcon} className="text-text-tertiary" />
+              </InputSlot>
+              <InputField
+                value={name}
+                onChangeText={(value) =>
+                  useRegisterFormStore.getState().setName(value)
+                }
+                placeholder={t("auth.register.name.placeholder")}
+                textContentType="name"
+                editable={!loading}
+              />
+            </Input>
+          </FormControl>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("auth.register.email.label")}</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder={t("auth.register.email.placeholder")}
-              placeholderTextColor={c.textTertiary}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              editable={!loading}
-            />
-          </View>
+          <FormControl isInvalid={!!fieldErrors.email}>
+            <FormControlLabel>
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.register.email.label")}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input isInvalid={!!fieldErrors.email}>
+              <InputSlot>
+                <InputIcon as={MailIcon} className="text-text-tertiary" />
+              </InputSlot>
+              <InputField
+                value={email}
+                onChangeText={(value) => {
+                  useRegisterFormStore.getState().setEmail(value);
+                  clearFieldError("email");
+                }}
+                placeholder={t("auth.register.email.placeholder")}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                editable={!loading}
+              />
+            </Input>
+            {fieldErrors.email ? (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>{fieldErrors.email}</FormControlErrorText>
+              </FormControlError>
+            ) : null}
+          </FormControl>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("auth.register.password.label")}</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={t("auth.register.password.placeholder")}
-              placeholderTextColor={c.textTertiary}
-              secureTextEntry
-              textContentType="newPassword"
-              editable={!loading}
-            />
-          </View>
+          <FormControl isInvalid={!!fieldErrors.password}>
+            <FormControlLabel>
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.register.password.label")}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input isInvalid={!!fieldErrors.password}>
+              <InputSlot>
+                <InputIcon as={LockIcon} className="text-text-tertiary" />
+              </InputSlot>
+              <InputField
+                value={password}
+                onChangeText={(value) => {
+                  useRegisterFormStore.getState().setPassword(value);
+                  clearFieldError("password");
+                }}
+                placeholder={t("auth.register.password.placeholder")}
+                secureTextEntry={!showPassword}
+                textContentType="newPassword"
+                editable={!loading}
+              />
+              <InputSlot
+                onPress={() => setShowPassword((v) => !v)}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showPassword
+                    ? t("auth.login.password.hide")
+                    : t("auth.login.password.show")
+                }
+                accessibilityState={{ selected: showPassword, disabled: loading }}
+                hitSlop={8}
+              >
+                <InputIcon
+                  as={showPassword ? EyeOffIcon : EyeIcon}
+                  className="text-text-secondary"
+                />
+              </InputSlot>
+            </Input>
+            {fieldErrors.password ? (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>{fieldErrors.password}</FormControlErrorText>
+              </FormControlError>
+            ) : null}
+          </FormControl>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("auth.register.confirm_password.label")}</Text>
-            <TextInput
-              style={styles.input}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder={t("auth.register.confirm_password.placeholder")}
-              placeholderTextColor={c.textTertiary}
-              secureTextEntry
-              textContentType="newPassword"
-              editable={!loading}
-              onSubmitEditing={handleRegister}
-            />
-          </View>
+          <FormControl isInvalid={!!fieldErrors.confirmPassword}>
+            <FormControlLabel>
+              <FormControlLabelText className="text-sm font-semibold text-text">
+                {t("auth.register.confirm_password.label")}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input isInvalid={!!fieldErrors.confirmPassword}>
+              <InputSlot>
+                <InputIcon as={LockIcon} className="text-text-tertiary" />
+              </InputSlot>
+              <InputField
+                value={confirmPassword}
+                onChangeText={(value) => {
+                  useRegisterFormStore.getState().setConfirmPassword(value);
+                  clearFieldError("confirmPassword");
+                }}
+                placeholder={t("auth.register.confirm_password.placeholder")}
+                secureTextEntry={!showConfirmPassword}
+                textContentType="newPassword"
+                editable={!loading}
+                onSubmitEditing={handleRegister}
+              />
+              <InputSlot
+                onPress={() => setShowConfirmPassword((v) => !v)}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showConfirmPassword
+                    ? t("auth.login.password.hide")
+                    : t("auth.login.password.show")
+                }
+                accessibilityState={{ selected: showConfirmPassword, disabled: loading }}
+                hitSlop={8}
+              >
+                <InputIcon
+                  as={showConfirmPassword ? EyeOffIcon : EyeIcon}
+                  className="text-text-secondary"
+                />
+              </InputSlot>
+            </Input>
+            {fieldErrors.confirmPassword ? (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>
+                  {fieldErrors.confirmPassword}
+                </FormControlErrorText>
+              </FormControlError>
+            ) : null}
+          </FormControl>
 
           {role === "athlete" ? (
             <>
-              <View style={styles.field}>
-                <Text style={styles.label}>{t("auth.register.age.label")}</Text>
-                <TextInput style={styles.input} value={age} onChangeText={setAge} placeholder={t("auth.register.age.placeholder")} placeholderTextColor={c.textTertiary} keyboardType="numeric" editable={!loading} />
-              </View>
-              <View style={styles.field}>
-                <Text style={styles.label}>{t("auth.register.weight.label")}</Text>
-                <TextInput style={styles.input} value={weight} onChangeText={setWeight} placeholder={t("auth.register.weight.placeholder")} placeholderTextColor={c.textTertiary} keyboardType="numeric" editable={!loading} />
-              </View>
-              <View style={styles.field}>
-                <Text style={styles.label}>{t("auth.register.height.label")}</Text>
-                <TextInput style={styles.input} value={height} onChangeText={setHeight} placeholder={t("auth.register.height.placeholder")} placeholderTextColor={c.textTertiary} keyboardType="numeric" editable={!loading} />
-              </View>
-              <View style={styles.field}>
-                <Text style={styles.label}>{t("auth.register.fitness_goals.label")}</Text>
-                <TextInput style={[styles.input, styles.textArea]} value={fitnessGoals} onChangeText={setFitnessGoals} placeholder={t("auth.register.fitness_goals.placeholder")} placeholderTextColor={c.textTertiary} multiline numberOfLines={3} textAlignVertical="top" editable={!loading} />
-              </View>
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText className="text-sm font-semibold text-text">
+                    {t("auth.register.age.label")}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input>
+                  <InputField
+                    value={age}
+                    onChangeText={(value) =>
+                      useRegisterFormStore.getState().setAge(value)
+                    }
+                    placeholder={t("auth.register.age.placeholder")}
+                    keyboardType="numeric"
+                    textContentType="none"
+                    editable={!loading}
+                  />
+                </Input>
+              </FormControl>
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText className="text-sm font-semibold text-text">
+                    {t("auth.register.weight.label")}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input>
+                  <InputField
+                    value={weight}
+                    onChangeText={(value) =>
+                      useRegisterFormStore.getState().setWeight(value)
+                    }
+                    placeholder={t("auth.register.weight.placeholder")}
+                    keyboardType="numeric"
+                    textContentType="none"
+                    editable={!loading}
+                  />
+                </Input>
+              </FormControl>
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText className="text-sm font-semibold text-text">
+                    {t("auth.register.height.label")}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input>
+                  <InputField
+                    value={height}
+                    onChangeText={(value) =>
+                      useRegisterFormStore.getState().setHeight(value)
+                    }
+                    placeholder={t("auth.register.height.placeholder")}
+                    keyboardType="numeric"
+                    textContentType="none"
+                    editable={!loading}
+                  />
+                </Input>
+              </FormControl>
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText className="text-sm font-semibold text-text">
+                    {t("auth.register.fitness_goals.label")}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Textarea>
+                  <TextareaInput
+                    value={fitnessGoals}
+                    onChangeText={(value) =>
+                      useRegisterFormStore.getState().setFitnessGoals(value)
+                    }
+                    placeholder={t("auth.register.fitness_goals.placeholder")}
+                    editable={!loading}
+                  />
+                </Textarea>
+              </FormControl>
             </>
           ) : (
             <>
-              <View style={styles.field}>
-                <Text style={styles.label}>{t("auth.register.certifications.label")}</Text>
-                <TextInput style={styles.input} value={certifications} onChangeText={setCertifications} placeholder={t("auth.register.certifications.placeholder")} placeholderTextColor={c.textTertiary} editable={!loading} />
-              </View>
-              <View style={styles.field}>
-                <Text style={styles.label}>{t("auth.register.specializations.label")}</Text>
-                <TextInput style={styles.input} value={specializations} onChangeText={setSpecializations} placeholder={t("auth.register.specializations.placeholder")} placeholderTextColor={c.textTertiary} editable={!loading} />
-              </View>
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText className="text-sm font-semibold text-text">
+                    {t("auth.register.certifications.label")}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input>
+                  <InputField
+                    value={certifications}
+                    onChangeText={(value) =>
+                      useRegisterFormStore.getState().setCertifications(value)
+                    }
+                    placeholder={t("auth.register.certifications.placeholder")}
+                    editable={!loading}
+                  />
+                </Input>
+              </FormControl>
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText className="text-sm font-semibold text-text">
+                    {t("auth.register.specializations.label")}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input>
+                  <InputField
+                    value={specializations}
+                    onChangeText={(value) =>
+                      useRegisterFormStore.getState().setSpecializations(value)
+                    }
+                    placeholder={t("auth.register.specializations.placeholder")}
+                    editable={!loading}
+                  />
+                </Input>
+              </FormControl>
             </>
           )}
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleRegister}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color={c.onAccent} size="small" />
-            ) : (
-              <Text style={styles.buttonText}>{t("auth.register.submit")}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+          <Host matchContents>
+            <Button
+              label={
+                loading
+                  ? t("auth.register.submitting")
+                  : t("auth.register.submit")
+              }
+              onPress={handleRegister}
+              disabled={loading}
+            />
+          </Host>
+        </VStack>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>{t("auth.register.has_account")} </Text>
-          <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-            <Text style={styles.link}>{t("auth.register.sign_in")}</Text>
-          </TouchableOpacity>
-        </View>
+        <HStack space="sm" className="mt-7 items-center justify-center">
+          <Text className="text-sm text-text-secondary">
+            {t("auth.register.has_account")}
+          </Text>
+          <Pressable
+            onPress={() => router.push("/(auth)/login")}
+            accessibilityRole="link"
+            hitSlop={8}
+          >
+            <Text className="text-sm font-bold text-primary">
+              {t("auth.register.sign_in")}
+            </Text>
+          </Pressable>
+        </HStack>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1 },
-    container: { flexGrow: 1, padding: 24, paddingTop: 48, paddingBottom: 48, backgroundColor: c.background },
-    header: { marginBottom: 28, alignItems: "center" },
-    brand: { fontSize: 13, fontWeight: "600", color: c.textTertiary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 },
-    title: { fontSize: 28, fontWeight: "800", color: c.text },
-    errorBox: { backgroundColor: c.dangerSurface, borderLeftWidth: 3, borderLeftColor: c.danger, padding: 12, marginBottom: 20, borderRadius: 4 },
-    errorText: { color: c.dangerText, fontSize: 14, fontWeight: "500" },
-    form: { gap: 14 },
-    field: { gap: 6 },
-    label: { fontSize: 12, fontWeight: "700", color: c.textSecondary, letterSpacing: 1, textTransform: "uppercase" },
-    input: { backgroundColor: c.card, borderWidth: 1, borderColor: c.borderStrong, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: c.text },
-    textArea: { minHeight: 80, paddingTop: 12 },
-    roleRow: { flexDirection: "row", gap: 10 },
-    roleButton: { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1.5, borderColor: c.borderStrong, alignItems: "center", backgroundColor: c.card },
-    roleButtonActive: { borderColor: c.accent, backgroundColor: c.accent },
-    roleText: { fontSize: 15, fontWeight: "600", color: c.textBody },
-    roleTextActive: { color: c.onAccent },
-    button: { backgroundColor: c.accent, paddingVertical: 14, borderRadius: 8, alignItems: "center", justifyContent: "center", minHeight: 48, marginTop: 8 },
-    buttonDisabled: { opacity: 0.6 },
-    buttonText: { color: c.onAccent, fontSize: 16, fontWeight: "700" },
-    footer: { flexDirection: "row", justifyContent: "center", marginTop: 28, alignItems: "center" },
-    footerText: { fontSize: 14, color: c.textSecondary },
-    link: { fontSize: 14, fontWeight: "700", color: c.accent },
-  });
-}
+export const RegisterScreen = React.memo(RegisterScreenInner);
