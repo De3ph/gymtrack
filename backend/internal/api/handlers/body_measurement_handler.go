@@ -1,20 +1,24 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 type BodyMeasurementHandler struct {
 	measurementService *services.BodyMeasurementService
 	userRepo           repositories.UserRepository
+	validator          *validator.Validate
 }
 
 func NewBodyMeasurementHandler(
@@ -24,6 +28,7 @@ func NewBodyMeasurementHandler(
 	return &BodyMeasurementHandler{
 		measurementService: measurementService,
 		userRepo:           userRepo,
+		validator:          validator.New(),
 	}
 }
 
@@ -76,6 +81,11 @@ func (h *BodyMeasurementHandler) CreateBodyMeasurement(c *gin.Context) {
 
 	var req CreateBodyMeasurementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement data. Please check the date, weight and body fat values and try again"})
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement data. Please check the date, weight and body fat values and try again"})
 		return
 	}
@@ -290,6 +300,11 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 		return
 	}
 
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid measurement data. Please check the date, weight and body fat values and try again"})
+		return
+	}
+
 	parts := make(map[string]models.BodyMeasurementPart, len(req.Parts))
 	for k, v := range req.Parts {
 		parts[k] = models.BodyMeasurementPart{Value: v.Value}
@@ -377,9 +392,20 @@ func (h *BodyMeasurementHandler) DeleteBodyMeasurement(c *gin.Context) {
 func (h *BodyMeasurementHandler) GetClientBodyMeasurements(c *gin.Context) {
 	username := c.Param("username")
 	trainerID, _ := c.Get("userID")
+	userRole, _ := c.Get("userRole")
+
+	// Trainer-only endpoint: athletes must not access client measurement data.
+	if userRole.(models.UserRole) != models.RoleTrainer {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client measurements. Please log in as a trainer"})
+		return
+	}
 
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get athlete details"})
 		return
 	}

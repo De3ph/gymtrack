@@ -1,26 +1,31 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 type WorkoutHandler struct {
 	workoutService *services.WorkoutService
 	userRepo       repositories.UserRepository
+	validator      *validator.Validate
 }
 
 func NewWorkoutHandler(workoutService *services.WorkoutService, userRepo repositories.UserRepository) *WorkoutHandler {
 	return &WorkoutHandler{
 		workoutService: workoutService,
 		userRepo:       userRepo,
+		validator:      validator.New(),
 	}
 }
 
@@ -67,6 +72,11 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 
 	var req CreateWorkoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
 		return
 	}
@@ -222,6 +232,11 @@ func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
 		return
 	}
 
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
+		return
+	}
+
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
@@ -306,9 +321,19 @@ func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
 func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 	username := c.Param("username")
 	trainerID, _ := c.Get("userID")
+	userRole, _ := c.Get("userRole")
+
+	// Trainer-only endpoint: athletes must not access client workout data.
+	if userRole.(models.UserRole) != models.RoleTrainer {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client workouts. Please log in as a trainer"})
+		return
+	}
 
 	limit, offset, startDate, endDate, err := services.ParseWorkoutQueryParams(c)
 	if err != nil {
+		if handleServiceError(c, err) {
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request. Please check the client username and search parameters and try again"})
 		return
 	}
@@ -318,6 +343,10 @@ func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 	// Get athlete by username first
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
+			return
+		}
 		handleInternalError(c, err, "internal server error")
 		return
 	}

@@ -1,26 +1,31 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 type MealHandler struct {
 	mealService *services.MealService
 	userRepo    repositories.UserRepository
+	validator   *validator.Validate
 }
 
 func NewMealHandler(mealService *services.MealService, userRepo repositories.UserRepository) *MealHandler {
 	return &MealHandler{
 		mealService: mealService,
 		userRepo:    userRepo,
+		validator:   validator.New(),
 	}
 }
 
@@ -75,6 +80,11 @@ func (h *MealHandler) CreateMeal(c *gin.Context) {
 
 	var req CreateMealRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal data. Please check the date, meal type and items and try again"})
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal data. Please check the date, meal type and items and try again"})
 		return
 	}
@@ -235,6 +245,11 @@ func (h *MealHandler) UpdateMeal(c *gin.Context) {
 		return
 	}
 
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal data. Please check the date, meal type and items and try again"})
+		return
+	}
+
 	athleteIDInt, err := strconv.Atoi(athleteID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
@@ -320,6 +335,13 @@ func (h *MealHandler) DeleteMeal(c *gin.Context) {
 func (h *MealHandler) GetClientMeals(c *gin.Context) {
 	username := c.Param("username")
 	trainerID, _ := c.Get("userID")
+	userRole, _ := c.Get("userRole")
+
+	// Trainer-only endpoint: athletes must not access client meal data.
+	if userRole.(models.UserRole) != models.RoleTrainer {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can view client meals. Please log in as a trainer"})
+		return
+	}
 
 	limit, offset, startDate, endDate, _, err := services.ParseMealQueryParams(c)
 	if err != nil {
@@ -335,6 +357,10 @@ func (h *MealHandler) GetClientMeals(c *gin.Context) {
 	// Get athlete by username first
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
+			return
+		}
 		handleInternalError(c, err, "internal server error")
 		return
 	}
