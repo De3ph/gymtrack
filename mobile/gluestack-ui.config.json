@@ -4,7 +4,6 @@
     "components": "src/components/ui"
   },
   "tailwind": {
-    "config": "tailwind.config.js",
     "css": "global.css"
   }
 }

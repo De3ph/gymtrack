@@ -1,281 +1,319 @@
-/**
- * GymTrack design tokens.
- *
- * Two tiers:
- *  - Primitives: hue + step ramps (`--color-accent-50`..`900`, etc.).
- *  - Semantic: role tokens consumed by `className="text-text bg-card border-border"`.
- *
- * Light defaults in `:root`. Dark overrides live in `@media (prefers-color-scheme: dark)`
- * and `:root.dark` (used by gluestack `GluestackUIProvider mode="dark"`).
- *
- * All `R G B` values are space-separated triplets consumed by `rgb(var(--x))` in `@theme inline`.
- */
-
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css";
 @import "nativewind/theme";
 
+/**
+ * GymTrack design tokens (ported from src/constants/Colors.ts).
+ *
+ * Two tiers:
+ *  - Primitives: hue + step ramps (`--color-accent-500`, `--color-neutral-700`,
+ *    …) declared as static hex in `@theme`. No dark variant — ramps are absolute.
+ *  - Semantic: role tokens consumed as `className="bg-background text-text
+ *    border-border"`. Light defaults in `:root`; dark overrides in
+ *    `@media (prefers-color-scheme: dark)` (nativewind maps this to
+ *    Appearance.getColorScheme() on native) and `:root.dark` (web class toggle).
+ *
+ * Brand mapping notes (deliberate deviations from Colors.ts key names):
+ *  - `accent` (brand blue) is wired to gluestack's `--primary` so default
+ *    `Button` / `Badge` / `Checkbox` render brand automatically. The extra
+ *    `brand-*` tokens cover surfaces and disabled states.
+ *  - gluestack's subtle-surface `--accent` var is left untouched (used by
+ *    outline/ghost hover states); do NOT introduce `--color-accent`.
+ *  - `on-accent` == white in both schemes, so it reuses `--primary-foreground`.
+ *
+ * All `--x` values are space-separated `R G B` triplets consumed by
+ * `rgb(var(--x))` in `@theme inline`.
+ */
 @layer theme {
   :root {
-    /* Primitives — accent (blue) */
-    --color-accent-50: 239 246 255;
-    --color-accent-100: 219 234 254;
-    --color-accent-200: 191 219 254;
-    --color-accent-300: 147 197 253;
-    --color-accent-400: 96 165 250;
-    --color-accent-500: 59 130 246;
-    --color-accent-600: 37 99 235;
-    --color-accent-700: 29 78 216;
-    --color-accent-800: 30 64 175;
-    --color-accent-900: 30 58 138;
+    --primary: 37 99 235;
+    --primary-foreground: 255 255 255;
+    --ink: 11 18 32;
+    --ink-subtle: 26 43 74;
+    --ink-foreground: 255 255 255;
+    --card: 255 255 255;
+    --secondary: 245 245 245;
+    --secondary-foreground: 23 23 23;
+    --background: 249 250 251;
+    --popover: 255 255 255;
+    --popover-foreground: 10 10 10;
+    --muted: 245 245 245;
+    --muted-foreground: 115 115 115;
+    --destructive: 220 38 38;
+    --foreground: 10 10 10;
+    --border: 229 231 235;
+    --input: 229 229 229;
+    --ring: 212 212 212;
+    --accent: 247 247 247;
+    --accent-foreground: 52 52 52;
 
-    /* Primitives — neutral (slate-ish) */
-    --color-neutral-50: 249 250 251;
-    --color-neutral-100: 243 244 246;
-    --color-neutral-200: 229 231 235;
-    --color-neutral-300: 209 213 219;
-    --color-neutral-400: 156 163 175;
-    --color-neutral-500: 107 114 128;
-    --color-neutral-600: 75 85 99;
-    --color-neutral-700: 55 65 81;
-    --color-neutral-800: 31 41 55;
-    --color-neutral-900: 17 24 39;
-
-    /* Primitives — danger (red) */
-    --color-danger-50: 254 242 242;
-    --color-danger-100: 254 226 226;
-    --color-danger-200: 254 202 202;
-    --color-danger-500: 239 68 68;
-    --color-danger-600: 220 38 38;
-    --color-danger-700: 185 28 28;
-    --color-danger-800: 153 27 27;
-
-    /* Primitives — success (green) */
-    --color-success-50: 240 253 244;
-    --color-success-100: 220 252 231;
-    --color-success-600: 22 163 74;
-    --color-success-700: 21 128 61;
-    --color-success-800: 22 101 52;
-
-    /* Primitives — warning (amber) */
-    --color-warning-100: 254 249 195;
-    --color-warning-600: 217 119 6;
-    --color-warning-700: 180 83 9;
-    --color-warning-800: 133 77 14;
-
-    /* Primitives — invite (violet) */
-    --color-invite-300: 196 181 253;
-    --color-invite-600: 124 58 237;
-    --color-invite-700: 109 40 217;
-
-    /* Semantic — text */
+    /* GymTrack semantic tier (light) */
     --text: 17 24 39;
     --text-secondary: 75 85 99;
     --text-tertiary: 107 114 128;
     --text-body: 55 65 81;
-
-    /* Semantic — surface */
-    --background: 249 250 251;
     --surface-subtle: 243 244 246;
-    --card: 255 255 255;
-    --border: 229 231 235;
     --border-strong: 209 213 219;
-
-    /* Semantic — accent */
-    --accent: 37 99 235;
-    --accent-on-light: 29 78 216;
-    --accent-disabled: 147 197 253;
-    --accent-surface: 239 246 255;
-    --on-accent: 255 255 255;
-
-    /* Semantic — status */
+    --brand: 37 99 235;
+    --brand-disabled: 147 197 253;
+    --brand-surface: 239 246 255;
+    --brand-on-light: 29 78 216;
     --danger: 220 38 38;
     --danger-text: 185 28 28;
     --danger-surface: 254 242 242;
     --danger-border: 254 202 202;
     --danger-on-fill: 255 255 255;
-
     --success: 22 163 74;
     --success-text: 22 101 52;
     --success-surface: 220 252 231;
-
     --warning: 217 119 6;
     --warning-text: 133 77 14;
     --warning-surface: 254 249 195;
-
-    /* Semantic — invite */
     --invite: 124 58 237;
     --invite-disabled: 196 181 253;
-
-    /* Semantic — tab */
     --tab-icon-default: 156 163 175;
     --tab-icon-selected: 37 99 235;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
+      --primary: 59 130 246;
+      --primary-foreground: 255 255 255;
+      --ink: 30 41 59;
+      --ink-subtle: 51 65 85;
+      --ink-foreground: 226 232 240;
+      --card: 31 41 55;
+      --secondary: 38 38 38;
+      --secondary-foreground: 250 250 250;
+      --background: 3 7 18;
+      --popover: 23 23 23;
+      --popover-foreground: 250 250 250;
+      --muted: 38 38 38;
+      --muted-foreground: 161 161 161;
+      --destructive: 248 113 113;
+      --foreground: 250 250 250;
+      --border: 55 65 81;
+      --input: 46 46 46;
+      --accent: 38 38 38;
+      --accent-foreground: 250 250 250;
+      --ring: 115 115 115;
+
+      /* GymTrack semantic tier (dark) */
       --text: 249 250 251;
       --text-secondary: 156 163 175;
       --text-tertiary: 107 114 128;
       --text-body: 209 213 219;
-
-      --background: 3 7 18;
       --surface-subtle: 17 24 39;
-      --card: 31 41 55;
-      --border: 55 65 81;
       --border-strong: 75 85 99;
-
-      --accent: 59 130 246;
-      --accent-on-light: 191 219 254;
-      --accent-disabled: 30 64 175;
-      --accent-surface: 30 58 138;
-      --on-accent: 255 255 255;
-
+      --brand: 59 130 246;
+      --brand-disabled: 30 64 175;
+      --brand-surface: 30 58 138;
+      --brand-on-light: 191 219 254;
       --danger: 248 113 113;
       --danger-text: 252 165 165;
       --danger-surface: 69 10 10;
       --danger-border: 127 29 29;
       --danger-on-fill: 69 10 10;
-
       --success: 74 222 128;
       --success-text: 134 239 172;
       --success-surface: 5 46 22;
-
       --warning: 251 191 36;
       --warning-text: 253 230 138;
       --warning-surface: 69 26 3;
-
       --invite: 167 139 250;
       --invite-disabled: 76 29 149;
-
       --tab-icon-default: 107 114 128;
       --tab-icon-selected: 59 130 246;
     }
   }
 
   :root.dark {
+    --primary: 59 130 246;
+    --primary-foreground: 255 255 255;
+    --ink: 30 41 59;
+    --ink-subtle: 51 65 85;
+    --ink-foreground: 226 232 240;
+    --card: 31 41 55;
+    --secondary: 38 38 38;
+    --secondary-foreground: 250 250 250;
+    --background: 3 7 18;
+    --popover: 23 23 23;
+    --popover-foreground: 250 250 250;
+    --muted: 38 38 38;
+    --muted-foreground: 161 161 161;
+    --destructive: 248 113 113;
+    --foreground: 250 250 250;
+    --border: 55 65 81;
+    --input: 46 46 46;
+    --accent: 38 38 38;
+    --accent-foreground: 250 250 250;
+    --ring: 115 115 115;
     --text: 249 250 251;
     --text-secondary: 156 163 175;
     --text-tertiary: 107 114 128;
     --text-body: 209 213 219;
-
-    --background: 3 7 18;
     --surface-subtle: 17 24 39;
-    --card: 31 41 55;
-    --border: 55 65 81;
     --border-strong: 75 85 99;
-
-    --accent: 59 130 246;
-    --accent-on-light: 191 219 254;
-    --accent-disabled: 30 64 175;
-    --accent-surface: 30 58 138;
-    --on-accent: 255 255 255;
-
+    --brand: 59 130 246;
+    --brand-disabled: 30 64 175;
+    --brand-surface: 30 58 138;
+    --brand-on-light: 191 219 254;
     --danger: 248 113 113;
     --danger-text: 252 165 165;
     --danger-surface: 69 10 10;
     --danger-border: 127 29 29;
     --danger-on-fill: 69 10 10;
-
     --success: 74 222 128;
     --success-text: 134 239 172;
     --success-surface: 5 46 22;
-
     --warning: 251 191 36;
     --warning-text: 253 230 138;
     --warning-surface: 69 26 3;
-
     --invite: 167 139 250;
     --invite-disabled: 76 29 149;
-
     --tab-icon-default: 107 114 128;
     --tab-icon-selected: 59 130 246;
   }
+
+  :root.light {
+    --primary: 37 99 235;
+    --primary-foreground: 255 255 255;
+    --ink: 11 18 32;
+    --ink-subtle: 26 43 74;
+    --ink-foreground: 255 255 255;
+    --card: 255 255 255;
+    --secondary: 245 245 245;
+    --secondary-foreground: 23 23 23;
+    --background: 249 250 251;
+    --popover: 255 255 255;
+    --popover-foreground: 10 10 10;
+    --muted: 245 245 245;
+    --muted-foreground: 115 115 115;
+    --destructive: 220 38 38;
+    --foreground: 10 10 10;
+    --border: 229 231 235;
+    --input: 229 229 229;
+    --ring: 212 212 212;
+    --accent: 247 247 247;
+    --accent-foreground: 52 52 52;
+    --text: 17 24 39;
+    --text-secondary: 75 85 99;
+    --text-tertiary: 107 114 128;
+    --text-body: 55 65 81;
+    --surface-subtle: 243 244 246;
+    --border-strong: 209 213 219;
+    --brand: 37 99 235;
+    --brand-disabled: 147 197 253;
+    --brand-surface: 239 246 255;
+    --brand-on-light: 29 78 216;
+    --danger: 220 38 38;
+    --danger-text: 185 28 28;
+    --danger-surface: 254 242 242;
+    --danger-border: 254 202 202;
+    --danger-on-fill: 255 255 255;
+    --success: 22 163 74;
+    --success-text: 22 101 52;
+    --success-surface: 220 252 231;
+    --warning: 217 119 6;
+    --warning-text: 133 77 14;
+    --warning-surface: 254 249 195;
+    --invite: 124 58 237;
+    --invite-disabled: 196 181 253;
+    --tab-icon-default: 156 163 175;
+    --tab-icon-selected: 37 99 235;
+  }
+}
+
+@theme {
+  /* Primitive ramps (absolute, no dark variant) */
+  --color-accent-50: #eff6ff;
+  --color-accent-100: #dbeafe;
+  --color-accent-200: #bfdbfe;
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3b82f6;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
+  --color-accent-800: #1e40af;
+  --color-accent-900: #1e3a8a;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-200: #fecaca;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-danger-800: #991b1b;
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-warning-100: #fef9c3;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #854d0e;
+  --color-invite-300: #c4b5fd;
+  --color-invite-600: #7c3aed;
+  --color-invite-700: #6d28d9;
 }
 
 @theme inline {
-  /* Primitive ramps — `bg-accent-500`, `text-neutral-700`, etc. */
-  --color-accent-50: rgb(var(--color-accent-50));
-  --color-accent-100: rgb(var(--color-accent-100));
-  --color-accent-200: rgb(var(--color-accent-200));
-  --color-accent-300: rgb(var(--color-accent-300));
-  --color-accent-400: rgb(var(--color-accent-400));
-  --color-accent-500: rgb(var(--color-accent-500));
-  --color-accent-600: rgb(var(--color-accent-600));
-  --color-accent-700: rgb(var(--color-accent-700));
-  --color-accent-800: rgb(var(--color-accent-800));
-  --color-accent-900: rgb(var(--color-accent-900));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-card: rgb(var(--card));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-background: rgb(var(--background));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-destructive: rgb(var(--destructive));
+  --color-foreground: rgb(var(--foreground));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
 
-  --color-neutral-50: rgb(var(--color-neutral-50));
-  --color-neutral-100: rgb(var(--color-neutral-100));
-  --color-neutral-200: rgb(var(--color-neutral-200));
-  --color-neutral-300: rgb(var(--color-neutral-300));
-  --color-neutral-400: rgb(var(--color-neutral-400));
-  --color-neutral-500: rgb(var(--color-neutral-500));
-  --color-neutral-600: rgb(var(--color-neutral-600));
-  --color-neutral-700: rgb(var(--color-neutral-700));
-  --color-neutral-800: rgb(var(--color-neutral-800));
-  --color-neutral-900: rgb(var(--color-neutral-900));
-
-  --color-danger-50: rgb(var(--color-danger-50));
-  --color-danger-100: rgb(var(--color-danger-100));
-  --color-danger-200: rgb(var(--color-danger-200));
-  --color-danger-500: rgb(var(--color-danger-500));
-  --color-danger-600: rgb(var(--color-danger-600));
-  --color-danger-700: rgb(var(--color-danger-700));
-  --color-danger-800: rgb(var(--color-danger-800));
-
-  --color-success-50: rgb(var(--color-success-50));
-  --color-success-100: rgb(var(--color-success-100));
-  --color-success-600: rgb(var(--color-success-600));
-  --color-success-700: rgb(var(--color-success-700));
-  --color-success-800: rgb(var(--color-success-800));
-
-  --color-warning-100: rgb(var(--color-warning-100));
-  --color-warning-600: rgb(var(--color-warning-600));
-  --color-warning-700: rgb(var(--color-warning-700));
-  --color-warning-800: rgb(var(--color-warning-800));
-
-  --color-invite-300: rgb(var(--color-invite-300));
-  --color-invite-600: rgb(var(--color-invite-600));
-  --color-invite-700: rgb(var(--color-invite-700));
-
-  /* Semantic tokens — `bg-background`, `text-text`, `border-border`, etc. */
+  /* GymTrack semantic tier */
   --color-text: rgb(var(--text));
   --color-text-secondary: rgb(var(--text-secondary));
   --color-text-tertiary: rgb(var(--text-tertiary));
   --color-text-body: rgb(var(--text-body));
-
-  --color-background: rgb(var(--background));
   --color-surface-subtle: rgb(var(--surface-subtle));
-  --color-card: rgb(var(--card));
-  --color-border: rgb(var(--border));
   --color-border-strong: rgb(var(--border-strong));
-
-  --color-accent: rgb(var(--accent));
-  --color-accent-on-light: rgb(var(--accent-on-light));
-  --color-accent-disabled: rgb(var(--accent-disabled));
-  --color-accent-surface: rgb(var(--accent-surface));
-  --color-on-accent: rgb(var(--on-accent));
-
+  --color-brand: rgb(var(--brand));
+  --color-brand-disabled: rgb(var(--brand-disabled));
+  --color-brand-surface: rgb(var(--brand-surface));
+  --color-brand-on-light: rgb(var(--brand-on-light));
+  --color-ink: rgb(var(--ink));
+  --color-ink-subtle: rgb(var(--ink-subtle));
+  --color-ink-foreground: rgb(var(--ink-foreground));
   --color-danger: rgb(var(--danger));
   --color-danger-text: rgb(var(--danger-text));
   --color-danger-surface: rgb(var(--danger-surface));
   --color-danger-border: rgb(var(--danger-border));
   --color-danger-on-fill: rgb(var(--danger-on-fill));
-
   --color-success: rgb(var(--success));
   --color-success-text: rgb(var(--success-text));
   --color-success-surface: rgb(var(--success-surface));
-
   --color-warning: rgb(var(--warning));
   --color-warning-text: rgb(var(--warning-text));
   --color-warning-surface: rgb(var(--warning-surface));
-
   --color-invite: rgb(var(--invite));
   --color-invite-disabled: rgb(var(--invite-disabled));
-
   --color-tab-icon-default: rgb(var(--tab-icon-default));
   --color-tab-icon-selected: rgb(var(--tab-icon-selected));
 }
