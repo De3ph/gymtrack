@@ -12,12 +12,25 @@ export function setSessionExpiredHandler(handler: SessionExpiredHandler) {
   onSessionExpired = handler;
 }
 
+/** Thrown when the session cannot be refreshed and the user must log in again. */
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("Session expired. Please login again.");
+    this.name = "SessionExpiredError";
+  }
+}
+
+export function isSessionExpiredError(err: unknown): err is SessionExpiredError {
+  return err instanceof SessionExpiredError;
+}
+
 interface RequestOptions {
   method?: string;
   body?: unknown;
   params?: Record<string, string>;
   headers?: Record<string, string>;
   timeout?: number;
+  skipSessionRefresh?: boolean;
 }
 
 export async function apiRequest<T = unknown>(
@@ -54,13 +67,21 @@ export async function apiRequest<T = unknown>(
     });
 
     if (response.status === 401) {
-      const refreshed = await tryRefreshToken();
+      if (options.skipSessionRefresh) {
+        const error = await response.json().catch(() => ({
+          message: "HTTP 401",
+        }));
+        const message =
+          error.message || error.error || `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+      const refreshed = await refreshAccessToken();
       if (refreshed) {
         return apiRequest<T>(endpoint, options);
       }
-      authLib.clearTokens();
+      await authLib.clearTokens();
       onSessionExpired();
-      throw new Error("Session expired. Please login again.");
+      throw new SessionExpiredError();
     }
 
     if (!response.ok) {
@@ -75,6 +96,17 @@ export async function apiRequest<T = unknown>(
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+let refreshPromise: Promise<boolean> | null = null;
+
+function refreshAccessToken(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = tryRefreshToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 }
 
 async function tryRefreshToken(): Promise<boolean> {

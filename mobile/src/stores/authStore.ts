@@ -1,24 +1,19 @@
 import { create } from "zustand";
+import { router } from "expo-router";
 import * as authLib from "@/lib/auth";
-import { authApi } from "@/api/authApi";
 import { setSessionExpiredHandler } from "@/api/client";
-import type { User } from "@/types";
+import { queryClient } from "@/lib/query-client";
+import type { LoginResponse, User } from "@/types";
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isInitialized: boolean;
 
-  initializeAuth: () => Promise<void>;
-  login: (identifier: string, password: string) => Promise<void>;
-  register: (data: {
-    username: string;
-    email: string;
-    password: string;
-    role: string;
-    profile?: Record<string, unknown>;
-  }) => Promise<void>;
-  logout: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  setInitialized: () => void;
+  setSession: (session: LoginResponse) => Promise<void>;
+  resetSession: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -26,53 +21,25 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isInitialized: false,
 
-  initializeAuth: async () => {
-    try {
-      const token = await authLib.getAccessToken();
-      if (!token) {
-        set({ isInitialized: true });
-        return;
-      }
-      const user = await authApi.getMe();
-      set({ user, isAuthenticated: true, isInitialized: true });
-    } catch {
-      await authLib.clearTokens();
-      set({ isInitialized: true });
-    }
-  },
+  setUser: (user) => set({ user }),
 
-  login: async (identifier, password) => {
-    const { accessToken, refreshToken, user } = await authApi.login({
-      identifier,
-      password,
-    });
+  setInitialized: () => set({ isInitialized: true }),
+
+  setSession: async ({ accessToken, refreshToken, user }) => {
     await authLib.setTokens(accessToken, refreshToken);
-    set({ user, isAuthenticated: true });
+    set({ user, isAuthenticated: true, isInitialized: true });
   },
 
-  register: async (data) => {
-    // Register first (returns { message, userId })
-    await authApi.register(data);
-    // Then auto-login to get tokens
-    const { accessToken, refreshToken, user } = await authApi.login({
-      identifier: data.email,
-      password: data.password,
-    });
-    await authLib.setTokens(accessToken, refreshToken);
-    set({ user, isAuthenticated: true });
-  },
-
-  logout: async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      // best-effort
-    }
+  resetSession: async () => {
     await authLib.clearTokens();
-    set({ user: null, isAuthenticated: false });
+    queryClient.clear();
+    set({ user: null, isAuthenticated: false, isInitialized: true });
   },
 }));
 
 setSessionExpiredHandler(() => {
+  void queryClient.cancelQueries();
+  queryClient.clear();
   useAuthStore.setState({ user: null, isAuthenticated: false });
+  router.replace("/(auth)/login");
 });

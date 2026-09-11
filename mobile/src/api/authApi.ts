@@ -6,6 +6,7 @@ export const authApi = {
     apiRequest<LoginResponse>("/auth/login", {
       method: "POST",
       body: data,
+      skipSessionRefresh: true,
     }),
 
   register: (data: {
@@ -18,6 +19,7 @@ export const authApi = {
     apiRequest<RegisterResponse>("/auth/register", {
       method: "POST",
       body: data,
+      skipSessionRefresh: true,
     }),
 
   logout: () =>
