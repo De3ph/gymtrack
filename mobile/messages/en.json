@@ -157,6 +157,7 @@
     },
     "date": {
       "today": "Today",
+    "select": "Select a date",
       "yesterday": "Yesterday",
       "tomorrow": "Tomorrow",
       "sunday": "Sunday",
@@ -180,6 +181,7 @@
   "auth": {
     "login": {
       "title": "Login to Your Account",
+      "subtitle": "Sign in to pick up where you left off.",
       "email": {
         "label": "Email or Username",
         "placeholder": "Enter your email or username",
@@ -191,6 +193,8 @@
       "password": {
         "label": "Password",
         "placeholder": "Enter your password",
+        "show": "Show password",
+        "hide": "Hide password",
         "error": {
           "required": "Password is required",
           "min_length": "Password must be at least 6 characters"
@@ -282,6 +286,7 @@
     },
     "logout": {
       "confirm": "Are you sure you want to logout?",
+      "message": "You will need to sign in again to access your account.",
       "button": "Logout"
     }
   },
@@ -594,7 +599,11 @@
         "calfLeft": "Calf (L)",
         "calfRight": "Calf (R)"
       },
-      "load_failed": "Failed to load"
+      "load_failed": "Failed to load",
+      "latest": "Latest",
+      "weight_trend": "Weight Trend",
+      "unit_cm": "cm",
+      "body_fat_short": "{value}% BF"
     },
     "charts": {
       "loading": "Loading charts...",
@@ -628,6 +637,7 @@
       "count": "{count, plural, =0 {No measurements} =1 {1 measurement} other {# measurements}}"
     },
     "form": {
+      "create_title": "Record Measurement",
       "weight_label": "Weight (kg)",
       "body_fat_label": "Body Fat %",
       "notes_label": "Notes",
@@ -946,8 +956,12 @@
     "update_error": "Failed to update profile",
     "profile_saved": "Profile saved successfully",
     "member_since": "Member since",
+    "status": "Status",
+    "active": "Active",
     "personal_info": "Personal Information",
     "trainer": "Trainer",
+    "trainer_profile": "Trainer Profile",
+    "my_clients": "My Clients",
     "fields": {
       "email": "Email",
       "role": "Role",
@@ -970,7 +984,8 @@
       "cancel": "Cancel"
     },
     "validation": {
-      "field_required": "This field is required"
+      "field_required": "This field is required",
+      "bio_too_long": "Bio must be 500 characters or less"
     }
   },
   "athlete": {
@@ -1331,6 +1346,15 @@
     "actions": {
       "helpful": "Helpful",
       "report": "Report"
+    }
+  },
+  "settings": {
+    "theme": {
+      "title": "Theme",
+      "hint": "Choose how GymTrack looks",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
     }
   }
 }

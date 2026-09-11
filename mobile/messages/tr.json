@@ -157,6 +157,7 @@
     },
     "date": {
       "today": "Bugün",
+    "select": "Tarih seçin",
       "yesterday": "Dün",
       "tomorrow": "Yarın",
       "sunday": "Pazar",
@@ -180,6 +181,7 @@
   "auth": {
     "login": {
       "title": "Hesabınıza Giriş Yapın",
+      "subtitle": "Kaldığınız yerden devam etmek için giriş yapın.",
       "email": {
         "label": "E-posta veya Kullanıcı Adı",
         "placeholder": "E-posta veya kullanıcı adınızı girin",
@@ -191,6 +193,8 @@
       "password": {
         "label": "Şifre",
         "placeholder": "Şifrenizi girin",
+        "show": "Şifreyi göster",
+        "hide": "Şifreyi gizle",
         "error": {
           "required": "Şifre zorunludur",
           "min_length": "Şifre en az 6 karakter olmalıdır"
@@ -282,6 +286,7 @@
     },
     "logout": {
       "confirm": "Çıkış yapmak istediğinizden emin misiniz?",
+      "message": "Hesabınıza tekrar giriş yapmanız gerekecek.",
       "button": "Çıkış Yap"
     }
   },
@@ -594,7 +599,11 @@
         "calfLeft": "Baldır (Sol)",
         "calfRight": "Baldır (Sağ)"
       },
-      "load_failed": "Yüklenemedi"
+      "load_failed": "Yüklenemedi",
+      "latest": "Son Ölçüm",
+      "weight_trend": "Kilo Eğilimi",
+      "unit_cm": "cm",
+      "body_fat_short": "%{value} Yağ"
     },
     "charts": {
       "loading": "Grafikler yükleniyor...",
@@ -628,6 +637,7 @@
       "count": "{count, plural, =0 {Ölçüm yok} =1 {1 ölçüm} other {# ölçüm}}"
     },
     "form": {
+      "create_title": "Ölçüm Kaydet",
       "weight_label": "Ağırlık (kg)",
       "body_fat_label": "Vücut Yağı %",
       "notes_label": "Notlar",
@@ -946,8 +956,12 @@
     "update_error": "Profil güncellenemedi",
     "profile_saved": "Profil başarıyla kaydedildi",
     "member_since": "Üyelik tarihi",
+    "status": "Durum",
+    "active": "Aktif",
     "personal_info": "Kişisel Bilgiler",
     "trainer": "Antrenör",
+    "trainer_profile": "Antrenör Profili",
+    "my_clients": "Danışanlarım",
     "fields": {
       "email": "E-posta",
       "role": "Rol",
@@ -970,7 +984,8 @@
       "cancel": "İptal"
     },
     "validation": {
-      "field_required": "Bu alan zorunludur"
+      "field_required": "Bu alan zorunludur",
+      "bio_too_long": "Biyografi en fazla 500 karakter olabilir"
     }
   },
   "athlete": {
@@ -1331,6 +1346,15 @@
     "actions": {
       "helpful": "Yararlı",
       "report": "Bildir"
+    }
+  },
+  "settings": {
+    "theme": {
+      "title": "Tema",
+      "hint": "GymTrack'in görünümünü seçin",
+      "system": "Sistem",
+      "light": "Açık",
+      "dark": "Koyu"
     }
   }
 }
