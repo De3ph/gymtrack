@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo, useDeferredValue } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Dumbbell, SearchX } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { exerciseApi } from "@/lib/api";
 import { useExerciseCatalogStore } from "@/stores/exercise-catalog-store";
@@ -35,7 +35,11 @@ import { cn } from "@/lib/utils";
 import { MuscleGroupBadge } from "./MuscleGroupBadge";
 import { EquipmentBadge } from "./EquipmentBadge";
 import { ExerciseFilters } from "./exercise-selector/ExerciseFilters";
-import { exerciseReveal } from "./exercise-variants";
+import {
+  exerciseReveal,
+  exerciseRevealReduced,
+  exerciseStagger,
+} from "./exercise-variants";
 import { ExerciseLibrary, ExerciseSearchParams } from "@/types";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 
@@ -51,6 +55,7 @@ export function ExerciseSelector({
   disabled = false,
 }: ExerciseSelectorProps) {
   const t = useTranslations("exercise");
+  const reducedMotion = useReducedMotion();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const {
     searchQuery,
@@ -134,6 +139,8 @@ export function ExerciseSelector({
     [exercisesData, muscleGroupsData, equipmentData],
   );
 
+  const itemVariants = reducedMotion ? exerciseRevealReduced : exerciseReveal;
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger
@@ -145,7 +152,10 @@ export function ExerciseSelector({
             disabled={disabled}
             className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em] shadow-none"
           >
-            <Dumbbell className="size-5" aria-hidden="true" />
+            <Dumbbell
+              className="size-5 transition-transform duration-200 ease-out motion-safe:group-hover/button:-rotate-6"
+              aria-hidden="true"
+            />
             {t("selector.pick_exercise")}
           </Button>
         }
@@ -226,62 +236,71 @@ export function ExerciseSelector({
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  <ItemGroup className="gap-2 border border-border">
-                    {exercises.map((exercise) => (
-                      <motion.div key={exercise.exerciseId} {...exerciseReveal}>
-                        <Item
-                          variant="outline"
-                          size="sm"
-                          render={
-                            <button
-                              type="button"
-                              onClick={() => handleSelect(exercise)}
-                              className={cn(
-                                "gap-2 *:rounded-none border-x-0 border-b-2 border-border text-left last:border-b-0",
-                              )}
-                            />
-                          }
+                  <motion.div
+                    variants={exerciseStagger}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <ItemGroup className="gap-2 border border-border">
+                      {exercises.map((exercise) => (
+                        <motion.div
+                          key={exercise.exerciseId}
+                          variants={itemVariants}
                         >
-                          <ItemMedia
-                            variant="icon"
-                            className="rounded-none bg-transparent"
+                          <Item
+                            variant="outline"
+                            size="sm"
+                            render={
+                              <button
+                                type="button"
+                                onClick={() => handleSelect(exercise)}
+                                className={cn(
+                                  "gap-2 *:rounded-none border-x-0 border-b-2 border-border text-left transition-[background-color,transform] duration-150 ease-out hover:bg-muted/50 motion-safe:active:scale-[0.99]",
+                                )}
+                              />
+                            }
                           >
-                            <Dumbbell
-                              className="size-5 text-muted-foreground"
-                              aria-hidden="true"
-                            />
-                          </ItemMedia>
-                          <ItemContent>
-                            <ItemTitle className="text-sm font-semibold text-foreground">
-                              {exercise.name}
-                            </ItemTitle>
-                            <ItemDescription className="line-clamp-2 text-xs text-muted-foreground">
-                              {exercise.instructions}
-                            </ItemDescription>
-                            <div className="mt-1 flex flex-wrap gap-1">
-                              {exercise.muscleGroup && (
-                                <MuscleGroupBadge
-                                  muscleGroup={exercise.muscleGroup}
-                                  variant="small"
-                                />
-                              )}
-                              {exercise.equipment && (
-                                <EquipmentBadge
-                                  equipment={exercise.equipment}
-                                  variant="small"
-                                />
-                              )}
-                            </div>
-                          </ItemContent>
-                          <ItemActions>
-                            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                              →
-                            </span>
-                          </ItemActions>
-                        </Item>
-                      </motion.div>
-                    ))}
-                  </ItemGroup>
+                            <ItemMedia
+                              variant="icon"
+                              className="rounded-none bg-transparent"
+                            >
+                              <Dumbbell
+                                className="size-5 text-muted-foreground transition-colors duration-150 ease-out group-hover/item:text-foreground"
+                                aria-hidden="true"
+                              />
+                            </ItemMedia>
+                            <ItemContent>
+                              <ItemTitle className="text-sm font-semibold text-foreground">
+                                {exercise.name}
+                              </ItemTitle>
+                              <ItemDescription className="line-clamp-2 text-xs text-muted-foreground">
+                                {exercise.instructions}
+                              </ItemDescription>
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {exercise.muscleGroup && (
+                                  <MuscleGroupBadge
+                                    muscleGroup={exercise.muscleGroup}
+                                    variant="small"
+                                  />
+                                )}
+                                {exercise.equipment && (
+                                  <EquipmentBadge
+                                    equipment={exercise.equipment}
+                                    variant="small"
+                                  />
+                                )}
+                              </div>
+                            </ItemContent>
+                            <ItemActions>
+                              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-transform duration-200 ease-out group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5">
+                                →
+                              </span>
+                            </ItemActions>
+                          </Item>
+                        </motion.div>
+                      ))}
+                    </ItemGroup>
+                  </motion.div>
                 )}
               </ScrollArea>
             </>
