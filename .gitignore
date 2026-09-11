@@ -37,3 +37,13 @@ out/
 .DS_Store
 
 backend/.env
+
+# Local agent tooling
+.opencode/
+
+# Logs and one-off test artifacts
+*.log
+mobile/.tsc-*
+mobile/tsc-out.txt
+mobile/tmp-*
+nul
