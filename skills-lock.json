@@ -1,6 +1,24 @@
 {
   "version": 1,
   "skills": {
+    "agent-device": {
+      "source": "callstack/agent-device",
+      "sourceType": "github",
+      "skillPath": "skills/agent-device/SKILL.md",
+      "computedHash": "ef31d72db5f7d5fc31aabd23cdf9e24d98be2abc506d6ecad365b2c7086e3b79"
+    },
+    "android-emulator": {
+      "source": "callstack/agent-device",
+      "sourceType": "github",
+      "skillPath": "skills/android-emulator/SKILL.md",
+      "computedHash": "324f7396ad7ebdd9f0577440258ac5fba98d8a245953c48e31e6c36d755ae1b8"
+    },
+    "assess-react-native-migration": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/assess-react-native-migration/SKILL.md",
+      "computedHash": "4e19b27921ba3eaac6ba153579ed3f63da231f0b1830d019ee15dc879c03e7ae"
+    },
     "axiom-alerting": {
       "source": "axiomhq/skills",
       "sourceType": "github",
@@ -61,11 +79,41 @@
       "skillPath": "better-auth/create-auth/SKILL.md",
       "computedHash": "cf5d2c852c66269dc350dec0db8cfb07634a2310aee5be1bfd7e643dca72f22e"
     },
+    "create-react-native-library": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-react-native-library/SKILL.md",
+      "computedHash": "626b307d7fee57751e18e3fe73471d4215e28aaa0e993c2ba7b75cc4bfc9f350"
+    },
+    "dogfood": {
+      "source": "callstack/agent-device",
+      "sourceType": "github",
+      "skillPath": "skills/dogfood/SKILL.md",
+      "computedHash": "c83ed84a234bb8ea7a588635ace904e150429f83321024487c7dbcfd19c81575"
+    },
     "email-and-password-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/emailAndPassword/SKILL.md",
       "computedHash": "7786d722fa682b3d6a99793e73a9d51b59becefa595676134a993020633e068f"
+    },
+    "email-best-practices": {
+      "source": "resend/resend-skills",
+      "sourceType": "github",
+      "skillPath": "skills/email-best-practices/SKILL.md",
+      "computedHash": "cf53e0d7ad72c440818c64a104ab220f527f26f10c7d8163fa99e066bf747eed"
+    },
+    "github-actions": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/github-actions/SKILL.md",
+      "computedHash": "0407e0b1d5aa45f4d4acd4f0dc6742453b3ec964097cb3a5f0383e3bb74615ed"
+    },
+    "gluestack-ui-v5": {
+      "source": "gluestack/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/gluestack-ui-v5/SKILL.md",
+      "computedHash": "b19717e992153a421da7423f0609a39c4864f947c7f50fca67cf5e5b7d4878e4"
     },
     "golang-benchmark": {
       "source": "samber/cc-skills-golang",
@@ -259,11 +307,53 @@
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "computedHash": "f7fd27287067900e816b87a8917347424ad6780435ce4157d69ba8c5e8e13fba"
     },
+    "interaction-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/interaction-design/SKILL.md",
+      "computedHash": "d2e2127b91c76b2ed6706ce78bfc7eddcb6b340333f94d3d53d9f65e3253dea2"
+    },
     "query-metrics": {
       "source": "axiomhq/skills",
       "sourceType": "github",
       "skillPath": "skills/query-metrics/SKILL.md",
       "computedHash": "ebdb47ef6080be0ee2ca7a4d68ca6bac626c7c593cd7304db41332d328ea5161"
+    },
+    "react-email": {
+      "source": "resend/react-email",
+      "sourceType": "github",
+      "skillPath": "skills/react-email/SKILL.md",
+      "computedHash": "aafd7a5f1e1e44dae83dc545eb2fac7c45d5eb20c1dd47afbebd879eb825fa64"
+    },
+    "react-native-best-practices": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-best-practices/SKILL.md",
+      "computedHash": "5b9722518860a462a9308759b7046725e4a1ab59642ad6a6e520afc45bc8373b"
+    },
+    "react-native-brownfield-migration": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-brownfield-migration/SKILL.md",
+      "computedHash": "bc63e487049fc9d2558e243643bda91f353285da0a8610d38c59ce95b0abd31d"
+    },
+    "react-native-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/react-native-design/SKILL.md",
+      "computedHash": "45544b3512ae23ff2482d33b16339499f45cb5a79440705f66254a69621bffcc"
+    },
+    "react-native-tv-best-practices": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-tv-best-practices/SKILL.md",
+      "computedHash": "4a7f384bd3b0f1afd50cac059f49319520231027219d26772fccdabded18726b"
+    },
+    "react-navigation": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-navigation/SKILL.md",
+      "computedHash": "1b8127ce614fac048720e528fe3ff957da08f7777bc88ae9b1922108f72bdc61"
     },
     "react-query": {
       "source": "umxr/react-query-skills",
@@ -323,6 +413,18 @@
       "sourceType": "github",
       "skillPath": "skills/spl-to-apl/SKILL.md",
       "computedHash": "f35342ffe5cdbcc63038b2edb44f4285607d6815a8315bd0bf9e3b08da4482ff"
+    },
+    "upgrading-react-native": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/upgrading-react-native/SKILL.md",
+      "computedHash": "247d244c6c375bffbacf14c5b72c64363220778b1785aa78b9a643505c540391"
+    },
+    "validate-skills": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/validate-skills/SKILL.md",
+      "computedHash": "42c61ce36bb5ab6cb610141401517b1ba08c027f7712f3d3eb5c94fcaf0385da"
     },
     "vercel-composition-patterns": {
       "source": "vercel-labs/agent-skills",

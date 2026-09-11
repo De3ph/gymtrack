@@ -1,5 +1,19 @@
 # Active Context
 
+## Password Reset Migration Applied + cmd/migrate Restored (2026-08-30)
+- Dev DB (`gymtrack`) was missing `password_reset_tokens` — migration 006 existed as SQL but no runner: `cmd/migrate` had been deleted (docs still referenced it), and `cmd/ensure-schema` only applies migration 001 **destructively** (drops schema).
+- Recreated `backend/cmd/migrate/main.go`: applies pending `migrations/*.up.sql` in filename order, tracks state in `schema_migrations` table, one transaction per migration, idempotent (re-run skips applied). Default DSN `postgres://postgres:123456@localhost:5432/gymtrack` (POSTGRES_DSN override). Run from `backend/` dir.
+- Drift found & resolved: dev DB had 001 (via ensure-schema) and 002–005 applied by hand with no tracking. Marked 001–005 in `schema_migrations`, then `go run ./cmd/migrate` applied 006. Verified: `password_reset_tokens` columns + all 3 indexes (PK, unique token_hash, user_id) present; re-run reports "database is up to date".
+- **Going forward**: after adding a migration, run `go run ./cmd/migrate` from `backend/`. Do NOT use `ensure-schema` on a DB with data (it drops the schema).
+
+## Password Reset Email Template (2026-08-30)
+Created React Email template for the reset-password flow (branch `feature/reset-password`, backend `resend.go` currently sends hand-rolled HTML):
+- `frontend/emails/reset-password.tsx` — minimal scoreboard-register template (red signal bar, mono eyebrow/heading, hairline fallback-URL panel, square red CTA). Colors mirror `globals.css` light tokens as hardcoded hex (email clients can't read CSS variables — documented deviation from DESIGN.md §3.1 in file comment).
+- `frontend/scripts/render-email-check.tsx` — verification/export script: renders to HTML + plain text into `frontend/scripts/.email-out/` (gitignored). Run: `pnpm exec tsx scripts/render-email-check.tsx`.
+- `package.json` script `email` → `email dev --dir emails --port 3000` (React Email preview server); `react-email` added as dependency.
+- Verified: renders 6.9KB HTML + plain text; eslint clean; no tsc errors in new files; compiled HTML has correct inline styles (1px stone-200 borders, Geist Mono stack, box-border CTA).
+- Backend wiring (2026-08-30, done): `pnpm email:export` renders the template with a `__RESET_URL__` placeholder into `backend/internal/infrastructure/email/templates/reset_password.html`; `resend.go` embeds it (`//go:embed`), substitutes the HTML-escaped URL at send time via `buildResetPasswordHTML`, and `resend_test.go` covers substitution + escaping. Regenerate the HTML with `pnpm email:export` after any template edit — never hand-edit the generated file.
+
 ## Zustand Migration (implemented) — `plans/zustand-migration.md`
 Implemented the "survive navigation" store migration: list filter/pagination and the shared calendar date now persist across route/tab switches. Auth (`authStore`) and React Query server-state untouched.
 
@@ -237,6 +251,14 @@ All 8 gaps from `mobile-remaining-features.md` are now implemented. Mobile app i
 
 ## Next Steps
 Proceed to Phase 5 (Misc cleanups & ESLint) when ready.
+
+## Mobile ProfileScreen Redesign (2026-09-07)
+Redesigned `mobile/src/components/features/profile/ProfileScreen.tsx`:
+- Extracted `ProfileHeader` (Avatar component + role badge + member-since), `InfoRow`, `ActionRow` (chevron + press feedback) subcomponents; main component now has a null-user spinner guard.
+- Fixed broken i18n keys that rendered raw keys: `profile.role`→`profile.fields.role`, `trainer.bio`→`profile.fields.bio`, `profile.my_trainer`→`athlete.trainer.title`, `common.save/cancel`→`common.actions.*`, hardcoded "My Clients"/"Trainer Profile"→`trainer.clients.title`/`profile.trainer_profile`.
+- Added new keys to mobile `messages/{en,tr}.json`: `profile.trainer_profile`, `profile.my_clients`, `profile.validation.bio_too_long`, `auth.logout.message`.
+- Behavior: form state initialized on `startEditing()` (no stale state), save preserves other profile fields via `{...user.profile, name, bio}`, mutation response written to store via new `setUser` action in `authStore` + `queryClient.setQueryData(["user"])`, logout confirmed via dialog then `void logout()` (root layout auto-switches to (auth) stack). Added `testID`s (input-profile-name/bio, btn-logout, action-*) for Maestro E2E; bio char counter + maxLength; `keyboardShouldPersistTaps="handled"`.
+- Verified: eslint clean, tsc clean for touched files (only pre-existing tsconfig TS5101 baseUrl deprecation), all i18n keys resolve in en.json (JSON valid).
 
 ## Mobile E2E — Phase 1 Complete
 
