@@ -50,7 +50,7 @@ This plan replaces every `View`/`Text`/`TextInput`/`TouchableOpacity`/`StyleShee
 
 ---
 
-## Phase 0 — Token migration + dependency cleanup
+## Phase 0 — Token migration + dependency cleanup - DONE
 
 **Commit:** `chore(mobile): drop @expo/ui, @gorhom/bottom-sheet, dead helpers; port tokens to global.css`
 
@@ -71,7 +71,7 @@ This plan replaces every `View`/`Text`/`TextInput`/`TouchableOpacity`/`StyleShee
 
 ---
 
-## Phase 1 — Add gluestack-ui components via CLI
+## Phase 1 — Add gluestack-ui components via CLI - DONE
 
 **Commit:** `feat(mobile): add gluestack-ui v5 components (box, text, button, …)`
 
