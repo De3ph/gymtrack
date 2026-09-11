@@ -1,7 +1,8 @@
-import { useCallback, memo } from "react";
+import { useCallback, memo, useState } from "react";
 import { Platform } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
+import Animated, { Easing } from "react-native-reanimated";
 import { Box } from "@/components/ui/box";
 import { VStack } from "@/components/ui/vstack";
 import { Pressable } from "@/components/ui/pressable";
@@ -32,6 +33,17 @@ function triggerHaptic() {
   }
 }
 
+const CARD_STYLE = {
+  transform: [{ scale: 1 }],
+  transitionProperty: "transform" as const,
+  transitionDuration: 120,
+  transitionTimingFunction: Easing.bezier(0.23, 1, 0.32, 1),
+};
+
+const CARD_PRESSED_STYLE = {
+  transform: [{ scale: 0.97 }],
+};
+
 interface ActionCardProps {
   action: QuickAction;
   label: string;
@@ -40,20 +52,29 @@ interface ActionCardProps {
 
 const ActionCard = memo(function ActionCard({ action, label, onPress }: ActionCardProps) {
   const colors = useAppColors();
+  const [pressed, setPressed] = useState(false);
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
       onPress={() => {
         triggerHaptic();
         onPress(action.route);
       }}
-      className="flex-1 basis-[47%] items-center gap-3 rounded-2xl border border-border bg-card p-4 active:opacity-70"
+      className="flex-1 basis-[47%]"
     >
-      <action.Icon size={30} color={action.iconColor} />
-      <Text style={{ fontSize: 14, fontWeight: "bold", textAlign: "center", color: colors.text }}>
-        {label}
-      </Text>
+      <Animated.View
+        className="items-center gap-3 rounded-2xl border border-border bg-card p-4"
+        style={[CARD_STYLE, pressed && CARD_PRESSED_STYLE]}
+      >
+        <action.Icon size={30} color={action.iconColor} />
+        <Text style={{ fontSize: 14, fontWeight: "bold", textAlign: "center", color: colors.text }}>
+          {label}
+        </Text>
+      </Animated.View>
     </Pressable>
   );
 });
