@@ -2,6 +2,12 @@ import { useCallback } from "react";
 import { ScrollView, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeInDown,
+  useReducedMotion,
+} from "react-native-reanimated";
 import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/authStore";
 import { workoutApi } from "@/api/workoutApi";
@@ -25,10 +31,29 @@ import { useAppColors } from "@/lib/colors";
 const EMPTY_WORKOUTS: Workout[] = [];
 const EMPTY_MEALS: Meal[] = [];
 
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+
+const ENTER_DURATION = 260;
+const ENTER_STAGGER = 60;
+const ENTER_OFFSET = 12;
+
+const enterFromBelow = (delay: number) =>
+  FadeInDown.withInitialValues({ transform: [{ translateY: ENTER_OFFSET }] })
+    .duration(ENTER_DURATION)
+    .delay(delay)
+    .easing(EASE_OUT);
+
+const ENTER_HEADER = enterFromBelow(0);
+const ENTER_QUICK_ACTIONS = enterFromBelow(ENTER_STAGGER);
+const ENTER_RECENT_ACTIVITIES = enterFromBelow(ENTER_STAGGER * 2);
+
+const REDUCED_MOTION_ENTER = FadeIn.duration(180);
+
 export function DashboardScreen() {
   const colors = useAppColors();
   const { t } = useI18n();
   const { push } = useRouter();
+  const reducedMotion = useReducedMotion();
   const user = useAuthStore((s) => s.user);
   const displayName =
     user?.profile?.name || user?.username || user?.email?.split("@")[0] || "";
@@ -121,35 +146,51 @@ export function DashboardScreen() {
         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
       }
     >
-      <Host matchContents={{ vertical: true, horizontal: false }}>
-        <Column spacing={24}>
-          <Column spacing={4}>
-            <Text
-              textStyle={{
-                fontSize: 24,
-                lineHeight: 30,
-                fontWeight: "bold",
-                color: colors.text,
-              }}
-            >
-              {t("dashboard.welcome").replace("{name}", displayName)}
-            </Text>
-            <Text textStyle={{ fontSize: 14, color: colors.textSecondary }}>
-              {t("dashboard.no_data.description")}
-            </Text>
-          </Column>
+      <Animated.View className="gap-6">
+        <Animated.View
+          entering={reducedMotion ? REDUCED_MOTION_ENTER : ENTER_HEADER}
+        >
+          <Host matchContents={{ vertical: true, horizontal: false }}>
+            <Column spacing={4}>
+              <Text
+                textStyle={{
+                  fontSize: 24,
+                  lineHeight: 30,
+                  fontWeight: "bold",
+                  color: colors.text,
+                }}
+              >
+                {t("dashboard.welcome").replace("{name}", displayName)}
+              </Text>
+              <Text textStyle={{ fontSize: 14, color: colors.textSecondary }}>
+                {t("dashboard.no_data.description")}
+              </Text>
+            </Column>
+          </Host>
+        </Animated.View>
 
-          <RNHostView matchContents>
-            <QuickActions />
-          </RNHostView>
+        <Animated.View
+          entering={
+            reducedMotion ? REDUCED_MOTION_ENTER : ENTER_QUICK_ACTIONS
+          }
+        >
+          <QuickActions />
+        </Animated.View>
 
-          <RecentActivitiesList
-            workouts={workouts}
-            meals={meals}
-            onOpenActivity={handleOpenActivity}
-          />
-        </Column>
-      </Host>
+        <Animated.View
+          entering={
+            reducedMotion ? REDUCED_MOTION_ENTER : ENTER_RECENT_ACTIVITIES
+          }
+        >
+          <Host matchContents={{ vertical: true, horizontal: false }}>
+            <RecentActivitiesList
+              workouts={workouts}
+              meals={meals}
+              onOpenActivity={handleOpenActivity}
+            />
+          </Host>
+        </Animated.View>
+      </Animated.View>
     </ScrollView>
   );
 }
