@@ -29,7 +29,7 @@ func (r *PostgresWorkoutPlanRepository) Create(ctx context.Context, plan *models
 	plan.CreatedAt = now
 	plan.UpdatedAt = now
 
-	exJSON, err := MarshalToJSONB(plan.Exercises)
+	exJSON, err := MarshalPlanExercises(plan.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal plan exercises: %w", err)
 	}
@@ -55,7 +55,7 @@ func (r *PostgresWorkoutPlanRepository) scanPlan(row pgx.Row) (*models.WorkoutPl
 		}
 		return nil, fmt.Errorf("failed to scan workout plan: %w", err)
 	}
-	if err := UnmarshalFromJSONB(exRaw, &p.Exercises); err != nil {
+	if err := UnmarshalPlanExercises(exRaw, &p.Exercises); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plan exercises: %w", err)
 	}
 	p.Type = "workout_plan"
@@ -82,7 +82,7 @@ func (r *PostgresWorkoutPlanRepository) GetByCreatorID(ctx context.Context, crea
 		if err := rows.Scan(&p.PlanID, &p.CreatorID, &p.Name, &p.Description, &exRaw, &p.CreatedAt, &p.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan plan row: %w", err)
 		}
-		if err := UnmarshalFromJSONB(exRaw, &p.Exercises); err != nil {
+		if err := UnmarshalPlanExercises(exRaw, &p.Exercises); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal plan exercises: %w", err)
 		}
 		p.Type = "workout_plan"
@@ -105,7 +105,7 @@ func (r *PostgresWorkoutPlanRepository) CountByCreatorID(ctx context.Context, cr
 
 func (r *PostgresWorkoutPlanRepository) Update(ctx context.Context, plan *models.WorkoutPlan) error {
 	plan.UpdatedAt = time.Now()
-	exJSON, err := MarshalToJSONB(plan.Exercises)
+	exJSON, err := MarshalPlanExercises(plan.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal plan exercises: %w", err)
 	}

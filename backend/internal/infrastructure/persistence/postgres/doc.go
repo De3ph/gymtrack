@@ -6,12 +6,16 @@
 // # JSONB Columns
 //
 // Several tables use JSONB columns for flexible embedded data:
-//   - workouts.exercises   -> []models.WorkoutExercise
-//   - meals.items          -> []models.MealItem
-//   - body_measurements.parts -> []models.BodyPath
-//   - workout_plans.exercises -> []models.PlannedExercise
+//   - workouts.exercises      -> []models.WorkoutExercise (NOT NULL)
+//   - meals.items             -> []models.FoodItem (NOT NULL)
+//   - body_measurements.parts -> map[string]models.BodyMeasurementPart (NOT NULL DEFAULT '{}')
+//   - workout_plans.exercises -> []models.WorkoutPlanExercise (NOT NULL DEFAULT '[]')
+//   - users.profile           -> models.UserProfile (NOT NULL DEFAULT '{}')
 //
-// Use MarshalToJSONB/UnmarshalFromJSONB in helpers.go for all JSONB conversions.
+// Use the typed Marshal*/Unmarshal* helpers in jsonb.go for all JSONB
+// conversions (e.g. MarshalWorkoutExercises/UnmarshalWorkoutExercises).
+// The low-level MarshalToJSONB/UnmarshalFromJSONB primitives in helpers.go
+// are internal to that typed layer.
 //
 // # Error Mapping
 //

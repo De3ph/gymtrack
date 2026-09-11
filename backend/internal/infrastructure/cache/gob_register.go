@@ -10,8 +10,9 @@ import (
 // encoding/gob. gob requires registration for interface-typed fields to
 // encode/decode their concrete values.
 //
-// No cached model currently has an interface/any field (JSONB []byte fields are
-// fine — gob special-cases byte slices), so these registrations are defensive:
+// No cached model currently has an interface/any field (JSONB columns are
+// deserialized to typed structs via postgres/jsonb.go before caching),
+// so these registrations are defensive:
 // they guard against silent empty-data reads if a model ever gains one and
 // establish this file as the single place to add such registrations.
 //

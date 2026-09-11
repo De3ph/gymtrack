@@ -29,7 +29,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
-	profileJSON, err := MarshalToJSONB(user.Profile)
+	profileJSON, err := MarshalUserProfile(user.Profile)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user profile: %w", err)
 	}
@@ -85,7 +85,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
-	if err := UnmarshalFromJSONB(profileRaw, &user.Profile); err != nil {
+	if err := UnmarshalUserProfile(profileRaw, &user.Profile); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 	}
 
@@ -121,7 +121,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 		return nil, fmt.Errorf("failed to get user by username: %w", err)
 	}
 
-	if err := UnmarshalFromJSONB(profileRaw, &user.Profile); err != nil {
+	if err := UnmarshalUserProfile(profileRaw, &user.Profile); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 	}
 
@@ -157,7 +157,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
-	if err := UnmarshalFromJSONB(profileRaw, &user.Profile); err != nil {
+	if err := UnmarshalUserProfile(profileRaw, &user.Profile); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 	}
 
@@ -197,7 +197,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.Use
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
 
-		if err := UnmarshalFromJSONB(profileRaw, &user.Profile); err != nil {
+		if err := UnmarshalUserProfile(profileRaw, &user.Profile); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 		}
 
@@ -215,7 +215,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.Use
 func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.User) error {
 	user.UpdatedAt = time.Now()
 
-	profileJSON, err := MarshalToJSONB(user.Profile)
+	profileJSON, err := MarshalUserProfile(user.Profile)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user profile: %w", err)
 	}
@@ -300,7 +300,7 @@ func (r *PostgresUserRepository) scanUserRows(rows pgx.Rows) ([]*models.User, er
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
 
-		if err := UnmarshalFromJSONB(profileRaw, &user.Profile); err != nil {
+		if err := UnmarshalUserProfile(profileRaw, &user.Profile); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 		}
 

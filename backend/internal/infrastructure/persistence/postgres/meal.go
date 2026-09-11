@@ -29,7 +29,7 @@ func (r *PostgresMealRepository) Create(ctx context.Context, meal *models.Meal) 
 	meal.CreatedAt = now
 	meal.UpdatedAt = now
 
-	itemsJSON, err := MarshalToJSONB(meal.Items)
+	itemsJSON, err := MarshalMealItems(meal.Items)
 	if err != nil {
 		return fmt.Errorf("failed to marshal meal items: %w", err)
 	}
@@ -58,7 +58,7 @@ func (r *PostgresMealRepository) GetByID(ctx context.Context, mealID int) (*mode
 		}
 		return nil, fmt.Errorf("failed to get meal: %w", err)
 	}
-	if err := UnmarshalFromJSONB(itemsRaw, &meal.Items); err != nil {
+	if err := UnmarshalMealItems(itemsRaw, &meal.Items); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal meal items: %w", err)
 	}
 	meal.Type = "meal"
@@ -87,7 +87,7 @@ func (r *PostgresMealRepository) GetByAthleteDateRange(ctx context.Context, athl
 
 func (r *PostgresMealRepository) Update(ctx context.Context, meal *models.Meal) error {
 	meal.UpdatedAt = time.Now()
-	itemsJSON, err := MarshalToJSONB(meal.Items)
+	itemsJSON, err := MarshalMealItems(meal.Items)
 	if err != nil {
 		return fmt.Errorf("failed to marshal meal items: %w", err)
 	}
@@ -121,7 +121,7 @@ func (r *PostgresMealRepository) scanRows(rows pgx.Rows) ([]*models.Meal, error)
 		if err := rows.Scan(&meal.MealID, &meal.AthleteID, &meal.Date, &meal.MealType, &itemsRaw, &meal.CreatedAt, &meal.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan meal row: %w", err)
 		}
-		if err := UnmarshalFromJSONB(itemsRaw, &meal.Items); err != nil {
+		if err := UnmarshalMealItems(itemsRaw, &meal.Items); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal meal items: %w", err)
 		}
 		meal.Type = "meal"
@@ -141,7 +141,6 @@ func (r *PostgresMealRepository) CountAll(ctx context.Context) (int, error) {
 	}
 	return count, nil
 }
-
 
 // Compile-time interface compliance check.
 var _ repositories.MealRepository = (*PostgresMealRepository)(nil)

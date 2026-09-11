@@ -29,7 +29,7 @@ func (r *PostgresBodyMeasurementRepository) Create(ctx context.Context, m *model
 	m.CreatedAt = now
 	m.UpdatedAt = now
 
-	partsJSON, err := MarshalToJSONB(m.Parts)
+	partsJSON, err := MarshalBodyParts(m.Parts)
 	if err != nil {
 		return fmt.Errorf("failed to marshal parts: %w", err)
 	}
@@ -73,7 +73,7 @@ func (r *PostgresBodyMeasurementRepository) scanOne(row pgx.Row) (*models.BodyMe
 	if notes != nil {
 		m.Notes = *notes
 	}
-	if err := UnmarshalFromJSONB(partsRaw, &m.Parts); err != nil {
+	if err := UnmarshalBodyParts(partsRaw, &m.Parts); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal parts: %w", err)
 	}
 	m.Type = "body_measurement"
@@ -116,7 +116,7 @@ func (r *PostgresBodyMeasurementRepository) GetLatestByAthleteID(ctx context.Con
 
 func (r *PostgresBodyMeasurementRepository) Update(ctx context.Context, m *models.BodyMeasurement) error {
 	m.UpdatedAt = time.Now()
-	partsJSON, err := MarshalToJSONB(m.Parts)
+	partsJSON, err := MarshalBodyParts(m.Parts)
 	if err != nil {
 		return fmt.Errorf("failed to marshal parts: %w", err)
 	}
@@ -168,7 +168,7 @@ func (r *PostgresBodyMeasurementRepository) scanRows(rows pgx.Rows) ([]*models.B
 		if notes != nil {
 			m.Notes = *notes
 		}
-		if err := UnmarshalFromJSONB(partsRaw, &m.Parts); err != nil {
+		if err := UnmarshalBodyParts(partsRaw, &m.Parts); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal parts: %w", err)
 		}
 		m.Type = "body_measurement"

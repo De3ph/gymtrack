@@ -38,7 +38,7 @@ func scanWorkout(row interface{ Scan(dest ...any) error }, w *models.Workout) er
 	if planID != nil {
 		w.PlanID = *planID
 	}
-	if err := UnmarshalFromJSONB(exercisesRaw, &w.Exercises); err != nil {
+	if err := UnmarshalWorkoutExercises(exercisesRaw, &w.Exercises); err != nil {
 		return fmt.Errorf("failed to unmarshal exercises: %w", err)
 	}
 	return nil
@@ -49,7 +49,7 @@ func (r *PostgresWorkoutRepository) Create(ctx context.Context, workout *models.
 	workout.CreatedAt = now
 	workout.UpdatedAt = now
 
-	exercisesJSON, err := MarshalToJSONB(workout.Exercises)
+	exercisesJSON, err := MarshalWorkoutExercises(workout.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal exercises: %w", err)
 	}
@@ -139,7 +139,7 @@ func (r *PostgresWorkoutRepository) GetByAthleteDateRange(ctx context.Context, a
 func (r *PostgresWorkoutRepository) Update(ctx context.Context, workout *models.Workout) error {
 	workout.UpdatedAt = time.Now()
 
-	exercisesJSON, err := MarshalToJSONB(workout.Exercises)
+	exercisesJSON, err := MarshalWorkoutExercises(workout.Exercises)
 	if err != nil {
 		return fmt.Errorf("failed to marshal exercises: %w", err)
 	}
@@ -173,7 +173,6 @@ func (r *PostgresWorkoutRepository) Delete(ctx context.Context, workoutID int) e
 	}
 	return nil
 }
-
 
 func (r *PostgresWorkoutRepository) CountAll(ctx context.Context) (int, error) {
 	var count int

@@ -104,7 +104,7 @@ func (r *PostgresTrainerProfileRepository) GetTrainerByID(ctx context.Context, t
 		return nil, err
 	}
 
-	if err := UnmarshalFromJSONB(profileRaw, &trainer.User.Profile); err != nil {
+	if err := UnmarshalUserProfile(profileRaw, &trainer.User.Profile); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 	}
 
@@ -162,7 +162,7 @@ func (r *PostgresTrainerProfileRepository) UpdateTrainerProfile(ctx context.Cont
 	}
 
 	var userProfile models.UserProfile
-	if err := UnmarshalFromJSONB(profileRaw, &userProfile); err != nil {
+	if err := UnmarshalUserProfile(profileRaw, &userProfile); err != nil {
 		return fmt.Errorf("failed to unmarshal user profile: %w", err)
 	}
 
@@ -174,7 +174,7 @@ func (r *PostgresTrainerProfileRepository) UpdateTrainerProfile(ctx context.Cont
 	userProfile.Location = profile.Location
 	userProfile.Languages = profile.Languages
 
-	updatedJSON, err := MarshalToJSONB(userProfile)
+	updatedJSON, err := MarshalUserProfile(userProfile)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user profile: %w", err)
 	}
@@ -249,7 +249,7 @@ func (r *PostgresTrainerProfileRepository) scanTrainerRows(rows pgx.Rows) ([]mod
 			return nil, fmt.Errorf("failed to scan trainer row: %w", err)
 		}
 
-		if err := UnmarshalFromJSONB(profileRaw, &trainer.User.Profile); err != nil {
+		if err := UnmarshalUserProfile(profileRaw, &trainer.User.Profile); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
 		}
 
