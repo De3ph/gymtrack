@@ -1,171 +1,45 @@
-import React, { useState, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  RefreshControl,
-  ActivityIndicator,
-  Pressable,
-  Modal,
-  TextInput,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { RefreshControl, Alert } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter, type Href } from "expo-router";
 import { useI18n } from "@/lib/i18n";
 import { workoutApi } from "@/api/workoutApi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Workout, WorkoutListResponse } from "@/types";
-import { ExercisePicker } from "./ExercisePicker";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
 import { canEdit } from "@/lib/canEdit";
-
-interface NewSet {
-  id: string;
-  reps: string;
-  weight: string;
-}
-
-interface NewExercise {
-  id: string;
-  name: string;
-  notes: string;
-  pickedExerciseId?: number;
-  sets: NewSet[];
-}
-
-let exerciseCounter = 0;
-let setCounter = 0;
-
-function nextExerciseId(): string {
-  exerciseCounter += 1;
-  return "ex-" + String(exerciseCounter);
-}
-
-function nextSetId(): string {
-  setCounter += 1;
-  return "set-" + String(setCounter);
-}
-
-function createEmptySet(): NewSet {
-  return { id: nextSetId(), reps: "", weight: "" };
-}
-
-function createEmptyExercise(): NewExercise {
-  return {
-    id: nextExerciseId(),
-    name: "",
-    notes: "",
-    sets: [createEmptySet()],
-  };
-}
-
-function todayString(): string {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return yyyy + "-" + mm + "-" + dd;
-}
-
-/** Convert a Workout's exercises to the editable NewExercise[] shape */
-function workoutToExercises(workout: Workout): NewExercise[] {
-  return (workout.exercises ?? []).map((ex) => ({
-    id: nextExerciseId(),
-    name: ex.name ?? "",
-    notes: ex.notes ?? "",
-    sets: (ex.sets ?? []).map((s) => ({
-      id: nextSetId(),
-      reps: String(s.reps ?? ""),
-      weight: String(s.weight ?? ""),
-    })),
-  }));
-}
-
-interface WorkoutCardProps {
-  workout: Workout;
-  editable: boolean;
-  onOpen: (workout: Workout) => void;
-  onEdit: (workout: Workout) => void;
-  onDelete: (workout: Workout) => void;
-}
-
-const WorkoutCard = React.memo(
-  ({ workout, editable, onOpen, onEdit, onDelete }: WorkoutCardProps) => {
-    const c = useThemeColors();
-    const { t } = useI18n();
-    const styles = useMemo(() => createStyles(c), [c]);
-    const exerciseCount = workout.exercises?.length ?? 0;
-    const totalSets =
-      workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length ?? 0), 0) ?? 0;
-
-    const formattedDate = new Date(workout.date).toLocaleDateString(undefined, {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-
-    return (
-      <Pressable
-        style={styles.card}
-        onPress={() => onOpen(workout)}
-      >
-        <Text style={styles.cardDate}>{formattedDate}</Text>
-        <View style={styles.cardStats}>
-          <Text style={styles.cardStat}>
-            {String(exerciseCount) + " " + t("workout.list.exercises")}
-          </Text>
-          <Text style={styles.cardStatDivider}>|</Text>
-          <Text style={styles.cardStat}>{String(totalSets) + " sets"}</Text>
-        </View>
-        {editable && (
-          <View style={styles.cardActions}>
-            <Pressable
-              style={styles.cardActionButton}
-              onPress={() => onEdit(workout)}
-            >
-              <Text style={styles.cardActionEdit}>
-                {t("common.actions.edit")}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={styles.cardActionButton}
-              onPress={() => onDelete(workout)}
-            >
-              <Text style={styles.cardActionDelete}>
-                {t("common.actions.delete")}
-              </Text>
-            </Pressable>
-          </View>
-        )}
-      </Pressable>
-    );
-  }
-);
-
-function resetExerciseAndSetCounters() {
-  exerciseCounter = 0;
-  setCounter = 0;
-}
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Button, Host, RNHostView } from "@expo/ui";
+import { Spinner } from "@/components/ui/spinner";
+import { PlusIcon } from "@/components/icons";
+import { WorkoutCard } from "./WorkoutCard";
+import { WorkoutFormModal } from "./WorkoutFormModal";
+import { isSessionExpiredError } from "@/api/client";
+import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
+import { useWorkoutFormStore } from "@/stores/workout-form-store";
 
 export function WorkoutsScreen() {
-  const c = useThemeColors();
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const styles = useMemo(() => createStyles(c), [c]);
+
+  const {
+    modalVisible,
+    editingWorkout,
+    newDate,
+    newExercises,
+    openCreateModal,
+    openEditModal,
+    closeModalAndReset,
+    setSubmitError,
+  } = useWorkoutFormStore();
 
   const openDetail = useCallback(
     (w: Workout) => {
       if (w.workoutId == null) return;
       router.push(("/workouts/" + String(w.workoutId)) as Href);
     },
-    [router]
+    [router],
   );
 
   const { data, isLoading, isError, error, refetch, isRefetching } =
@@ -175,33 +49,6 @@ export function WorkoutsScreen() {
     });
 
   const workouts = useMemo(() => data?.workouts ?? [], [data]);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
-  const [newDate, setNewDate] = useState(todayString);
-  const [newExercises, setNewExercises] = useState<NewExercise[]>([
-    createEmptyExercise(),
-  ]);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const [pickingForExId, setPickingForExId] = useState<string | null>(null);
-
-  const openPickerFor = useCallback((exId: string) => {
-    setPickingForExId(exId);
-    setPickerVisible(true);
-  }, []);
-
-  const handleExerciseSelect = useCallback(
-    (exercise: { name: string; exerciseId: number; category?: string }) => {
-      if (pickingForExId) {
-        updateExerciseName(pickingForExId, exercise.name);
-        if (exercise.exerciseId != null) {
-          updateExercisePickedId(pickingForExId, exercise.exerciseId);
-        }
-      }
-    },
-    [pickingForExId]
-  );
 
   const createMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => workoutApi.create(data),
@@ -238,26 +85,6 @@ export function WorkoutsScreen() {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const openCreateModal = useCallback(() => {
-    resetExerciseAndSetCounters();
-    setEditingWorkout(null);
-    setNewDate(todayString());
-    setNewExercises([createEmptyExercise()]);
-    setSubmitError(null);
-    setModalVisible(true);
-  }, []);
-
-  const openEditModal = useCallback(
-    (workout: Workout) => {
-      setEditingWorkout(workout);
-      setNewDate(workout.date);
-      setNewExercises(workoutToExercises(workout));
-      setSubmitError(null);
-      setModalVisible(true);
-    },
-    []
-  );
-
   const handleDelete = useCallback(
     (workout: Workout) => {
       const id = workout.workoutId;
@@ -272,94 +99,10 @@ export function WorkoutsScreen() {
             style: "destructive",
             onPress: () => deleteMutation.mutate(id),
           },
-        ]
+        ],
       );
     },
-    [t, deleteMutation]
-  );
-
-  const closeModalAndReset = useCallback(() => {
-    setModalVisible(false);
-    setEditingWorkout(null);
-    setNewDate(todayString());
-    setNewExercises([createEmptyExercise()]);
-    setSubmitError(null);
-  }, []);
-
-  const updateExerciseName = useCallback((exId: string, name: string) => {
-    setNewExercises((prev) =>
-      prev.map((ex) => (ex.id === exId ? { ...ex, name } : ex))
-    );
-  }, []);
-
-  const updateExerciseNotes = useCallback((exId: string, notes: string) => {
-    setNewExercises((prev) =>
-      prev.map((ex) => (ex.id === exId ? { ...ex, notes } : ex))
-    );
-  }, []);
-
-  const updateExercisePickedId = useCallback((exId: string, pickedExerciseId: number) => {
-    setNewExercises((prev) =>
-      prev.map((ex) => (ex.id === exId ? { ...ex, pickedExerciseId } : ex))
-    );
-  }, []);
-
-  const addExercise = useCallback(() => {
-    setNewExercises((prev) => [...prev, createEmptyExercise()]);
-  }, []);
-
-  const removeExercise = useCallback((exId: string) => {
-    setNewExercises((prev) => prev.filter((ex) => ex.id !== exId));
-    if (pickingForExId === exId) setPickingForExId(null);
-  }, [pickingForExId]);
-
-  const addSet = useCallback((exId: string) => {
-    setNewExercises((prev) =>
-      prev.map((ex) =>
-        ex.id === exId ? { ...ex, sets: [...ex.sets, createEmptySet()] } : ex
-      )
-    );
-  }, []);
-
-  const removeSet = useCallback((exId: string, setId: string) => {
-    setNewExercises((prev) =>
-      prev.map((ex) =>
-        ex.id === exId
-          ? { ...ex, sets: ex.sets.filter((s) => s.id !== setId) }
-          : ex
-      )
-    );
-  }, []);
-
-  const updateSetReps = useCallback((exId: string, setId: string, reps: string) => {
-    setNewExercises((prev) =>
-      prev.map((ex) =>
-        ex.id === exId
-          ? {
-              ...ex,
-              sets: ex.sets.map((s) => (s.id === setId ? { ...s, reps } : s)),
-            }
-          : ex
-      )
-    );
-  }, []);
-
-  const updateSetWeight = useCallback(
-    (exId: string, setId: string, weight: string) => {
-      setNewExercises((prev) =>
-        prev.map((ex) =>
-          ex.id === exId
-            ? {
-                ...ex,
-                sets: ex.sets.map((s) =>
-                  s.id === setId ? { ...s, weight } : s
-                ),
-              }
-            : ex
-        )
-      );
-    },
-    []
+    [t, deleteMutation],
   );
 
   const handleSubmit = useCallback(() => {
@@ -415,7 +158,15 @@ export function WorkoutsScreen() {
     } else {
       createMutation.mutate(payload);
     }
-  }, [newDate, newExercises, editingWorkout, t, createMutation, updateMutation]);
+  }, [
+    newDate,
+    newExercises,
+    editingWorkout,
+    t,
+    createMutation,
+    updateMutation,
+    setSubmitError,
+  ]);
 
   const renderItem = useCallback(
     ({ item }: { item: Workout }) => (
@@ -427,456 +178,95 @@ export function WorkoutsScreen() {
         onDelete={handleDelete}
       />
     ),
-    [openDetail, openEditModal, handleDelete]
+    [openDetail, openEditModal, handleDelete],
   );
 
   const keyExtractor = useCallback(
     (item: Workout) => String(item.workoutId ?? item.date),
-    []
+    [],
   );
-
-  const setNumberLabel = t("workout.form.exercise.sets.set_number");
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={c.accent} />
-        <Text style={styles.loadingText}>{t("common.loading")}</Text>
-      </View>
+      <Box className="flex-1 items-center justify-center bg-background p-6">
+        <Spinner />
+        <Text className="mt-3 text-[15px] text-text-secondary">
+          {t("common.loading")}
+        </Text>
+      </Box>
     );
   }
 
   if (isError && workouts.length === 0) {
+    if (isSessionExpiredError(error)) {
+      return <SessionExpiredView message={(error as Error)?.message} />;
+    }
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>
+      <Box className="flex-1 items-center justify-center bg-background p-6">
+        <Text className="mb-4 text-center text-[15px] text-danger">
           {(error as Error)?.message || t("common.errors.generic")}
         </Text>
-        <Pressable style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryButtonText}>
-            {t("common.actions.retry")}
-          </Text>
-        </Pressable>
-      </View>
+        <Host matchContents>
+          <Button label={t("common.actions.retry")} onPress={() => refetch()} />
+        </Host>
+      </Box>
     );
   }
 
-  const modalTitle = editingWorkout
-    ? t("workout.edit_dialog.title")
-    : t("workout.form.title");
-  const submitLabel = editingWorkout
-    ? t("workout.edit_dialog.save_changes")
-    : t("workout.form.submit");
-
   return (
-    <View style={styles.container}>
+    <Box className="flex-1 bg-background">
       <FlashList
         data={workouts}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         contentContainerStyle={
-          workouts.length === 0 ? styles.emptyListContent : styles.listContent
+          workouts.length === 0
+            ? { flexGrow: 1, justifyContent: "center", padding: 16 }
+            : { padding: 16, paddingBottom: 100 }
         }
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>{"\u{1F3CB}"}</Text>
-            <Text style={styles.emptyText}>
+          <Box className="items-center py-10">
+            <Text className="mb-3 text-5xl">{"\u{1F3CB}"}</Text>
+            <Text className="text-center text-base text-text-secondary">
               {t("workout.list.no_workouts")}
             </Text>
-          </View>
+          </Box>
         }
       />
 
-      <Pressable
-        style={styles.fab}
-        onPress={openCreateModal}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </Pressable>
-
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeModalAndReset}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+      {!modalVisible && (
+        <Host
+          matchContents
+          style={{ position: "absolute", bottom: 24, right: 24 }}
         >
-          <ScrollView
-            style={styles.modalScroll}
-            contentContainerStyle={styles.modalContent}
-            keyboardShouldPersistTaps="handled"
+          <Button
+            onPress={openCreateModal}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+            }}
           >
-            <Text style={styles.modalTitle}>{modalTitle}</Text>
-
-            <Text style={styles.fieldLabel}>
-              {t("workout.form.date.label")}
-            </Text>
-            <TextInput
-              style={[
-                styles.textInput,
-                editingWorkout && styles.textInputDisabled,
-              ]}
-              value={newDate}
-              onChangeText={setNewDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={c.textTertiary}
-              autoCapitalize="none"
-              editable={!editingWorkout}
-            />
-
-            {newExercises.map((ex, exIdx) => (
-              <View key={ex.id} style={styles.exerciseBlock}>
-                <View style={styles.exerciseHeader}>
-                  <Text style={styles.exerciseTitle}>
-                    {t("workout.form.exercise.name.label") +
-                      " " +
-                      String(exIdx + 1)}
-                  </Text>
-                  {newExercises.length > 1 && (
-                    <Pressable onPress={() => removeExercise(ex.id)}>
-                      <Text style={styles.removeLink}>
-                        {t("common.actions.remove")}
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
-
-                <View style={styles.nameRow}>
-                  <TextInput
-                    style={[styles.textInput, styles.nameInput]}
-                    value={ex.name}
-                    onChangeText={(v) => updateExerciseName(ex.id, v)}
-                    placeholder={t("workout.form.exercise.name.label")}
-                    placeholderTextColor={c.textTertiary}
-                  />
-                  <Pressable
-                    style={styles.browseButton}
-                    onPress={() => openPickerFor(ex.id)}
-                  >
-                    <Text style={styles.browseText}>Browse</Text>
-                  </Pressable>
-                </View>
-
-                <TextInput
-                  style={[styles.textInput, styles.notesInput]}
-                  value={ex.notes}
-                  onChangeText={(v) => updateExerciseNotes(ex.id, v)}
-                  placeholder={t("workout.form.exercise.notes")}
-                  placeholderTextColor={c.textTertiary}
-                  multiline
-                />
-
-                <Text style={styles.setsLabel}>
-                  {t("workout.form.exercise.sets.label")}
-                </Text>
-                {ex.sets.map((s, sIdx) => (
-                  <View key={s.id} style={styles.setRow}>
-                    <Text style={styles.setNumber}>
-                      {setNumberLabel.replace("{number}", String(sIdx + 1))}
-                    </Text>
-                    <TextInput
-                      style={[styles.textInput, styles.setInput]}
-                      value={s.weight}
-                      onChangeText={(v) => updateSetWeight(ex.id, s.id, v)}
-                      placeholder={t("workout.form.exercise.sets.weight")}
-                      placeholderTextColor={c.textTertiary}
-                      keyboardType="numeric"
-                    />
-                    <TextInput
-                      style={[styles.textInput, styles.setInput]}
-                      value={s.reps}
-                      onChangeText={(v) => updateSetReps(ex.id, s.id, v)}
-                      placeholder={t("workout.form.exercise.sets.reps")}
-                      placeholderTextColor={c.textTertiary}
-                      keyboardType="numeric"
-                    />
-                    {ex.sets.length > 1 && (
-                      <Pressable onPress={() => removeSet(ex.id, s.id)}>
-                        <Text style={styles.removeLink}>X</Text>
-                      </Pressable>
-                    )}
-                  </View>
-                ))}
-
-                <Pressable
-                  style={styles.addSetButton}
-                  onPress={() => addSet(ex.id)}
-                >
-                  <Text style={styles.addSetButtonText}>
-                    + {t("workout.form.exercise.sets.label")}
-                  </Text>
-                </Pressable>
-              </View>
-            ))}
-
-            <Pressable
-              style={styles.addExerciseButton}
-              onPress={addExercise}
+            <RNHostView
+              style={{
+                width: 32,
+                height: 32,
+              }}
             >
-              <Text style={styles.addExerciseButtonText}>
-                + {t("workout.form.add_exercise")}
-              </Text>
-            </Pressable>
+              <PlusIcon
+                size={32}
+                color="#ffffff"
+                style={{ width: 32, lineHeight: 32, textAlign: "center" }}
+              />
+            </RNHostView>
+          </Button>
+        </Host>
+      )}
 
-            {submitError ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerText}>{submitError}</Text>
-              </View>
-            ) : null}
-
-            <View style={styles.modalActions}>
-              <Pressable
-                style={[styles.cancelButton, isPending && styles.buttonDisabled]}
-                onPress={isPending ? undefined : closeModalAndReset}
-              >
-                <Text style={styles.cancelButtonText}>
-                  {t("common.actions.cancel")}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[styles.submitButton, isPending && styles.submitButtonDisabled]}
-                onPress={isPending ? undefined : handleSubmit}
-              >
-                <Text style={styles.submitButtonText}>
-                  {isPending ? t("workout.form.submitting") : submitLabel}
-                </Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      <ExercisePicker
-        visible={pickerVisible}
-        onClose={() => setPickerVisible(false)}
-        onSelect={handleExerciseSelect}
-      />
-    </View>
+      <WorkoutFormModal onSubmit={handleSubmit} isPending={isPending} />
+    </Box>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: c.background },
-    centered: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 24,
-      backgroundColor: c.background,
-    },
-    loadingText: { marginTop: 12, fontSize: 15, color: c.textSecondary },
-    errorText: {
-      fontSize: 15,
-      color: c.danger,
-      textAlign: "center",
-      marginBottom: 16,
-    },
-    retryButton: {
-      backgroundColor: c.accent,
-      paddingHorizontal: 24,
-      paddingVertical: 10,
-      borderRadius: 8,
-    },
-    retryButtonText: { color: c.onAccent, fontSize: 15, fontWeight: "600" },
-
-    listContent: { padding: 16, paddingBottom: 100 },
-    emptyListContent: {
-      flexGrow: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 16,
-    },
-
-    card: {
-      backgroundColor: c.card,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    cardDate: {
-      fontSize: 17,
-      fontWeight: "600",
-      color: c.text,
-      marginBottom: 6,
-    },
-    cardStats: { flexDirection: "row", alignItems: "center" },
-    cardStat: { fontSize: 14, color: c.textSecondary },
-    cardStatDivider: { fontSize: 14, color: c.borderStrong, marginHorizontal: 8 },
-    cardActions: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: 16,
-      marginTop: 12,
-      paddingTop: 10,
-      borderTopWidth: 1,
-      borderTopColor: c.surfaceSubtle,
-    },
-    cardActionButton: { paddingVertical: 4, paddingHorizontal: 8 },
-    cardActionEdit: { fontSize: 14, fontWeight: "600", color: c.accent },
-    cardActionDelete: { fontSize: 14, fontWeight: "600", color: c.danger },
-
-    emptyCard: { alignItems: "center", paddingVertical: 40 },
-    emptyIcon: { fontSize: 48, marginBottom: 12 },
-    emptyText: { fontSize: 16, color: c.textSecondary, textAlign: "center" },
-
-    fab: {
-      position: "absolute",
-      bottom: 24,
-      right: 24,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: c.accent,
-      justifyContent: "center",
-      alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 6,
-      elevation: 6,
-    },
-    fabText: { fontSize: 28, color: c.onAccent, lineHeight: 30 },
-
-    modalOverlay: { flex: 1, backgroundColor: c.background },
-    modalScroll: { flex: 1 },
-    modalContent: { padding: 20, paddingBottom: 40 },
-    modalTitle: {
-      fontSize: 22,
-      fontWeight: "700",
-      color: c.text,
-      marginBottom: 20,
-    },
-
-    fieldLabel: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: c.text,
-      marginBottom: 6,
-      marginTop: 12,
-    },
-    textInput: {
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: 15,
-      color: c.text,
-      backgroundColor: c.card,
-      marginBottom: 8,
-    },
-    textInputDisabled: {
-      backgroundColor: c.surfaceSubtle,
-      color: c.textTertiary,
-    },
-    notesInput: { minHeight: 60, textAlignVertical: "top" },
-
-    exerciseBlock: {
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-      borderRadius: 10,
-      padding: 14,
-      marginTop: 12,
-      backgroundColor: c.card,
-    },
-    exerciseHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    exerciseTitle: { fontSize: 15, fontWeight: "600", color: c.text },
-    removeLink: { fontSize: 14, color: c.danger, fontWeight: "500" },
-    nameRow: { flexDirection: "row", gap: 8, alignItems: "center" },
-    nameInput: { flex: 1 },
-    browseButton: {
-      backgroundColor: c.accent,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-      borderRadius: 8,
-    },
-    browseText: { color: c.onAccent, fontSize: 14, fontWeight: "600" },
-
-    setsLabel: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: c.textBody,
-      marginTop: 8,
-      marginBottom: 6,
-    },
-    setRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      marginBottom: 4,
-    },
-    setNumber: { fontSize: 13, color: c.textSecondary, width: 40 },
-    setInput: { flex: 1, marginBottom: 0 },
-    addSetButton: {
-      paddingVertical: 8,
-      marginTop: 4,
-    },
-    addSetButtonText: { fontSize: 14, color: c.accent, fontWeight: "500" },
-
-    addExerciseButton: {
-      borderWidth: 1,
-      borderColor: c.accent,
-      borderStyle: "dashed",
-      borderRadius: 10,
-      paddingVertical: 14,
-      alignItems: "center",
-      marginTop: 16,
-    },
-    addExerciseButtonText: {
-      fontSize: 15,
-      color: c.accent,
-      fontWeight: "600",
-    },
-
-    errorBanner: {
-      backgroundColor: c.dangerSurface,
-      borderWidth: 1,
-      borderColor: c.dangerBorder,
-      borderRadius: 8,
-      padding: 12,
-      marginTop: 16,
-    },
-    errorBannerText: { fontSize: 14, color: c.danger },
-
-    modalActions: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: 12,
-      marginTop: 24,
-    },
-    cancelButton: {
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-    },
-    cancelButtonText: { fontSize: 15, color: c.textSecondary, fontWeight: "600" },
-    submitButton: {
-      backgroundColor: c.accent,
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 8,
-    },
-    submitButtonDisabled: { opacity: 0.5 },
-    submitButtonText: { fontSize: 15, color: c.onAccent, fontWeight: "600" },
-    buttonDisabled: { opacity: 0.5 },
-  });
 }

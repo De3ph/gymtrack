@@ -1,18 +1,30 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import React, { useCallback, useDeferredValue, useMemo, useState } from "react";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
+import { Button, Host } from "@expo/ui";
 import { exerciseApi } from "@/api/exerciseApi";
-import { useThemeColors } from "@/components/useThemeColors";
-import type { ThemeColors } from "@/constants/Colors";
+import { useI18n } from "@/lib/i18n";
+import { Box } from "@/components/ui/box";
+import { Text } from "@/components/ui/text";
+import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
+import { Pressable } from "@/components/ui/pressable";
+import {
+  Modal,
+  ModalBackdrop,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+} from "@/components/ui/modal";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Icon,
+  AlertCircleIcon,
+  ChevronRightIcon,
+  CloseCircleIcon,
+  CloseIcon,
+  SearchIcon,
+} from "@/components/ui/icon";
 
 interface Exercise {
   exerciseId: number;
@@ -29,11 +41,90 @@ interface ExercisePickerProps {
   onSelect: (exercise: Exercise) => void;
 }
 
-export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerProps) {
-  const c = useThemeColors();
-  const [search, setSearch] = useState("");
+const EMPTY_LIST: Exercise[] = [];
 
-  const styles = createStyles(c);
+const RowSeparator = React.memo(function RowSeparator() {
+  return <Box className="h-px bg-border" />;
+});
+
+interface ExerciseRowProps {
+  item: Exercise;
+  onPress: (item: Exercise) => void;
+}
+
+const ExerciseRow = React.memo(function ExerciseRow({ item, onPress }: ExerciseRowProps) {
+  return (
+    <Pressable
+      onPress={() => onPress(item)}
+      accessibilityRole="button"
+      accessibilityLabel={item.category ? `${item.name}, ${item.category}` : item.name}
+      className="flex-row items-center justify-between py-3.5 active:bg-surface-subtle"
+    >
+      <Box className="flex-1">
+        <Text className="text-[15px] font-medium text-text" numberOfLines={1}>
+          {item.name}
+        </Text>
+        {item.category ? (
+          <Text className="mt-0.5 text-xs capitalize text-text-tertiary" numberOfLines={1}>
+            {item.category}
+          </Text>
+        ) : null}
+      </Box>
+      <Icon as={ChevronRightIcon} className="ml-3 shrink-0 text-text-tertiary" size="sm" />
+    </Pressable>
+  );
+});
+
+function ListLoading() {
+  const { t } = useI18n();
+  return (
+    <Box className="items-center justify-center py-16">
+      <Spinner size="large" className="text-primary" />
+      <Text className="mt-4 text-sm text-text-secondary">{t("exercise.selector.loading")}</Text>
+    </Box>
+  );
+}
+
+function ListError({ onRetry }: { onRetry: () => void }) {
+  const { t } = useI18n();
+  return (
+    <Box className="items-center justify-center px-6 py-16">
+      <Icon as={AlertCircleIcon} className="text-danger" size="lg" />
+      <Text className="mt-3 text-center text-[15px] font-medium text-text">
+        {t("exercise.selector.load_failed")}
+      </Text>
+      <Text className="mt-1 text-center text-[13px] text-text-secondary">
+        {t("exercise.selector.connection_hint")}
+      </Text>
+      <Box className="mt-5">
+        <Host matchContents>
+          <Button label={t("common.actions.retry")} onPress={onRetry} />
+        </Host>
+      </Box>
+    </Box>
+  );
+}
+
+function ListEmpty({ searching }: { searching: boolean }) {
+  const { t } = useI18n();
+  return (
+    <Box className="items-center justify-center px-6 py-16">
+      <Text className="text-center text-[15px] font-medium text-text">
+        {searching ? t("exercise.selector.no_matching") : t("exercise.selector.no_exercises")}
+      </Text>
+      <Text className="mt-1 text-center text-[13px] text-text-secondary">
+        {searching
+          ? t("exercise.selector.no_matching_hint")
+          : t("exercise.selector.no_exercises_hint")}
+      </Text>
+    </Box>
+  );
+}
+
+export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerProps) {
+  const { t } = useI18n();
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["exercises"],
@@ -42,162 +133,119 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
     staleTime: 5 * 60 * 1000,
   });
 
-  useEffect(() => {
-    if (!visible) setSearch("");
-  }, [visible]);
+  const handleClose = useCallback(() => {
+    setSearch("");
+    onClose();
+  }, [onClose]);
 
-  const exercises = useMemo(() => {
-    const list: Exercise[] = Array.isArray(data) ? data : [];
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter(
-      (ex) =>
-        ex.name.toLowerCase().includes(q) ||
-        (ex.category && ex.category.toLowerCase().includes(q))
-    );
-  }, [data, search]);
+  const exercises = useMemo<Exercise[]>(
+    () => (Array.isArray(data) ? data : EMPTY_LIST),
+    [data]
+  );
 
-  const renderExerciseItem = useCallback(
-    ({ item }: { item: Exercise }) => (
-      <Pressable
-        style={styles.exerciseRow}
-        onPress={() => {
-          onSelect(item);
-          onClose();
-        }}
-      >
-        <View style={styles.exerciseInfo}>
-          <Text style={styles.exerciseName}>{item.name}</Text>
-          {item.category ? (
-            <Text style={styles.exerciseCategory}>{item.category}</Text>
-          ) : null}
-        </View>
-        <Text style={styles.chevron}>{">"}</Text>
-      </Pressable>
-    ),
-    [onClose, onSelect]
+  const searchIndex = useMemo(
+    () =>
+      exercises.map((ex) =>
+        ex.category
+          ? `${ex.name.toLowerCase()} ${ex.category.toLowerCase()}`
+          : ex.name.toLowerCase()
+      ),
+    [exercises]
+  );
+
+  const filtered = useMemo(() => {
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return exercises;
+    return exercises.filter((_, i) => searchIndex[i].includes(q));
+  }, [exercises, searchIndex, deferredSearch]);
+
+  const handleItemPress = useCallback(
+    (item: Exercise) => {
+      onSelect(item);
+      handleClose();
+    },
+    [onSelect, handleClose]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Exercise }) => <ExerciseRow item={item} onPress={handleItemPress} />,
+    [handleItemPress]
   );
 
   const keyExtractor = useCallback((item: Exercise) => String(item.exerciseId), []);
 
+  const clearSearch = useCallback(() => setSearch(""), []);
+
+  const handleRetry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const isSearching = search.trim().length > 0;
+
+  const listEmpty = useMemo(() => {
+    if (isLoading) return <ListLoading />;
+    if (isError) return <ListError onRetry={handleRetry} />;
+    return <ListEmpty searching={isSearching} />;
+  }, [isLoading, isError, isSearching, handleRetry]);
+
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={styles.flex}>
-        <View style={styles.header}>
-          <Pressable onPress={onClose} style={styles.closeBtn}>
-            <Text style={styles.closeText}>Close</Text>
-          </Pressable>
-          <Text style={styles.title}>Exercise Catalog</Text>
-          <View style={styles.closeBtn} />
-        </View>
+    <Modal isOpen={visible} onClose={handleClose} size="md">
+      <ModalBackdrop />
+      <ModalContent className="h-[85%] bg-background p-0">
+        <ModalHeader className="flex-row items-start justify-between border-b border-border px-4 pb-3 pt-4">
+          <Box className="flex-1 pr-3">
+            <Text className="text-[17px] font-bold text-text">
+              {t("exercise.selector.catalog_title")}
+            </Text>
+            <Text className="mt-0.5 text-[13px] text-text-secondary">
+              {t("exercise.selector.description")}
+            </Text>
+          </Box>
+          <ModalCloseButton>
+            <Icon as={CloseIcon} className="text-text-secondary" size="md" />
+          </ModalCloseButton>
+        </ModalHeader>
 
-        <TextInput
-          style={styles.searchInput}
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Search exercises..."
-          placeholderTextColor={c.textTertiary}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
+        <Box className="px-4 pb-2 pt-3">
+          <Input>
+            <InputSlot>
+              <InputIcon as={SearchIcon} />
+            </InputSlot>
+            <InputField
+              value={search}
+              onChangeText={setSearch}
+              placeholder={t("exercise.selector.search_placeholder")}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+            {isSearching ? (
+              <InputSlot>
+                <Pressable
+                  onPress={clearSearch}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("common.actions.clear")}
+                >
+                  <Icon as={CloseCircleIcon} className="text-text-tertiary" size="sm" />
+                </Pressable>
+              </InputSlot>
+            ) : null}
+          </Input>
+        </Box>
 
-        {isLoading ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={c.accent} />
-          </View>
-        ) : isError ? (
-          <View style={styles.center}>
-            <Text style={styles.errorText}>Failed to load exercises</Text>
-            <Pressable onPress={() => refetch()} style={styles.retryButton}>
-              <Text style={styles.retryText}>Retry</Text>
-            </Pressable>
-          </View>
-        ) : (
+        <ModalBody className="m-0 px-4 pb-4">
           <FlashList
-            data={exercises}
-            renderItem={renderExerciseItem}
+            data={filtered}
+            renderItem={renderItem}
             keyExtractor={keyExtractor}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
-              <View style={styles.center}>
-                <Text style={styles.emptyText}>No exercises found</Text>
-              </View>
-            }
+            ItemSeparatorComponent={RowSeparator}
+            ListEmptyComponent={listEmpty}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
           />
-        )}
-      </View>
+        </ModalBody>
+      </ModalContent>
     </Modal>
   );
-}
-
-function createStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.background },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 12,
-      borderBottomWidth: 0.5,
-      borderBottomColor: c.border,
-      backgroundColor: c.card,
-    },
-    closeBtn: { width: 60 },
-    closeText: { fontSize: 15, color: c.accent, fontWeight: "600" },
-    title: { fontSize: 17, fontWeight: "700", color: c.text },
-    searchInput: {
-      backgroundColor: c.card,
-      marginHorizontal: 16,
-      marginTop: 12,
-      marginBottom: 8,
-      borderRadius: 10,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-      fontSize: 15,
-      color: c.text,
-      borderWidth: 1,
-      borderColor: c.borderStrong,
-    },
-    listContent: { padding: 16, paddingTop: 4 },
-    exerciseRow: {
-      backgroundColor: c.card,
-      borderRadius: 10,
-      paddingHorizontal: 14,
-      paddingVertical: 14,
-      marginBottom: 8,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderWidth: 0.5,
-      borderColor: c.border,
-    },
-    exerciseInfo: { flex: 1 },
-    exerciseName: { fontSize: 15, fontWeight: "600", color: c.text },
-    exerciseCategory: {
-      fontSize: 12,
-      color: c.textSecondary,
-      marginTop: 2,
-      textTransform: "capitalize",
-    },
-    chevron: { fontSize: 16, color: c.textTertiary, marginLeft: 8 },
-    center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-    errorText: { fontSize: 15, color: c.danger, marginBottom: 12 },
-    emptyText: { fontSize: 15, color: c.textSecondary },
-    retryButton: {
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      backgroundColor: c.accent,
-      borderRadius: 8,
-    },
-    retryText: { color: c.onAccent, fontWeight: "600" },
-  });
 }
