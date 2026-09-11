@@ -1,17 +1,58 @@
+import { Platform } from "react-native";
 import { Tabs } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
+import {
+  HomeIcon,
+  MealIcon,
+  MeasurementIcon,
+  ProfileIcon,
+  WorkoutIcon,
+} from "@/components/icons";
 import { useThemeColors } from "@/components/useThemeColors";
+
+export type TabsParamList = {
+  index: undefined;
+  workouts: undefined;
+  meals: undefined;
+  measurements: undefined;
+  profile: undefined;
+};
+
+const TAB_ICON_SIZE = Platform.OS === "ios" ? 26 : 24;
 
 export default function TabLayout() {
   const c = useThemeColors();
 
   return (
     <Tabs
+      screenListeners={{
+        tabPress: () => {
+          void Haptics.selectionAsync();
+        },
+      }}
       screenOptions={{
-        tabBarActiveTintColor: c.accent,
+        tabBarActiveTintColor: c.tabIconSelected,
         tabBarInactiveTintColor: c.tabIconDefault,
-        headerShown: true,
+        tabBarHideOnKeyboard: true,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarStyle: {
+          backgroundColor: c.card,
+          borderTopColor: c.border,
+          ...Platform.select({
+            ios: {
+              height: 88,
+            },
+            android: {
+              height: 64,
+              elevation: 8,
+            },
+          }),
+        },
+        sceneStyle: { backgroundColor: c.background },
+        headerStyle: { backgroundColor: c.card },
+        headerTintColor: c.text,
+        headerTitleStyle: { fontWeight: "600", fontSize: 17 },
       }}
     >
       <Tabs.Screen
@@ -19,7 +60,7 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="home" size={28} color={color} />
+            <HomeIcon size={TAB_ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -28,7 +69,7 @@ export default function TabLayout() {
         options={{
           title: "Workouts",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="fitness-center" size={28} color={color} />
+            <WorkoutIcon size={TAB_ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -37,7 +78,7 @@ export default function TabLayout() {
         options={{
           title: "Meals",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="restaurant" size={28} color={color} />
+            <MealIcon size={TAB_ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -46,7 +87,7 @@ export default function TabLayout() {
         options={{
           title: "Measurements",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="analytics" size={28} color={color} />
+            <MeasurementIcon size={TAB_ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -55,11 +96,10 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="person" size={28} color={color} />
+            <ProfileIcon size={TAB_ICON_SIZE} color={color} />
           ),
         }}
       />
     </Tabs>
   );
 }
-
