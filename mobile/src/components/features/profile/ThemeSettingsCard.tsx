@@ -9,10 +9,17 @@ import { VStack } from "@/components/ui/vstack";
 import {
   Radio,
   RadioGroup,
+  RadioIcon,
   RadioIndicator,
   RadioLabel,
 } from "@/components/ui/radio";
-import { Icon, MoonIcon, SettingsIcon, SunIcon } from "@/components/ui/icon";
+import {
+  CircleIcon,
+  Icon,
+  MoonIcon,
+  SettingsIcon,
+  SunIcon,
+} from "@/components/ui/icon";
 
 const sectionTitleClassName =
   "text-xs font-bold uppercase tracking-[1.5px] text-text-secondary";
@@ -75,7 +82,9 @@ export const ThemeSettingsCard = memo(function ThemeSettingsCard() {
               index === THEME_OPTIONS.length - 1 ? "" : "mb-0.5"
             }`}
           >
-            <RadioIndicator />
+            <RadioIndicator>
+              <RadioIcon as={CircleIcon} />
+            </RadioIndicator>
             <ThemeOptionLabel
               icon={option.icon}
               label={t(`settings.theme.${option.value}`)}
