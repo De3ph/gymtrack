@@ -112,26 +112,6 @@ test.describe("TRACK", () => {
       ).toHaveAttribute("aria-selected", "true");
     });
 
-    test("TRACK.2 – Edit workout (24h)", async ({ page }) => {
-      await mockExerciseCatalogApi(page);
-      await mockWorkoutsApi(page, [recentWorkout]);
-      await page.goto("/athlete/workouts");
-      await page.getByRole("tab", { name: "History (List)" }).click();
-      await page.getByRole("button", { name: "Edit" }).first().click();
-      await page.getByTestId("set-weight").fill("55");
-      await page.getByRole("button", { name: "Save Changes" }).click();
-      await expect(page.getByText("55 kg").first()).toBeVisible();
-    });
-
-    test("TRACK.3 – Delete workout (24h)", async ({ page }) => {
-      await mockWorkoutsApi(page, [recentWorkout]);
-      await page.goto("/athlete/workouts");
-      await page.getByRole("tab", { name: "History (List)" }).click();
-      await page.getByRole("button", { name: "Delete" }).first().click();
-      await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
-      await expect(page.getByText("No workouts recorded yet")).toBeVisible();
-    });
-
     test("TRACK.4 – View workout history", async ({ page }) => {
       await mockWorkoutsApi(page, [recentWorkout]);
       await page.goto("/athlete/workouts");
@@ -223,25 +203,6 @@ test.describe("TRACK", () => {
       await expect(
         page.getByRole("tab", { name: "History (List)" }),
       ).toHaveAttribute("aria-selected", "true");
-    });
-
-    test("TRACK.7 – Edit meal (24h)", async ({ page }) => {
-      await mockMealsApi(page, [recentMeal]);
-      await page.goto("/athlete/meals");
-      await page.getByRole("tab", { name: "History (List)" }).click();
-      await page.getByRole("button", { name: "Edit" }).first().click();
-      await page.getByPlaceholder("e.g., 250").fill("350");
-      await page.getByRole("button", { name: "Save Changes" }).click();
-      await expect(page.getByText("350 kcal").first()).toBeVisible();
-    });
-
-    test("TRACK.8 – Delete meal (24h)", async ({ page }) => {
-      await mockMealsApi(page, [recentMeal]);
-      await page.goto("/athlete/meals");
-      await page.getByRole("tab", { name: "History (List)" }).click();
-      page.on("dialog", (dialog) => dialog.accept());
-      await page.getByRole("button", { name: "Delete" }).first().click();
-      await expect(page.getByText("No meals recorded yet")).toBeVisible();
     });
 
     test("TRACK.9 – View meal history", async ({ page }) => {

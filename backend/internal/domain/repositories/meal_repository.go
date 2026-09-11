@@ -13,8 +13,5 @@ type MealRepository interface {
 	GetByID(ctx context.Context, mealID int) (*models.Meal, error)
 	GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.Meal, error)
 	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Meal, error)
-	Update(ctx context.Context, meal *models.Meal) error
-	Delete(ctx context.Context, mealID int) error
 	CountAll(ctx context.Context) (int, error)
-
 }

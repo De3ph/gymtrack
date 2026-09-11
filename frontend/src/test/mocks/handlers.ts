@@ -196,33 +196,6 @@ export const handlers = [
     return HttpResponse.json(workout)
   }),
 
-  http.put('/api/workouts/:id', async ({ params, request }) => {
-    const body = await request.json() as WorkoutRequestBody
-    const workout = mockWorkouts.find(w => w.workoutId === Number(params.id))
-    if (!workout) {
-      return HttpResponse.json(
-        { error: 'Workout not found' },
-        { status: 404 }
-      )
-    }
-    return HttpResponse.json({
-      ...workout,
-      ...body,
-      updatedAt: new Date().toISOString()
-    })
-  }),
-
-  http.delete('/api/workouts/:id', ({ params }) => {
-    const workout = mockWorkouts.find(w => w.workoutId === Number(params.id))
-    if (!workout) {
-      return HttpResponse.json(
-        { error: 'Workout not found' },
-        { status: 404 }
-      )
-    }
-    return HttpResponse.json({ message: 'Workout deleted' })
-  }),
-
   // Meal endpoints
   http.get('/api/meals', () => {
     return HttpResponse.json(mockMeals)
@@ -247,32 +220,6 @@ export const handlers = [
       )
     }
     return HttpResponse.json(meal)
-  }),
-
-  http.put('/api/meals/:id', async ({ params, request }) => {
-    const body = await request.json() as MealRequestBody
-    const meal = mockMeals.find(m => m.mealId === Number(params.id))
-    if (!meal) {
-      return HttpResponse.json(
-        { error: 'Meal not found' },
-        { status: 404 }
-      )
-    }
-    return HttpResponse.json({
-      ...meal,
-      ...body
-    })
-  }),
-
-  http.delete('/api/meals/:id', ({ params }) => {
-    const meal = mockMeals.find(m => m.mealId === Number(params.id))
-    if (!meal) {
-      return HttpResponse.json(
-        { error: 'Meal not found' },
-        { status: 404 }
-      )
-    }
-    return HttpResponse.json({ message: 'Meal deleted' })
   }),
 
   // Relationship endpoints

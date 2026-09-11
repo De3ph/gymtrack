@@ -153,58 +153,6 @@ func TestPostgresWorkoutRepository(t *testing.T) {
 		assert.Empty(t, workouts)
 	})
 
-	t.Run("Update", func(t *testing.T) {
-		w := &models.Workout{
-			AthleteID: athlete.UserID,
-			Date:      time.Date(2024, 10, 1, 0, 0, 0, 0, time.UTC),
-			Exercises: makeExercises(),
-		}
-		require.NoError(t, repo.Create(ctx, w))
-		originalUpdatedAt := w.UpdatedAt
-
-		// Ensure time moves forward for UpdatedAt comparison
-		time.Sleep(10 * time.Millisecond)
-
-		w.Exercises[0].Name = "Incline Bench Press"
-		w.Exercises[0].Sets[0].Weight = 90
-		w.Date = time.Date(2024, 10, 2, 0, 0, 0, 0, time.UTC)
-		err := repo.Update(ctx, w)
-		require.NoError(t, err)
-		assert.True(t, w.UpdatedAt.After(originalUpdatedAt))
-
-		fetched, err := repo.GetByID(ctx, w.WorkoutID)
-		require.NoError(t, err)
-		assert.Equal(t, "Incline Bench Press", fetched.Exercises[0].Name)
-		assert.Equal(t, 90.0, fetched.Exercises[0].Sets[0].Weight)
-	})
-
-	t.Run("Update_NotFound", func(t *testing.T) {
-		w := &models.Workout{
-			WorkoutID: 999999, AthleteID: athlete.UserID,
-			Date: time.Now(), Exercises: makeExercises(),
-		}
-		err := repo.Update(ctx, w)
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
-	})
-
-	t.Run("Delete", func(t *testing.T) {
-		w := &models.Workout{
-			AthleteID: athlete.UserID,
-			Date:      time.Date(2024, 11, 1, 0, 0, 0, 0, time.UTC),
-			Exercises: makeExercises(),
-		}
-		require.NoError(t, repo.Create(ctx, w))
-		err := repo.Delete(ctx, w.WorkoutID)
-		require.NoError(t, err)
-		_, err = repo.GetByID(ctx, w.WorkoutID)
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
-	})
-
-	t.Run("Delete_NotFound", func(t *testing.T) {
-		err := repo.Delete(ctx, 999999)
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
-	})
-
 	t.Run("JSONB_ComplexRoundTrip", func(t *testing.T) {
 		exercises := []models.WorkoutExercise{
 			{

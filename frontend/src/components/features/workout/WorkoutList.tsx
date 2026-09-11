@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import dayjs from "@/lib/i18n/dayjs";
 import {
   Pagination,
   PaginationContent,
@@ -15,13 +14,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
 import { workoutApi } from "@/lib/api";
 import { useWorkoutListStore } from "@/stores/workout-list-store";
-import { EditWorkoutDialog } from "./EditWorkoutDialog";
-import { DeleteWorkoutDialog } from "./DeleteWorkoutDialog";
 import { WorkoutFilterBar } from "./WorkoutFilterBar";
 import { WorkoutCard } from "./WorkoutCard";
 import { Workout } from "@/types";
 import { useTranslations } from "next-intl";
-import { PAGINATION, TIME_LIMITS } from "@/lib/constants";
+import { PAGINATION } from "@/lib/constants";
 
 export interface WorkoutFilter {
   startDate?: string;
@@ -30,7 +27,6 @@ export interface WorkoutFilter {
 
 interface WorkoutListProps {
   workouts?: Workout[];
-  readOnly?: boolean;
   filter?: WorkoutFilter;
   onFilterChange?: (filter: WorkoutFilter) => void;
   page?: number;
@@ -39,7 +35,6 @@ interface WorkoutListProps {
 
 export function WorkoutList({
   workouts: propWorkouts,
-  readOnly = false,
   filter: filterProp,
   onFilterChange,
   page: pageProp,
@@ -68,14 +63,6 @@ export function WorkoutList({
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<
     string | number | null
   >(null);
-  const [editingWorkout, setEditingWorkout] = React.useState<Workout | null>(
-    null,
-  );
-  const [workoutToDelete, setWorkoutToDelete] = React.useState<Workout | null>(
-    null,
-  );
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
   const pageSize = PAGINATION.WORKOUT_PAGE_SIZE;
   const isSelfFetching = !propWorkouts;
@@ -99,22 +86,6 @@ export function WorkoutList({
       }),
     enabled: isSelfFetching,
   });
-
-  const handleDeleteClick = (workout: Workout) => {
-    setWorkoutToDelete(workout);
-    setDeleteDialogOpen(true);
-  };
-
-  const canEdit = (workout: Workout) => {
-    const createdAt = dayjs(workout.createdAt);
-    const now = dayjs();
-    return now.diff(createdAt, "hour") < TIME_LIMITS.EDIT_WINDOW_HOURS;
-  };
-
-  const handleEditClick = (workout: Workout) => {
-    setEditingWorkout(workout);
-    setIsEditDialogOpen(true);
-  };
 
   if (isLoading && isSelfFetching) {
     return (
@@ -160,10 +131,6 @@ export function WorkoutList({
           <li key={workout.workoutId}>
             <WorkoutCard
               workout={workout}
-              readOnly={readOnly}
-              canEdit={canEdit}
-              onEdit={handleEditClick}
-              onDelete={handleDeleteClick}
               expandedCommentsId={expandedCommentsId}
               setExpandedCommentsId={setExpandedCommentsId}
             />
@@ -213,20 +180,6 @@ export function WorkoutList({
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-        </>
-      )}
-      {!readOnly && (
-        <>
-          <EditWorkoutDialog
-            workout={editingWorkout}
-            open={isEditDialogOpen}
-            onOpenChange={setIsEditDialogOpen}
-          />
-          <DeleteWorkoutDialog
-            workout={workoutToDelete}
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-          />
         </>
       )}
     </div>

@@ -8,7 +8,6 @@ import type { Workout } from '@/types'
 vi.mock('@/lib/api', () => ({
   workoutApi: {
     getAll: vi.fn(),
-    delete: vi.fn(),
   },
 }))
 
@@ -71,22 +70,6 @@ describe('WorkoutList', () => {
     renderWithProvider(<WorkoutList />)
 
     expect(screen.getByText(/loading/i)).toBeInTheDocument()
-  })
-
-  it('shows edit and delete buttons only for workouts within 24h when not readOnly', () => {
-    renderWithProvider(<WorkoutList workouts={[mockWorkouts[0]]} readOnly={false} />)
-
-    expect(screen.getByText(/bench press/i)).toBeInTheDocument()
-    const buttons = screen.getAllByRole('button')
-    expect(buttons.length).toBeGreaterThanOrEqual(2)
-  })
-
-  it('hides edit and delete buttons but shows comments toggle when readOnly', () => {
-    renderWithProvider(<WorkoutList workouts={mockWorkouts} readOnly />)
-
-    expect(screen.getByText(/bench press/i)).toBeInTheDocument()
-    const buttons = screen.queryAllByRole('button')
-    expect(buttons.length).toBe(1)
   })
 
   it('fetches workouts when no props provided', async () => {

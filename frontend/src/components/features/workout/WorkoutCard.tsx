@@ -3,8 +3,6 @@
 import { memo } from "react";
 import { formatDate } from "@/lib/i18n/dayjs";
 import {
-  Edit2,
-  Trash2,
   MessageSquare,
   ChevronDown,
   ChevronUp,
@@ -14,7 +12,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import { TARGET_TYPES } from "@/lib/constants";
@@ -30,20 +28,12 @@ const CommentThread = dynamic(
 
 interface WorkoutCardProps {
   workout: Workout;
-  readOnly?: boolean;
-  canEdit: (workout: Workout) => boolean;
-  onEdit: (workout: Workout) => void;
-  onDelete: (workout: Workout) => void;
   expandedCommentsId: string | number | null;
   setExpandedCommentsId: (id: string | number | null) => void;
 }
 
 export const WorkoutCard = memo(function WorkoutCardImpl({
   workout,
-  readOnly = false,
-  canEdit,
-  onEdit,
-  onDelete,
   expandedCommentsId,
   setExpandedCommentsId,
 }: WorkoutCardProps) {
@@ -60,28 +50,6 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
             {workout.exercises.length} {t("exercises")}
           </span>
         </div>
-        {!readOnly && canEdit(workout) && (
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => onEdit(workout)}
-              aria-label={t("edit")}
-              className="rounded-none"
-            >
-              <Edit2 className="size-5" aria-hidden="true" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => onDelete(workout)}
-              aria-label={t("delete")}
-              className="rounded-none text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="size-5" aria-hidden="true" />
-            </Button>
-          </div>
-        )}
       </header>
 
       <div className="space-y-2 px-4 py-3 sm:px-6 sm:py-4">

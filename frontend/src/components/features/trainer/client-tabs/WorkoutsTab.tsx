@@ -30,7 +30,7 @@ export function WorkoutsTab({ workouts }: WorkoutsTabProps) {
             {t("no_workouts")}
           </p>
         ) : (
-          <WorkoutList workouts={workouts} readOnly={true} />
+          <WorkoutList workouts={workouts} />
         )}
       </div>
     </div>

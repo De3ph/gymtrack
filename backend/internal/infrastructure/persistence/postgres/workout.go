@@ -136,44 +136,6 @@ func (r *PostgresWorkoutRepository) GetByAthleteDateRange(ctx context.Context, a
 	return workouts, nil
 }
 
-func (r *PostgresWorkoutRepository) Update(ctx context.Context, workout *models.Workout) error {
-	workout.UpdatedAt = time.Now()
-
-	exercisesJSON, err := MarshalWorkoutExercises(workout.Exercises)
-	if err != nil {
-		return fmt.Errorf("failed to marshal exercises: %w", err)
-	}
-
-	var planID any
-	if workout.PlanID != 0 {
-		planID = workout.PlanID
-	}
-
-	query := "UPDATE workouts SET athlete_id = $1, date = $2, plan_id = $3, exercises = $4, updated_at = $5 WHERE id = $6"
-
-	tag, err := r.pool.Exec(ctx, query,
-		workout.AthleteID, workout.Date, planID, exercisesJSON, workout.UpdatedAt, workout.WorkoutID,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to update workout: %w", err)
-	}
-	if tag.RowsAffected() == 0 {
-		return domainerrors.ErrNotFound
-	}
-	return nil
-}
-
-func (r *PostgresWorkoutRepository) Delete(ctx context.Context, workoutID int) error {
-	tag, err := r.pool.Exec(ctx, "DELETE FROM workouts WHERE id = $1", workoutID)
-	if err != nil {
-		return fmt.Errorf("failed to delete workout: %w", err)
-	}
-	if tag.RowsAffected() == 0 {
-		return domainerrors.ErrNotFound
-	}
-	return nil
-}
-
 func (r *PostgresWorkoutRepository) CountAll(ctx context.Context) (int, error) {
 	var count int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM workouts").Scan(&count)

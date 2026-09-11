@@ -53,11 +53,6 @@ func NewMeal(athleteID int, date time.Time, mealType MealType, items []FoodItem)
 	}
 }
 
-// CanEdit checks if the meal can be edited (within 24 hours of creation)
-func (m *Meal) CanEdit() bool {
-	return time.Since(m.CreatedAt) < 24*time.Hour
-}
-
 // CalculateTotalCalories sums up calories from all food items
 func (m *Meal) CalculateTotalCalories() float64 {
 	total := 0.0

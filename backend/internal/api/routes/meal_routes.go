@@ -13,8 +13,6 @@ func MealRoutes(router *gin.RouterGroup, mealHandler *handlers.MealHandler, auth
 		meals.POST("", mealHandler.CreateMeal)
 		meals.GET("", mealHandler.GetMeals)
 		meals.GET("/:id", mealHandler.GetMeal)
-		meals.PUT("/:id", mealHandler.UpdateMeal)
-		meals.DELETE("/:id", mealHandler.DeleteMeal)
 	}
 
 	// Trainer client view routes

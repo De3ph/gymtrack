@@ -702,6 +702,108 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/password-reset/confirm": {
+            "post": {
+                "description": "Reset password using a valid reset token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Confirm password reset",
+                "parameters": [
+                    {
+                        "description": "Confirm Password Reset",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ConfirmPasswordResetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or invalid/expired token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-reset/request": {
+            "post": {
+                "description": "Send a password reset link to the given email address. Always returns 200 to prevent email enumeration.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Request password reset",
+                "parameters": [
+                    {
+                        "description": "Request Password Reset",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RequestPasswordResetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reset link sent if account exists",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/auth/restore": {
             "post": {
                 "description": "Restore a soft-deleted account within the 30-day grace period",
@@ -1271,7 +1373,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "User not authenticated",
+                        "description": "You need to log in to continue. Please log in and try again",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1353,7 +1455,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "User not authenticated",
+                        "description": "You need to log in to continue. Please log in and try again",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1444,7 +1546,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "User not authenticated",
+                        "description": "You need to log in to continue. Please log in and try again",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1518,7 +1620,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "User not authenticated",
+                        "description": "You need to log in to continue. Please log in and try again",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1631,7 +1733,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "User not authenticated",
+                        "description": "You need to log in to continue. Please log in and try again",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2043,7 +2145,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "User not authenticated",
+                        "description": "You need to log in to continue. Please log in and try again",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2117,151 +2219,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Meal not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update an existing meal (only within 24 hours of creation, athletes can only update their own meals)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Meals"
-                ],
-                "summary": "Update a meal",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Meal ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Update meal request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.UpdateMealRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Meal updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.Meal"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body or validation failed",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Access denied or cannot edit after 24 hours",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Meal not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to update meal",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Delete an existing meal (only within 24 hours of creation, athletes can only delete their own meals)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Meals"
-                ],
-                "summary": "Delete a meal",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Meal ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Meal deleted successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Access denied or cannot delete after 24 hours",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Meal not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to delete meal",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2376,7 +2333,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "User not authenticated",
+                        "description": "You need to log in to continue. Please log in and try again",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2638,7 +2595,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized\" {\"error\":\"User not authenticated\"}",
+                        "description": "Unauthorized\" {\"error\":\"You need to log in to continue. Please log in and try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2691,7 +2648,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized\" {\"error\":\"User not authenticated\"}",
+                        "description": "Unauthorized\" {\"error\":\"You need to log in to continue. Please log in and try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2762,7 +2719,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized\" {\"error\":\"User not authenticated\"}",
+                        "description": "Unauthorized\" {\"error\":\"You need to log in to continue. Please log in and try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2827,7 +2784,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized\" {\"error\":\"User not authenticated\"}",
+                        "description": "Unauthorized\" {\"error\":\"You need to log in to continue. Please log in and try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2880,7 +2837,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized\" {\"error\":\"User not authenticated\"}",
+                        "description": "Unauthorized\" {\"error\":\"You need to log in to continue. Please log in and try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2933,7 +2890,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized\" {\"error\":\"User not authenticated\"}",
+                        "description": "Unauthorized\" {\"error\":\"You need to log in to continue. Please log in and try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2996,7 +2953,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized\" {\"error\":\"User not authenticated\"}",
+                        "description": "Unauthorized\" {\"error\":\"You need to log in to continue. Please log in and try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4102,6 +4059,22 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.ConfirmPasswordResetRequest": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "token"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.CreateBodyMeasurementRequest": {
             "type": "object",
             "required": [
@@ -4434,6 +4407,17 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.RequestPasswordResetRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.RestoreAccountRequest": {
             "type": "object",
             "required": [
@@ -4507,40 +4491,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.UpdateMealRequest": {
-            "description": "Request body for updating an existing meal entry",
-            "type": "object",
-            "required": [
-                "date",
-                "items",
-                "mealType"
-            ],
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "items": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/models.FoodItem"
-                    }
-                },
-                "mealType": {
-                    "enum": [
-                        "breakfast",
-                        "lunch",
-                        "dinner",
-                        "snack"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.MealType"
-                        }
-                    ]
-                }
-            }
-        },
         "handlers.UpdateProfileRequest": {
             "type": "object",
             "required": [
@@ -4598,26 +4548,6 @@ const docTemplate = `{
                         "suspended",
                         "banned"
                     ]
-                }
-            }
-        },
-        "handlers.UpdateWorkoutRequest": {
-            "description": "Request to update an existing workout",
-            "type": "object",
-            "required": [
-                "date",
-                "exercises"
-            ],
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "exercises": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/models.WorkoutExercise"
-                    }
                 }
             }
         },

@@ -37,8 +37,3 @@ func NewWorkout(athleteID int, date time.Time, exercises []WorkoutExercise, plan
 		UpdatedAt: now,
 	}
 }
-
-// CanEdit checks if the workout can be edited (within 24 hours of creation)
-func (w *Workout) CanEdit() bool {
-	return time.Since(w.CreatedAt) < 24*time.Hour
-}

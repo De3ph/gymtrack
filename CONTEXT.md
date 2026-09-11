@@ -144,8 +144,8 @@ backend/
 | Model | File | Key Fields | Business Rules |
 |-------|------|-----------|----------------|
 | **User** | `user.go` | id (int), email, password, role, profile | Roles: `trainer` \| `athlete` \| `admin`. Profile is JSONB |
-| **Workout** | `workout.go` | id, athleteId, date, exercises (JSONB) | Editable within 24h of creation |
-| **Meal** | `meal.go` | id, athleteId, date, mealType, items (JSONB) | Editable within 24h |
+| **Workout** | `workout.go` | id, athleteId, date, exercises (JSONB) | Create/read only — no edit or delete |
+| **Meal** | `meal.go` | id, athleteId, date, mealType, items (JSONB) | Create/read only — no edit or delete |
 | **Comment** | `comment.go` | id, targetType, targetId, authorId, content | Threaded (parentCommentId). Max 2000 chars |
 | **Relationship** | `relationship.go` | id, trainerId, athleteId, status | Status: pending\|active\|terminated |
 | **Invitation** | `invitation.go` | id, trainerId, code, status, expiresAt | Code-based invitation system |
@@ -188,8 +188,6 @@ PUT    /api/admin/profile               - Update admin profile
 POST   /api/workouts                    - Create workout (auth required)
 GET    /api/workouts                    - Get own workout history (paginated, date filtered)
 GET    /api/workouts/:id                - Get specific workout
-PUT    /api/workouts/:id                - Update workout (24h window)
-DELETE /api/workouts/:id                - Delete workout (24h window)
 GET    /api/clients/:id/workouts        - Trainer view client workouts
 ```
 
@@ -198,8 +196,6 @@ GET    /api/clients/:id/workouts        - Trainer view client workouts
 POST   /api/meals                       - Create meal entry
 GET    /api/meals                       - Get own meal history
 GET    /api/meals/:id                   - Get specific meal
-PUT    /api/meals/:id                   - Update meal
-DELETE /api/meals/:id                   - Delete meal
 GET    /api/clients/:id/meals           - Trainer view client meals
 ```
 
@@ -340,8 +336,8 @@ pgxpool.Pool → 14 PostgreSQL repository implementations
 | **AuthService** | `auth_service.go` | User registration, login, token generation/refresh, session management |
 | **UserService** | `user_service.go` | User profile operations |
 | **AdminService** | `admin_service.go` | User listing, role management, admin profile |
-| **WorkoutService** | `workout_service.go` | Workout CRUD with 24h edit validation |
-| **MealService** | `meal_service.go` | Meal CRUD with 24h edit validation |
+| **WorkoutService** | `workout_service.go` | Workout create/read/view with relationship checks |
+| **MealService** | `meal_service.go` | Meal create/read/view with relationship checks |
 | **BodyMeasurementService** | `body_measurement_service.go` | Body measurement CRUD with 24h edit validation, relationship checks |
 | **CommentService** | `comment_service.go` | Comment creation with authorization checks |
 | **InvitationService** | `invitation_service.go` | Code-based invitation flow (PostgreSQL implementation) |
@@ -1220,7 +1216,7 @@ postcss.config.mjs, eslint.config.mjs
 | **Authorization** | Role-based checks in middleware (`JWTAuthMiddleware`, `AdminMiddleware`) + service layer |
 | **CORS** | Restricted to localhost origins only |
 | **Input Validation** | Frontend: Zod. Backend: go-playground/validator |
-| **24h Edit Window** | Workout/Meal/BodyMeasurement `CanEdit()` method enforces 24h limit |
+| **24h Edit Window** | BodyMeasurement `CanEdit()` method enforces 24h limit (workouts and meals are create/read only) |
 | **Session Encryption** | jose on frontend for HttpOnly session cookie encryption/decryption |
 | **Error Monitoring** | @sentry/nextjs on frontend |
 

@@ -127,8 +127,8 @@ Go Backend (http://localhost:8080/api)
 | Model | Key Fields | Business Rules |
 |-------|-----------|----------------|
 | **User** | id, email, password, role, profile (JSONB) | Roles: trainer \| athlete \| admin |
-| **Workout** | id, athleteId, date, exercises (JSONB) | Editable within 24h |
-| **Meal** | id, athleteId, date, mealType, items (JSONB) | Editable within 24h |
+| **Workout** | id, athleteId, date, exercises (JSONB) | Create/read only — no edit or delete |
+| **Meal** | id, athleteId, date, mealType, items (JSONB) | Create/read only — no edit or delete |
 | **BodyMeasurement** | id, athleteId, date, weight, bodyFatPct, parts (JSONB) | Editable within 24h |
 | **Comment** | id, targetType, targetId, authorId, content | Threaded, max 2000 chars |
 | **Relationship** | id, trainerId, athleteId, status | pending \| active \| terminated |
@@ -166,8 +166,6 @@ PUT    /api/admin/profile
 POST   /api/workouts                  # Create (auth required)
 GET    /api/workouts                  # Own history (paginated, date filtered)
 GET    /api/workouts/:id
-PUT    /api/workouts/:id              # 24h window
-DELETE /api/workouts/:id              # 24h window
 GET    /api/clients/:id/workouts      # Trainer view
 ```
 
@@ -175,7 +173,7 @@ GET    /api/clients/:id/workouts      # Trainer view
 ```
 POST   /api/meals
 GET    /api/meals                     # Own history
-GET/PUT/DELETE /api/meals/:id         # 24h window
+GET    /api/meals/:id
 GET    /api/clients/:id/meals         # Trainer view
 ```
 

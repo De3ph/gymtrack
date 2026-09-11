@@ -8,7 +8,6 @@ import type { Meal } from '@/types'
 vi.mock('@/lib/api', () => ({
   mealApi: {
     getAll: vi.fn(),
-    delete: vi.fn(),
   },
 }))
 
@@ -72,17 +71,6 @@ describe('MealList', () => {
     renderWithProvider(<MealList />)
 
     expect(screen.getByText('loading')).toBeInTheDocument()
-  })
-
-  it('hides edit and delete buttons when readOnly', () => {
-    renderWithProvider(<MealList meals={mockMeals} readOnly />)
-
-    expect(screen.getByText(/oatmeal/i)).toBeInTheDocument()
-    // readOnly hides edit/delete but comment toggle remains (1 button)
-    expect(screen.queryByLabelText('edit')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('delete')).not.toBeInTheDocument()
-    // comment button still present
-    expect(screen.getByRole('button', { name: /comments/i })).toBeInTheDocument()
   })
 
   it('fetches meals when no props provided', async () => {

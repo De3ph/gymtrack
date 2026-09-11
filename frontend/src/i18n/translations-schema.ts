@@ -291,8 +291,6 @@ const translationSchema = z.object({
       loading: z.string(),
       no_workouts: z.string(),
       view_details: z.string(),
-      edit: z.string(),
-      delete: z.string(),
       exercises: z.string(),
       sets_x: z.string(),
       set_detail: z.string(),
@@ -304,23 +302,6 @@ const translationSchema = z.object({
       select_date: z.string(),
       no_workouts_this_month: z.string(),
       no_workouts: z.string(),
-    }),
-    edit_dialog: z.object({
-      title: z.string(),
-      date_label: z.string(),
-      save_changes: z.string(),
-      fallback_exercise: z.string(),
-      invalid_time_format: z.string(),
-      invalid_time_values: z.string(),
-      no_workout_to_update: z.string(),
-      exercises_must_be_valid: z.string(),
-    }),
-    delete_dialog: z.object({
-      title: z.string(),
-      description: z.string(),
-      confirm: z.string(),
-      cancel: z.string(),
-      deleting: z.string(),
     }),
     charts: z.object({
       weekly_volume: z.object({
@@ -392,8 +373,6 @@ const translationSchema = z.object({
       loading: z.string(),
       no_meals: z.string(),
       view_details: z.string(),
-      edit: z.string(),
-      delete: z.string(),
     }),
     summary: z.object({
       title: z.string(),
@@ -407,7 +386,6 @@ const translationSchema = z.object({
     card: z.object({
       items: z.string(),
       kcal: z.string(),
-      confirm_delete: z.string(),
       comments: z.string(),
     }),
     item: z.object({
@@ -421,12 +399,6 @@ const translationSchema = z.object({
       title: z.string(),
       select_date: z.string(),
       no_meals: z.string(),
-    }),
-    edit_dialog: z.object({
-      title: z.string(),
-      description: z.string(),
-      cancel: z.string(),
-      save_changes: z.string(),
     }),
   }),
   trainer: z.object({

@@ -36,13 +36,6 @@ type CreateWorkoutRequest struct {
 	Exercises []models.WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
 }
 
-// UpdateWorkoutRequest represents the request to update a workout
-// @Description Request to update an existing workout
-type UpdateWorkoutRequest struct {
-	Date      time.Time                `json:"date" validate:"required"`
-	Exercises []models.WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
-}
-
 // CreateWorkout handles POST /api/workouts
 // @Summary Create a new workout
 // @Description Create a new workout entry for the authenticated athlete
@@ -200,104 +193,6 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 		"workouts": result.Workouts,
 		"count":    result.Count,
 	})
-}
-
-// UpdateWorkout handles PUT /api/workouts/:id
-// @Summary Update a workout
-// @Description Update an existing workout (only within 24 hours of creation, athletes can only edit their own workouts)
-// @Tags Workouts
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Workout ID"
-// @Param request body UpdateWorkoutRequest true "Updated workout data"
-// @Success 200 {object} models.Workout "Workout updated successfully"
-// @Failure 400 {object} map[string]any "Invalid workout data. Please check the date and exercises and try again"
-// @Failure 403 {object} map[string]any "You can only edit your own workouts, within 24 hours of logging"
-// @Failure 404 {object} map[string]any "Workout not found"
-// @Failure 500 {object} map[string]any "Failed to update workout"
-// Router: /api/workouts/:id
-func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
-	workoutIDStr := c.Param("id")
-	workoutID, err := strconv.Atoi(workoutIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout ID. Please check the URL and try again"})
-		return
-	}
-	athleteID, _ := c.Get("userID")
-
-	var req UpdateWorkoutRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
-		return
-	}
-
-	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
-		return
-	}
-
-	athleteIDInt, err := strconv.Atoi(athleteID.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
-		return
-	}
-
-	workout, err := h.workoutService.UpdateWorkout(c.Request.Context(), services.UpdateWorkoutInput{
-		WorkoutID: workoutID,
-		AthleteID: athleteIDInt,
-		Date:      req.Date,
-		Exercises: req.Exercises,
-	})
-	if err != nil {
-		if handleServiceError(c, err) {
-			return
-		}
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-
-	c.JSON(http.StatusOK, workout)
-}
-
-// DeleteWorkout handles DELETE /api/workouts/:id
-// @Summary Delete a workout
-// @Description Delete an existing workout (only within 24 hours of creation, athletes can only delete their own workouts)
-// @Tags Workouts
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Workout ID"
-// @Success 200 {object} map[string]any "Workout deleted successfully"
-// @Failure 403 {object} map[string]any "Access denied or delete window expired"
-// @Failure 404 {object} map[string]any "Workout not found"
-// @Failure 500 {object} map[string]any "Failed to delete workout"
-// Router: /api/workouts/:id
-func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
-	workoutIDStr := c.Param("id")
-	workoutID, err := strconv.Atoi(workoutIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout ID. Please check the URL and try again"})
-		return
-	}
-	athleteID, _ := c.Get("userID")
-
-	athleteIDInt, err := strconv.Atoi(athleteID.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
-		return
-	}
-
-	err = h.workoutService.DeleteWorkout(c.Request.Context(), workoutID, athleteIDInt)
-	if err != nil {
-		if handleServiceError(c, err) {
-			return
-		}
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Workout deleted successfully"})
 }
 
 // GetClientWorkouts handles GET /api/clients/:id/workouts

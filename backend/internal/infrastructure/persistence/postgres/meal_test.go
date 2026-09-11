@@ -90,35 +90,4 @@ func TestPostgresMealRepository(t *testing.T) {
 		assert.NotEmpty(t, meals)
 	})
 
-	t.Run("Update", func(t *testing.T) {
-		meal := &models.Meal{AthleteID: athlete.UserID, Date: time.Now(), MealType: models.MealTypeSnack, Items: makeItems()}
-		require.NoError(t, repo.Create(ctx, meal))
-
-		meal.Items = append(meal.Items, models.FoodItem{Food: "Apple", Quantity: "1", Calories: 95})
-		err := repo.Update(ctx, meal)
-		require.NoError(t, err)
-
-		fetched, err := repo.GetByID(ctx, meal.MealID)
-		require.NoError(t, err)
-		assert.Len(t, fetched.Items, 3)
-	})
-
-	t.Run("Update_NotFound", func(t *testing.T) {
-		meal := &models.Meal{MealID: 999999, AthleteID: athlete.UserID, Date: time.Now(), MealType: models.MealTypeSnack, Items: makeItems()}
-		err := repo.Update(ctx, meal)
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
-	})
-
-	t.Run("Delete", func(t *testing.T) {
-		meal := &models.Meal{AthleteID: athlete.UserID, Date: time.Now(), MealType: models.MealTypeLunch, Items: makeItems()}
-		require.NoError(t, repo.Create(ctx, meal))
-		require.NoError(t, repo.Delete(ctx, meal.MealID))
-		_, err := repo.GetByID(ctx, meal.MealID)
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
-	})
-
-	t.Run("Delete_NotFound", func(t *testing.T) {
-		err := repo.Delete(ctx, 999999)
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
-	})
 }

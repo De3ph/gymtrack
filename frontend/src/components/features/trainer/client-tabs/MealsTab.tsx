@@ -30,7 +30,7 @@ export function MealsTab({ meals }: MealsTabProps) {
             {t("no_meals")}
           </p>
         ) : (
-          <MealList meals={meals} readOnly={true} />
+          <MealList meals={meals} />
         )}
       </div>
     </div>

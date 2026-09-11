@@ -85,34 +85,6 @@ func (r *PostgresMealRepository) GetByAthleteDateRange(ctx context.Context, athl
 	return r.scanRows(rows)
 }
 
-func (r *PostgresMealRepository) Update(ctx context.Context, meal *models.Meal) error {
-	meal.UpdatedAt = time.Now()
-	itemsJSON, err := MarshalMealItems(meal.Items)
-	if err != nil {
-		return fmt.Errorf("failed to marshal meal items: %w", err)
-	}
-	query := `UPDATE meals SET athlete_id=$1, date=$2, meal_type=$3, items=$4, updated_at=$5 WHERE id=$6`
-	tag, err := r.pool.Exec(ctx, query, meal.AthleteID, meal.Date, string(meal.MealType), itemsJSON, meal.UpdatedAt, meal.MealID)
-	if err != nil {
-		return fmt.Errorf("failed to update meal: %w", err)
-	}
-	if tag.RowsAffected() == 0 {
-		return domainerrors.ErrNotFound
-	}
-	return nil
-}
-
-func (r *PostgresMealRepository) Delete(ctx context.Context, mealID int) error {
-	tag, err := r.pool.Exec(ctx, `DELETE FROM meals WHERE id = $1`, mealID)
-	if err != nil {
-		return fmt.Errorf("failed to delete meal: %w", err)
-	}
-	if tag.RowsAffected() == 0 {
-		return domainerrors.ErrNotFound
-	}
-	return nil
-}
-
 func (r *PostgresMealRepository) scanRows(rows pgx.Rows) ([]*models.Meal, error) {
 	meals := make([]*models.Meal, 0)
 	for rows.Next() {

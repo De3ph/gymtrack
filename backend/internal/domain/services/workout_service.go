@@ -118,68 +118,6 @@ func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput
 	}, nil
 }
 
-type UpdateWorkoutInput struct {
-	WorkoutID int
-	AthleteID int
-	Date      time.Time
-	Exercises []models.WorkoutExercise
-}
-
-func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutInput) (*models.Workout, error) {
-	workout, err := s.workoutRepo.GetByID(ctx, input.WorkoutID)
-	if err != nil {
-		if errors.Is(err, domainerrors.ErrNotFound) {
-			return nil, ErrWorkoutNotFound
-		}
-		return nil, fmt.Errorf("failed to get workout: %w", err)
-	}
-
-	if workout.AthleteID != input.AthleteID {
-		return nil, NewServiceError("You can only edit your own workouts", "FORBIDDEN")
-	}
-
-	if !workout.CanEdit() {
-		return nil, NewServiceError("This workout can no longer be edited because more than 24 hours have passed since it was logged", "FORBIDDEN")
-	}
-
-	if err := s.validator.Struct(input); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	workout.Date = input.Date
-	workout.Exercises = input.Exercises
-
-	if err := s.workoutRepo.Update(ctx, workout); err != nil {
-		return nil, fmt.Errorf("failed to update workout: %w", err)
-	}
-
-	return workout, nil
-}
-
-func (s *WorkoutService) DeleteWorkout(ctx context.Context, workoutID, athleteID int) error {
-	workout, err := s.workoutRepo.GetByID(ctx, workoutID)
-	if err != nil {
-		if errors.Is(err, domainerrors.ErrNotFound) {
-			return ErrWorkoutNotFound
-		}
-		return fmt.Errorf("failed to get workout: %w", err)
-	}
-
-	if workout.AthleteID != athleteID {
-		return NewServiceError("You can only delete your own workouts", "FORBIDDEN")
-	}
-
-	if !workout.CanEdit() {
-		return NewServiceError("This workout can no longer be deleted because more than 24 hours have passed since it was logged", "FORBIDDEN")
-	}
-
-	if err := s.workoutRepo.Delete(ctx, workoutID); err != nil {
-		return fmt.Errorf("failed to delete workout: %w", err)
-	}
-
-	return nil
-}
-
 type GetClientWorkoutsInput struct {
 	TrainerID    int
 	ClientID     int

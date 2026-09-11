@@ -42,7 +42,7 @@ func workoutPayload(exerciseID int) map[string]any {
 	}
 }
 
-func TestE2E_Workout_CRUD_OwnAthlete(t *testing.T) {
+func TestE2E_Workout_CR_OwnAthlete(t *testing.T) {
 	env := SetupTestEnv(t)
 	token, _ := env.RegisterAthlete(t, "wcrud")
 	exerciseID := createExerciseForWorkout(t, env, token, "Bench Press")
@@ -83,17 +83,6 @@ func TestE2E_Workout_CRUD_OwnAthlete(t *testing.T) {
 		t.Fatalf("expected count 1, got %d", list.Count)
 	}
 
-	// Update within the 24h edit window
-	w = env.DoAuthRequest(http.MethodPut, "/api/workouts/"+itoa(created.WorkoutID), workoutPayload(exerciseID), token)
-	RequireStatus(t, w, http.StatusOK)
-
-	// Delete within the window
-	w = env.DoAuthRequest(http.MethodDelete, "/api/workouts/"+itoa(created.WorkoutID), nil, token)
-	RequireStatus(t, w, http.StatusOK)
-
-	// Gone after delete
-	w = env.DoAuthRequest(http.MethodGet, "/api/workouts/"+itoa(created.WorkoutID), nil, token)
-	RequireStatus(t, w, http.StatusNotFound)
 }
 
 func TestE2E_Workout_TrainerCannotCreate(t *testing.T) {

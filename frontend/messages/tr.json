@@ -629,8 +629,6 @@
       "loading": "Antrenmanlar yükleniyor...",
       "no_workouts": "Henüz antrenman yok — ilk antrenmanını kaydet, geçmiş burada görünsün.",
       "view_details": "Detayları Gör",
-      "edit": "Düzenle",
-      "delete": "Sil",
       "exercises": "Egzersizler",
       "sets_x": "{sets} set",
       "set_detail": "{weight} {unit} x {reps}",
@@ -642,23 +640,6 @@
       "select_date": "Antrenmanları görüntülemek için tarih seçin",
       "no_workouts_this_month": "Bu ay antrenman yok",
       "no_workouts": "Bu tarihte antrenman yok"
-    },
-    "edit_dialog": {
-      "title": "Antrenmanı Düzenle",
-      "date_label": "Tarih & Saat",
-      "save_changes": "Değişiklikleri Kaydet",
-      "fallback_exercise": "Egzersiz {index}",
-      "invalid_time_format": "Geçersiz saat formatı. HH:MM kullanın.",
-      "invalid_time_values": "Geçersiz saat değerleri.",
-      "no_workout_to_update": "Güncellenecek antrenman yok.",
-      "exercises_must_be_valid": "Tüm egzersizler geçerli olmalıdır."
-    },
-    "delete_dialog": {
-      "title": "Antrenmanı Sil",
-      "description": "Bu antrenmanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-      "confirm": "Antrenmanı sil",
-      "cancel": "İptal",
-      "deleting": "Siliniyor..."
     },
     "charts": {
       "weekly_volume": {
@@ -740,9 +721,7 @@
       "title": "Öğün Geçmişi",
       "loading": "Öğünler yükleniyor...",
       "no_meals": "Henüz öğün yok — ilk öğününü kaydet, geçmiş burada görünsün.",
-      "view_details": "Detayları Gör",
-      "edit": "Düzenle",
-      "delete": "Sil"
+      "view_details": "Detayları Gör"
     },
     "summary": {
       "title": "Günlük Özet",
@@ -757,7 +736,6 @@
     "card": {
       "items": "besin",
       "kcal": "kcal",
-      "confirm_delete": "Bu öğün silinsin mi?",
       "comments": "Yorumlar"
     },
     "item": {
@@ -771,12 +749,6 @@
       "title": "Öğün Takvimi",
       "select_date": "Öğünleri görüntülemek için tarih seçin",
       "no_meals": "Bu tarihte öğün yok"
-    },
-    "edit_dialog": {
-      "title": "Öğünü Düzenle",
-      "description": "Öğün kaydınızı güncelleyin",
-      "cancel": "İptal",
-      "save_changes": "Değişiklikleri Kaydet"
     },
     "filter": {
       "label": "Filtrele",

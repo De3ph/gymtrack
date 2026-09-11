@@ -629,8 +629,6 @@
       "loading": "Loading workouts...",
       "no_workouts": "No workouts yet — log first workout to see history here.",
       "view_details": "View Details",
-      "edit": "Edit",
-      "delete": "Delete",
       "exercises": "Exercises",
       "sets_x": "{sets} sets",
       "set_detail": "{weight} {unit} x {reps}",
@@ -642,23 +640,6 @@
       "select_date": "Select a date to view workouts",
       "no_workouts_this_month": "No workouts this month",
       "no_workouts": "No workouts on this date"
-    },
-    "edit_dialog": {
-      "title": "Edit Workout",
-      "date_label": "Date & Time",
-      "save_changes": "Save Changes",
-      "fallback_exercise": "Exercise {index}",
-      "invalid_time_format": "Invalid time format. Use HH:MM.",
-      "invalid_time_values": "Invalid time values.",
-      "no_workout_to_update": "No workout to update.",
-      "exercises_must_be_valid": "All exercises must be valid."
-    },
-    "delete_dialog": {
-      "title": "Delete Workout",
-      "description": "Are you sure you want to delete this workout? This action cannot be undone.",
-      "confirm": "Delete workout",
-      "cancel": "Cancel",
-      "deleting": "Deleting..."
     },
     "charts": {
       "weekly_volume": {
@@ -740,9 +721,7 @@
       "title": "Meal History",
       "loading": "Loading meals...",
       "no_meals": "No meals yet — log first meal to see history here.",
-      "view_details": "View Details",
-      "edit": "Edit",
-      "delete": "Delete"
+      "view_details": "View Details"
     },
     "summary": {
       "title": "Daily Summary",
@@ -757,7 +736,6 @@
     "card": {
       "items": "items",
       "kcal": "kcal",
-      "confirm_delete": "Delete this meal?",
       "comments": "Comments"
     },
     "item": {
@@ -771,12 +749,6 @@
       "title": "Meal Calendar",
       "select_date": "Select a date to view meals",
       "no_meals": "No meals on this date"
-    },
-    "edit_dialog": {
-      "title": "Edit Meal",
-      "description": "Update your meal entry",
-      "cancel": "Cancel",
-      "save_changes": "Save Changes"
     },
     "filter": {
       "label": "Filter",

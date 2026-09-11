@@ -94,6 +94,17 @@ definitions:
       workoutsThisWeek:
         type: integer
     type: object
+  handlers.ConfirmPasswordResetRequest:
+    properties:
+      newPassword:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - newPassword
+    - token
+    type: object
   handlers.CreateBodyMeasurementRequest:
     properties:
       bodyFatPct:
@@ -321,6 +332,13 @@ definitions:
     - role
     - username
     type: object
+  handlers.RequestPasswordResetRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   handlers.RestoreAccountRequest:
     properties:
       identifier:
@@ -371,29 +389,6 @@ definitions:
     required:
     - content
     type: object
-  handlers.UpdateMealRequest:
-    description: Request body for updating an existing meal entry
-    properties:
-      date:
-        type: string
-      items:
-        items:
-          $ref: '#/definitions/models.FoodItem'
-        minItems: 1
-        type: array
-      mealType:
-        allOf:
-        - $ref: '#/definitions/models.MealType'
-        enum:
-        - breakfast
-        - lunch
-        - dinner
-        - snack
-    required:
-    - date
-    - items
-    - mealType
-    type: object
   handlers.UpdateProfileRequest:
     properties:
       profile:
@@ -434,20 +429,6 @@ definitions:
         type: string
     required:
     - status
-    type: object
-  handlers.UpdateWorkoutRequest:
-    description: Request to update an existing workout
-    properties:
-      date:
-        type: string
-      exercises:
-        items:
-          $ref: '#/definitions/models.WorkoutExercise'
-        minItems: 1
-        type: array
-    required:
-    - date
-    - exercises
     type: object
   handlers.UserResponse:
     properties:
@@ -1573,6 +1554,75 @@ paths:
       summary: Update user status (Admin only)
       tags:
       - Admin
+  /auth/password-reset/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Reset password using a valid reset token.
+      parameters:
+      - description: Confirm Password Reset
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ConfirmPasswordResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request - Invalid input or invalid/expired token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Confirm password reset
+      tags:
+      - Auth
+  /auth/password-reset/request:
+    post:
+      consumes:
+      - application/json
+      description: Send a password reset link to the given email address. Always returns
+        200 to prevent email enumeration.
+      parameters:
+      - description: Request Password Reset
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RequestPasswordResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reset link sent if account exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request - Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Request password reset
+      tags:
+      - Auth
   /auth/restore:
     post:
       consumes:
@@ -1956,7 +2006,7 @@ paths:
               type: string
             type: object
         "401":
-          description: User not authenticated
+          description: You need to log in to continue. Please log in and try again
           schema:
             additionalProperties:
               type: string
@@ -2010,7 +2060,7 @@ paths:
               type: string
             type: object
         "401":
-          description: User not authenticated
+          description: You need to log in to continue. Please log in and try again
           schema:
             additionalProperties:
               type: string
@@ -2059,7 +2109,7 @@ paths:
               type: string
             type: object
         "401":
-          description: User not authenticated
+          description: You need to log in to continue. Please log in and try again
           schema:
             additionalProperties:
               type: string
@@ -2118,7 +2168,7 @@ paths:
               type: string
             type: object
         "401":
-          description: User not authenticated
+          description: You need to log in to continue. Please log in and try again
           schema:
             additionalProperties:
               type: string
@@ -2192,7 +2242,7 @@ paths:
             additionalProperties: true
             type: object
         "401":
-          description: User not authenticated
+          description: You need to log in to continue. Please log in and try again
           schema:
             additionalProperties: true
             type: object
@@ -2467,7 +2517,7 @@ paths:
               type: string
             type: object
         "401":
-          description: User not authenticated
+          description: You need to log in to continue. Please log in and try again
           schema:
             additionalProperties:
               type: string
@@ -2490,49 +2540,6 @@ paths:
       tags:
       - Meals
   /meals/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete an existing meal (only within 24 hours of creation, athletes
-        can only delete their own meals)
-      parameters:
-      - description: Meal ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Meal deleted successfully
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Access denied or cannot delete after 24 hours
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Meal not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Failed to delete meal
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete a meal
-      tags:
-      - Meals
     get:
       consumes:
       - application/json
@@ -2565,59 +2572,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get a specific meal
-      tags:
-      - Meals
-    put:
-      consumes:
-      - application/json
-      description: Update an existing meal (only within 24 hours of creation, athletes
-        can only update their own meals)
-      parameters:
-      - description: Meal ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Update meal request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.UpdateMealRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Meal updated successfully
-          schema:
-            $ref: '#/definitions/models.Meal'
-        "400":
-          description: Invalid request body or validation failed
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Access denied or cannot edit after 24 hours
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Meal not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Failed to update meal
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update a meal
       tags:
       - Meals
   /measurements:
@@ -2686,7 +2640,7 @@ paths:
             additionalProperties: true
             type: object
         "401":
-          description: User not authenticated
+          description: You need to log in to continue. Please log in and try again
           schema:
             additionalProperties: true
             type: object
@@ -2854,7 +2808,8 @@ paths:
             additionalProperties: true
             type: object
         "401":
-          description: Unauthorized" {"error":"User not authenticated"}
+          description: Unauthorized" {"error":"You need to log in to continue. Please
+            log in and try again"}
           schema:
             additionalProperties:
               type: string
@@ -2914,7 +2869,8 @@ paths:
               type: string
             type: object
         "401":
-          description: Unauthorized" {"error":"User not authenticated"}
+          description: Unauthorized" {"error":"You need to log in to continue. Please
+            log in and try again"}
           schema:
             additionalProperties:
               type: string
@@ -2949,7 +2905,8 @@ paths:
           schema:
             $ref: '#/definitions/handlers.GetClientDetailsResponse'
         "401":
-          description: Unauthorized" {"error":"User not authenticated"}
+          description: Unauthorized" {"error":"You need to log in to continue. Please
+            log in and try again"}
           schema:
             additionalProperties:
               type: string
@@ -2999,7 +2956,8 @@ paths:
           schema:
             $ref: '#/definitions/handlers.GetClientStatsResponse'
         "401":
-          description: Unauthorized" {"error":"User not authenticated"}
+          description: Unauthorized" {"error":"You need to log in to continue. Please
+            log in and try again"}
           schema:
             additionalProperties:
               type: string
@@ -3044,7 +3002,8 @@ paths:
             additionalProperties: true
             type: object
         "401":
-          description: Unauthorized" {"error":"User not authenticated"}
+          description: Unauthorized" {"error":"You need to log in to continue. Please
+            log in and try again"}
           schema:
             additionalProperties:
               type: string
@@ -3080,7 +3039,8 @@ paths:
             additionalProperties: true
             type: object
         "401":
-          description: Unauthorized" {"error":"User not authenticated"}
+          description: Unauthorized" {"error":"You need to log in to continue. Please
+            log in and try again"}
           schema:
             additionalProperties:
               type: string
@@ -3116,7 +3076,8 @@ paths:
             additionalProperties: true
             type: object
         "401":
-          description: Unauthorized" {"error":"User not authenticated"}
+          description: Unauthorized" {"error":"You need to log in to continue. Please
+            log in and try again"}
           schema:
             additionalProperties:
               type: string

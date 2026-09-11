@@ -1,4 +1,4 @@
-import { CreateMealRequest, UpdateMealRequest, MessageResponse, PaginationParams, MealListResponse, Meal } from "@/types"
+import { CreateMealRequest, PaginationParams, MealListResponse, Meal } from "@/types"
 import api from "./api-client"
 
 type FetchOptions = RequestInit & {
@@ -19,14 +19,6 @@ export const mealApi = {
 
   getById: async (id: string | number) => {
     return api.get<Meal>(`/meals/${id}`)
-  },
-
-  update: async (id: string | number, data: UpdateMealRequest) => {
-    return api.put<Meal>(`/meals/${id}`, data)
-  },
-
-  delete: async (id: string | number) => {
-    return api.delete<MessageResponse>(`/meals/${id}`)
   },
 
   // Get meals by specific date

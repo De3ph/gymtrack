@@ -40,17 +40,6 @@ type CreateMealRequest struct {
 	Items    []models.FoodItem `json:"items" validate:"required,min=1,dive"`
 }
 
-// UpdateMealRequest represents the request body for updating a meal
-// @Description Request body for updating an existing meal entry
-// @Property date required true time.Time "Date and time of the meal in RFC3339 format"
-// @Property mealType required true string "Type of meal (breakfast, lunch, dinner, snack)"
-// @Property items required true array models.FoodItem "List of food items in the meal"
-type UpdateMealRequest struct {
-	Date     time.Time         `json:"date" validate:"required"`
-	MealType models.MealType   `json:"mealType" validate:"required,oneof=breakfast lunch dinner snack"`
-	Items    []models.FoodItem `json:"items" validate:"required,min=1,dive"`
-}
-
 // CreateMeal handles POST /api/meals
 // @Summary Create a meal entry
 // @Description Create a new meal entry for the authenticated athlete
@@ -213,105 +202,6 @@ func (h *MealHandler) GetMeals(c *gin.Context) {
 		"meals": result.Meals,
 		"count": result.Count,
 	})
-}
-
-// UpdateMeal handles PUT /api/meals/:id
-// @Summary Update a meal
-// @Description Update an existing meal (only within 24 hours of creation, athletes can only update their own meals)
-// @Tags Meals
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Meal ID"
-// @Param request body handlers.UpdateMealRequest true "Update meal request"
-// @Success 200 {object} models.Meal "Meal updated successfully"
-// @Failure 400 {object} map[string]string "Invalid request body or validation failed"
-// @Failure 403 {object} map[string]string "Access denied or cannot edit after 24 hours"
-// @Failure 404 {object} map[string]string "Meal not found"
-// @Failure 500 {object} map[string]string "Failed to update meal"
-// @Router /meals/{id} [put]
-func (h *MealHandler) UpdateMeal(c *gin.Context) {
-	mealIDStr := c.Param("id")
-	mealID, err := strconv.Atoi(mealIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal ID. Please check the URL and try again"})
-		return
-	}
-	athleteID, _ := c.Get("userID")
-
-	var req UpdateMealRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal data. Please check the date, meal type and items and try again"})
-		return
-	}
-
-	if err := h.validator.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal data. Please check the date, meal type and items and try again"})
-		return
-	}
-
-	athleteIDInt, err := strconv.Atoi(athleteID.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
-		return
-	}
-
-	meal, err := h.mealService.UpdateMeal(c.Request.Context(), services.UpdateMealInput{
-		MealID:    mealID,
-		AthleteID: athleteIDInt,
-		Date:      req.Date,
-		MealType:  req.MealType,
-		Items:     req.Items,
-	})
-	if err != nil {
-		if handleServiceError(c, err) {
-			return
-		}
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-
-	c.JSON(http.StatusOK, meal)
-}
-
-// DeleteMeal handles DELETE /api/meals/:id
-// @Summary Delete a meal
-// @Description Delete an existing meal (only within 24 hours of creation, athletes can only delete their own meals)
-// @Tags Meals
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Meal ID"
-// @Success 200 {object} map[string]string "Meal deleted successfully"
-// @Failure 403 {object} map[string]string "Access denied or cannot delete after 24 hours"
-// @Failure 404 {object} map[string]string "Meal not found"
-// @Failure 500 {object} map[string]string "Failed to delete meal"
-// @Router /meals/{id} [delete]
-func (h *MealHandler) DeleteMeal(c *gin.Context) {
-	mealIDStr := c.Param("id")
-	mealID, err := strconv.Atoi(mealIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal ID. Please check the URL and try again"})
-		return
-	}
-	athleteID, _ := c.Get("userID")
-
-	athleteIDInt, err := strconv.Atoi(athleteID.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
-		return
-	}
-
-	err = h.mealService.DeleteMeal(c.Request.Context(), mealID, athleteIDInt)
-	if err != nil {
-		if handleServiceError(c, err) {
-			return
-		}
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Meal deleted successfully"})
 }
 
 // GetClientMeals handles GET /api/clients/:id/meals

@@ -13,8 +13,6 @@ func WorkoutRoutes(router *gin.RouterGroup, workoutHandler *handlers.WorkoutHand
 		workouts.POST("", workoutHandler.CreateWorkout)
 		workouts.GET("", workoutHandler.GetWorkouts)
 		workouts.GET("/:id", workoutHandler.GetWorkout)
-		workouts.PUT("/:id", workoutHandler.UpdateWorkout)
-		workouts.DELETE("/:id", workoutHandler.DeleteWorkout)
 	}
 
 	// Trainer client view routes

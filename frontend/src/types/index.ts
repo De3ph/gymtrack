@@ -60,9 +60,7 @@ export type Equipment = components["schemas"]["models.EquipmentDefinition"];
 
 // --- Request types ---
 export type CreateWorkoutRequest = components["schemas"]["handlers.CreateWorkoutRequest"];
-export type UpdateWorkoutRequest = components["schemas"]["handlers.UpdateWorkoutRequest"];
 export type CreateMealRequest = components["schemas"]["handlers.CreateMealRequest"];
-export type UpdateMealRequest = components["schemas"]["handlers.UpdateMealRequest"];
 export type LoginRequest = components["schemas"]["handlers.LoginRequest"];
 export type RegisterRequest = components["schemas"]["handlers.RegisterRequest"];
 export type UpdateProfileRequest = components["schemas"]["handlers.UpdateProfileRequest"];

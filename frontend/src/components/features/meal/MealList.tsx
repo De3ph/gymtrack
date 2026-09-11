@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import dayjs from "dayjs";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { useTranslations } from "next-intl"
 
@@ -19,10 +18,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { mealApi } from "@/lib/api"
 import { Meal } from "@/types"
 import { useMealListStore } from "@/stores/meal-list-store"
-import { EditMealDialog } from "./EditMealDialog"
 import { MealCard } from "./MealCard"
 import { MealFilterBar } from "./MealFilterBar"
-import { PAGINATION, TIME_LIMITS } from "@/lib/constants"
+import { PAGINATION } from "@/lib/constants"
 import { staggerContainer } from "@/lib/animations"
 
 export interface MealFilter {
@@ -32,7 +30,6 @@ export interface MealFilter {
 
 interface MealListProps {
   meals?: Meal[]
-  readOnly?: boolean
   filter?: MealFilter
   onFilterChange?: (filter: MealFilter) => void
   page?: number
@@ -41,7 +38,6 @@ interface MealListProps {
 
 export function MealList({
   meals: propMeals,
-  readOnly = false,
   filter: filterProp,
   onFilterChange,
   page: pageProp,
@@ -49,7 +45,6 @@ export function MealList({
 }: MealListProps) {
   const t = useTranslations("meal")
   const tPagination = useTranslations("meal.pagination")
-  const queryClient = useQueryClient()
   const mealListStore = useMealListStore()
 
   const filter = filterProp ?? mealListStore.filter;
@@ -69,8 +64,6 @@ export function MealList({
     else mealListStore.setPage(next);
   };
 
-  const [editingMeal, setEditingMeal] = React.useState<Meal | null>(null)
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [expandedCommentsId, setExpandedCommentsId] = React.useState<
     string | number | null
   >(null)
@@ -98,24 +91,6 @@ export function MealList({
       }),
     enabled: isSelfFetching
   })
-
-  const { mutate: deleteMeal } = useMutation({
-    mutationFn: (id: string | number) => mealApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meals"] })
-    }
-  })
-
-  const canEdit = (meal: Meal) => {
-    const createdAt = dayjs(meal.createdAt)
-    const now = dayjs()
-    return now.diff(createdAt, "hour") < TIME_LIMITS.EDIT_WINDOW_HOURS
-  }
-
-  const handleEditClick = (meal: Meal) => {
-    setEditingMeal(meal)
-    setIsEditDialogOpen(true)
-  }
 
   if (isLoading && isSelfFetching) {
     return (
@@ -174,10 +149,6 @@ export function MealList({
             <MealCard
               key={meal.mealId}
               meal={meal}
-              readOnly={readOnly}
-              canEdit={canEdit}
-              onEdit={handleEditClick}
-              onDelete={deleteMeal}
               expandedCommentsId={expandedCommentsId}
               setExpandedCommentsId={setExpandedCommentsId}
             />
@@ -225,13 +196,6 @@ export function MealList({
         </Pagination>
       )}
 
-      {!readOnly && (
-        <EditMealDialog
-          meal={editingMeal}
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-        />
-      )}
     </div>
   )
 }

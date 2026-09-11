@@ -3,8 +3,6 @@
 import { memo } from "react";
 import { formatDate } from "@/lib/i18n/dayjs";
 import {
-  Edit2,
-  Trash2,
   MessageSquare,
   ChevronDown,
   ChevronUp,
@@ -28,10 +26,6 @@ const CommentThread = dynamic(
 
 interface MealCardProps {
   meal: Meal;
-  readOnly?: boolean;
-  canEdit: (meal: Meal) => boolean;
-  onEdit: (meal: Meal) => void;
-  onDelete: (mealId: string | number) => void;
   expandedCommentsId: string | number | null;
   setExpandedCommentsId: (id: string | number | null) => void;
 }
@@ -45,10 +39,6 @@ const calculateCalorie = (meal: Meal) => {
 
 export const MealCard = memo(function MealCardImpl({
   meal,
-  readOnly = false,
-  canEdit,
-  onEdit,
-  onDelete,
   expandedCommentsId,
   setExpandedCommentsId,
 }: MealCardProps) {
@@ -67,31 +57,6 @@ export const MealCard = memo(function MealCardImpl({
               {formatDate(meal.date, "MMMM D, YYYY")} · {meal.items.length} {t("card.items")} · {calculateCalorie(meal)} {t("card.kcal")}
             </p>
           </div>
-          {!readOnly && canEdit(meal) && (
-            <div className="flex shrink-0 items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onEdit(meal)}
-                aria-label={t("list.edit")}
-                className="rounded-none"
-              >
-                <Edit2 className="size-5" aria-hidden="true" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => {
-                  if (confirm(t("card.confirm_delete")))
-                    onDelete(meal.mealId)
-                }}
-                aria-label={t("list.delete")}
-                className="rounded-none text-destructive hover:text-destructive"
-              >
-                <Trash2 className="size-5" aria-hidden="true" />
-              </Button>
-            </div>
-          )}
         </header>
 
         <div className="px-6 sm:px-8">
