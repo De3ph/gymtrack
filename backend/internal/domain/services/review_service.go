@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
@@ -34,7 +36,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID int, athlete
 	}
 
 	if !hasActiveRelationship {
-		return nil, fmt.Errorf("you can only review a trainer while you have an active coaching relationship with them")
+		return nil, ErrReviewRequiresActiveRelationship
 	}
 
 	// Check if athlete already reviewed this trainer
@@ -43,7 +45,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID int, athlete
 		return nil, fmt.Errorf("failed to check existing review: %w", err)
 	}
 	if existingReview != nil {
-		return nil, fmt.Errorf("you've already reviewed this trainer. You can edit or delete your existing review instead")
+		return nil, ErrAlreadyReviewedTrainer
 	}
 
 	now := s.clock.Now()
@@ -69,14 +71,17 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID int, athlete
 func (s *ReviewService) UpdateReview(ctx context.Context, reviewID int, athleteID int, rating int, comment string) error {
 	review, err := s.reviewRepo.GetReviewByID(ctx, reviewID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrReviewNotFound
+		}
 		return fmt.Errorf("failed to get review: %w", err)
 	}
 	if review == nil {
-		return fmt.Errorf("review not found. It may have been deleted or the ID is incorrect")
+		return ErrReviewNotFound
 	}
 
 	if review.AthleteID != athleteID {
-		return fmt.Errorf("you can only edit your own reviews")
+		return ErrCannotEditReview
 	}
 
 	review.Rating = rating
@@ -94,14 +99,17 @@ func (s *ReviewService) UpdateReview(ctx context.Context, reviewID int, athleteI
 func (s *ReviewService) DeleteReview(ctx context.Context, reviewID int, userID int) error {
 	review, err := s.reviewRepo.GetReviewByID(ctx, reviewID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrReviewNotFound
+		}
 		return fmt.Errorf("failed to get review: %w", err)
 	}
 	if review == nil {
-		return fmt.Errorf("review not found. It may have been deleted or the ID is incorrect")
+		return ErrReviewNotFound
 	}
 
 	if review.AthleteID != userID {
-		return fmt.Errorf("you can only delete your own reviews")
+		return ErrCannotDeleteReview
 	}
 
 	err = s.reviewRepo.DeleteReview(ctx, reviewID)

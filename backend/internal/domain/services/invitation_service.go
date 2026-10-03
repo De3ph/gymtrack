@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
@@ -58,13 +60,15 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 		return nil, err
 	}
 
-	// Check if athlete already has an active trainer
+	// Check if athlete already has an active trainer. GetByAthleteID
+	// reports "no relationship yet" with ErrNotFound, which is the normal
+	// case for a first-time acceptance, not a failure.
 	existingRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
-	if err != nil {
+	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
 	}
 	if existingRelationship != nil && existingRelationship.IsActive() {
-		return nil, fmt.Errorf("you already have an active trainer. Please end your current coaching relationship before accepting a new invitation")
+		return nil, ErrAlreadyHasActiveTrainer
 	}
 
 	// Create new relationship

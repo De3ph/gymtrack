@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
 	"gymtrack-backend/internal/utils"
@@ -64,7 +66,7 @@ func (p *PostgresCodeBasedInvitation) GenerateInvitation(ctx context.Context, tr
 // ValidateInvitation finds an invitation by code and checks it is still valid.
 func (p *PostgresCodeBasedInvitation) ValidateInvitation(ctx context.Context, code string) (*models.Invitation, error) {
 	if code == "" {
-		return nil, fmt.Errorf("code cannot be empty")
+		return nil, domainerrors.ErrInvitationCodeEmpty
 	}
 
 	query := `
@@ -86,8 +88,8 @@ func (p *PostgresCodeBasedInvitation) ValidateInvitation(ctx context.Context, co
 		&usedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("invalid invitation code")
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domainerrors.ErrInvalidInvitationCode
 		}
 		return nil, fmt.Errorf("failed to query invitation: %w", err)
 	}
@@ -99,11 +101,11 @@ func (p *PostgresCodeBasedInvitation) ValidateInvitation(ctx context.Context, co
 	inv.Type = "invitation"
 
 	if inv.Status != "pending" {
-		return nil, fmt.Errorf("invitation has already been used")
+		return nil, domainerrors.ErrInvitationAlreadyUsed
 	}
 
 	if p.clock.Now().After(inv.ExpiresAt) {
-		return nil, fmt.Errorf("invitation has expired")
+		return nil, domainerrors.ErrInvitationExpired
 	}
 
 	return inv, nil
@@ -123,7 +125,7 @@ func (p *PostgresCodeBasedInvitation) MarkInvitationUsed(ctx context.Context, in
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("invitation not found or already used")
+		return domainerrors.ErrInvitationAlreadyUsed
 	}
 
 	return nil

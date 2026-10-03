@@ -21,4 +21,19 @@ var (
 
 	// ErrInternal is returned when an internal error occurs
 	ErrInternal = errors.New("something went wrong on our side. Please try again later")
+
+	// Invitation validation failures, raised by the repository layer.
+
+	// ErrInvitationCodeEmpty is returned when no invitation code is supplied
+	ErrInvitationCodeEmpty = errors.New("invitation code cannot be empty")
+
+	// ErrInvalidInvitationCode is returned when no invitation matches the code
+	ErrInvalidInvitationCode = errors.New("this invitation code is invalid")
+
+	// ErrInvitationAlreadyUsed is returned when the invitation has been
+	// redeemed before
+	ErrInvitationAlreadyUsed = errors.New("this invitation has already been used")
+
+	// ErrInvitationExpired is returned when the invitation is past its expiry
+	ErrInvitationExpired = errors.New("this invitation has expired")
 )

@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
@@ -36,7 +38,7 @@ func NewCoachingRequestService(
 func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athleteID int, trainerID int, message string) (*models.CoachingRequest, error) {
 	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
 	if err == nil && activeRelationship != nil {
-		return nil, fmt.Errorf("you already have an active trainer. Please end your current coaching relationship before requesting a new one")
+		return nil, ErrAlreadyHasActiveTrainer
 	}
 
 	// Check if there's already a pending request between these users
@@ -47,16 +49,19 @@ func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athl
 
 	for _, req := range existingRequests {
 		if req.TrainerID == trainerID && req.Status == models.CoachingRequestStatusPending {
-			return nil, fmt.Errorf("you already have a pending request to this trainer. Please wait for them to respond")
+			return nil, ErrPendingCoachingRequestExists
 		}
 	}
 
 	trainer, err := s.userRepo.GetUserByID(ctx, trainerID)
 	if err != nil {
-		return nil, fmt.Errorf("trainer not found. Please check the trainer ID and try again: %w", err)
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrCoachTargetNotFound
+		}
+		return nil, fmt.Errorf("failed to get trainer: %w", err)
 	}
 	if trainer.Role != "trainer" {
-		return nil, fmt.Errorf("the selected user is not a trainer. Please choose a trainer account")
+		return nil, ErrCoachTargetNotTrainer
 	}
 
 	// Create the coaching request
@@ -80,20 +85,23 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	// Get the coaching request
 	request, err := s.coachingRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
-		return nil, fmt.Errorf("coaching request not found. It may have been deleted or the ID is incorrect: %w", err)
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrCoachingRequestNotFound
+		}
+		return nil, fmt.Errorf("failed to get coaching request: %w", err)
 	}
 
 	if request.TrainerID != trainerID {
-		return nil, fmt.Errorf("this coaching request was sent to a different trainer. You can only respond to your own requests")
+		return nil, ErrNotCoachingRequestOwner
 	}
 
 	if request.Status != models.CoachingRequestStatusPending {
-		return nil, fmt.Errorf("this request has already been %s and can no longer be accepted", request.Status)
+		return nil, &CoachingRequestResolvedError{Status: string(request.Status)}
 	}
 
 	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, request.AthleteID)
 	if err == nil && activeRelationship != nil {
-		return nil, fmt.Errorf("this athlete already has an active trainer, so the request can't be accepted")
+		return nil, ErrAthleteAlreadyHasActiveTrainer
 	}
 
 	// Create the relationship
@@ -138,15 +146,18 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requestID int, trainerID int) error {
 	request, err := s.coachingRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
-		return fmt.Errorf("coaching request not found. It may have been deleted or the ID is incorrect: %w", err)
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrCoachingRequestNotFound
+		}
+		return fmt.Errorf("failed to get coaching request: %w", err)
 	}
 
 	if request.TrainerID != trainerID {
-		return fmt.Errorf("this coaching request was sent to a different trainer. You can only respond to your own requests")
+		return ErrNotCoachingRequestOwner
 	}
 
 	if request.Status != models.CoachingRequestStatusPending {
-		return fmt.Errorf("this request has already been %s and can no longer be rejected", request.Status)
+		return &CoachingRequestResolvedError{Status: string(request.Status)}
 	}
 
 	// Update the coaching request status

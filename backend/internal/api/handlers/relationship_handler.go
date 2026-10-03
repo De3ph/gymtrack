@@ -397,9 +397,12 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 		return
 	}
 
-	// Get athlete details by username
+	// Get athlete details by username. GetUserByUsername reports an unknown
+	// username as domainerrors.ErrNotFound, which must surface as 404 — not
+	// 500 — so the athlete == nil branch below stays the single not-found
+	// response (cf. workout_handler.go / meal_handler.go).
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
-	if err != nil {
+	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
@@ -569,9 +572,10 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 		return
 	}
 
-	// Get athlete details by username
+	// Get athlete details by username. As in GetClientDetails, an unknown
+	// username arrives as domainerrors.ErrNotFound and must map to 404.
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
-	if err != nil {
+	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
