@@ -142,6 +142,20 @@ func RequireJSONError(t testing.TB, w *httptest.ResponseRecorder, wantStatus int
 	assert.Equal(t, wantError, errVal, "error message mismatch")
 }
 
+// RequireJSONMessage asserts the status code and the "message" field of a
+// success response (inverse companion of RequireJSONError).
+func RequireJSONMessage(t testing.TB, w *httptest.ResponseRecorder, wantStatus int, wantMessage string) {
+	t.Helper()
+	RequireStatus(t, w, wantStatus)
+	var resp map[string]any
+	ParseJSON(t, w.Body.Bytes(), &resp)
+	msgVal, ok := resp["message"]
+	if !ok {
+		t.Fatalf("expected 'message' key, got: %s", w.Body.String())
+	}
+	assert.Equal(t, wantMessage, msgVal, "message mismatch")
+}
+
 // ClearAllData deletes all rows for test isolation.
 func (e *TestEnv) ClearAllData(t testing.TB) {
 	t.Helper()
