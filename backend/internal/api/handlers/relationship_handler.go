@@ -278,7 +278,10 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 	}
 
 	var activeTrainer *gin.H
-	if activeRelationship != nil {
+	// Only an active relationship is an active trainer: GetByAthleteID returns
+	// the newest row regardless of status, so terminated (and stray pending)
+	// rows must be filtered here — cf. GetClientDetails / GetClientStats.
+	if activeRelationship != nil && activeRelationship.IsActive() {
 		// Get trainer details
 		trainer, err := h.userRepo.GetUserByID(c.Request.Context(), activeRelationship.TrainerID)
 		if err == nil {
