@@ -12,6 +12,7 @@ type WorkoutRepository interface {
 	Create(ctx context.Context, workout *models.Workout) error
 	GetByID(ctx context.Context, workoutID int) (*models.Workout, error)
 	GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.Workout, error)
-	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Workout, error)
+	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate *time.Time, limit, offset int) ([]*models.Workout, error)
+	CountByAthlete(ctx context.Context, athleteID int, startDate, endDate *time.Time) (int, error)
 	CountAll(ctx context.Context) (int, error)
 }

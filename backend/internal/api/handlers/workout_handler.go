@@ -202,7 +202,7 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "Client (Athlete) ID"
+// @Param username path string true "Client (Athlete) username"
 // @Param limit query int false "Number of workouts to return (default: 50)"
 // @Param offset query int false "Number of workouts to skip (default: 0)"
 // @Param startDate query string false "Start date for filtering (RFC3339 format)" Format(date-rfc3339)
@@ -212,7 +212,7 @@ func (h *WorkoutHandler) GetWorkouts(c *gin.Context) {
 // @Failure 400 {object} map[string]any "Invalid date format"
 // @Failure 403 {object} map[string]any "User is not a trainer or no active relationship with client"
 // @Failure 500 {object} map[string]any "Failed to retrieve workouts"
-// Router: /api/clients/:id/workouts
+// Router: /api/clients/:username/workouts
 func (h *WorkoutHandler) GetClientWorkouts(c *gin.Context) {
 	username := c.Param("username")
 	trainerID, _ := c.Get("userID")

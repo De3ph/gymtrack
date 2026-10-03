@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
@@ -112,10 +113,33 @@ func (r *PostgresWorkoutRepository) GetByAthleteID(ctx context.Context, athleteI
 	return workouts, nil
 }
 
-func (r *PostgresWorkoutRepository) GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate time.Time) ([]*models.Workout, error) {
-	query := "SELECT " + workoutCols + " FROM workouts WHERE athlete_id = $1 AND date >= $2 AND date <= $3 ORDER BY date DESC"
+// dateRangeWhere builds the WHERE clause for athlete-scoped date-window
+// queries. Nil bounds are omitted, so callers can filter on the start or
+// end independently. It returns the clause, its positional arguments, and
+// the index of the next free parameter.
+func (r *PostgresWorkoutRepository) dateRangeWhere(athleteID int, startDate, endDate *time.Time) (string, []any, int) {
+	clauses := []string{"athlete_id = $1"}
+	args := []any{athleteID}
+	n := 2
+	if startDate != nil {
+		clauses = append(clauses, fmt.Sprintf("date >= $%d", n))
+		args = append(args, *startDate)
+		n++
+	}
+	if endDate != nil {
+		clauses = append(clauses, fmt.Sprintf("date <= $%d", n))
+		args = append(args, *endDate)
+		n++
+	}
+	return strings.Join(clauses, " AND "), args, n
+}
 
-	rows, err := r.pool.Query(ctx, query, athleteID, startDate, endDate)
+func (r *PostgresWorkoutRepository) GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate *time.Time, limit, offset int) ([]*models.Workout, error) {
+	where, args, n := r.dateRangeWhere(athleteID, startDate, endDate)
+	query := fmt.Sprintf("SELECT %s FROM workouts WHERE %s ORDER BY date DESC LIMIT $%d OFFSET $%d", workoutCols, where, n, n+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query workouts by date range: %w", err)
 	}
@@ -134,6 +158,17 @@ func (r *PostgresWorkoutRepository) GetByAthleteDateRange(ctx context.Context, a
 		return nil, fmt.Errorf("row iteration error: %w", err)
 	}
 	return workouts, nil
+}
+
+// CountByAthlete counts an athlete's workouts, optionally bounded by a
+// date window (nil bounds are unbounded).
+func (r *PostgresWorkoutRepository) CountByAthlete(ctx context.Context, athleteID int, startDate, endDate *time.Time) (int, error) {
+	where, args, _ := r.dateRangeWhere(athleteID, startDate, endDate)
+	var count int
+	if err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM workouts WHERE "+where, args...).Scan(&count); err != nil {
+		return 0, fmt.Errorf("failed to count workouts for athlete: %w", err)
+	}
+	return count, nil
 }
 
 func (r *PostgresWorkoutRepository) CountAll(ctx context.Context) (int, error) {

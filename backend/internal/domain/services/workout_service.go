@@ -99,11 +99,11 @@ func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput
 		return nil, NewServiceError("Only athletes can view their workout history. Trainers, please use the client workouts view", "FORBIDDEN")
 	}
 
-	workouts := make([]*models.Workout, 0)
+	var workouts []*models.Workout
 	var err error
 
-	if input.StartDate != nil && input.EndDate != nil {
-		workouts, err = s.workoutRepo.GetByAthleteDateRange(ctx, input.AthleteID, *input.StartDate, *input.EndDate)
+	if input.StartDate != nil || input.EndDate != nil {
+		workouts, err = s.workoutRepo.GetByAthleteDateRange(ctx, input.AthleteID, input.StartDate, input.EndDate, input.Limit, input.Offset)
 	} else {
 		workouts, err = s.workoutRepo.GetByAthleteID(ctx, input.AthleteID, input.Limit, input.Offset)
 	}
@@ -112,9 +112,16 @@ func (s *WorkoutService) GetWorkouts(ctx context.Context, input GetWorkoutsInput
 		return nil, fmt.Errorf("failed to retrieve workouts: %w", err)
 	}
 
+	// Count is the total number of workouts matching the request filters
+	// (not the size of this page); clients use it for pagination.
+	total, err := s.workoutRepo.CountByAthlete(ctx, input.AthleteID, input.StartDate, input.EndDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count workouts: %w", err)
+	}
+
 	return &GetWorkoutsOutput{
 		Workouts: workouts,
-		Count:    len(workouts),
+		Count:    total,
 	}, nil
 }
 
@@ -146,10 +153,10 @@ func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientW
 		return nil, NewServiceError("You don't have an active coaching relationship with this client, so you can't view their workouts", "FORBIDDEN")
 	}
 
-	workouts := make([]*models.Workout, 0)
+	var workouts []*models.Workout
 
-	if input.StartDate != nil && input.EndDate != nil {
-		workouts, err = s.workoutRepo.GetByAthleteDateRange(ctx, input.ClientID, *input.StartDate, *input.EndDate)
+	if input.StartDate != nil || input.EndDate != nil {
+		workouts, err = s.workoutRepo.GetByAthleteDateRange(ctx, input.ClientID, input.StartDate, input.EndDate, input.Limit, input.Offset)
 	} else {
 		workouts, err = s.workoutRepo.GetByAthleteID(ctx, input.ClientID, input.Limit, input.Offset)
 	}
@@ -171,9 +178,16 @@ func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientW
 		workouts = filtered
 	}
 
+	// Count reflects the date-window filter; exerciseType is applied in
+	// memory to the returned page, so it does not affect the total.
+	total, err := s.workoutRepo.CountByAthlete(ctx, input.ClientID, input.StartDate, input.EndDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count workouts: %w", err)
+	}
+
 	return &GetWorkoutsOutput{
 		Workouts: workouts,
-		Count:    len(workouts),
+		Count:    total,
 	}, nil
 }
 
@@ -190,14 +204,22 @@ func ParseWorkoutQueryParams(c interface {
 	limit, _ = strconv.Atoi(c.DefaultQuery("limit", "50"))
 	offset, _ = strconv.Atoi(c.DefaultQuery("offset", "0"))
 
-	startDateStr := c.Query("startDate")
-	endDateStr := c.Query("endDate")
-
-	if startDateStr != "" && endDateStr != "" {
-		startDate, endDate, err = parseRFC3339Range(startDateStr, endDateStr)
+	// Each bound is applied independently, so a request carrying only
+	// startDate (or only endDate) still filters.
+	if startDateStr := c.Query("startDate"); startDateStr != "" {
+		start, err := parseRFC3339(startDateStr)
 		if err != nil {
 			return 0, 0, nil, nil, err
 		}
+		startDate = &start
+	}
+
+	if endDateStr := c.Query("endDate"); endDateStr != "" {
+		end, err := parseRFC3339(endDateStr)
+		if err != nil {
+			return 0, 0, nil, nil, err
+		}
+		endDate = &end
 	}
 
 	return limit, offset, startDate, endDate, nil

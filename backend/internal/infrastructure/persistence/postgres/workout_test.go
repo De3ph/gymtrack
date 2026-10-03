@@ -134,7 +134,7 @@ func TestPostgresWorkoutRepository(t *testing.T) {
 		}
 		start := time.Date(2024, 9, 1, 0, 0, 0, 0, time.UTC)
 		end := time.Date(2024, 9, 20, 0, 0, 0, 0, time.UTC)
-		workouts, err := repo.GetByAthleteDateRange(ctx, athlete.UserID, start, end)
+		workouts, err := repo.GetByAthleteDateRange(ctx, athlete.UserID, &start, &end, 50, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(workouts), 2)
 		for _, w := range workouts {
@@ -148,9 +148,40 @@ func TestPostgresWorkoutRepository(t *testing.T) {
 		start := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 		end := time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC)
 		emptyUser := createUser(t, "wk_empty_range", models.RoleAthlete)
-		workouts, err := repo.GetByAthleteDateRange(ctx, emptyUser.UserID, start, end)
+		workouts, err := repo.GetByAthleteDateRange(ctx, emptyUser.UserID, &start, &end, 10, 0)
 		require.NoError(t, err)
 		assert.Empty(t, workouts)
+	})
+
+	t.Run("GetByAthleteDateRange_SingleBounds", func(t *testing.T) {
+		bounded := createUser(t, "wk_bounded", models.RoleAthlete)
+		for _, day := range []int{5, 15, 25} {
+			w := &models.Workout{
+				AthleteID: bounded.UserID,
+				Date:      time.Date(2024, 9, day, 0, 0, 0, 0, time.UTC),
+				Exercises: makeExercises(),
+			}
+			require.NoError(t, repo.Create(ctx, w))
+		}
+
+		from := time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC)
+		fromOnly, err := repo.GetByAthleteDateRange(ctx, bounded.UserID, &from, nil, 50, 0)
+		require.NoError(t, err)
+		assert.Len(t, fromOnly, 2) // 15th and 25th
+
+		until := time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC)
+		untilOnly, err := repo.GetByAthleteDateRange(ctx, bounded.UserID, nil, &until, 50, 0)
+		require.NoError(t, err)
+		assert.Len(t, untilOnly, 2) // 5th and 15th
+
+		// No bounds: limit still applies.
+		limited, err := repo.GetByAthleteDateRange(ctx, bounded.UserID, nil, nil, 2, 0)
+		require.NoError(t, err)
+		assert.Len(t, limited, 2)
+
+		count, err := repo.CountByAthlete(ctx, bounded.UserID, nil, nil)
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
 	})
 
 	t.Run("JSONB_ComplexRoundTrip", func(t *testing.T) {

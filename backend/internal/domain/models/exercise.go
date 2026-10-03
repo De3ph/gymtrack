@@ -26,7 +26,7 @@ type ExerciseSet struct {
 }
 
 type WorkoutExercise struct {
-	ExerciseID int           `json:"exerciseId" validate:"required" example:"1"`
+	ExerciseID int           `json:"exerciseId" example:"1"`   // 0 = freeform exercise; Name is authoritative (exercises stored as JSONB, no catalog FK)
 	Name       string        `json:"name" validate:"required"` // denormalized for convenience
 	Sets       []ExerciseSet `json:"sets" validate:"required,min=1,dive"`
 	Notes      string        `json:"notes,omitempty"`
