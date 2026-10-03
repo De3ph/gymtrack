@@ -56,12 +56,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Use request body fields directly; FormValue can fail silently if Content-Type is not multipart/form-data
-	email := req.Email
-	username := req.Username
-	_ = c.Request.FormValue("email") // nolint: unused
-	_ = c.Request.FormValue("username")
-
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
@@ -126,10 +120,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
-
-	// Use request body identifier directly; FormValue can fail silently if Content-Type is not application/json
-	identifier := req.Identifier
-	_ = c.Request.FormValue("identifier") // nolint: unused
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
@@ -263,10 +253,6 @@ func (h *AuthHandler) RestoreAccount(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data. Please check your email/username and password and try again"})
 		return
 	}
-
-	// Use request body identifier directly; FormValue can fail silently if Content-Type is not application/json
-	identifier := req.Identifier
-	_ = c.Request.FormValue("identifier") // nolint: unused
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
