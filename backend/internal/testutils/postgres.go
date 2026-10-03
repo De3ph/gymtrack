@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -22,6 +24,31 @@ import (
 
 	migratelib "gymtrack-backend/internal/migrate"
 )
+
+// dsnWithDatabase returns dsn with its database name replaced by dbName.
+//
+// This exists because pgx's ConnConfig.ConnString() returns the ORIGINAL
+// connection string and ignores later mutations of ConnConfig.Database
+// (verified empirically against pgx/v5). Setting cfg.Database and reading
+// cfg.ConnString() therefore silently keeps pointing at the original
+// database — which previously caused every POSTGRES_TEST_DSN test run to
+// operate on the shared maintenance DB instead of the per-test one.
+func dsnWithDatabase(dsn, dbName string) (string, error) {
+	if strings.Contains(dsn, "://") {
+		u, err := url.Parse(dsn)
+		if err != nil {
+			return "", fmt.Errorf("parse DSN as URL: %w", err)
+		}
+		u.Path = "/" + dbName
+		return u.String(), nil
+	}
+	// Keyword/value form: replace dbname=... or append it.
+	re := regexp.MustCompile(`(^|\s)dbname=(('[^']*')|\S+)`)
+	if re.MatchString(dsn) {
+		return re.ReplaceAllString(dsn, "${1}dbname="+dbName), nil
+	}
+	return dsn + " dbname=" + dbName, nil
+}
 
 // applyMigrations runs all pending migrations using the embedded migration FS.
 func applyMigrations(dsn string) error {
@@ -131,8 +158,13 @@ func setupIsolatedDSNDB(t testing.TB, ctx context.Context, dsn string) (*pgxpool
 	}
 	testDB := nextTestDBName(baseDB)
 
-	cfg.Database = baseDB
-	maintDSN := cfg.ConnString()
+	// NOTE: both DSNs are derived via dsnWithDatabase — NOT via
+	// cfg.ConnString() after mutating cfg.Database, which would return the
+	// original string and defeat the isolation (see dsnWithDatabase docs).
+	maintDSN, err := dsnWithDatabase(dsn, baseDB)
+	if err != nil {
+		t.Fatalf("failed to build maintenance DSN: %v", err)
+	}
 
 	// Drop leftover per-test databases from prior runs (best-effort, once/process).
 	dropOldTestDBs(ctx, maintDSN, baseDB+"_t_%")
@@ -148,8 +180,11 @@ func setupIsolatedDSNDB(t testing.TB, ctx context.Context, dsn string) (*pgxpool
 	}
 	maintConn.Close(ctx)
 
-	cfg.Database = testDB
-	testDSN := cfg.ConnString()
+	testDSN, err := dsnWithDatabase(dsn, testDB)
+	if err != nil {
+		dropDatabase(ctx, maintDSN, testDB)
+		t.Fatalf("failed to build test DSN: %v", err)
+	}
 
 	if err := applyMigrations(testDSN); err != nil {
 		dropDatabase(ctx, maintDSN, testDB)
