@@ -305,8 +305,14 @@
       "workout_plans": "Antrenman Planları",
       "menu": "Menü",
       "toggle_menu": "Gezinme menüsünü aç/kapat",
-      "theme": "Tema",
       "language": "Dil"
+    },
+    "theme": {
+      "label": "Tema",
+      "toggle": "Temayı değiştir",
+      "light": "Açık",
+      "dark": "Koyu",
+      "system": "Sistem"
     },
     "status": {
       "available": "Yeni Danışanlar için Müsait",

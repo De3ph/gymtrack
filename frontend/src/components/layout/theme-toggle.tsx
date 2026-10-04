@@ -26,13 +26,27 @@ type ThemeToggleProps = {
 
 export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
   const { setTheme } = useTheme();
-  const tNav = useTranslations("common.navigation");
+  const tTheme = useTranslations("common.theme");
 
   const sun = (
     <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" aria-hidden="true" />
   );
   const moon = (
     <Moon className="h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" aria-hidden="true" />
+  );
+
+  const menu = (
+    <DropdownMenuContent align="end">
+      <DropdownMenuItem onClick={() => setTheme("light")}>
+        {tTheme("light")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setTheme("dark")}>
+        {tTheme("dark")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setTheme("system")}>
+        {tTheme("system")}
+      </DropdownMenuItem>
+    </DropdownMenuContent>
   );
 
   if (variant === "sidebar") {
@@ -43,26 +57,16 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <SidebarMenuButton tooltip={tNav("theme")} className={SIDEBAR_ITEM_SPACING} />
+            <SidebarMenuButton tooltip={tTheme("label")} className={SIDEBAR_ITEM_SPACING} />
           }
         >
           <span className="relative flex size-5 shrink-0 items-center justify-center">
             <span className="absolute dark:hidden">{sun}</span>
             <span className="absolute hidden dark:block">{moon}</span>
           </span>
-          <span>{tNav("theme")}</span>
+          <span>{tTheme("label")}</span>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setTheme("light")}>
-            Light
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")}>
-            Dark
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")}>
-            System
-          </DropdownMenuItem>
-        </DropdownMenuContent>
+        {menu}
       </DropdownMenu>
     );
   }
@@ -71,24 +75,19 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={tTheme("toggle")}
+            title={tTheme("toggle")}
+          >
             {sun}
             {moon}
-            <span className="sr-only">Toggle theme</span>
+            <span className="sr-only">{tTheme("toggle")}</span>
           </Button>
         }
       />
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
+      {menu}
     </DropdownMenu>
   );
 }

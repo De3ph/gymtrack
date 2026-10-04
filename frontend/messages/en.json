@@ -305,8 +305,14 @@
       "workout_plans": "Workout Plans",
       "menu": "Menu",
       "toggle_menu": "Toggle navigation menu",
-      "theme": "Theme",
       "language": "Language"
+    },
+    "theme": {
+      "label": "Theme",
+      "toggle": "Toggle theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
     },
     "status": {
       "available": "Available for New Clients",
