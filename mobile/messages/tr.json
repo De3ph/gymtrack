@@ -508,6 +508,13 @@
       "no_sets": "Set yok",
       "comments": "Yorumlar"
     },
+    "card": {
+      "workout": "Antrenman",
+      "volume": "Hacim",
+      "reps": "Tekrar",
+      "sets": "Set",
+      "more_options": "Daha fazla seçenek"
+    },
     "calendar": {
       "title": "Antrenman Takvimi",
       "select_date": "Antrenmanları görüntülemek için tarih seçin",

@@ -508,6 +508,13 @@
       "no_sets": "No sets",
       "comments": "Comments"
     },
+    "card": {
+      "workout": "Workout",
+      "volume": "Volume",
+      "reps": "Reps",
+      "sets": "Sets",
+      "more_options": "More options"
+    },
     "calendar": {
       "title": "Workout Calendar",
       "select_date": "Select a date to view workouts",

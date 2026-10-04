@@ -4,44 +4,39 @@ import {
   RefreshControl,
   ListRenderItemInfo,
   Alert,
-  Platform,
-  type AccessibilityActionEvent
 } from "react-native"
 import { useRouter, type Href } from "expo-router"
-import * as Haptics from "expo-haptics"
 import Animated, { cubicBezier } from "react-native-reanimated"
 import { useI18n } from "@/lib/i18n"
 import { mealApi } from "@/api/mealApi"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Meal, MealListResponse } from "@/types"
 import { canEdit } from "@/lib/canEdit"
+import { triggerHaptic } from "@/lib/haptics"
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Button, Host } from "@expo/ui";
-import { HStack } from "@/components/ui/hstack";
 import { Pressable } from "@/components/ui/pressable";
 import { Spinner } from "@/components/ui/spinner";
-import { Icon, AddIcon, ThreeDotsIcon } from "@/components/ui/icon";
+import { Icon, AddIcon } from "@/components/ui/icon";
 import { Center } from "@/components/ui/center";
-import { MealIcon } from "@/components/icons";
+import { MealIcon, PencilIcon, BinIcon } from "@/components/icons";
 import { useAppColors } from "@/lib/colors";
-import type { ThemeColors } from "@/constants/Colors";
 import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
 import { MealFormModal } from "@/components/features/meal/MealFormModal";
+import {
+  HistoryCard,
+  HistoryCardMenu,
+  HistorySwipeable,
+  useHistoryCardActions,
+  useCreateSwipeCoordinator,
+  SwipeCoordinatorProvider,
+  type HistoryCardTone,
+  type SwipeAction,
+} from "@/components/features/common/history-card";
 
 const EASE_OUT = cubicBezier(0.23, 1, 0.32, 1)
-
-const CARD_STYLE = {
-  transform: [{ scale: 1 }],
-  transitionProperty: "transform" as const,
-  transitionDuration: 140,
-  transitionTimingFunction: EASE_OUT
-}
-
-const CARD_PRESSED_STYLE = {
-  transform: [{ scale: 0.97 }]
-}
 
 const FAB_STYLE = {
   transform: [{ scale: 1 }],
@@ -56,42 +51,14 @@ const FAB_PRESSED_STYLE = {
 
 type MealTypeKey = "breakfast" | "lunch" | "dinner" | "snack"
 
-interface MealTypeMeta {
-  surfaceClass: string
-  textClass: string
-  colorKey: keyof ThemeColors
+const MEAL_TYPE_TONE: Record<MealTypeKey, HistoryCardTone> = {
+  breakfast: "warning",
+  lunch: "brand",
+  dinner: "neutral",
+  snack: "success"
 }
 
-const MEAL_TYPE_META: Record<MealTypeKey, MealTypeMeta> = {
-  breakfast: {
-    surfaceClass: "bg-warning-surface",
-    textClass: "text-warning-text",
-    colorKey: "warning"
-  },
-  lunch: {
-    surfaceClass: "bg-brand-surface",
-    textClass: "text-brand",
-    colorKey: "accent"
-  },
-  dinner: {
-    surfaceClass: "bg-surface-subtle",
-    textClass: "text-text-secondary",
-    colorKey: "textSecondary"
-  },
-  snack: {
-    surfaceClass: "bg-success-surface",
-    textClass: "text-success-text",
-    colorKey: "success"
-  }
-}
-
-const DEFAULT_MEAL_META = MEAL_TYPE_META.dinner
-
-function triggerHaptic() {
-  if (Platform.OS === "ios") {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-  }
-}
+const DEFAULT_MEAL_TONE = MEAL_TYPE_TONE.dinner
 
 interface MealCardProps {
   meal: Meal
@@ -103,8 +70,6 @@ interface MealCardProps {
 
 function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
   const { t } = useI18n()
-  const colors = useAppColors()
-  const [pressed, setPressed] = useState(false)
 
   const items = meal.items ?? []
   const itemCount = items.length
@@ -123,7 +88,7 @@ function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
   const hasMacros = macros.protein > 0 || macros.carbs > 0 || macros.fats > 0
 
   const rawType = String(meal.mealType)
-  const meta = MEAL_TYPE_META[rawType as MealTypeKey] ?? DEFAULT_MEAL_META
+  const tone = MEAL_TYPE_TONE[rawType as MealTypeKey] ?? DEFAULT_MEAL_TONE
 
   const typeKey = "meal.form.meal_type." + rawType
   const translatedType = t(typeKey)
@@ -146,31 +111,57 @@ function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
     .filter((food): food is string => Boolean(food))
     .join(", ")
 
-  const handleOpenActions = useCallback(() => {
-    Alert.alert(mealTypeLabel, formattedDate, [
-      { text: t("common.actions.edit"), onPress: () => onEdit(meal) },
-      {
-        text: t("common.actions.delete"),
-        style: "destructive",
-        onPress: () => onDelete(meal)
-      },
-      { text: t("common.actions.cancel"), style: "cancel" }
-    ])
-  }, [mealTypeLabel, formattedDate, t, meal, onEdit, onDelete])
+  const handleOpen = useCallback(() => onOpen(meal), [onOpen, meal])
+  const handleEdit = useCallback(() => onEdit(meal), [onEdit, meal])
+  const handleDelete = useCallback(() => onDelete(meal), [onDelete, meal])
 
-  const handleAccessibilityAction = useCallback(
-    (event: AccessibilityActionEvent) => {
-      switch (event.nativeEvent.actionName) {
-        case "edit":
-          onEdit(meal)
-          break
-        case "delete":
-          onDelete(meal)
-          break
-      }
+  const actions = useHistoryCardActions({
+    enabled: editable,
+    alertTitle: mealTypeLabel,
+    alertMessage: formattedDate,
+    labels: {
+      edit: t("common.actions.edit"),
+      delete: t("common.actions.delete"),
+      cancel: t("common.actions.cancel")
     },
-    [meal, onEdit, onDelete]
-  )
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+    onOpen: handleOpen
+  })
+
+  const swipeActions: SwipeAction[] = editable
+    ? [
+        {
+          id: "edit",
+          label: t("common.actions.edit"),
+          icon: (color) => <PencilIcon size={20} color={color} />,
+          variant: "primary",
+          onPress: handleEdit
+        },
+        {
+          id: "delete",
+          label: t("common.actions.delete"),
+          icon: (color) => <BinIcon size={20} color={color} />,
+          variant: "destructive",
+          onPress: handleDelete
+        }
+      ]
+    : []
+
+  const tertiary = hasMacros
+    ? t("meal.item.protein_short") +
+      " " +
+      String(macros.protein) +
+      "g \u00b7 " +
+      t("meal.item.carbs_short") +
+      " " +
+      String(macros.carbs) +
+      "g \u00b7 " +
+      t("meal.item.fats_short") +
+      " " +
+      String(macros.fats) +
+      "g"
+    : undefined
 
   const accessibilityLabel =
     mealTypeLabel +
@@ -186,106 +177,38 @@ function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
     t("meal.card.kcal")
 
   return (
-    <Pressable
-      onPressIn={() => setPressed(true)}
-      onPressOut={() => setPressed(false)}
-      onPress={() => {
-        triggerHaptic()
-        onOpen(meal)
-      }}
-      onLongPress={editable ? handleOpenActions : undefined}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityHint={t("meal.list.view_details")}
-      accessibilityActions={
-        editable ? [{ name: "edit" }, { name: "delete" }] : undefined
-      }
-      onAccessibilityAction={editable ? handleAccessibilityAction : undefined}
-      className="w-full"
+    <HistorySwipeable
+      enabled={editable}
+      id={"meal-" + String(meal.mealId ?? meal.date + "-" + meal.mealType)}
+      rightActions={swipeActions}
     >
-      <Animated.View
-        className="min-h-[168px] w-full overflow-hidden rounded-[18px] border border-border bg-card p-3"
-        style={[CARD_STYLE, pressed && CARD_PRESSED_STYLE]}
-      >
-        <HStack className="items-start justify-between">
-          <Box
-            className={
-              "h-8 w-8 items-center justify-center rounded-[10px] " +
-              meta.surfaceClass
-            }
-          >
-            <MealIcon size={18} color={colors[meta.colorKey]} />
-          </Box>
-
-          {editable ? (
-            <Pressable
-              onPress={handleOpenActions}
-              hitSlop={12}
-              accessibilityRole="button"
+      <HistoryCard
+        icon={(color) => <MealIcon size={18} color={color} />}
+        tone={tone}
+        eyebrow={mealTypeLabel}
+        title={formattedDate}
+        preview={preview}
+        meta={[
+          String(itemCount) + " " + t("meal.card.items"),
+          String(totalCalories) + " " + t("meal.card.kcal")
+        ]}
+        tertiary={tertiary}
+        trailing={
+          actions.onLongPress ? (
+            <HistoryCardMenu
+              onPress={actions.onLongPress}
               accessibilityLabel={t("meal.card.more_options")}
-              className="h-6 w-6 items-center justify-center active:opacity-50"
-            >
-              <Icon
-                as={ThreeDotsIcon}
-                size="sm"
-                className="text-text-tertiary"
-              />
-            </Pressable>
-          ) : null}
-        </HStack>
-
-        <Box className="flex-1" />
-
-        <Text
-          className={
-            "text-[10px] font-bold uppercase tracking-[1.2px] " + meta.textClass
-          }
-          numberOfLines={1}
-        >
-          {mealTypeLabel}
-        </Text>
-        <Text
-          className="mt-0.5 text-[14px] font-semibold text-text"
-          numberOfLines={1}
-        >
-          {formattedDate}
-        </Text>
-        {preview ? (
-          <Text
-            className="mt-0.5 text-[11px] text-text-secondary"
-            numberOfLines={1}
-          >
-            {preview}
-          </Text>
-        ) : null}
-
-        <HStack className="mt-1.5 items-center gap-1.5">
-          <Text className="text-[11px] font-semibold text-text-body">
-            {String(itemCount) + " " + t("meal.card.items")}
-          </Text>
-          <Box className="h-1 w-1 rounded-full bg-text-tertiary" />
-          <Text className="text-[11px] text-text-tertiary">
-            {String(totalCalories) + " " + t("meal.card.kcal")}
-          </Text>
-        </HStack>
-
-        {hasMacros ? (
-          <Text
-            className="mt-0.5 text-[10px] text-text-tertiary"
-            numberOfLines={1}
-          >
-            {t("meal.item.protein_short") +
-              " " +
-              String(macros.protein) +
-              "g"}
-            {" \u00b7 "}
-            {t("meal.item.carbs_short") + " " + String(macros.carbs) + "g"}
-            {" \u00b7 "}
-            {t("meal.item.fats_short") + " " + String(macros.fats) + "g"}
-          </Text>
-        ) : null}
-      </Animated.View>
-    </Pressable>
+            />
+          ) : null
+        }
+        onPress={actions.onPress}
+        onLongPress={actions.onLongPress}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={t("meal.list.view_details")}
+        accessibilityActions={actions.accessibilityActions}
+        onAccessibilityAction={actions.onAccessibilityAction}
+      />
+    </HistorySwipeable>
   )
 }
 
@@ -294,8 +217,14 @@ export function MealsScreen() {
   const colors = useAppColors()
   const queryClient = useQueryClient()
   const router = useRouter()
+  const swipeCoordinator = useCreateSwipeCoordinator()
 
   const [fabPressed, setFabPressed] = useState(false)
+
+  const closeOpenSwipeRow = useCallback(
+    () => swipeCoordinator.closeAll(),
+    [swipeCoordinator]
+  )
 
   const openDetail = useCallback((m: Meal) => {
     if (m.mealId == null) return
@@ -364,7 +293,7 @@ export function MealsScreen() {
 
   const renderMealItem = useCallback(
     ({ item }: ListRenderItemInfo<Meal>) => (
-      <Box className="w-[48.5%]">
+      <Box className="w-full">
         <MealCard
           meal={item}
           editable={canEdit(item.createdAt)}
@@ -419,26 +348,26 @@ export function MealsScreen() {
   )
 
   return (
-    <Box className="flex-1 bg-background">
-      <FlatList
-        data={meals}
-        numColumns={2}
-        keyExtractor={mealKeyExtractor}
-        renderItem={renderMealItem}
-        columnWrapperStyle={
-          meals.length > 0 ? { justifyContent: "space-between" } : undefined
-        }
-        contentContainerStyle={
-          meals.length === 0 ? { flexGrow: 1, justifyContent: "center", padding: 24 } : { padding: 16, paddingBottom: 100 }
-        }
-        ListEmptyComponent={renderEmpty}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={() => refetch()}
-          />
-        }
-      />
+    <SwipeCoordinatorProvider value={swipeCoordinator}>
+      <Box className="flex-1 bg-background">
+        <FlatList
+          data={meals}
+          numColumns={1}
+          keyExtractor={mealKeyExtractor}
+          renderItem={renderMealItem}
+          onScrollBeginDrag={closeOpenSwipeRow}
+          scrollEventThrottle={16}
+          contentContainerStyle={
+            meals.length === 0 ? { flexGrow: 1, justifyContent: "center", padding: 24 } : { padding: 16, paddingBottom: 100 }
+          }
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={() => refetch()}
+            />
+          }
+        />
 
       {/* FAB */}
       {!modalVisible && (
@@ -474,6 +403,7 @@ export function MealsScreen() {
         onClose={handleCancel}
         onSaved={handleSaved}
       />
-    </Box>
+      </Box>
+    </SwipeCoordinatorProvider>
   )
 }

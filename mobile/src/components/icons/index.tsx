@@ -35,3 +35,11 @@ export function ProfileIcon(props: AppIconProps) {
 export function PlusIcon(props: AppIconProps) {
   return <MaterialCommunityIcons name="plus" {...props} />;
 }
+
+export function PencilIcon(props: AppIconProps) {
+  return <MaterialCommunityIcons name="pencil-outline" {...props} />;
+}
+
+export function BinIcon(props: AppIconProps) {
+  return <MaterialCommunityIcons name="trash-can-outline" {...props} />;
+}

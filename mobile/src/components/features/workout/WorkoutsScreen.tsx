@@ -17,12 +17,23 @@ import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
 import { useWorkoutFormStore } from "@/stores/workout-form-store";
 
+import {
+  SwipeCoordinatorProvider,
+  useCreateSwipeCoordinator,
+} from "@/components/features/common/history-card";
+
 export function WorkoutsScreen() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const swipeCoordinator = useCreateSwipeCoordinator();
 
   const { startEdit } = useWorkoutFormStore();
+
+  const closeOpenSwipeRow = useCallback(
+    () => swipeCoordinator.closeAll(),
+    [swipeCoordinator],
+  );
 
   const openDetail = useCallback(
     (w: Workout) => {
@@ -128,11 +139,13 @@ export function WorkoutsScreen() {
   }
 
   return (
+    <SwipeCoordinatorProvider value={swipeCoordinator}>
     <Box className="flex-1 bg-background">
       <FlashList
         data={workouts}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        onScrollBeginDrag={closeOpenSwipeRow}
         contentContainerStyle={
           workouts.length === 0
             ? { flexGrow: 1, justifyContent: "center", padding: 16 }
@@ -178,5 +191,6 @@ export function WorkoutsScreen() {
         </Button>
       </Host>
     </Box>
+    </SwipeCoordinatorProvider>
   );
 }
