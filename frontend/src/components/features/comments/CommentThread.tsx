@@ -3,7 +3,6 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { MessageSquare } from "lucide-react";
 
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
@@ -44,19 +43,6 @@ export function CommentThread({
 
   return (
     <section className="border border-border" aria-label={t("list.title")}>
-      {/* Header — hairline panel header with mono uppercase label */}
-      <header className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="size-4 text-muted-foreground" aria-hidden="true" />
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {t("list.title")}
-          </h2>
-        </div>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          {t("list.comments_count", { count: comments.length })}
-        </span>
-      </header>
-
       {/* Body */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">

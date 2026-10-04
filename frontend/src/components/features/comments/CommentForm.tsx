@@ -54,9 +54,9 @@ export function CommentForm({
     onSubmit: async ({ value }) => {
       mutate({
         targetType,
-        targetId: Number(targetId),
+        targetId: String(targetId),
         content: value.content,
-        parentCommentId: parentCommentId ? Number(parentCommentId) : undefined,
+        parentCommentId: parentCommentId ? String(parentCommentId) : undefined,
       });
     },
   });
