@@ -22,6 +22,15 @@ import { useTranslations } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 import dayjs from "dayjs";
 
+const VALID_TABS = [
+  "overview",
+  "workouts",
+  "meals",
+  "measurements",
+  "progress",
+  "plans",
+];
+
 export default function ClientDetailClient() {
   const params = useParams();
   const router = useRouter();
@@ -31,18 +40,10 @@ export default function ClientDetailClient() {
   const username = params.username as string;
   const t = useTranslations("trainer.client_detail");
 
-  const tabParam = searchParams.get("tab");
-  const validTabs = [
-    "overview",
-    "workouts",
-    "meals",
-    "measurements",
-    "progress",
-    "plans",
-  ];
-  const activeTab = validTabs.includes(tabParam ?? "")
-    ? (tabParam as string)
-    : "overview";
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const tabParam = searchParams.get("tab");
+    return VALID_TABS.includes(tabParam ?? "") ? (tabParam as string) : "overview";
+  });
 
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: "",
@@ -100,16 +101,20 @@ export default function ClientDetailClient() {
 
   const handleTabChange = useCallback(
     (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value === "overview") {
+      const next = VALID_TABS.includes(value) ? value : "overview";
+      setActiveTab(next);
+      // Update the URL without triggering a Next.js navigation/re-render,
+      // which was causing the tab animation to lag.
+      const params = new URLSearchParams(window.location.search);
+      if (next === "overview") {
         params.delete("tab");
       } else {
-        params.set("tab", value);
+        params.set("tab", next);
       }
       const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
     },
-    [pathname, router, searchParams],
+    [pathname],
   );
 
   const clearFilters = () => {

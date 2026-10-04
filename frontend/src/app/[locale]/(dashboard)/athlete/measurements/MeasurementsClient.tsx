@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 
 import {
   Card,
@@ -33,12 +33,12 @@ interface MeasurementsClientProps {
 }
 
 export function MeasurementsClient({ latest }: MeasurementsClientProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab");
-  const activeTab =
-    tabParam === "list" || tabParam === "charts" ? tabParam : "log";
+  const [activeTab, setActiveTab] = useState<"log" | "list" | "charts">(() => {
+    const tabParam = searchParams.get("tab");
+    return tabParam === "list" || tabParam === "charts" ? tabParam : "log";
+  });
   const t = useTranslations("athlete.measurements");
   const queryClient = useQueryClient();
   const justSubmittedRef = useRef(false);
@@ -54,16 +54,20 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
 
   const handleTabChange = useCallback(
     (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value === "log") {
+      const next = value === "list" || value === "charts" ? value : "log";
+      setActiveTab(next);
+      // Update the URL without triggering a Next.js navigation/re-render,
+      // which was causing the tab animation to lag.
+      const params = new URLSearchParams(window.location.search);
+      if (next === "log") {
         params.delete("tab");
       } else {
-        params.set("tab", value);
+        params.set("tab", next);
       }
       const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
     },
-    [pathname, router, searchParams]
+    [pathname]
   );
 
   useEffect(() => {
