@@ -39,12 +39,12 @@ export function CommentForm({
 
   const validateContent = ({ value }: { value: string }): string | undefined => {
     if (!value || value.trim().length === 0) {
-      return t('form.content_required')
+      return t("form.content_required");
     }
     if (value.length > 1000) {
-      return t('form.content_too_long')
+      return t("form.content_too_long");
     }
-    return undefined
+    return undefined;
   };
 
   const form = useForm({
@@ -77,7 +77,7 @@ export function CommentForm({
         e.preventDefault();
         form.handleSubmit();
       }}
-      className="space-y-2"
+      className="space-y-3"
     >
       <form.Field
         name="content"
@@ -95,6 +95,7 @@ export function CommentForm({
               onBlur={field.handleBlur}
               rows={3}
               className="resize-none"
+              aria-invalid={field.state.meta.errors.length > 0 || undefined}
             />
             <FieldInfo field={field} />
           </Field>
@@ -102,8 +103,11 @@ export function CommentForm({
       </form.Field>
 
       {error && (
-        <div className="rounded-none border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {error instanceof Error ? error.message : t('form.post_failed')}
+        <div
+          role="alert"
+          className="rounded-none border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {error instanceof Error ? error.message : t("form.post_failed")}
         </div>
       )}
 
@@ -111,13 +115,21 @@ export function CommentForm({
         selector={(state) => [state.canSubmit, state.isSubmitting]}
       >
         {([canSubmit, isSubmitting]) => (
-          <div className="flex gap-2">
-            <Button type="submit" size="sm" disabled={!canSubmit || isPending || isSubmitting}>
-              {isPending || isSubmitting ? t("form.submitting") : parentCommentId ? t("form.reply") : t("form.comment")}
+          <div className="flex items-center gap-2">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={!canSubmit || isPending || isSubmitting}
+            >
+              {isPending || isSubmitting
+                ? t("form.submitting")
+                : parentCommentId
+                  ? t("form.reply")
+                  : t("form.comment")}
             </Button>
             {onCancel && (
               <Button type="button" size="sm" variant="outline" onClick={onCancel}>
-                {t('form.cancel')}
+                {t("form.cancel")}
               </Button>
             )}
           </div>

@@ -1355,6 +1355,7 @@
     "list": {
       "title": "Yorumlar",
       "no_comments": "Henüz yorum yok — ilk yorumu aşağıya yaz.",
+      "empty_description": "İlk geri bildirimi sen bırak.",
       "comments_count": "Yorumlar ({count})",
       "load_failed": "Yorumlar yüklenemedi. Bağlantını kontrol et ve tekrar dene."
     },
@@ -1362,6 +1363,7 @@
       "by": "tarafından",
       "at": "saat",
       "reply": "Yanıtla",
+      "edit": "Düzenle",
       "delete": "Sil",
       "delete_confirm": "Bu yorumu silmek istediğinizden emin misiniz?",
       "edited_label": "(düzenlendi)"

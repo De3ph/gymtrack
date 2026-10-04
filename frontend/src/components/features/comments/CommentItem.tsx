@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Edit2, Trash2 } from "lucide-react";
+import { MessageSquare, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,10 +75,9 @@ export function CommentItem({
   };
 
   return (
-    <div
-      className={`border border-border p-3 ${isReply ? "border-l-2 border-l-muted" : ""}`}
-    >
-      <div className="flex items-center justify-between gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+    <div className="py-1">
+      {/* Metadata row — mono uppercase kicker for all data */}
+      <div className="flex items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
         <span className="text-foreground">{comment.authorRole}</span>
         <span>
           {formatDate(comment.createdAt, "MMM D, YYYY h:mm A")}
@@ -87,8 +86,9 @@ export function CommentItem({
           )}
         </span>
       </div>
+
       {isEditing ? (
-        <div className="mt-2 space-y-2">
+        <div className="mt-2 space-y-3">
           <Textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
@@ -110,17 +110,20 @@ export function CommentItem({
         </div>
       ) : (
         <>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-foreground">
             {comment.content}
           </p>
+
+          {/* Actions — ghost buttons with mono uppercase labels */}
           <div className="mt-2 flex flex-wrap gap-1">
             {onReply && !isReply && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onReply(comment.commentId)}
+                className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
               >
-                <MessageSquare className="mr-1.5 size-4" aria-hidden="true" />
+                <MessageSquare className="mr-1.5 size-3.5" aria-hidden="true" />
                 {t("item.reply")}
               </Button>
             )}
@@ -130,8 +133,9 @@ export function CommentItem({
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsEditing(true)}
+                  className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
                 >
-                  <Edit2 className="mr-1.5 size-4" aria-hidden="true" />
+                  <Pencil className="mr-1.5 size-3.5" aria-hidden="true" />
                   {t("item.edit")}
                 </Button>
                 <AlertDialog>
@@ -140,10 +144,10 @@ export function CommentItem({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-destructive"
+                        className="font-mono text-[10px] uppercase tracking-[0.18em] text-destructive hover:bg-destructive/10 hover:text-destructive"
                         disabled={isDeleting}
                       >
-                        <Trash2 className="mr-1.5 size-4" aria-hidden="true" />
+                        <Trash2 className="mr-1.5 size-3.5" aria-hidden="true" />
                         {t("item.delete")}
                       </Button>
                     }

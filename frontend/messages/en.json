@@ -1355,6 +1355,7 @@
     "list": {
       "title": "Comments",
       "no_comments": "No comments yet — write the first one below.",
+      "empty_description": "Be the first to leave feedback.",
       "comments_count": "Comments ({count})",
       "load_failed": "Could not load comments. Check connection and try again."
     },
@@ -1362,6 +1363,7 @@
       "by": "by",
       "at": "at",
       "reply": "Reply",
+      "edit": "Edit",
       "delete": "Delete",
       "delete_confirm": "Delete this comment? This cannot be undone.",
       "edited_label": "(edited)"
