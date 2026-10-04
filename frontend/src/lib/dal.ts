@@ -3,7 +3,7 @@ import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cacheLife, cacheTag } from 'next/cache'
-import { decrypt, SESSION_COOKIE_NAME } from '@/lib/session'
+import { decrypt, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/session'
 import type {
   AdminDashboardStats,
   AdminUserListItem,
@@ -18,6 +18,61 @@ import type {
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+
+/**
+ * Refresh slightly before the real expiry so a token cannot expire midway
+ * between this check and the backend request that uses it.
+ */
+const TOKEN_REFRESH_SKEW_MS = 60_000
+
+/**
+ * Reads a JWT's `exp` claim without verifying the signature.
+ *
+ * This is only a liveness check to decide whether a refresh is worth
+ * attempting — the Go backend remains the sole authority on whether a token
+ * is actually valid. Returns null when the claim is absent or unparseable,
+ * which the caller treats as "refresh to be safe".
+ */
+function jwtExpiresAt(token: string): number | null {
+  const parts = token.split('.')
+  if (parts.length !== 3) return null
+  try {
+    const claims = JSON.parse(
+      Buffer.from(parts[1], 'base64url').toString('utf8'),
+    ) as { exp?: unknown }
+    return typeof claims.exp === 'number' ? claims.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Exchanges the long-lived refresh token for a fresh access token.
+ *
+ * The backend issues no rotated refresh token (`POST /auth/refresh` returns
+ * only `accessToken`) and refresh tokens are stateless, so the same cookie
+ * can be redeemed repeatedly for the life of the session. That is what makes
+ * it safe to refresh here without persisting the new access token back into
+ * the session cookie — Server Components are not allowed to write cookies,
+ * and there is nothing to write back.
+ */
+async function refreshAccessToken(
+  refreshToken: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as { accessToken?: string }
+    return data.accessToken ?? null
+  } catch {
+    return null
+  }
+}
 
 async function getSessionPayload() {
   const cookieStore = await cookies()
@@ -42,6 +97,17 @@ export const getSession = cache(async () => {
 /**
  * Verify the current user has a session. Redirects to /login if not.
  * Cached for the duration of a single request via React.cache.
+ *
+ * The access token embedded in the session cookie is the one minted at login
+ * and is never rewritten (the client refreshes its own copy in memory but
+ * never syncs the cookie back). Since access tokens live for 1 hour while the
+ * session envelope lasts 7 days, the embedded token goes stale for every
+ * server-side fetch made more than an hour after login — surfacing as a 401
+ * from the backend on pages like /athlete/workouts?planId=…
+ *
+ * So the token is transparently renewed from the refresh-token cookie before
+ * being handed out. Without this, every cached DAL getter fails permanently
+ * once the login-time token expires, even though the client keeps working.
  */
 export const verifySession = cache(async () => {
   const payload = await getSessionPayload()
@@ -50,11 +116,25 @@ export const verifySession = cache(async () => {
     redirect('/login')
   }
 
+  let { accessToken } = payload
+
+  const expiresAt = jwtExpiresAt(accessToken)
+  if (expiresAt === null || expiresAt - Date.now() <= TOKEN_REFRESH_SKEW_MS) {
+    const refreshToken = (await cookies()).get(REFRESH_COOKIE_NAME)?.value
+    const refreshed = refreshToken ? await refreshAccessToken(refreshToken) : null
+
+    // A dead refresh token means the session is genuinely over.
+    if (!refreshed) {
+      redirect('/login')
+    }
+    accessToken = refreshed
+  }
+
   return {
     isAuth: true,
     userId: payload.userId,
     role: payload.role,
-    accessToken: payload.accessToken,
+    accessToken,
   }
 })
 
