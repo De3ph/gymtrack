@@ -127,10 +127,14 @@ router.push(
 
 ---
 
-### B5. Trainer dashboard shows error state
+### B5. ~~Trainer dashboard shows error state~~ — FIXED 2026-10-04
 
 **Severity**: Medium
 **File**: `src/components/features/dashboard/DashboardScreen.tsx` (lines 73-81)
+
+**Fix applied**: `DashboardScreen` is now role-aware. Trainers no longer call the athlete-only `GET /workouts` / `GET /meals` (they were 403ing); both queries are gated with `enabled: !isTrainer`. Instead, trainers see a `relationshipApi.getMyClients()` + `coachingRequestApi.getPendingRequests()` overview (client count, pending-request count, empty-roster hint) using the existing `trainer.dashboard.*` i18n strings, and `SessionExpiredView`/error handling check the trainer queries too. `QuickActions` is role-aware: trainers get Clients / Workout Plans / Profile linking to `/trainer/clients`, `/trainer/plans`, `/trainer/profile`; athletes keep the original actions. Athlete dashboard behavior is unchanged.
+
+<details><summary>Original report</summary>
 
 Dashboard always calls `workoutApi.getAll()` and `mealApi.getAll()`. Backend handlers for `GET /workouts` and `GET /meals` enforce athlete role — trainer gets 403.
 
@@ -140,7 +144,7 @@ Dashboard always calls `workoutApi.getAll()` and `mealApi.getAll()`. Backend han
 - Role-aware dashboard: trainer sees client overview / stats instead of own workouts/meals
 - Quick actions should differ by role (trainer: clients, plans, catalog)
 
-**Effort**: Medium (~2-3h)
+</details>
 
 ---
 
@@ -341,7 +345,7 @@ These features were listed as gaps in the earlier analysis but are now implement
 | B1 | ~~Password reset flow (request + confirm screens)~~ **DONE 2026-10-04** | ✅ fixed |
 | B2 | ~~Workout plan create with exercise selection~~ **DONE 2026-10-04** | ✅ fixed |
 | B3 | ~~Workout plan save with valid exerciseId~~ **DONE 2026-10-04** | ✅ fixed |
-| B5 | Role-aware trainer dashboard | 2-3h |
+| B5 | ~~Role-aware trainer dashboard~~ **DONE 2026-10-04** | ✅ fixed |
 | M2 | "Start workout from plan" button | 1-2h |
 | M3 | Trainer comments on client workouts/meals | 2h |
 | M6 | Client detail plans tab | 1.5h |

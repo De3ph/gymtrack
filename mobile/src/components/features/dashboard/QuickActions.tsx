@@ -11,14 +11,23 @@ import { Host, Text as ExpoText } from "@expo/ui";
 import {
   MealIcon,
   MeasurementIcon,
+  ProfileIcon,
   TrainerIcon,
   WorkoutIcon,
   type AppIcon,
 } from "@/components/icons";
 import { useI18n } from "@/lib/i18n";
 import { useAppColors } from "@/lib/colors";
+import { useAuthStore } from "@/stores/authStore";
 
-type QuickActionRoute = "/(tabs)/workouts" | "/(tabs)/meals" | "/(tabs)/measurements" | "/trainer-catalog";
+type QuickActionRoute =
+  | "/(tabs)/workouts"
+  | "/(tabs)/meals"
+  | "/(tabs)/measurements"
+  | "/trainer-catalog"
+  | "/trainer/clients"
+  | "/trainer/plans"
+  | "/trainer/profile";
 
 interface QuickAction {
   key: string;
@@ -95,32 +104,55 @@ export const QuickActions = memo(function QuickActions({ title }: QuickActionsPr
     color: colors.text,
   } as const;
 
-  const QUICK_ACTIONS: QuickAction[] = [
-    {
-      key: "workouts",
-      Icon: WorkoutIcon,
-      iconColor: colors.accent,
-      route: "/(tabs)/workouts",
-    },
-    {
-      key: "meals",
-      Icon: MealIcon,
-      iconColor: colors.success,
-      route: "/(tabs)/meals",
-    },
-    {
-      key: "measurements",
-      Icon: MeasurementIcon,
-      iconColor: colors.warning,
-      route: "/(tabs)/measurements",
-    },
-    {
-      key: "trainers",
-      Icon: TrainerIcon,
-      iconColor: colors.textSecondary,
-      route: "/trainer-catalog",
-    },
-  ];
+  const isTrainer = useAuthStore((s) => s.user?.role === "trainer");
+
+  const QUICK_ACTIONS: QuickAction[] = isTrainer
+    ? [
+        {
+          key: "clients",
+          Icon: TrainerIcon,
+          iconColor: colors.accent,
+          route: "/trainer/clients",
+        },
+        {
+          key: "workout_plans",
+          Icon: WorkoutIcon,
+          iconColor: colors.success,
+          route: "/trainer/plans",
+        },
+        {
+          key: "profile",
+          Icon: ProfileIcon,
+          iconColor: colors.warning,
+          route: "/trainer/profile",
+        },
+      ]
+    : [
+        {
+          key: "workouts",
+          Icon: WorkoutIcon,
+          iconColor: colors.accent,
+          route: "/(tabs)/workouts",
+        },
+        {
+          key: "meals",
+          Icon: MealIcon,
+          iconColor: colors.success,
+          route: "/(tabs)/meals",
+        },
+        {
+          key: "measurements",
+          Icon: MeasurementIcon,
+          iconColor: colors.warning,
+          route: "/(tabs)/measurements",
+        },
+        {
+          key: "trainers",
+          Icon: TrainerIcon,
+          iconColor: colors.textSecondary,
+          route: "/trainer-catalog",
+        },
+      ];
 
   const handlePress = useCallback((route: QuickActionRoute) => {
     push(route);

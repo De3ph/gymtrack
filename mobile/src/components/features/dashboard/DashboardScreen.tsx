@@ -12,6 +12,8 @@ import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/authStore";
 import { workoutApi } from "@/api/workoutApi";
 import { mealApi } from "@/api/mealApi";
+import { relationshipApi } from "@/api/relationshipApi";
+import { coachingRequestApi } from "@/api/coachingRequestApi";
 import type {
   Workout,
   Meal,
@@ -58,24 +60,49 @@ export function DashboardScreen() {
   const displayName =
     user?.profile?.name || user?.username || user?.email?.split("@")[0] || "";
 
+  const isTrainer = user?.role === "trainer";
+
   const workoutsQuery = useQuery<WorkoutListResponse>({
     queryKey: ["workouts", "recent"],
     queryFn: () =>
       workoutApi.getAll({ limit: "5" }) as Promise<WorkoutListResponse>,
+    enabled: !isTrainer,
   });
 
   const mealsQuery = useQuery<MealListResponse>({
     queryKey: ["meals", "recent"],
     queryFn: () => mealApi.getAll({ limit: "5" }) as Promise<MealListResponse>,
+    enabled: !isTrainer,
   });
 
-  const isRefreshing = workoutsQuery.isRefetching || mealsQuery.isRefetching;
-  const isLoading = workoutsQuery.isLoading || mealsQuery.isLoading;
+  const clientsQuery = useQuery({
+    queryKey: ["relationships", "my-clients"],
+    queryFn: () => relationshipApi.getMyClients(),
+    enabled: isTrainer,
+  });
+
+  const pendingRequestsQuery = useQuery({
+    queryKey: ["coaching-requests", "pending"],
+    queryFn: () => coachingRequestApi.getPendingRequests(),
+    enabled: isTrainer,
+  });
+
+  const isRefreshing = isTrainer
+    ? clientsQuery.isRefetching || pendingRequestsQuery.isRefetching
+    : workoutsQuery.isRefetching || mealsQuery.isRefetching;
+  const isLoading = isTrainer
+    ? clientsQuery.isLoading || pendingRequestsQuery.isLoading
+    : workoutsQuery.isLoading || mealsQuery.isLoading;
 
   const onRefresh = useCallback(() => {
+    if (isTrainer) {
+      clientsQuery.refetch();
+      pendingRequestsQuery.refetch();
+      return;
+    }
     workoutsQuery.refetch();
     mealsQuery.refetch();
-  }, [workoutsQuery, mealsQuery]);
+  }, [isTrainer, workoutsQuery, mealsQuery, clientsQuery, pendingRequestsQuery]);
 
   const handleOpenActivity = useCallback(
     (type: RecentActivityType, id?: number) => {
@@ -94,10 +121,16 @@ export function DashboardScreen() {
   const meals = mealsQuery.data?.meals ?? EMPTY_MEALS;
   const hasActivity = workouts.length > 0 || meals.length > 0;
 
-  const errorMessage =
-    (workoutsQuery.error as Error)?.message ||
-    (mealsQuery.error as Error)?.message ||
-    "";
+  const errorMessage = isTrainer
+    ? (clientsQuery.error as Error)?.message ||
+      (pendingRequestsQuery.error as Error)?.message ||
+      ""
+    : (workoutsQuery.error as Error)?.message ||
+      (mealsQuery.error as Error)?.message ||
+      "";
+
+  const trainerClients = clientsQuery.data?.clients ?? [];
+  const pendingRequests = pendingRequestsQuery.data?.requests ?? [];
 
   if (isLoading) {
     return (
@@ -116,11 +149,15 @@ export function DashboardScreen() {
     );
   }
 
-  const hasError = workoutsQuery.isError || mealsQuery.isError;
-  if (hasError && !hasActivity) {
+  const hasError = isTrainer
+    ? clientsQuery.isError || pendingRequestsQuery.isError
+    : workoutsQuery.isError || mealsQuery.isError;
+  if (hasError && (isTrainer ? trainerClients.length === 0 : !hasActivity)) {
     if (
       isSessionExpiredError(workoutsQuery.error) ||
-      isSessionExpiredError(mealsQuery.error)
+      isSessionExpiredError(mealsQuery.error) ||
+      isSessionExpiredError(clientsQuery.error) ||
+      isSessionExpiredError(pendingRequestsQuery.error)
     ) {
       return <SessionExpiredView message={errorMessage} />;
     }
@@ -169,7 +206,9 @@ export function DashboardScreen() {
                 {t("dashboard.welcome").replace("{name}", displayName)}
               </Text>
               <Text textStyle={{ fontSize: 14, color: colors.textSecondary }}>
-                {t("dashboard.no_data.description")}
+                {isTrainer
+                  ? t("trainer.dashboard.description")
+                  : t("dashboard.no_data.description")}
               </Text>
             </Column>
           </Host>
@@ -189,11 +228,35 @@ export function DashboardScreen() {
           }
         >
           <Host matchContents={{ vertical: true, horizontal: false }}>
-            <RecentActivitiesList
-              workouts={workouts}
-              meals={meals}
-              onOpenActivity={handleOpenActivity}
-            />
+            {isTrainer ? (
+              <Column spacing={8}>
+                <Text
+                  textStyle={{
+                    fontSize: 16,
+                    fontWeight: "bold",
+                    color: colors.text,
+                  }}
+                >
+                  {`${t("trainer.dashboard.clients")}: ${trainerClients.length}`}
+                </Text>
+                <Text textStyle={{ fontSize: 14, color: colors.textSecondary }}>
+                  {`${t("trainer.dashboard.pending_requests")}: ${pendingRequests.length}`}
+                </Text>
+                {trainerClients.length === 0 && (
+                  <Text
+                    textStyle={{ fontSize: 14, color: colors.textSecondary }}
+                  >
+                    {t("trainer.dashboard.no_clients_description")}
+                  </Text>
+                )}
+              </Column>
+            ) : (
+              <RecentActivitiesList
+                workouts={workouts}
+                meals={meals}
+                onOpenActivity={handleOpenActivity}
+              />
+            )}
           </Host>
         </Animated.View>
       </Animated.View>
