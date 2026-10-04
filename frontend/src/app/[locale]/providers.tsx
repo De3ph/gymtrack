@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 import { initializeDayjsLocale } from "@/lib/i18n/dayjs";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 declare global {
   interface Window {
@@ -50,7 +51,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
       </QueryClientProvider>
     </ThemeProvider>

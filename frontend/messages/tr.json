@@ -303,7 +303,10 @@
       "trainer": "Antrenör",
       "athlete": "Sporcu",
       "workout_plans": "Antrenman Planları",
-      "toggle_menu": "Gezinme menüsünü aç/kapat"
+      "menu": "Menü",
+      "toggle_menu": "Gezinme menüsünü aç/kapat",
+      "theme": "Tema",
+      "language": "Dil"
     },
     "status": {
       "available": "Yeni Danışanlar için Müsait",

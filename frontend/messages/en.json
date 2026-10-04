@@ -303,7 +303,10 @@
       "trainer": "Trainer",
       "athlete": "Athlete",
       "workout_plans": "Workout Plans",
-      "toggle_menu": "Toggle navigation menu"
+      "menu": "Menu",
+      "toggle_menu": "Toggle navigation menu",
+      "theme": "Theme",
+      "language": "Language"
     },
     "status": {
       "available": "Available for New Clients",

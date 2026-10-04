@@ -43,7 +43,10 @@ const translationSchema = z.object({
       trainer: z.string(),
       athlete: z.string(),
       workout_plans: z.string(),
+      menu: z.string(),
       toggle_menu: z.string(),
+      theme: z.string(),
+      language: z.string(),
     }),
     status: z.object({
       available: z.string(),

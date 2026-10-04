@@ -3,15 +3,18 @@
 import { useEffect, useCallback, useRef } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/lib/hooks/useLogout";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { WelcomeGifDialog } from "@/components/features/welcome/welcome-gif-dialog";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 
 export function DashboardClientShell({
   children,
+  defaultSidebarOpen,
 }: {
   children: React.ReactNode;
+  /** Persisted sidebar rail state, read from the cookie in the server layout. */
+  defaultSidebarOpen?: boolean;
 }) {
   const { user, initializeAuth, isInitialized, isLoading, isAuthenticated } =
     useAuthStore();
@@ -80,15 +83,15 @@ export function DashboardClientShell({
         </div>
       )}
 
-      <DashboardNav
+      <DashboardShell
         userRole={user?.role}
         userName={user?.profile?.name}
         onLogout={logout}
-      />
-      {!showAuthGate && <WelcomeGifDialog />}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        defaultSidebarOpen={defaultSidebarOpen}
+      >
+        {!showAuthGate && <WelcomeGifDialog />}
         {children}
-      </main>
+      </DashboardShell>
     </div>
   );
 }
