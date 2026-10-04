@@ -61,7 +61,7 @@ export function WorkoutExerciseCard({
   };
 
   return (
-    <article className="border border-border border-t-cyan-100">
+    <article className="border border-border">
       <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <Button
@@ -73,9 +73,9 @@ export function WorkoutExerciseCard({
             className="h-6 w-6 shrink-0 rounded-none"
           >
             {isCollapsed ? (
-              <ChevronDown className="size-5" aria-hidden="true" />
+              <ChevronDown className="size-4" aria-hidden="true" />
             ) : (
-              <ChevronUp className="size-5" aria-hidden="true" />
+              <ChevronUp className="size-4" aria-hidden="true" />
             )}
           </Button>
           <h3 className="truncate text-base font-semibold text-foreground">

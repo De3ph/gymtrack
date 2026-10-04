@@ -6,7 +6,6 @@ import { ExerciseSet } from "@/types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
@@ -97,7 +96,6 @@ export function ExerciseSetInput({
   return (
     <div className={cn("border border-border", className)}>
       {setsWithIds.length > 0 && (
-        <>
           <div className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 border-b border-border px-3 py-2 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]">
             <span className={cn(colLabel, "justify-start")}>
               {t("label")}
@@ -113,8 +111,6 @@ export function ExerciseSetInput({
             </span>
             <span />
           </div>
-          <Separator className="hidden" />
-        </>
       )}
 
       <ul className="divide-y divide-border">
@@ -155,7 +151,7 @@ export function ExerciseSetInput({
                 }
                 disabled={disabled}
                 className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
-                placeholder="—"
+                placeholder="0"
                 data-testid="set-reps"
               />
             </div>
@@ -174,7 +170,7 @@ export function ExerciseSetInput({
                 }
                 disabled={disabled}
                 className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
-                placeholder="—"
+                placeholder="0"
                 data-testid="set-rest"
               />
             </div>

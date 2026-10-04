@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WorkoutCalendar } from '@/components/features/workout/WorkoutCalendar'
 import { workoutApi } from '@/lib/api'
+import { useCalendarStore } from '@/stores/calendar-store'
 import type { Workout } from '@/types'
 
 vi.mock('@/lib/api', () => ({
@@ -15,6 +16,7 @@ const baseDate = new Date()
 baseDate.setHours(10, 0, 0, 0)
 const mockWorkouts: Workout[] = [
   {
+    type: 'workout',
     workoutId: 1,
     athleteId: 1,
     date: baseDate.toISOString(),
@@ -37,6 +39,7 @@ describe('WorkoutCalendar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    useCalendarStore.setState({ activeDate: undefined as unknown as Date })
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })
@@ -49,11 +52,14 @@ describe('WorkoutCalendar', () => {
       </QueryClientProvider>
     )
 
-  it('renders calendar and title', () => {
+  it('renders calendar and title', async () => {
     vi.mocked(workoutApi.getAll).mockResolvedValue({ workouts: [], count: 0 })
     renderWithProvider(<WorkoutCalendar />)
 
-    expect(screen.getByText(/title/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(workoutApi.getAll).toHaveBeenCalled()
+    })
+    expect(screen.getByText(/select_date/i)).toBeInTheDocument()
   })
 
   it('shows selected date section with title', async () => {
@@ -63,11 +69,12 @@ describe('WorkoutCalendar', () => {
     await waitFor(() => {
       expect(workoutApi.getAll).toHaveBeenCalled()
     })
-    expect(screen.getByText(/title/i)).toBeInTheDocument()
+    expect(screen.getByText(/select_date/i)).toBeInTheDocument()
   })
 
   it('displays workouts for selected day when data is loaded', async () => {
     vi.mocked(workoutApi.getAll).mockResolvedValue({ workouts: mockWorkouts, count: mockWorkouts.length })
+    useCalendarStore.setState({ activeDate: new Date(baseDate) })
     renderWithProvider(<WorkoutCalendar />)
 
     await waitFor(() => {
@@ -78,11 +85,11 @@ describe('WorkoutCalendar', () => {
 
   it('shows no workouts message when selected day has none', async () => {
     vi.mocked(workoutApi.getAll).mockResolvedValue({ workouts: [], count: 0 })
+    useCalendarStore.setState({ activeDate: new Date() })
     renderWithProvider(<WorkoutCalendar />)
 
     await waitFor(() => {
-      expect(workoutApi.getAll).toHaveBeenCalled()
+      expect(screen.getByText(/no_workouts/i)).toBeInTheDocument()
     })
-    expect(screen.getByText(/no_workouts/i)).toBeInTheDocument()
   })
 })

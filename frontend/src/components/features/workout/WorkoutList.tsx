@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Dumbbell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Pagination,
@@ -10,7 +11,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { workoutApi } from "@/lib/api";
 import { useWorkoutListStore } from "@/stores/workout-list-store";
@@ -64,6 +65,15 @@ export function WorkoutList({
     string | number | null
   >(null);
 
+  const [collapsedIds, setCollapsedIds] = React.useState<Record<string, boolean>>(
+    {},
+  );
+
+  const toggleCollapsed = (id: string | number) => {
+    const key = String(id);
+    setCollapsedIds((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const pageSize = PAGINATION.WORKOUT_PAGE_SIZE;
   const isSelfFetching = !propWorkouts;
 
@@ -87,11 +97,17 @@ export function WorkoutList({
     enabled: isSelfFetching,
   });
 
+  const filterBar = isSelfFetching ? (
+    <WorkoutFilterBar filter={filter} onChange={handleFilterChange} />
+  ) : null;
+
   if (isLoading && isSelfFetching) {
     return (
-      <div className="flex items-center gap-2 py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        <Spinner className="size-5" />
-        <span>{t("loading")}</span>
+      <div className="space-y-4">
+        {filterBar}
+        <WorkoutCardSkeleton />
+        <WorkoutCardSkeleton />
+        <WorkoutCardSkeleton />
       </div>
     );
   }
@@ -101,16 +117,15 @@ export function WorkoutList({
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const showPagination = isSelfFetching && totalPages > 1;
 
-  const filterBar = isSelfFetching ? (
-    <WorkoutFilterBar filter={filter} onChange={handleFilterChange} />
-  ) : null;
-
   if (workouts.length === 0) {
     return (
       <div className="space-y-4">
         {filterBar}
-        <div className="flex items-center justify-center border border-border py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          {t("no_workouts")}
+        <div className="flex flex-col items-center justify-center gap-3 border border-border px-4 py-16 text-center">
+          <Dumbbell className="size-6 text-muted-foreground" aria-hidden="true" />
+          <p className="max-w-sm text-sm text-muted-foreground">
+            {t("no_workouts")}
+          </p>
         </div>
       </div>
     );
@@ -131,6 +146,8 @@ export function WorkoutList({
           <li key={workout.workoutId}>
             <WorkoutCard
               workout={workout}
+              isCollapsed={Boolean(collapsedIds[String(workout.workoutId)])}
+              onToggle={() => toggleCollapsed(workout.workoutId)}
               expandedCommentsId={expandedCommentsId}
               setExpandedCommentsId={setExpandedCommentsId}
             />
@@ -182,6 +199,27 @@ export function WorkoutList({
           </Pagination>
         </>
       )}
+    </div>
+  );
+}
+
+function WorkoutCardSkeleton() {
+  return (
+    <div className="border border-border">
+      <div className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+        <Skeleton className="h-4 w-40 rounded-none" />
+        <Skeleton className="mt-2 h-2.5 w-24 rounded-none" />
+      </div>
+      <div className="space-y-4 px-4 py-4 sm:px-6 sm:py-5">
+        <div className="space-y-1.5">
+          <Skeleton className="h-3.5 w-44 rounded-none" />
+          <Skeleton className="h-3 w-72 rounded-none" />
+        </div>
+        <div className="space-y-1.5">
+          <Skeleton className="h-3.5 w-36 rounded-none" />
+          <Skeleton className="h-3 w-60 rounded-none" />
+        </div>
+      </div>
     </div>
   );
 }

@@ -8,7 +8,6 @@ import { useTranslations } from "next-intl";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { Separator } from "@/components/ui/separator";
 import { workoutApi } from "@/lib/api";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { WorkoutExercise, ExerciseSet } from "@/types";
@@ -60,11 +59,15 @@ export function WorkoutCalendar() {
 
       <section className="flex flex-col border border-border">
         <header className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
-          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {selectedDate
-              ? formatDate(selectedDate, "dddd, MMMM D, YYYY")
-              : t("select_date")}
-          </h3>
+          {selectedDate ? (
+            <h3 className="text-base font-semibold text-foreground">
+              {formatDate(selectedDate, "dddd, MMMM D, YYYY")}
+            </h3>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("select_date")}
+            </p>
+          )}
         </header>
 
         <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4">
@@ -118,7 +121,6 @@ export function WorkoutCalendar() {
           )}
         </div>
 
-        <Separator />
       </section>
     </div>
   );

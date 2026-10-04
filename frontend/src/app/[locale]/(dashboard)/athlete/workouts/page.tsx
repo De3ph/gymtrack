@@ -12,7 +12,7 @@ function buildWorkoutFromPlan(plan: WorkoutPlan): Workout {
     name: pe.name,
     notes: pe.notes,
     sets: pe.sets.map((ps) => ({
-      setId: ps.setId ?? undefined,
+      setId: ps.setId != null ? String(ps.setId) : undefined,
       weight: ps.weight,
       weightUnit: ps.weightUnit,
       reps: ps.reps,
@@ -22,6 +22,7 @@ function buildWorkoutFromPlan(plan: WorkoutPlan): Workout {
   }));
 
   return {
+    type: "workout",
     workoutId: 0,
     athleteId: 0,
     date: new Date().toISOString(),

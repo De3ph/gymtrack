@@ -76,9 +76,9 @@ export function WorkoutsClient({
         value={activeTab}
       >
         <TabsList className="grid w-full grid-cols-3 mb-2">
-          <TabsTab className="text-foreground" value="log">{t("log_tab")}</TabsTab>
-          <TabsTab className="text-foreground" value="list">{t("list_tab")}</TabsTab>
-          <TabsTab className="text-foreground" value="calendar">{t("calendar_tab")}</TabsTab>
+          <TabsTab value="log">{t("log_tab")}</TabsTab>
+          <TabsTab value="list">{t("list_tab")}</TabsTab>
+          <TabsTab value="calendar">{t("calendar_tab")}</TabsTab>
         </TabsList>
 
         <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">

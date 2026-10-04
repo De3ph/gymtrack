@@ -75,6 +75,7 @@ const mockUsers: User[] = [
 
 const mockWorkouts: Workout[] = [
   {
+    type: 'workout',
     workoutId: 1,
     athleteId: 1,
     date: new Date().toISOString(),
@@ -178,6 +179,7 @@ export const handlers = [
     const body = await request.json() as WorkoutRequestBody
     const newWorkout: Workout = {
       workoutId: 3,
+      type: 'workout',
       ...body,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

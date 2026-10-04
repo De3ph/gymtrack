@@ -60,7 +60,7 @@ const formatExercisesForApi = (exercises: WorkoutExercise[]) => {
     sets: exercise.sets.map((set) => ({
       setId: set.setId ?? undefined,
       weight: set.weight,
-      weightUnit: "kg" as const,
+      weightUnit: set.weightUnit,
       reps: set.reps,
       restTime: set.restTime || 60,
       completed: false,
@@ -229,7 +229,7 @@ export function WorkoutForm({
       {submitError && (
         <div
           role="alert"
-          className="border border-destructive px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-destructive"
+          className="border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive"
         >
           {submitError}
         </div>

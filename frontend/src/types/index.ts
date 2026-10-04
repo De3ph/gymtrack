@@ -22,9 +22,36 @@ export type CommentTargetType = components["schemas"]["models.TargetType"];
 export type CommentAuthorRole = components["schemas"]["models.AuthorRole"];
 
 // --- Domain models ---
-export type Workout = components["schemas"]["models.Workout"];
-export type WorkoutExercise = components["schemas"]["models.WorkoutExercise"];
-export type ExerciseSet = components["schemas"]["models.ExerciseSet"];
+// Workout, WorkoutExercise, and ExerciseSet are defined manually instead of
+// re-exporting the generated schemas: swag marks fields optional unless they
+// carry a validate:"required" tag, but the backend always sends them (and
+// WorkoutID can't take such a tag — it is zero until the INSERT returns).
+export interface ExerciseSet {
+  setId?: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  reps: number;
+  restTime?: number;
+  completed?: boolean;
+}
+
+export interface WorkoutExercise {
+  exerciseId: number;
+  name: string;
+  sets: ExerciseSet[];
+  notes?: string;
+}
+
+export interface Workout {
+  type: string;
+  workoutId: number;
+  athleteId: number;
+  date: string;
+  exercises: WorkoutExercise[];
+  planId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
 export type Meal = components["schemas"]["models.Meal"];
 export type FoodItem = components["schemas"]["models.FoodItem"];
 export type Macros = components["schemas"]["models.Macros"];
