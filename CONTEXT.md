@@ -410,12 +410,12 @@ frontend/
 │   │   │   ├── button, input, label, card, badge, dialog, tabs, textarea
 │   │   │   ├── alert-dialog, alert, calendar, chart, checkbox, combobox, command
 │   │   │   ├── detail-section, drawer, dropdown-menu, empty, field, form-field
-│   │   │   ├── info-row, input-group, item, nav-link, pagination, popover
+│   │   │   ├── info-row, input-group, item, pagination, popover
 │   │   │   ├── scroll-area, select, separator, sheet, sidebar, skeleton
 │   │   │   ├── spinner, table, toggle, tooltip, carousel
-│   │   ├── layout/                    # Layout components (8)
-│   │   │   ├── admin-nav, athlete-nav, dashboard-nav, trainer-nav
-│   │   │   ├── dashboard-styles, locale-toggle, theme-toggle, MobileNav
+│   │   ├── layout/                    # Layout components (7)
+│   │   │   ├── app-sidebar, dashboard-header, dashboard-shell
+│   │   │   ├── nav-items, dashboard-styles, locale-toggle, theme-toggle
 │   │   └── features/                  # Feature-specific components (14 domains)
 │   │       ├── admin/                 # Admin components
 │   │       ├── athlete/               # Athlete components (2)
@@ -1140,12 +1140,12 @@ src/
       checkbox.tsx, combobox.tsx, command.tsx, carousel.tsx
       detail-section.tsx, dropdown-menu.tsx, empty.tsx
       field.tsx, form-field.tsx, info-row.tsx, input-group.tsx
-      item.tsx, nav-link.tsx, pagination.tsx, popover.tsx
+      item.tsx, pagination.tsx, popover.tsx
       scroll-area.tsx, select.tsx, separator.tsx, sidebar.tsx
       skeleton.tsx, spinner.tsx, table.tsx, toggle.tsx, tooltip.tsx
-    layout/ (8 layout components)
-      admin-nav.tsx, athlete-nav.tsx, dashboard-nav.tsx, trainer-nav.tsx
-      dashboard-styles.ts, locale-toggle.tsx, theme-toggle.tsx, MobileNav.tsx
+    layout/ (7 layout components)
+      app-sidebar.tsx, dashboard-header.tsx, dashboard-shell.tsx
+      nav-items.ts, dashboard-styles.ts, locale-toggle.tsx, theme-toggle.tsx
     features/ (14 domains)
       admin/
       athlete/ (2 components)

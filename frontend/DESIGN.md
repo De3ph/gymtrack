@@ -208,8 +208,7 @@ These primitives already fit the register.
 | `Avatar` | User-uploaded avatars only. **Not for decoration.** |
 | `Chart` (recharts wrapper) | The single signal color (`var(--chart-1)`) lives here. Use the `Chart` primitive for any visualization, not raw recharts. |
 | `Carousel` (embla) | Reserved for genuine carousels (testimonial rotations, image galleries). **Not for hero decoration.** |
-| `Sidebar` | Authenticated-app left rail. Marketing/landing surfaces don't use it — they use the `SectionRail` pattern from §4.1. |
-| `NavLink` | Active-aware nav link inside the sidebar. Not for marketing CTAs. |
+| `Sidebar` + `SidebarMenuButton` | Authenticated-app left rail. Marketing/landing surfaces don't use it — they use the `SectionRail` pattern from §4.1. Drive it through `AppSidebar` + the `useNavItems` registry rather than hand-rolling links. |
 | `DetailSection` | Profile/admin detail row. Wraps `Card` — see §5.2. |
 
 ### 5.2 Wrap with overrides — these conflict with the register
