@@ -14,8 +14,7 @@ import { useI18n } from "@/lib/i18n";
 import type { BodyMeasurement } from "@/types";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
-import { Button, Host, RNHostView } from "@expo/ui";
-import { PlusIcon } from "@/components/icons";
+import { Button, Host } from "@expo/ui";
 import { Input, InputField } from "@/components/ui/input";
 import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import {
@@ -42,7 +41,7 @@ import {
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { Icon, CloseIcon } from "@/components/ui/icon";
+import { Icon, AddIcon, CloseIcon } from "@/components/ui/icon";
 import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
 
@@ -505,30 +504,16 @@ export function MeasurementsScreen() {
         />
       )}
       {!showAdd && (
-        <Host
-          matchContents
-          style={{ position: "absolute", bottom: 24, right: 24 }}
+        <Pressable
+          onPress={openCreateForm}
+          className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-hard-2"
         >
-          <Button
-            onPress={openCreateForm}
-            style={{ width: 56, height: 56, borderRadius: 28 }}
-          >
-          <RNHostView
-            style={{
-              width: 32,
-              height: 32,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <PlusIcon
-              size={32}
-              color="#ffffff"
-              style={{ width: 32, lineHeight: 32, textAlign: "center" }}
-            />
-          </RNHostView>
-          </Button>
-        </Host>
+          <Icon
+            as={AddIcon}
+            size="xl"
+            className="h-7 w-7 text-primary-foreground"
+          />
+        </Pressable>
       )}
       <Modal isOpen={showAdd} onClose={closeForm} size="lg">
         <ModalBackdrop />

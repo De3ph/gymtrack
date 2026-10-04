@@ -23,7 +23,7 @@ export const LoadingScreen = memo(function LoadingScreen({
             <Spinner size="large" className="text-primary" />
           </Animated.View>
           <Animated.View entering={FadeInDown.delay(200).springify()}>
-            <Text size="sm" className="text-textTertiary">
+            <Text className="text-sm text-text-tertiary">
               {message}
             </Text>
           </Animated.View>

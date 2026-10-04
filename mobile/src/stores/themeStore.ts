@@ -15,7 +15,7 @@ const isThemeSetting = (value: unknown): value is ThemeSetting =>
 const secureStoreStorage = {
   getItem: (name: string) => SecureStore.getItemAsync(name),
   setItem: (name: string, value: string) => SecureStore.setItemAsync(name, value),
-  removeItem: (name: string) => SecureStore.removeItemAsync(name),
+  removeItem: (name: string) => SecureStore.deleteItemAsync(name),
 };
 
 export const useThemeStore = create<ThemeState>()(

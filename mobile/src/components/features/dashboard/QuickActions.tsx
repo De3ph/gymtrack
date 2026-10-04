@@ -2,7 +2,7 @@ import { useCallback, memo, useState } from "react";
 import { Platform } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import Animated, { Easing } from "react-native-reanimated";
+import Animated, { cubicBezier } from "react-native-reanimated";
 import { Box } from "@/components/ui/box";
 import { VStack } from "@/components/ui/vstack";
 import { Pressable } from "@/components/ui/pressable";
@@ -37,7 +37,7 @@ const CARD_STYLE = {
   transform: [{ scale: 1 }],
   transitionProperty: "transform" as const,
   transitionDuration: 120,
-  transitionTimingFunction: Easing.bezier(0.23, 1, 0.32, 1),
+  transitionTimingFunction: cubicBezier(0.23, 1, 0.32, 1),
 };
 
 const CARD_PRESSED_STYLE = {

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { impactAsync, ImpactFeedbackStyle } from "expo-haptics";
 import { Button, Host, RNHostView, Row, Text } from "@expo/ui";
 import { useI18n } from "@/lib/i18n";
-import { ChevronLeftIcon } from "@/components/ui/icon";
+import { ChevronLeftIcon, Icon } from "@/components/ui/icon";
 import { useAppColors } from "@/lib/colors";
 
 /**
@@ -64,7 +64,7 @@ export const DetailBackHeader = memo(function DetailBackHeader() {
       >
         <Row spacing={2} alignment="center">
           <RNHostView style={iconWrapStyle}>
-            <ChevronLeftIcon size="md" className="text-brand" />
+            <Icon as={ChevronLeftIcon} size="md" className="text-brand" />
           </RNHostView>
           <Text textStyle={labelStyle} numberOfLines={1}>
             {label}

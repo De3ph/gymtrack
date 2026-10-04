@@ -105,7 +105,7 @@ const StyledUIIcon = styled(UIIcon, {
       fill: true,
       color: 'classNameColor',
       stroke: true,
-    },
+    } as never,
   },
 });
 

@@ -33,9 +33,16 @@ const iconStyle = tva({
 
 const StyledUIIcon = styled(UIIcon, { className: "style" });
 
-type IIConProps = IPrimitiveIcon &
-  VariantProps<typeof iconStyle> &
-  React.ComponentPropsWithoutRef<typeof UIIcon>;
+type IconSize = React.ComponentProps<typeof UIIcon>["size"] &
+  VariantProps<typeof iconStyle>["size"];
+
+type IIConProps = Omit<IPrimitiveIcon, "size"> &
+  Omit<VariantProps<typeof iconStyle>, "size"> &
+  Omit<React.ComponentPropsWithoutRef<typeof UIIcon>, "size"> & {
+    // Runtime (see `typeof size === 'number'` branch) also supports a raw
+    // pixel value, e.g. <Icon size={28} />.
+    size?: IconSize | number;
+  };
 
 const Icon = React.forwardRef<React.ComponentRef<typeof UIIcon>, IIConProps>(
   function Icon({ size = 'md', className, ...props }, ref) {
@@ -1575,3 +1582,27 @@ const UnlockIcon = createIcon({
 
 UnlockIcon.displayName = 'UnlockIcon';
 export { UnlockIcon };
+
+const UserIcon = createIcon({
+  Root: Svg,
+  viewBox: '0 0 24 24',
+  path: (
+    <>
+      <Path
+        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+});
+
+UserIcon.displayName = 'UserIcon';
+export { UserIcon };
