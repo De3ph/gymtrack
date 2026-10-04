@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { ScrollView, RefreshControl } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import Animated, {
   Easing,
@@ -78,7 +78,13 @@ export function DashboardScreen() {
   }, [workoutsQuery, mealsQuery]);
 
   const handleOpenActivity = useCallback(
-    (type: RecentActivityType) => {
+    (type: RecentActivityType, id?: number) => {
+      if (id != null) {
+        push(
+          ((type === "workout" ? "/workouts/" : "/meals/") + String(id)) as Href,
+        );
+        return;
+      }
       push(type === "workout" ? "/(tabs)/workouts" : "/(tabs)/meals");
     },
     [push],

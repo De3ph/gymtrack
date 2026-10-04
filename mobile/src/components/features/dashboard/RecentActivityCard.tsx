@@ -54,21 +54,23 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 
 export interface RecentActivityCardProps {
   type: RecentActivityType;
+  id?: number;
   title: string;
   date: string;
   statLine: string;
-  onPress: (type: RecentActivityType) => void;
+  onPress: (type: RecentActivityType, id?: number) => void;
 }
 
 export const RecentActivityCard = memo(function RecentActivityCard({
   type,
+  id,
   title,
   date,
   statLine,
   onPress,
 }: RecentActivityCardProps) {
   const colors = useAppColors();
-  const handlePress = useCallback(() => onPress(type), [onPress, type]);
+  const handlePress = useCallback(() => onPress(type, id), [onPress, type, id]);
   const Icon = ACTIVITY_ICONS[type];
 
   return (

@@ -105,12 +105,16 @@ exercises: editExercises.map((ex, index) => ({
 
 ---
 
-### B4. Dashboard recent items don't navigate to detail
+### B4. ~~Dashboard recent items don't navigate to detail~~ — FIXED 2026-10-04
 
 **Severity**: Medium
-**File**: `src/components/features/dashboard/DashboardScreen.tsx` (lines 231-234)
+**File**: `src/components/features/dashboard/DashboardScreen.tsx`
 
-Pressing a workout/meal in "Recent Activity" navigates to the list, not the detail:
+**Fix applied**: Recent-activity taps now deep-link to the detail screen. The press chain previously dropped the item identity (`onPress(type)` → list route). `RecentActivityCard` now takes `id?: number` and calls `onPress(type, id)`; `RecentActivitiesList` derives `workout?.workoutId ?? meal?.mealId` per row (and keys rows by it) and forwards `(type, id)`; `DashboardScreen.handleOpenActivity(type, id)` pushes `/workouts/<id>` or `/meals/<id>` (same `as Href` pattern as `WorkoutsScreen`/`MealsScreen`, resolving to `app/(detail)/workouts/[id].tsx` and `app/(detail)/meals/[id].tsx` since the `(detail)` group is not part of the URL), falling back to the `/(tabs)` list route only when the id is missing.
+
+<details><summary>Original report</summary>
+
+Pressing a workout/meal in "Recent Activity" navigated to the list, not the detail:
 ```tsx
 router.push(
   item.type === "workout" ? "/(tabs)/workouts" : "/(tabs)/meals"
@@ -119,9 +123,7 @@ router.push(
 
 **Expected**: Should navigate to `/workouts/${id}` or `/meals/${id}` (detail screens exist at `app/(detail)/`).
 
-**Fix**: Change to `router.push("/workouts/" + workout.workoutId)` / `router.push("/meals/" + meal.mealId)`.
-
-**Effort**: Small (~15min)
+</details>
 
 ---
 
@@ -328,7 +330,7 @@ These features were listed as gaps in the earlier analysis but are now implement
 ### Quick Wins (< 1h each)
 | ID | Fix | Effort |
 |----|-----|--------|
-| B4 | Dashboard → detail navigation | 15min |
+| B4 | ~~Dashboard → detail navigation~~ **DONE 2026-10-04** | ✅ fixed |
 | B6 | Remove dead `creatorId` from plan update | 5min |
 | M7 | i18n tab bar labels | 30min |
 | M5 | Show trainer availability on detail | 1h |

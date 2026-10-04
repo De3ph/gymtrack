@@ -21,7 +21,7 @@ interface RecentActivityItem {
 interface RecentActivitiesListProps {
   workouts: Workout[];
   meals: Meal[];
-  onOpenActivity: (type: RecentActivityType) => void;
+  onOpenActivity: (type: RecentActivityType, id?: number) => void;
 }
 
 export const RecentActivitiesList = memo(function RecentActivitiesList({
@@ -99,10 +99,12 @@ export const RecentActivitiesList = memo(function RecentActivitiesList({
             const statLine = workout
               ? `${totalSets} sets ${DOT} ${workout.exercises?.length ?? 0} ex`
               : `${totalCal} kcal ${DOT} ${meal?.items?.length ?? 0} items`;
+            const activityId = workout?.workoutId ?? meal?.mealId ?? undefined;
             return (
               <RecentActivityCard
-                key={item.type + "-" + idx}
+                key={item.type + "-" + String(activityId ?? idx)}
                 type={item.type}
+                id={activityId}
                 title={
                   item.type === "workout"
                     ? t("common.navigation.workouts")
