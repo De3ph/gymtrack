@@ -148,10 +148,14 @@ Dashboard always calls `workoutApi.getAll()` and `mealApi.getAll()`. Backend han
 
 ---
 
-### B6. Workout Plan Detail save sends unnecessary creatorId
+### B6. ~~Workout Plan Detail save sends unnecessary creatorId~~ — FIXED 2026-10-04
 
 **Severity**: Low (cosmetic)
-**File**: `src/components/features/workout-plan/WorkoutPlanDetailScreen.tsx` (line 62)
+**File**: `src/components/features/workout/workout-plan/WorkoutPlanDetailScreen.tsx` (update mutation)
+
+**Fix applied**: Removed `creatorId: user?.userId ?? 0` from the update payload. The mobile `workoutPlanApi.update` accepts `Partial<Omit<WorkoutPlan, ...>>`, so the field was optional and dropping it type-checks cleanly; `user` is still read for `isTrainer`. Backend `UpdatePlanRequest` (`workout_plan_handler.go:32-36`) only binds `name`, `description`, `exercises` — creator comes from JWT.
+
+<details><summary>Original report</summary>
 
 ```tsx
 workoutPlanApi.update(id!, { creatorId: user?.userId ?? 0, ... })
@@ -162,6 +166,7 @@ Backend `UpdatePlanRequest` has no `creatorId` field. Harmless but misleading de
 **Fix**: Remove `creatorId` from the update payload.
 
 **Effort**: Trivial (~5min)
+</details>
 
 ---
 
@@ -335,7 +340,7 @@ These features were listed as gaps in the earlier analysis but are now implement
 | ID | Fix | Effort |
 |----|-----|--------|
 | B4 | ~~Dashboard → detail navigation~~ **DONE 2026-10-04** | ✅ fixed |
-| B6 | Remove dead `creatorId` from plan update | 5min |
+| B6 | ~~Remove dead `creatorId` from plan update~~ **DONE 2026-10-04** | ✅ fixed |
 | M7 | i18n tab bar labels | 30min |
 | M5 | Show trainer availability on detail | 1h |
 
@@ -368,8 +373,8 @@ These features were listed as gaps in the earlier analysis but are now implement
 | File | Bugs | Missing Features |
 |------|------|------------------|
 | `src/components/features/auth/LoginScreen.tsx` | B1 | M1 |
-| `src/components/features/workout-plan/WorkoutPlansScreen.tsx` | B2 | — |
-| `src/components/features/workout-plan/WorkoutPlanDetailScreen.tsx` | B3, B6 | M2 |
+| `src/components/features/workout/workout-plan/WorkoutPlansScreen.tsx` | B2 | — |
+| `src/components/features/workout/workout-plan/WorkoutPlanDetailScreen.tsx` | B3, B6 | M2 |
 | `src/components/features/dashboard/DashboardScreen.tsx` | B4, B5 | — |
 | `src/components/features/trainer/ClientDetailScreen.tsx` | — | M3, M6 |
 | `src/components/features/trainer/TrainerDetailScreen.tsx` | — | M5 |

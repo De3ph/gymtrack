@@ -58,7 +58,6 @@ export function WorkoutPlanDetailScreen() {
   const { mutate: savePlan, isPending: saving } = useMutation({
     mutationFn: () =>
       workoutPlanApi.update(id!, {
-        creatorId: user?.userId ?? 0,
         name: editName,
         description: editDescription,
         exercises: (data?.exercises ?? []).map((ex, index) => ({
