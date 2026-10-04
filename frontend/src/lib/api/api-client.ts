@@ -72,8 +72,12 @@ async function request<T>(
     throw new Error(errorMessage)
   }
 
+  // A 204 carries no body, so there is nothing to parse. Returning `{}` here used
+  // to fabricate an empty object that callers typed as their real response model,
+  // so an "absent" resource silently arrived as a valid-looking value with every
+  // field undefined. `null` states the truth and forces callers to handle it.
   if (response.status === 204) {
-    return {} as T
+    return null as T
   }
 
   return response.json().catch((error) => {

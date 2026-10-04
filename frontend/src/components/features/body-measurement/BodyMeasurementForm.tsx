@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { History, Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
-import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { useState } from "react";
 
@@ -42,6 +41,15 @@ const sanitizeNumericInput = (raw: string): string =>
   raw.replace(/[^\d.]/g, "");
 
 const buildEmptyParts = (): Record<string, BodyMeasurementPart> => ({});
+
+/**
+ * The unit Select must stay controlled for the component's lifetime, so it can
+ * never receive `undefined` (nor an unknown string) from form state. The API can
+ * omit `weightUnit` — notably `GET /measurements/latest` answers 204 and
+ * `api-client` turns that into `{}` — so every read is funnelled through here.
+ */
+const normalizeWeightUnit = (value: unknown): "kg" | "lbs" =>
+  value === "lbs" ? "lbs" : "kg";
 
 const formatPartsForApi = (
   parts: Record<string, BodyMeasurementPart> | undefined,
@@ -88,7 +96,7 @@ export function BodyMeasurementForm({
         ? formatDate(new Date(initialMeasurement.date), "HH:mm")
         : formatDate(new Date(), "HH:mm"),
       weight: initialMeasurement?.weight ?? 0,
-      weightUnit: (initialMeasurement?.weightUnit ?? "kg") as "kg" | "lbs",
+      weightUnit: normalizeWeightUnit(initialMeasurement?.weightUnit),
       bodyFatPct: initialMeasurement?.bodyFatPct ?? undefined,
       parts: (initialMeasurement?.parts
         ? (initialMeasurement.parts as Record<string, BodyMeasurementPart>)
@@ -143,13 +151,20 @@ export function BodyMeasurementForm({
   const { mutate: fetchPrevious, isPending: isFetchingPrevious } = useMutation({
     mutationFn: () => bodyMeasurementApi.getLatest(),
     onSuccess: (latest) => {
+      // `GET /measurements/latest` answers 204 for an athlete with no measurements,
+      // which `api-client` surfaces as null. Bailing out keeps every form field
+      // (notably weightUnit, whose Select must stay controlled) out of undefined.
+      if (!latest) {
+        setSubmitError(t("no_previous_measurement"));
+        return;
+      }
       const nextParts: Record<string, BodyMeasurementPart> =
         (latest.parts as Record<string, BodyMeasurementPart>) ?? {};
       form.reset({
         date: new Date(latest.date),
-        measurementTime: dayjs(latest.date).format("HH:mm"),
-        weight: latest.weight,
-        weightUnit: latest.weightUnit,
+        measurementTime: formatDate(latest.date, "HH:mm"),
+        weight: latest.weight ?? 0,
+        weightUnit: normalizeWeightUnit(latest.weightUnit),
         bodyFatPct: latest.bodyFatPct ?? undefined,
         parts: nextParts,
         notes: "",
@@ -317,9 +332,9 @@ export function BodyMeasurementForm({
           <form.Field name="weightUnit">
             {(field) => (
               <Select
-                value={field.state.value}
+                value={normalizeWeightUnit(field.state.value)}
                 onValueChange={(value) =>
-                  field.handleChange(value as "kg" | "lbs")
+                  field.handleChange(normalizeWeightUnit(value))
                 }
               >
                 <SelectTrigger id="measurement-unit" className="w-full">

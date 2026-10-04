@@ -1223,6 +1223,7 @@
       "log_card_title": "Yeni Vücut Ölçümü",
       "log_card_description": "Mevcut kilonuzu ve ölçtüğünüz vücut bölümlerini kaydedin.",
       "fetch_previous": "Öncekini Kullan",
+      "no_previous_measurement": "Önceki ölçüm bulunamadı. Mevcut değerlerinizi girin.",
       "latest": {
         "title": "Son Ölçüm",
         "weight": "Kilo",

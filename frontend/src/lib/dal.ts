@@ -101,7 +101,12 @@ async function serverFetch<T>(
     throw new Error(message)
   }
 
-  if (res.status === 204) return {} as T
+  // A 204 carries no body. Returning `{}` here would fabricate an empty object
+  // that callers type as their real response model, so an absent resource
+  // silently arrives looking valid with every field undefined. Return `null`
+  // instead and let callers narrow. (GET /measurements/latest is currently the
+  // only 204 in the API; see getLatestBodyMeasurementCached below.)
+  if (res.status === 204) return null as T
   return res.json() as Promise<T>
 }
 
@@ -175,12 +180,12 @@ export async function getLatestBodyMeasurementCached(
   'use cache'
   cacheLife({ revalidate: 30, expire: 60 })
   cacheTag('body-measurements', 'latest-body-measurement')
-  const result = await serverFetch<Record<string, unknown> | null>(
+  // serverFetch maps 204 to null, so the empty-history case arrives as null
+  // directly rather than needing an empty-object sniff here.
+  return await serverFetch<BodyMeasurement | null>(
     '/measurements/latest',
     accessToken,
   )
-  if (result && Object.keys(result).length === 0) return null
-  return result as BodyMeasurement | null
 }
 
 /**

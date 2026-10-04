@@ -19,8 +19,11 @@ export const bodyMeasurementApi = {
     return api.get<BodyMeasurement>(`/measurements/${id}`)
   },
 
-  getLatest: async (athleteId?: number) => {
-    return api.get<BodyMeasurement>("/measurements/latest", {
+  // The backend answers 204 when the athlete has no measurements yet (see the
+  // `@Success 204` annotation on GET /measurements/latest). That "or null" cannot
+  // be expressed in the generated OpenAPI types, so it is declared here by hand.
+  getLatest: async (athleteId?: number): Promise<BodyMeasurement | null> => {
+    return api.get<BodyMeasurement | null>("/measurements/latest", {
       params: athleteId ? { athleteId } : undefined
     })
   },

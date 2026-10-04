@@ -1223,6 +1223,7 @@
       "log_card_title": "New Body Measurement",
       "log_card_description": "Record your current weight and any body part measurements.",
       "fetch_previous": "Use Previous",
+      "no_previous_measurement": "No previous measurement found. Enter your current values.",
       "latest": {
         "title": "Latest",
         "weight": "Weight",
