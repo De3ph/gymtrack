@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
 import { buttonVariants } from "@/components/ui/button";
+import { NoiseBackground } from "@/components/ui/noise-background";
 import { motion } from "motion/react";
 import {
   reducedMotionVariants,
@@ -10,10 +11,6 @@ import {
   textStagger,
 } from "../landing-variants";
 import { useReducedMotion } from "../useReducedMotion";
-import {
-  RippleButton,
-  RippleButtonRipples,
-} from "@/components/animate-ui/components/buttons/ripple";
 
 export function HeroActions() {
   const t = useTranslations("home");
@@ -26,34 +23,54 @@ export function HeroActions() {
       variants={staggerVariants}
       className="mt-12 flex flex-col gap-3 sm:flex-row sm:items-center"
     >
-      <motion.div variants={revealVariants}>
-        <Link
-          href={ROUTES.REGISTER}
-          className={buttonVariants({
-            variant: "default",
-            size: "lg",
-            className:
-              "h-12 rounded-none border-foreground bg-foreground px-6 font-mono text-xs uppercase tracking-[0.18em] text-background hover:bg-background hover:text-foreground",
-          })}
+      <motion.div variants={revealVariants} className="w-full sm:w-auto">
+        <NoiseBackground
+          padding="p-px"
+          radius="rounded-none"
+          gradientColors={[
+            "rgb(239 68 68)",
+            "rgb(245 158 11)",
+            "rgb(20 184 166)",
+          ]}
+          containerClassName="w-full sm:w-fit"
         >
-          {t("sign_up")}
-          <ArrowRight className="size-5" />
-        </Link>
-      </motion.div>
-      <motion.div variants={revealVariants}>
-        <Link href={ROUTES.LOGIN}>
-          <RippleButton
+          <Link
+            href={ROUTES.REGISTER}
             className={buttonVariants({
               variant: "default",
               size: "lg",
               className:
-                "h-12 rounded-none border-foreground bg-foreground px-6 font-mono text-xs uppercase tracking-[0.18em] text-background hover:bg-background hover:text-foreground",
+                "h-12 w-full rounded-none border-foreground bg-foreground px-6 font-mono text-xs uppercase tracking-[0.18em] text-background hover:bg-background hover:text-foreground sm:w-auto",
+            })}
+          >
+            {t("sign_up")}
+            <ArrowRight className="size-5" aria-hidden="true" />
+          </Link>
+        </NoiseBackground>
+      </motion.div>
+      <motion.div variants={revealVariants} className="w-full sm:w-auto">
+        <NoiseBackground
+          padding="p-px"
+          radius="rounded-none"
+          gradientColors={[
+            "rgb(239 68 68)",
+            "rgb(245 158 11)",
+            "rgb(20 184 166)",
+          ]}
+          containerClassName="w-full sm:w-fit"
+        >
+          <Link
+            href={ROUTES.LOGIN}
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className:
+                "h-12 w-full rounded-none border-foreground bg-background! px-6 font-mono text-xs uppercase tracking-[0.18em] text-foreground hover:bg-foreground! hover:text-background dark:bg-background! sm:w-auto",
             })}
           >
             {t("login")}
-            <RippleButtonRipples color="red" />
-          </RippleButton>
-        </Link>
+          </Link>
+        </NoiseBackground>
       </motion.div>
     </motion.div>
   );
