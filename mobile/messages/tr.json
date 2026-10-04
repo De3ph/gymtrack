@@ -573,7 +573,8 @@
       "items": "besin",
       "kcal": "kcal",
       "confirm_delete": "Bu öğün silinsin mi?",
-      "comments": "Yorumlar"
+      "comments": "Yorumlar",
+      "more_options": "Diğer seçenekler"
     },
     "item": {
       "protein_short": "P",

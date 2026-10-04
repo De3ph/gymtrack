@@ -3,9 +3,13 @@ import {
   FlatList,
   RefreshControl,
   ListRenderItemInfo,
-  Alert
+  Alert,
+  Platform,
+  type AccessibilityActionEvent
 } from "react-native"
 import { useRouter, type Href } from "expo-router"
+import * as Haptics from "expo-haptics"
+import Animated, { cubicBezier } from "react-native-reanimated"
 import { useI18n } from "@/lib/i18n"
 import { mealApi } from "@/api/mealApi"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -14,19 +18,80 @@ import { canEdit } from "@/lib/canEdit"
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Button, Host } from "@expo/ui";
-import { Badge, BadgeText } from "@/components/ui/badge";
 import { HStack } from "@/components/ui/hstack";
 import { Pressable } from "@/components/ui/pressable";
 import { Spinner } from "@/components/ui/spinner";
-import { Icon, AddIcon } from "@/components/ui/icon";
+import { Icon, AddIcon, ThreeDotsIcon } from "@/components/ui/icon";
 import { Center } from "@/components/ui/center";
 import { MealIcon } from "@/components/icons";
 import { useAppColors } from "@/lib/colors";
+import type { ThemeColors } from "@/constants/Colors";
 import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
 import { MealFormModal } from "@/components/features/meal/MealFormModal";
 
-// Meal card for the list
+const EASE_OUT = cubicBezier(0.23, 1, 0.32, 1)
+
+const CARD_STYLE = {
+  transform: [{ scale: 1 }],
+  transitionProperty: "transform" as const,
+  transitionDuration: 140,
+  transitionTimingFunction: EASE_OUT
+}
+
+const CARD_PRESSED_STYLE = {
+  transform: [{ scale: 0.97 }]
+}
+
+const FAB_STYLE = {
+  transform: [{ scale: 1 }],
+  transitionProperty: "transform" as const,
+  transitionDuration: 120,
+  transitionTimingFunction: EASE_OUT
+}
+
+const FAB_PRESSED_STYLE = {
+  transform: [{ scale: 0.96 }]
+}
+
+type MealTypeKey = "breakfast" | "lunch" | "dinner" | "snack"
+
+interface MealTypeMeta {
+  surfaceClass: string
+  textClass: string
+  colorKey: keyof ThemeColors
+}
+
+const MEAL_TYPE_META: Record<MealTypeKey, MealTypeMeta> = {
+  breakfast: {
+    surfaceClass: "bg-warning-surface",
+    textClass: "text-warning-text",
+    colorKey: "warning"
+  },
+  lunch: {
+    surfaceClass: "bg-brand-surface",
+    textClass: "text-brand",
+    colorKey: "accent"
+  },
+  dinner: {
+    surfaceClass: "bg-surface-subtle",
+    textClass: "text-text-secondary",
+    colorKey: "textSecondary"
+  },
+  snack: {
+    surfaceClass: "bg-success-surface",
+    textClass: "text-success-text",
+    colorKey: "success"
+  }
+}
+
+const DEFAULT_MEAL_META = MEAL_TYPE_META.dinner
+
+function triggerHaptic() {
+  if (Platform.OS === "ios") {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+  }
+}
 
 interface MealCardProps {
   meal: Meal
@@ -38,57 +103,188 @@ interface MealCardProps {
 
 function MealCard({ meal, editable, onOpen, onEdit, onDelete }: MealCardProps) {
   const { t } = useI18n()
-  const itemCount = meal.items?.length ?? 0
-  const totalCalories =
-    meal.items?.reduce((sum, item) => sum + (item.calories ?? 0), 0) ?? 0
+  const colors = useAppColors()
+  const [pressed, setPressed] = useState(false)
 
+  const items = meal.items ?? []
+  const itemCount = items.length
+  const totalCalories = items.reduce(
+    (sum, item) => sum + (item.calories ?? 0),
+    0
+  )
+  const macros = items.reduce(
+    (acc, item) => ({
+      protein: acc.protein + (item.macros?.protein ?? 0),
+      carbs: acc.carbs + (item.macros?.carbs ?? 0),
+      fats: acc.fats + (item.macros?.fats ?? 0)
+    }),
+    { protein: 0, carbs: 0, fats: 0 }
+  )
+  const hasMacros = macros.protein > 0 || macros.carbs > 0 || macros.fats > 0
+
+  const rawType = String(meal.mealType)
+  const meta = MEAL_TYPE_META[rawType as MealTypeKey] ?? DEFAULT_MEAL_META
+
+  const typeKey = "meal.form.meal_type." + rawType
+  const translatedType = t(typeKey)
   const mealTypeLabel =
-    String(meal.mealType).charAt(0).toUpperCase() +
-    String(meal.mealType).slice(1)
+    translatedType === typeKey
+      ? rawType.charAt(0).toUpperCase() + rawType.slice(1)
+      : translatedType
 
-  const formattedDate = new Date(meal.date).toLocaleDateString(undefined, {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  })
+  const parsedDate = new Date(meal.date)
+  const formattedDate = Number.isNaN(parsedDate.getTime())
+    ? meal.date
+    : parsedDate.toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      })
+
+  const preview = items
+    .map((item) => item.food)
+    .filter((food): food is string => Boolean(food))
+    .join(", ")
+
+  const handleOpenActions = useCallback(() => {
+    Alert.alert(mealTypeLabel, formattedDate, [
+      { text: t("common.actions.edit"), onPress: () => onEdit(meal) },
+      {
+        text: t("common.actions.delete"),
+        style: "destructive",
+        onPress: () => onDelete(meal)
+      },
+      { text: t("common.actions.cancel"), style: "cancel" }
+    ])
+  }, [mealTypeLabel, formattedDate, t, meal, onEdit, onDelete])
+
+  const handleAccessibilityAction = useCallback(
+    (event: AccessibilityActionEvent) => {
+      switch (event.nativeEvent.actionName) {
+        case "edit":
+          onEdit(meal)
+          break
+        case "delete":
+          onDelete(meal)
+          break
+      }
+    },
+    [meal, onEdit, onDelete]
+  )
+
+  const accessibilityLabel =
+    mealTypeLabel +
+    ", " +
+    formattedDate +
+    ", " +
+    String(itemCount) +
+    " " +
+    t("meal.card.items") +
+    ", " +
+    String(totalCalories) +
+    " " +
+    t("meal.card.kcal")
 
   return (
     <Pressable
-      onPress={() => onOpen(meal)}
-      className="mb-2 rounded-xl bg-card p-4"
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      onPress={() => {
+        triggerHaptic()
+        onOpen(meal)
+      }}
+      onLongPress={editable ? handleOpenActions : undefined}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={t("meal.list.view_details")}
+      accessibilityActions={
+        editable ? [{ name: "edit" }, { name: "delete" }] : undefined
+      }
+      onAccessibilityAction={editable ? handleAccessibilityAction : undefined}
+      className="w-full"
     >
-      <HStack className="mb-2 items-center justify-between">
-        <Text className="text-[15px] font-semibold text-text">{formattedDate}</Text>
-        <Badge className="rounded-md bg-primary/10 px-2.5 py-1">
-          <BadgeText className="text-xs font-semibold capitalize text-primary">
-            {mealTypeLabel}
-          </BadgeText>
-        </Badge>
-      </HStack>
-      <HStack className="items-center">
-        <Text className="text-[13px] text-text-secondary">
-          {String(itemCount) + " " + t("meal.card.items")}
-        </Text>
-        <Text className="mx-2 text-[13px] text-text-tertiary">|</Text>
-        <Text className="text-[13px] text-text-secondary">
-          {String(totalCalories) + " " + t("meal.card.kcal")}
-        </Text>
-      </HStack>
-      {editable && (
-        <HStack className="mt-2.5 justify-end gap-4 border-t border-border pt-2">
-          <Pressable onPress={() => onEdit(meal)} className="px-2 py-1">
-            <Text className="text-sm font-semibold text-primary">
-              {t("common.actions.edit")}
-            </Text>
-          </Pressable>
-          <Pressable onPress={() => onDelete(meal)} className="px-2 py-1">
-            <Text className="text-sm font-semibold text-danger">
-              {t("common.actions.delete")}
-            </Text>
-          </Pressable>
+      <Animated.View
+        className="min-h-[168px] w-full overflow-hidden rounded-[18px] border border-border bg-card p-3"
+        style={[CARD_STYLE, pressed && CARD_PRESSED_STYLE]}
+      >
+        <HStack className="items-start justify-between">
+          <Box
+            className={
+              "h-8 w-8 items-center justify-center rounded-[10px] " +
+              meta.surfaceClass
+            }
+          >
+            <MealIcon size={18} color={colors[meta.colorKey]} />
+          </Box>
+
+          {editable ? (
+            <Pressable
+              onPress={handleOpenActions}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t("meal.card.more_options")}
+              className="h-6 w-6 items-center justify-center active:opacity-50"
+            >
+              <Icon
+                as={ThreeDotsIcon}
+                size="sm"
+                className="text-text-tertiary"
+              />
+            </Pressable>
+          ) : null}
         </HStack>
-      )}
+
+        <Box className="flex-1" />
+
+        <Text
+          className={
+            "text-[10px] font-bold uppercase tracking-[1.2px] " + meta.textClass
+          }
+          numberOfLines={1}
+        >
+          {mealTypeLabel}
+        </Text>
+        <Text
+          className="mt-0.5 text-[14px] font-semibold text-text"
+          numberOfLines={1}
+        >
+          {formattedDate}
+        </Text>
+        {preview ? (
+          <Text
+            className="mt-0.5 text-[11px] text-text-secondary"
+            numberOfLines={1}
+          >
+            {preview}
+          </Text>
+        ) : null}
+
+        <HStack className="mt-1.5 items-center gap-1.5">
+          <Text className="text-[11px] font-semibold text-text-body">
+            {String(itemCount) + " " + t("meal.card.items")}
+          </Text>
+          <Box className="h-1 w-1 rounded-full bg-text-tertiary" />
+          <Text className="text-[11px] text-text-tertiary">
+            {String(totalCalories) + " " + t("meal.card.kcal")}
+          </Text>
+        </HStack>
+
+        {hasMacros ? (
+          <Text
+            className="mt-0.5 text-[10px] text-text-tertiary"
+            numberOfLines={1}
+          >
+            {t("meal.item.protein_short") +
+              " " +
+              String(macros.protein) +
+              "g"}
+            {" \u00b7 "}
+            {t("meal.item.carbs_short") + " " + String(macros.carbs) + "g"}
+            {" \u00b7 "}
+            {t("meal.item.fats_short") + " " + String(macros.fats) + "g"}
+          </Text>
+        ) : null}
+      </Animated.View>
     </Pressable>
   )
 }
@@ -98,6 +294,8 @@ export function MealsScreen() {
   const colors = useAppColors()
   const queryClient = useQueryClient()
   const router = useRouter()
+
+  const [fabPressed, setFabPressed] = useState(false)
 
   const openDetail = useCallback((m: Meal) => {
     if (m.mealId == null) return
@@ -166,13 +364,15 @@ export function MealsScreen() {
 
   const renderMealItem = useCallback(
     ({ item }: ListRenderItemInfo<Meal>) => (
-      <MealCard
-        meal={item}
-        editable={canEdit(item.createdAt)}
-        onOpen={openDetail}
-        onEdit={openEditModal}
-        onDelete={handleDelete}
-      />
+      <Box className="w-[48.5%]">
+        <MealCard
+          meal={item}
+          editable={canEdit(item.createdAt)}
+          onOpen={openDetail}
+          onEdit={openEditModal}
+          onDelete={handleDelete}
+        />
+      </Box>
     ),
     [openDetail, handleDelete]
   )
@@ -222,8 +422,12 @@ export function MealsScreen() {
     <Box className="flex-1 bg-background">
       <FlatList
         data={meals}
+        numColumns={2}
         keyExtractor={mealKeyExtractor}
         renderItem={renderMealItem}
+        columnWrapperStyle={
+          meals.length > 0 ? { justifyContent: "space-between" } : undefined
+        }
         contentContainerStyle={
           meals.length === 0 ? { flexGrow: 1, justifyContent: "center", padding: 24 } : { padding: 16, paddingBottom: 100 }
         }
@@ -239,14 +443,26 @@ export function MealsScreen() {
       {/* FAB */}
       {!modalVisible && (
         <Pressable
-          onPress={openCreateModal}
-          className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-hard-2"
+          onPressIn={() => setFabPressed(true)}
+          onPressOut={() => setFabPressed(false)}
+          onPress={() => {
+            triggerHaptic()
+            openCreateModal()
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t("meal.form.title")}
+          className="absolute bottom-6 right-6"
         >
-          <Icon
-            as={AddIcon}
-            size="xl"
-            className="h-7 w-7 text-primary-foreground"
-          />
+          <Animated.View
+            className="h-14 w-14 items-center justify-center rounded-full bg-primary shadow-hard-2"
+            style={[FAB_STYLE, fabPressed && FAB_PRESSED_STYLE]}
+          >
+            <Icon
+              as={AddIcon}
+              size="xl"
+              className="h-7 w-7 text-primary-foreground"
+            />
+          </Animated.View>
         </Pressable>
       )}
 

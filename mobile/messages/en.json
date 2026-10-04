@@ -573,7 +573,8 @@
       "items": "items",
       "kcal": "kcal",
       "confirm_delete": "Delete this meal?",
-      "comments": "Comments"
+      "comments": "Comments",
+      "more_options": "More options"
     },
     "item": {
       "protein_short": "P",
