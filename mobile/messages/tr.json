@@ -284,6 +284,64 @@
       "sign_in": "Giriş Yapın",
       "cancel": "İptal"
     },
+    "forgot_password": {
+      "title": "Şifrenizi mi unuttunuz?",
+      "subtitle": "E-postanızı girin, size geri dönmeniz için bir bağlantı gönderelim.",
+      "email": {
+        "label": "E-posta",
+        "placeholder": "ad@ornek.com",
+        "error": {
+          "required": "E-posta zorunludur",
+          "invalid": "Lütfen geçerli bir e-posta girin"
+        }
+      },
+      "submit": "Sıfırlama bağlantısı gönder",
+      "submitting": "Gönderiliyor...",
+      "back_to_login": "Girişe dön",
+      "have_code": "Sıfırlama kodunuz var mı?",
+      "enter_code": "Sıfırlama kodunu girin",
+      "success": {
+        "title": "E-postanızı kontrol edin",
+        "subtitle": "{email} için bir hesap varsa, az önce sıfırlama bağlantısı gönderdik. Bir saat sonra geçersiz olacak.",
+        "didnt_get_it": "Gelmedi mi?",
+        "resend": "Yeniden gönder",
+        "resending": "Gönderiliyor..."
+      }
+    },
+    "reset_password": {
+      "title": "Yeni şifre belirleyin",
+      "subtitle": "E-postanızdaki kodu girin, ardından yeni şifrenizi seçin.",
+      "token": {
+        "label": "Sıfırlama kodu",
+        "placeholder": "E-postanızdaki kodu yapıştırın",
+        "error": {
+          "required": "Sıfırlama kodu zorunludur"
+        }
+      },
+      "new_password": {
+        "label": "Yeni şifre",
+        "placeholder": "Yeni bir şifre oluşturun",
+        "error": {
+          "required": "Yeni şifre zorunludur",
+          "min_length": "Şifre en az 8 karakter olmalıdır"
+        }
+      },
+      "confirm_password": {
+        "label": "Yeni şifreyi onaylayın",
+        "placeholder": "Yeni şifrenizi onaylayın",
+        "error": {
+          "required": "Lütfen yeni şifrenizi onaylayın",
+          "mismatch": "Şifreler eşleşmiyor"
+        }
+      },
+      "submit": "Şifreyi sıfırla",
+      "submitting": "Sıfırlanıyor...",
+      "back_to_login": "Girişe dön",
+      "success": {
+        "title": "Şifre sıfırlandı",
+        "subtitle": "Şifreniz başarıyla sıfırlandı. Artık yeni şifrenizle giriş yapabilirsiniz."
+      }
+    },
     "logout": {
       "confirm": "Çıkış yapmak istediğinizden emin misiniz?",
       "message": "Hesabınıza tekrar giriş yapmanız gerekecek.",
@@ -962,6 +1020,7 @@
       "select_title": "Seçim",
       "select_message": "En az bir sporcu seç",
       "update_failed": "Plan güncellenemedi",
+      "create_failed": "Plan oluşturulamadı",
       "delete_failed": "Plan silinemedi",
       "delete_confirm_detail": "Bu işlem geri alınamaz. Bu plan silinsin mi?",
       "delete_confirm_list": "Bu antrenman planı silinsin mi?",

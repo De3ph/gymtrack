@@ -25,5 +25,19 @@ export const authApi = {
   logout: () =>
     apiRequest<void>("/auth/logout", { method: "POST" }),
 
+  requestPasswordReset: (data: { email: string }) =>
+    apiRequest<{ message: string }>("/auth/password-reset/request", {
+      method: "POST",
+      body: data,
+      skipSessionRefresh: true,
+    }),
+
+  confirmPasswordReset: (data: { token: string; newPassword: string }) =>
+    apiRequest<{ message: string }>("/auth/password-reset/confirm", {
+      method: "POST",
+      body: data,
+      skipSessionRefresh: true,
+    }),
+
   getMe: () => apiRequest<User>("/users/me"),
 };

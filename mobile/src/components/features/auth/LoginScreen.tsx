@@ -172,8 +172,8 @@ export function LoginScreen() {
                 {t("auth.login.password.label")}
               </FormControlLabelText>
               <Pressable
-                onPress={() => {}}
-                accessibilityRole="button"
+                onPress={() => router.push("/(auth)/forgot-password")}
+                accessibilityRole="link"
                 accessibilityHint={t("auth.login.forgot_password")}
                 hitSlop={8}
               >

@@ -284,6 +284,64 @@
       "has_account": "Already have an account?",
       "sign_in": "Sign in"
     },
+    "forgot_password": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send a link to get you back in.",
+      "email": {
+        "label": "Email",
+        "placeholder": "name@example.com",
+        "error": {
+          "required": "Email is required",
+          "invalid": "Please enter a valid email"
+        }
+      },
+      "submit": "Send reset link",
+      "submitting": "Sending...",
+      "back_to_login": "Back to log in",
+      "have_code": "Already have a reset code?",
+      "enter_code": "Enter reset code",
+      "success": {
+        "title": "Check your inbox",
+        "subtitle": "If an account exists for {email}, we just sent a reset link. It expires in one hour.",
+        "didnt_get_it": "Didn't get it?",
+        "resend": "Send another link",
+        "resending": "Sending..."
+      }
+    },
+    "reset_password": {
+      "title": "Set a new password",
+      "subtitle": "Enter the code from your email, then choose a new password.",
+      "token": {
+        "label": "Reset code",
+        "placeholder": "Paste the code from your email",
+        "error": {
+          "required": "Reset code is required"
+        }
+      },
+      "new_password": {
+        "label": "New password",
+        "placeholder": "Create a new password",
+        "error": {
+          "required": "New password is required",
+          "min_length": "Password must be at least 8 characters"
+        }
+      },
+      "confirm_password": {
+        "label": "Confirm new password",
+        "placeholder": "Confirm your new password",
+        "error": {
+          "required": "Please confirm your new password",
+          "mismatch": "Passwords do not match"
+        }
+      },
+      "submit": "Reset password",
+      "submitting": "Resetting...",
+      "back_to_login": "Back to log in",
+      "success": {
+        "title": "Password reset",
+        "subtitle": "Your password has been reset successfully. You can now log in with your new password."
+      }
+    },
     "logout": {
       "confirm": "Are you sure you want to logout?",
       "message": "You will need to sign in again to access your account.",
@@ -962,6 +1020,7 @@
       "select_title": "Select",
       "select_message": "Select at least one athlete",
       "update_failed": "Failed to update plan",
+      "create_failed": "Failed to create plan",
       "delete_failed": "Failed to delete plan",
       "delete_confirm_detail": "This action cannot be undone. Delete this plan?",
       "delete_confirm_list": "Delete this workout plan?",

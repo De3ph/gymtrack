@@ -100,3 +100,17 @@ export function useLogout() {
     onSettled: () => resetSession(),
   });
 }
+
+export function useRequestPasswordReset() {
+  return useMutation({
+    mutationFn: (data: { email: string }) =>
+      authApi.requestPasswordReset(data),
+  });
+}
+
+export function useConfirmPasswordReset() {
+  return useMutation({
+    mutationFn: (data: { token: string; newPassword: string }) =>
+      authApi.confirmPasswordReset(data),
+  });
+}

@@ -14,19 +14,19 @@ These features have mobile code that exists but is broken or non-functional.
 
 ---
 
-### B1. "Forgot Password" button is a dead no-op
+### B1. ~~"Forgot Password" button is a dead no-op~~ — FIXED 2026-10-04
 
 **Severity**: Medium
-**File**: `src/components/features/auth/LoginScreen.tsx` (line 178-187)
+**File**: `src/components/features/auth/LoginScreen.tsx`
 
-The "Forgot password?" link renders but does nothing:
+**Fix applied**: Full forgot-password flow implemented. `authApi` gained `requestPasswordReset({email})` → `POST /auth/password-reset/request` and `confirmPasswordReset({token, newPassword})` → `POST /auth/password-reset/confirm` (both `skipSessionRefresh: true`, matching the login/register precedent), wrapped in `useRequestPasswordReset` / `useConfirmPasswordReset` React Query mutations. New `ForgotPasswordScreen` (email + resend + push to confirm) and `ResetPasswordScreen` (token + new/confirm password, min 8 per backend validator, optional `token` route param for deep-link prefill), routed at `app/(auth)/forgot-password.tsx` and `reset-password.tsx` and registered in `(auth)/_layout.tsx`. The login "Forgot password?" link now pushes `/(auth)/forgot-password`. en/tr strings added under `auth.forgot_password.*` / `auth.reset_password.*`.
+
+<details><summary>Original report</summary>
+
+The "Forgot password?" link rendered but did nothing:
 ```tsx
 <Pressable onPress={() => {}} ...>
 ```
-
-**Backend endpoints exist**:
-- `POST /api/auth/password-reset/request` — sends reset email
-- `POST /api/auth/password-reset/confirm` — confirms new password
 
 **What's missing**:
 - ForgotPasswordRequest screen (enter email)
@@ -34,16 +34,20 @@ The "Forgot password?" link renders but does nothing:
 - API client methods for both endpoints
 - Navigation from login screen to forgot-password flow
 
-**Effort**: Medium (~3-4h)
+</details>
 
 ---
 
-### B2. Create Workout Plan always fails with 400
+### B2. ~~Create Workout Plan always fails with 400~~ — FIXED 2026-10-04
 
 **Severity**: High
-**File**: `src/components/features/workout-plan/WorkoutPlansScreen.tsx` (line 47)
+**File**: `src/components/features/workout/workout-plan/WorkoutPlansScreen.tsx`
 
-The create mutation sends `exercises: []`:
+**Fix applied**: The create sheet now has an exercise section backed by the existing `ExercisePicker` (rendered as a root-level sibling modal, same pattern as `ActiveWorkoutScreen`). Picking appends `{exerciseId, name}` with the real catalog ID (defaults 3×10, editable sets/reps/weight per row, removable rows). The mutation validates name non-empty and ≥1 exercise client-side (mirroring backend `required,min=1`), builds `{exerciseId, name, sets: [{weight, weightUnit: "kg", reps, restTime: 60}], notes: "", order}` per exercise, and has an `onError` handler showing inline feedback in the sheet (cleared on edit; form resets on close/success). `creatorId` kept in the payload: the backend derives the creator from JWT and ignores it, but the mobile `WorkoutPlan` type requires it. en/tr `trainer.workout_plans.create_failed` strings added.
+
+<details><summary>Original report</summary>
+
+The create mutation sent `exercises: []`:
 ```tsx
 mutationFn: () => workoutPlanApi.create({
   creatorId: user?.userId ?? 0,
@@ -55,23 +59,31 @@ mutationFn: () => workoutPlanApi.create({
 
 Backend `CreatePlanRequest` requires `validate:"required,min=1,dive"` on exercises.
 
-**Result**: User taps "Create" → silent failure (no `onError` handler) → nothing happens.
+**Result**: User tapped "Create" → silent failure (no `onError` handler) → nothing happened.
 
 **What's missing**:
 - Exercise picker/creator in the create modal (must add at least 1 exercise)
 - `onError` handler on the mutation to show user feedback
-- Remove unnecessary `creatorId` field (backend derives from JWT)
+- Remove unnecessary `creatorId` field (backend derives from JWT) — *not done: kept, backend ignores it and the shared type requires it*
 
-**Effort**: Medium (~3-4h) — requires ExercisePicker component for the create flow
+</details>
 
 ---
 
-### B3. Workout Plan Detail save sends invalid exerciseId
+### B3. ~~Workout Plan Detail save sends invalid exerciseId~~ — FIXED 2026-10-04
 
 **Severity**: High
-**File**: `src/components/features/workout-plan/WorkoutPlanDetailScreen.tsx` (line 65-76)
+**File**: `src/components/features/workout/workout-plan/WorkoutPlanDetailScreen.tsx`
 
-The update mutation hardcodes `exerciseId: 0`:
+**Fix applied**: The update mutation no longer hardcodes `exerciseId: 0` or rebuilds sets with blank `setId`/`weightUnit`/`restTime`. It now round-trips the fetched plan's original `exercises` array (preserving `exerciseId`, `sets[].setId`, `weightUnit`, `reps`, `restTime`, `notes`, `order`) so editing name/description no longer corrupts or invalidates exercise references. The unused `editExercises` state was removed; `flattenExercises` still flattens for display only.
+
+**Remaining gap (non-blocking)**: The edit modal still can't modify exercises (add/remove/reorder, per-set reps/weight). Full exercise editing in the detail screen is a larger follow-up; the create flow (B2) now has the ExercisePicker.
+
+---
+
+<details><summary>Original report</summary>
+
+The update mutation hardcoded `exerciseId: 0`:
 ```tsx
 exercises: editExercises.map((ex, index) => ({
   exerciseId: 0,  // ← invalid, backend rejects
@@ -84,15 +96,12 @@ exercises: editExercises.map((ex, index) => ({
 }))
 ```
 
-Code comment says: `// This should be set properly`
-
 **Result**: Any edit to a plan that has exercises → backend returns validation error.
 
-**What's missing**:
-- Proper exercise selection (resolve exerciseId from exercise name or catalog)
-- Proper set/rep editing UI (current edit mode only edits the first set's reps/weight)
+</details>
 
-**Effort**: Medium (~3h) — coupled to B2 (exercise catalog)
+**Remaining work (post-fix)**:
+- Exercise editing UI in the detail screen (add/remove via ExercisePicker, per-set reps/weight) — deferred; create flow covered by B2's ExercisePicker.
 
 ---
 
@@ -306,7 +315,7 @@ These features were listed as gaps in the earlier analysis but are now implement
 | G1: Edit/delete workout, meal, measurement | **Done** | `WorkoutsScreen`, `MealsScreen`, `MeasurementsScreen` all have edit/delete with `canEdit` + confirmation dialogs |
 | G2: Comments UI | **Done** | `CommentSection.tsx` exists, wired into `app/(detail)/workouts/[id].tsx` and `app/(detail)/meals/[id].tsx` |
 | G3: Submit trainer review | **Done** | `TrainerDetailScreen` has star rating input + review submission |
-| G4: Workout plan edit/delete | **Partially done** | Edit mode exists in `WorkoutPlanDetailScreen` but broken (B3). Delete works. |
+| G4: Workout plan edit/delete | **Done** | Edit mode in `WorkoutPlanDetailScreen` saves valid exercise payloads (B3 fixed 2026-10-04). Delete works. |
 | G5: Workout plan assignment | **Partially done** | `AssignClientModal` exists, wired in detail screen. May have issues. |
 | G6: Trainer availability CRUD | **Done** | `TrainerProfileScreen` has availability section with day/time editing |
 | G7: Invitation codes | **Done** | `ClientsScreen` has invite code generation. `MyTrainerScreen` has code acceptance. |
@@ -327,9 +336,9 @@ These features were listed as gaps in the earlier analysis but are now implement
 ### Core Fixes (1-4h each)
 | ID | Fix | Effort |
 |----|-----|--------|
-| B1 | Password reset flow (request + confirm screens) | 3-4h |
-| B2 | Workout plan create with exercise selection | 3-4h |
-| B3 | Workout plan save with valid exerciseId | 3h |
+| B1 | ~~Password reset flow (request + confirm screens)~~ **DONE 2026-10-04** | ✅ fixed |
+| B2 | ~~Workout plan create with exercise selection~~ **DONE 2026-10-04** | ✅ fixed |
+| B3 | ~~Workout plan save with valid exerciseId~~ **DONE 2026-10-04** | ✅ fixed |
 | B5 | Role-aware trainer dashboard | 2-3h |
 | M2 | "Start workout from plan" button | 1-2h |
 | M3 | Trainer comments on client workouts/meals | 2h |
