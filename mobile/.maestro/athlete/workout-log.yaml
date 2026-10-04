@@ -21,7 +21,7 @@ appId: com.gymtrack.app
 # Navigate to Workouts tab
 - tapOn: "Workouts"
 
-# Open create modal
+# Open active workout screen
 - tapOn: "+"
 - assertVisible:
     text: "Log New Workout"
@@ -41,8 +41,8 @@ appId: com.gymtrack.app
 - tapOn: "Reps"
 - inputText: "10"
 
-# Submit
-- tapOn: "Log Workout"
+# Submit (top-bar Finish CTA)
+- tapOn: "Finish"
 
 # Verify workout appears in list
 - assertVisible:

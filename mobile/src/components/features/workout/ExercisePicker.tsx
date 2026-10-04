@@ -13,7 +13,6 @@ import {
   ModalBackdrop,
   ModalContent,
   ModalHeader,
-  ModalBody,
   ModalCloseButton,
 } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
@@ -234,7 +233,9 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
           </Input>
         </Box>
 
-        <ModalBody className="m-0 px-4 pb-4">
+        {/* Plain flex container, not ModalBody (a ScrollView): FlashList needs
+            a bounded height from its parent to scroll. */}
+        <Box className="min-h-0 flex-1 px-4 pb-4">
           <FlashList
             data={filtered}
             renderItem={renderItem}
@@ -244,7 +245,7 @@ export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerPro
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
           />
-        </ModalBody>
+        </Box>
       </ModalContent>
     </Modal>
   );

@@ -13,7 +13,6 @@ import { Button, Host, RNHostView } from "@expo/ui";
 import { Spinner } from "@/components/ui/spinner";
 import { PlusIcon } from "@/components/icons";
 import { WorkoutCard } from "./WorkoutCard";
-import { WorkoutFormModal } from "./WorkoutFormModal";
 import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
 import { useWorkoutFormStore } from "@/stores/workout-form-store";
@@ -23,16 +22,7 @@ export function WorkoutsScreen() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const {
-    modalVisible,
-    editingWorkout,
-    newDate,
-    newExercises,
-    openCreateModal,
-    openEditModal,
-    closeModalAndReset,
-    setSubmitError,
-  } = useWorkoutFormStore();
+  const { startEdit } = useWorkoutFormStore();
 
   const openDetail = useCallback(
     (w: Workout) => {
@@ -40,6 +30,18 @@ export function WorkoutsScreen() {
       router.push(("/workouts/" + String(w.workoutId)) as Href);
     },
     [router],
+  );
+
+  const openStart = useCallback(() => {
+    router.push("/start-workout" as Href);
+  }, [router]);
+
+  const openEdit = useCallback(
+    (workout: Workout) => {
+      startEdit(workout);
+      router.push("/workout-log" as Href);
+    },
+    [startEdit, router],
   );
 
   const { data, isLoading, isError, error, refetch, isRefetching } =
@@ -50,29 +52,6 @@ export function WorkoutsScreen() {
 
   const workouts = useMemo(() => data?.workouts ?? [], [data]);
 
-  const createMutation = useMutation({
-    mutationFn: (data: Record<string, unknown>) => workoutApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] });
-      closeModalAndReset();
-    },
-    onError: (err: Error) => {
-      setSubmitError(err.message || t("common.errors.generic"));
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Record<string, unknown> }) =>
-      workoutApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts", "list"] });
-      closeModalAndReset();
-    },
-    onError: (err: Error) => {
-      setSubmitError(err.message || t("common.errors.generic"));
-    },
-  });
-
   const deleteMutation = useMutation({
     mutationFn: (id: number) => workoutApi.delete(id),
     onSuccess: () => {
@@ -82,8 +61,6 @@ export function WorkoutsScreen() {
       Alert.alert(t("common.errors.generic"), err.message);
     },
   });
-
-  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const handleDelete = useCallback(
     (workout: Workout) => {
@@ -105,80 +82,17 @@ export function WorkoutsScreen() {
     [t, deleteMutation],
   );
 
-  const handleSubmit = useCallback(() => {
-    setSubmitError(null);
-
-    if (!newDate.trim()) {
-      setSubmitError(t("workout.form.validation.date_required"));
-      return;
-    }
-
-    const validExercises = newExercises.filter((ex) => ex.name.trim() !== "");
-    if (validExercises.length === 0) {
-      setSubmitError(t("workout.form.validation.exercises_min_one"));
-      return;
-    }
-
-    for (const ex of validExercises) {
-      if (ex.sets.length === 0) {
-        setSubmitError(t("workout.form.validation.sets_min_one"));
-        return;
-      }
-      for (const s of ex.sets) {
-        if (!s.reps.trim() || isNaN(Number(s.reps)) || Number(s.reps) < 1) {
-          setSubmitError(t("workout.form.validation.reps_min_one"));
-          return;
-        }
-        if (
-          s.weight.trim() &&
-          (isNaN(Number(s.weight)) || Number(s.weight) < 0)
-        ) {
-          setSubmitError(t("workout.form.validation.weight_non_negative"));
-          return;
-        }
-      }
-    }
-
-    const payload: Record<string, unknown> = {
-      date: newDate,
-      exercises: validExercises.map((ex) => ({
-        exerciseId: ex.pickedExerciseId ?? 0,
-        name: ex.name.trim(),
-        notes: ex.notes.trim() || undefined,
-        sets: ex.sets.map((s) => ({
-          weight: s.weight.trim() ? Number(s.weight) : 0,
-          weightUnit: "kg",
-          reps: Number(s.reps),
-        })),
-      })),
-    };
-
-    if (editingWorkout?.workoutId != null) {
-      updateMutation.mutate({ id: editingWorkout.workoutId, data: payload });
-    } else {
-      createMutation.mutate(payload);
-    }
-  }, [
-    newDate,
-    newExercises,
-    editingWorkout,
-    t,
-    createMutation,
-    updateMutation,
-    setSubmitError,
-  ]);
-
   const renderItem = useCallback(
     ({ item }: { item: Workout }) => (
       <WorkoutCard
         workout={item}
         editable={canEdit(item.createdAt)}
         onOpen={openDetail}
-        onEdit={openEditModal}
+        onEdit={openEdit}
         onDelete={handleDelete}
       />
     ),
-    [openDetail, openEditModal, handleDelete],
+    [openDetail, openEdit, handleDelete],
   );
 
   const keyExtractor = useCallback(
@@ -237,36 +151,32 @@ export function WorkoutsScreen() {
         }
       />
 
-      {!modalVisible && (
-        <Host
-          matchContents
-          style={{ position: "absolute", bottom: 24, right: 24 }}
+      <Host
+        matchContents
+        style={{ position: "absolute", bottom: 24, right: 24 }}
+      >
+        <Button
+          onPress={openStart}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+          }}
         >
-          <Button
-            onPress={openCreateModal}
+          <RNHostView
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
+              width: 32,
+              height: 32,
             }}
           >
-            <RNHostView
-              style={{
-                width: 32,
-                height: 32,
-              }}
-            >
-              <PlusIcon
-                size={32}
-                color="#ffffff"
-                style={{ width: 32, lineHeight: 32, textAlign: "center" }}
-              />
-            </RNHostView>
-          </Button>
-        </Host>
-      )}
-
-      <WorkoutFormModal onSubmit={handleSubmit} isPending={isPending} />
+            <PlusIcon
+              size={32}
+              color="#ffffff"
+              style={{ width: 32, lineHeight: 32, textAlign: "center" }}
+            />
+          </RNHostView>
+        </Button>
+      </Host>
     </Box>
   );
 }

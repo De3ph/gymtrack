@@ -220,7 +220,6 @@ export function WorkoutDetailScreen() {
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />
         }
-        estimatedItemSize={100}
       />
     </Box>
   );

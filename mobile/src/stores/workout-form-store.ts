@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Workout } from "@/types";
+import type { Workout, WorkoutPlan } from "@/types";
 import { todayString } from "@/lib/dates";
 
 export interface NewSet {
@@ -60,8 +60,24 @@ function resetExerciseAndSetCounters() {
   setCounter = 0;
 }
 
+function planToExercises(plan: WorkoutPlan): NewExercise[] {
+  return (plan.exercises ?? []).map((ex) => ({
+    id: nextExerciseId(),
+    name: ex.name ?? "",
+    notes: ex.notes ?? "",
+    pickedExerciseId: ex.exerciseId > 0 ? ex.exerciseId : undefined,
+    sets:
+      ex.sets && ex.sets.length > 0
+        ? ex.sets.map((s) => ({
+            id: nextSetId(),
+            reps: s.reps ? String(s.reps) : "",
+            weight: s.weight ? String(s.weight) : "",
+          }))
+        : [createEmptySet()],
+  }));
+}
+
 interface WorkoutFormState {
-  modalVisible: boolean;
   editingWorkout: Workout | null;
   newDate: string;
   newExercises: NewExercise[];
@@ -69,9 +85,10 @@ interface WorkoutFormState {
   pickerVisible: boolean;
   pickingForExId: string | null;
 
-  openCreateModal: () => void;
-  openEditModal: (workout: Workout) => void;
-  closeModalAndReset: () => void;
+  startCreate: () => void;
+  startFromPlan: (plan: WorkoutPlan) => void;
+  startEdit: (workout: Workout) => void;
+  resetForm: () => void;
   setNewDate: (date: string) => void;
   setSubmitError: (error: string | null) => void;
   openPickerFor: (exId: string) => void;
@@ -85,6 +102,7 @@ interface WorkoutFormState {
   updateExerciseNotes: (exId: string, notes: string) => void;
   updateExercisePickedId: (exId: string, pickedExerciseId: number) => void;
   addExercise: () => void;
+  addPickedExercise: (name: string, pickedExerciseId: number) => void;
   removeExercise: (exId: string) => void;
   addSet: (exId: string) => void;
   removeSet: (exId: string, setId: string) => void;
@@ -93,7 +111,6 @@ interface WorkoutFormState {
 }
 
 export const useWorkoutFormStore = create<WorkoutFormState>((set, get) => ({
-  modalVisible: false,
   editingWorkout: null,
   newDate: todayString(),
   newExercises: [createEmptyExercise()],
@@ -101,30 +118,38 @@ export const useWorkoutFormStore = create<WorkoutFormState>((set, get) => ({
   pickerVisible: false,
   pickingForExId: null,
 
-  openCreateModal: () => {
+  startCreate: () => {
     resetExerciseAndSetCounters();
     set({
       editingWorkout: null,
       newDate: todayString(),
       newExercises: [createEmptyExercise()],
       submitError: null,
-      modalVisible: true,
     });
   },
 
-  openEditModal: (workout) => {
+  startFromPlan: (plan) => {
+    resetExerciseAndSetCounters();
+    const exercises = planToExercises(plan);
+    set({
+      editingWorkout: null,
+      newDate: todayString(),
+      newExercises: exercises.length > 0 ? exercises : [createEmptyExercise()],
+      submitError: null,
+    });
+  },
+
+  startEdit: (workout) => {
     set({
       editingWorkout: workout,
       newDate: workout.date,
       newExercises: workoutToExercises(workout),
       submitError: null,
-      modalVisible: true,
     });
   },
 
-  closeModalAndReset: () => {
+  resetForm: () => {
     set({
-      modalVisible: false,
       editingWorkout: null,
       newDate: todayString(),
       newExercises: [createEmptyExercise()],
@@ -179,6 +204,15 @@ export const useWorkoutFormStore = create<WorkoutFormState>((set, get) => ({
   addExercise: () => {
     set((state) => ({
       newExercises: [...state.newExercises, createEmptyExercise()],
+    }));
+  },
+
+  addPickedExercise: (name, pickedExerciseId) => {
+    set((state) => ({
+      newExercises: [
+        ...state.newExercises,
+        { ...createEmptyExercise(), name, pickedExerciseId },
+      ],
     }));
   },
 
