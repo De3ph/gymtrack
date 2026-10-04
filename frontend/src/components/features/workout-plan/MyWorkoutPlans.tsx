@@ -1,16 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { workoutPlanApi } from "@/lib/api";
 import { WorkoutPlanCard } from "./WorkoutPlanCard";
 import { Loader2 } from "lucide-react";
-import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 
 export function MyWorkoutPlans() {
   const t = useTranslations("athlete.workout_plans");
-  const router = useRouter();
 
   const { data, isLoading } = useQuery({
     queryKey: ["my-workout-plans"],
@@ -42,7 +39,6 @@ export function MyWorkoutPlans() {
           key={plan.planId}
           plan={plan}
           role="athlete-assigned"
-          onStart={() => router.push(ROUTES.ATHLETE_WORKOUTS + `?planId=${plan.planId}`)}
         />
       ))}
     </div>

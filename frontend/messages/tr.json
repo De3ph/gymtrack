@@ -616,7 +616,8 @@
         "label": "Plandan yükle",
         "placeholder": "Kayıtlı bir plan seç...",
         "empty": "Kayıtlı plan yok",
-        "loaded": "{name} planından egzersizler yüklendi"
+        "loaded": "{name} planından egzersizler yüklendi",
+        "loaded_title": "Plan yüklendi"
       },
       "submit": "Antrenman Kaydet",
       "submitting": "Kaydediliyor...",
@@ -1316,7 +1317,7 @@
       "description": "Kişisel ve atanan antrenman planlarınız.",
       "empty": "Henüz antrenman planınız yok. Antrenörünüzden bir plan oluşturmasını isteyin!",
       "view_plan": "Planı Görüntüle",
-      "start_workout": "Antrenmana Başla",
+      "log_workout": "Antrenman Kaydet",
       "exercises": "egzersiz",
       "set_format": "{count} set, {reps} tekrar",
       "create": "Plan Oluştur",

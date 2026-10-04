@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Tabs,
@@ -19,16 +19,19 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { toast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
 import { Workout } from "@/types";
 
 interface WorkoutsClientProps {
   initialWorkout?: Workout;
+  initialPlanName?: string | null;
   planId: string | null;
 }
 
 export function WorkoutsClient({
   initialWorkout,
+  initialPlanName,
   planId,
 }: WorkoutsClientProps) {
   const router = useRouter();
@@ -39,6 +42,26 @@ export function WorkoutsClient({
     return tabParam === "list" || tabParam === "calendar" ? tabParam : "log";
   });
   const t = useTranslations("athlete.workouts");
+  const tForm = useTranslations("workout.form");
+
+  // Confirm a plan that arrived via ?planId= (the "Log Workout" button on a
+  // plan card). Those exercises are seeded server-side, so the form simply
+  // appears filled in — nothing signals that a plan was applied.
+  //
+  // This lives here rather than in WorkoutForm because TabsPanel defaults to
+  // keepMounted={false}: the form unmounts when the athlete switches tabs and
+  // remounts with fresh state on return, so an effect inside it would re-toast
+  // every time they came back to the Log tab. This component survives tab
+  // switches, and only remounts on real navigation — so it fires once per
+  // plan, which is exactly the intent.
+  useEffect(() => {
+    if (!planId || !initialPlanName) return;
+    toast.add({
+      type: "success",
+      title: tForm("plan.loaded_title"),
+      description: tForm("plan.loaded", { name: initialPlanName }),
+    });
+  }, [planId, initialPlanName, tForm]);
 
   const handleTabChange = useCallback(
     (value: string) => {
@@ -103,6 +126,7 @@ export function WorkoutsClient({
                 <WorkoutForm
                   key={planId || "default"}
                   workout={initialWorkout}
+                  loadedPlanName={initialPlanName}
                   onSuccess={() => handleTabChange("list")}
                   onClear={handleClear}
                 />

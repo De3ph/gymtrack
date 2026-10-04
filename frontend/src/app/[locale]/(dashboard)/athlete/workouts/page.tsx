@@ -54,11 +54,17 @@ async function WorkoutsContent({
   const session = await verifySession();
   const { planId } = await searchParams;
   let initialWorkout: Workout | undefined;
+  // Carried alongside the workout so the client can name the plan in its
+  // "plan loaded" confirmation. The client can't reliably re-derive it: the
+  // name would have to come from the plan list, and an athlete's *own* plan is
+  // absent from /workout-plans/assigned. The plan is already in hand here.
+  let initialPlanName: string | null = null;
   if (planId) {
     try {
       const plan = await getWorkoutPlanCached(session.accessToken, planId);
       if (plan) {
         initialWorkout = buildWorkoutFromPlan(plan);
+        initialPlanName = plan.name;
       }
     } catch (err) {
       return (
@@ -73,5 +79,11 @@ async function WorkoutsContent({
       );
     }
   }
-  return <WorkoutsClient initialWorkout={initialWorkout} planId={planId || null} />;
+  return (
+    <WorkoutsClient
+      initialWorkout={initialWorkout}
+      initialPlanName={initialPlanName}
+      planId={planId || null}
+    />
+  );
 }

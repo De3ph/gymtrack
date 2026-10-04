@@ -280,6 +280,13 @@ const translationSchema = z.object({
         fallback_name: z.string(),
       }),
       add_exercise: z.string(),
+      plan: z.object({
+        label: z.string(),
+        placeholder: z.string(),
+        empty: z.string(),
+        loaded: z.string(),
+        loaded_title: z.string(),
+      }),
       submit: z.string(),
       submitting: z.string(),
       validation: z.object({
@@ -762,7 +769,7 @@ const translationSchema = z.object({
       description: z.string(),
       empty: z.string(),
       view_plan: z.string(),
-      start_workout: z.string(),
+      log_workout: z.string(),
       exercises: z.string(),
       set_format: z.string(),
       create: z.string(),

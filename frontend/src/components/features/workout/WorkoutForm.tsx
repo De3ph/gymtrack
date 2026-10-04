@@ -37,6 +37,13 @@ interface WorkoutFormProps {
   onSuccess?: () => void;
   onClear?: () => void;
   workout?: Workout;
+  /**
+   * Name of the plan this workout was preloaded from, when it arrived via
+   * `?planId=`. Seeds the inline "loaded from X" hint, which the server-side
+   * seeding path would otherwise never set. The load toast is fired by
+   * WorkoutsClient, which — unlike this form — survives tab switches.
+   */
+  loadedPlanName?: string | null;
 }
 
 const createDefaultExercise = (): WorkoutExercise => ({
@@ -102,6 +109,7 @@ export function WorkoutForm({
   onSuccess,
   onClear,
   workout: initialWorkout,
+  loadedPlanName: initialPlanName,
 }: WorkoutFormProps) {
   const queryClient = useQueryClient();
   const t = useTranslations("workout.form");
@@ -201,8 +209,12 @@ export function WorkoutForm({
     return merged;
   }, [ownPlansData, assignedPlansData]);
 
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
-  const [loadedPlanName, setLoadedPlanName] = useState<string | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(
+    initialWorkout?.planId != null ? String(initialWorkout.planId) : "",
+  );
+  const [loadedPlanName, setLoadedPlanName] = useState<string | null>(
+    initialPlanName ?? null,
+  );
 
   const handleLoadPlan = (plan: WorkoutPlan) => {
     form.setFieldValue(

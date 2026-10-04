@@ -616,7 +616,8 @@
         "label": "Load from plan",
         "placeholder": "Select a saved plan...",
         "empty": "No saved plans",
-        "loaded": "Loaded exercises from {name}"
+        "loaded": "Loaded exercises from {name}",
+        "loaded_title": "Plan loaded"
       },
       "submit": "Log Workout",
       "submitting": "Saving...",
@@ -1316,7 +1317,7 @@
       "description": "Your personal and assigned workout plans.",
       "empty": "You don't have any workout plans yet. Ask your trainer to create one!",
       "view_plan": "View Plan",
-      "start_workout": "Start Workout",
+      "log_workout": "Log Workout",
       "exercises": "exercises",
       "set_format": "{count} set, {reps} reps",
       "create": "Create Plan",
