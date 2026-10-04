@@ -344,16 +344,16 @@ func TestE2E_Measurement_InvalidPayloadsAndIDs(t *testing.T) {
 	RequireStatus(t, w, http.StatusBadRequest)
 }
 
-// TestE2E_Measurement_EditWindow24h exercises the 24-hour edit/delete window
+// TestE2E_Measurement_EditWindow exercises the 7-day edit/delete window
 // (models.BodyMeasurement.CanEdit) by backdating created_at directly in the DB.
-func TestE2E_Measurement_EditWindow24h(t *testing.T) {
+func TestE2E_Measurement_EditWindow(t *testing.T) {
 	env := SetupTestEnv(t)
 	token, _ := env.RegisterAthlete(t, "bmwin")
 	measurementID := createMeasurement(t, env, token)
 
-	// Backdate the row beyond the 24h window
+	// Backdate the row beyond the 7-day window
 	if _, err := env.DB.Exec(context.Background(),
-		`UPDATE body_measurements SET created_at = now() - interval '25 hours' WHERE id = $1`,
+		`UPDATE body_measurements SET created_at = now() - interval '8 days' WHERE id = $1`,
 		measurementID); err != nil {
 		t.Fatalf("failed to backdate created_at: %v", err)
 	}
@@ -361,15 +361,32 @@ func TestE2E_Measurement_EditWindow24h(t *testing.T) {
 	// Edit refused once the window has passed
 	w := env.DoAuthRequest(http.MethodPut, "/api/measurements/"+itoa(measurementID), measurementPayload(), token)
 	RequireJSONError(t, w, http.StatusForbidden,
-		"This measurement can no longer be edited because more than 24 hours have passed since it was logged")
+		"This measurement can no longer be edited because more than 7 days have passed since it was logged")
 
 	// Delete refused once the window has passed
 	w = env.DoAuthRequest(http.MethodDelete, "/api/measurements/"+itoa(measurementID), nil, token)
 	RequireJSONError(t, w, http.StatusForbidden,
-		"This measurement can no longer be deleted because more than 24 hours have passed since it was logged")
+		"This measurement can no longer be deleted because more than 7 days have passed since it was logged")
 
 	// The row must still exist and remain readable
 	w = env.DoAuthRequest(http.MethodGet, "/api/measurements/"+itoa(measurementID), nil, token)
+	RequireStatus(t, w, http.StatusOK)
+}
+
+// TestE2E_Measurement_EditStillAllowedWithinWindow guards the other edge: a row
+// older than 24h but inside the 7-day window must still be editable.
+func TestE2E_Measurement_EditStillAllowedWithinWindow(t *testing.T) {
+	env := SetupTestEnv(t)
+	token, _ := env.RegisterAthlete(t, "bmwin2")
+	measurementID := createMeasurement(t, env, token)
+
+	if _, err := env.DB.Exec(context.Background(),
+		`UPDATE body_measurements SET created_at = now() - interval '3 days' WHERE id = $1`,
+		measurementID); err != nil {
+		t.Fatalf("failed to backdate created_at: %v", err)
+	}
+
+	w := env.DoAuthRequest(http.MethodPut, "/api/measurements/"+itoa(measurementID), measurementPayload(), token)
 	RequireStatus(t, w, http.StatusOK)
 }
 

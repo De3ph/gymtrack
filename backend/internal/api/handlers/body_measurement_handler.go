@@ -274,7 +274,7 @@ func (h *BodyMeasurementHandler) GetLatestBodyMeasurement(c *gin.Context) {
 
 // UpdateBodyMeasurement handles PUT /api/measurements/:id
 // @Summary Update a body measurement
-// @Description Update an existing body measurement (only within 24 hours of creation, athletes can only edit their own)
+// @Description Update an existing body measurement (only within 7 days of creation, athletes can only edit their own)
 // @Tags BodyMeasurements
 // @Accept json
 // @Produce json
@@ -339,7 +339,7 @@ func (h *BodyMeasurementHandler) UpdateBodyMeasurement(c *gin.Context) {
 
 // DeleteBodyMeasurement handles DELETE /api/measurements/:id
 // @Summary Delete a body measurement
-// @Description Delete an existing body measurement (only within 24 hours of creation)
+// @Description Delete an existing body measurement (only within 7 days of creation)
 // @Tags BodyMeasurements
 // @Produce json
 // @Security BearerAuth

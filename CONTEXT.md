@@ -156,7 +156,7 @@ backend/
 | **Exercise** | `exercise.go` | id, name, muscleGroup, equipment, description | Exercise catalog for workout logging |
 | **EquipmentDefinition** | `equipment.go` | id, name, description | Equipment types (dumbbells, barbells, etc.) |
 | **MuscleGroupDefinition** | `muscle_group.go` | id, name | Muscle groups (chest, back, legs, etc.) |
-| **BodyMeasurement** | `body_measurement.go` | id, athleteId, date, weight, weightUnit, bodyFatPct, parts (JSONB), notes | Editable within 24h. Flexible parts map |
+| **BodyMeasurement** | `body_measurement.go` | id, athleteId, date, weight, weightUnit, bodyFatPct, parts (JSONB), notes | Editable within 7d. Flexible parts map |
 | **WorkoutPlan** | `workout_plan.go` | planId, trainerId, name, description, exercises (JSONB), createdAt, updatedAt | Trainer-created workout templates |
 
 Additional types: `WorkoutPlanExercise`, `WorkoutPlanSet`, `WorkoutPlanAssignment`, `WorkoutExercise`, `ExerciseSet`, `FoodItem`, `Macros`, `UserProfile`, `BodyMeasurementPart`, `ReviewWithAthlete`, `CoachingRequestWithDetails`, `TrainerWithProfile`
@@ -205,8 +205,8 @@ POST   /api/measurements                - Create body measurement (athlete only)
 GET    /api/measurements                - Get own measurements (paginated, date filtered)
 GET    /api/measurements/latest         - Get latest measurement
 GET    /api/measurements/:id            - Get specific measurement
-PUT    /api/measurements/:id            - Update measurement (24h window)
-DELETE /api/measurements/:id            - Delete measurement (24h window)
+PUT    /api/measurements/:id            - Update measurement (7d window)
+DELETE /api/measurements/:id            - Delete measurement (7d window)
 GET    /api/clients/:username/measurements - Trainer view client measurements
 ```
 
@@ -338,7 +338,7 @@ pgxpool.Pool → 14 PostgreSQL repository implementations
 | **AdminService** | `admin_service.go` | User listing, role management, admin profile |
 | **WorkoutService** | `workout_service.go` | Workout create/read/view with relationship checks |
 | **MealService** | `meal_service.go` | Meal create/read/view with relationship checks |
-| **BodyMeasurementService** | `body_measurement_service.go` | Body measurement CRUD with 24h edit validation, relationship checks |
+| **BodyMeasurementService** | `body_measurement_service.go` | Body measurement CRUD with 7d edit validation, relationship checks |
 | **CommentService** | `comment_service.go` | Comment creation with authorization checks |
 | **InvitationService** | `invitation_service.go` | Code-based invitation flow (PostgreSQL implementation) |
 | **TrainerCatalogService** | `trainer_catalog_service.go` | Trainer search, profile retrieval |
@@ -1216,7 +1216,7 @@ postcss.config.mjs, eslint.config.mjs
 | **Authorization** | Role-based checks in middleware (`JWTAuthMiddleware`, `AdminMiddleware`) + service layer |
 | **CORS** | Restricted to localhost origins only |
 | **Input Validation** | Frontend: Zod. Backend: go-playground/validator |
-| **24h Edit Window** | BodyMeasurement `CanEdit()` method enforces 24h limit (workouts and meals are create/read only) |
+| **7d Edit Window** | BodyMeasurement `EditWindow` const (7d) enforced by `CanEdit()`, used by both update and delete (workouts and meals are create/read only) |
 | **Session Encryption** | jose on frontend for HttpOnly session cookie encryption/decryption |
 | **Error Monitoring** | @sentry/nextjs on frontend |
 

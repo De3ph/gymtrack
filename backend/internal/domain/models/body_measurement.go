@@ -44,9 +44,14 @@ func NewBodyMeasurement(athleteID int, date time.Time, weight float64, weightUni
 	}
 }
 
-// CanEdit checks if the body measurement can be edited (within 24 hours of creation).
+// EditWindow is how long after creation a body measurement may still be
+// edited or deleted. Single source of truth for the domain rule; the API
+// copy and the client-side gates are derived from it.
+const EditWindow = 7 * 24 * time.Hour
+
+// CanEdit checks if the body measurement can be edited (within EditWindow of creation).
 func (m *BodyMeasurement) CanEdit() bool {
-	return time.Since(m.CreatedAt) < 24*time.Hour
+	return time.Since(m.CreatedAt) < EditWindow
 }
 
 // SupportedBodyParts lists the body parts that are commonly tracked. New parts

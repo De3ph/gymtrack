@@ -129,7 +129,7 @@ Go Backend (http://localhost:8080/api)
 | **User** | id, email, password, role, profile (JSONB) | Roles: trainer \| athlete \| admin |
 | **Workout** | id, athleteId, date, exercises (JSONB) | Create/read only — no edit or delete |
 | **Meal** | id, athleteId, date, mealType, items (JSONB) | Create/read only — no edit or delete |
-| **BodyMeasurement** | id, athleteId, date, weight, bodyFatPct, parts (JSONB) | Editable within 24h |
+| **BodyMeasurement** | id, athleteId, date, weight, bodyFatPct, parts (JSONB) | Editable within 7d |
 | **Comment** | id, targetType, targetId, authorId, content | Threaded, max 2000 chars |
 | **Relationship** | id, trainerId, athleteId, status | pending \| active \| terminated |
 | **Invitation** | id, trainerId, code, status, expiresAt | Code-based system |
@@ -182,7 +182,7 @@ GET    /api/clients/:id/meals         # Trainer view
 POST   /api/measurements              # Athlete only
 GET    /api/measurements              # Own (paginated)
 GET    /api/measurements/latest
-GET/PUT/DELETE /api/measurements/:id  # 24h window
+GET/PUT/DELETE /api/measurements/:id  # 7d window
 GET    /api/clients/:username/measurements
 ```
 

@@ -559,7 +559,7 @@ const form = useForm({
 **Location**: Service layer (`backend/internal/domain/services/`)
 
 **Examples**:
-- Workouts/Meals editable only within 24 hours of creation
+- Body measurements editable only within 7 days of creation (`models.BodyMeasurement.EditWindow`, enforced on update and delete)
 - Athletes can have only one active trainer
 - Comments only allowed between trainer and their athletes
 - Reviews only allowed after active relationship
@@ -736,7 +736,7 @@ frontend/
 - **API**: REST only (no GraphQL)
 - **CORS**: Restricted to localhost:3000/3001 in development
 - **Token Expiration**: Access tokens expire, refresh tokens required
-- **Edit Window**: Workouts/meals editable only within 24 hours
+- **Edit Window**: Body measurements editable only within 7 days; workouts/meals have no server-side window (client-gated on mobile only)
 - **Relationships**: Athletes limited to one active trainer
 - **Comments**: Max 2000 characters per comment
 - **Reviews**: Rating must be 1-5, only after active relationship

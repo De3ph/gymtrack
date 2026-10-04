@@ -2945,7 +2945,7 @@ export interface paths {
         };
         /**
          * Update a body measurement
-         * @description Update an existing body measurement (only within 24 hours of creation, athletes can only edit their own)
+         * @description Update an existing body measurement (only within 7 days of creation, athletes can only edit their own)
          */
         put: {
             parameters: {
@@ -3000,7 +3000,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a body measurement
-         * @description Delete an existing body measurement (only within 24 hours of creation)
+         * @description Delete an existing body measurement (only within 7 days of creation)
          */
         delete: {
             parameters: {

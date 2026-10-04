@@ -170,7 +170,7 @@ func (s *BodyMeasurementService) UpdateBodyMeasurement(ctx context.Context, inpu
 	}
 
 	if !measurement.CanEdit() {
-		return nil, NewServiceError("This measurement can no longer be edited because more than 24 hours have passed since it was logged", "FORBIDDEN")
+		return nil, NewServiceError("This measurement can no longer be edited because more than 7 days have passed since it was logged", "FORBIDDEN")
 	}
 
 	if input.Weight <= 0 {
@@ -205,7 +205,7 @@ func (s *BodyMeasurementService) DeleteBodyMeasurement(ctx context.Context, meas
 	}
 
 	if !measurement.CanEdit() {
-		return NewServiceError("This measurement can no longer be deleted because more than 24 hours have passed since it was logged", "FORBIDDEN")
+		return NewServiceError("This measurement can no longer be deleted because more than 7 days have passed since it was logged", "FORBIDDEN")
 	}
 
 	if err := s.measurementRepo.Delete(ctx, measurementID); err != nil {

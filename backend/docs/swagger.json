@@ -2439,7 +2439,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update an existing body measurement (only within 24 hours of creation, athletes can only edit their own)",
+                "description": "Update an existing body measurement (only within 7 days of creation, athletes can only edit their own)",
                 "consumes": [
                     "application/json"
                 ],
@@ -2497,7 +2497,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Delete an existing body measurement (only within 24 hours of creation)",
+                "description": "Delete an existing body measurement (only within 7 days of creation)",
                 "produces": [
                     "application/json"
                 ],

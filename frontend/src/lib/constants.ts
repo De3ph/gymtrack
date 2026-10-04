@@ -1,5 +1,6 @@
 export const TIME_LIMITS = {
-  EDIT_WINDOW_HOURS: 24,
+  /** Body measurements stay editable for 7 days after logging. */
+  EDIT_WINDOW_HOURS: 24 * 7,
   DEFAULT_REST_SECONDS: 60,
   DEFAULT_REPS: 10,
   COPY_FEEDBACK_MS: 2000,

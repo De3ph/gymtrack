@@ -814,7 +814,7 @@
     },
     "edit": {
       "title": "Edit Body Measurement",
-      "description": "Update your body measurement. Note: measurements can only be edited within 24 hours of being logged."
+      "description": "Update your body measurement. Note: measurements can only be edited within 7 days of being logged."
     },
     "delete": {
       "title": "Delete Body Measurement",

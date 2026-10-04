@@ -721,7 +721,7 @@
     },
     "edit": {
       "title": "Vücut Ölçümünü Düzenle",
-      "description": "Vücut ölçümünüzü güncelleyin. Not: Ölçümler yalnızca kaydedildikten sonraki 24 saat içinde düzenlenebilir."
+      "description": "Vücut ölçümünüzü güncelleyin. Not: Ölçümler yalnızca kaydedildikten sonraki 7 gün içinde düzenlenebilir."
     },
     "delete": {
       "title": "Vücut Ölçümünü Sil",

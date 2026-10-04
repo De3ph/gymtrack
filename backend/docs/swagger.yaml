@@ -2661,7 +2661,7 @@ paths:
       - BodyMeasurements
   /measurements/{id}:
     delete:
-      description: Delete an existing body measurement (only within 24 hours of creation)
+      description: Delete an existing body measurement (only within 7 days of creation)
       parameters:
       - description: Body measurement ID
         in: path
@@ -2727,7 +2727,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update an existing body measurement (only within 24 hours of creation,
+      description: Update an existing body measurement (only within 7 days of creation,
         athletes can only edit their own)
       parameters:
       - description: Body measurement ID
