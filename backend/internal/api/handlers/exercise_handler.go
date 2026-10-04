@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/services"
 )
 
@@ -138,6 +140,12 @@ func (h *ExerciseHandler) GetExercisesByMuscleGroup(c *gin.Context) {
 
 	exercises, err := h.exerciseService.GetExercisesByMuscleGroup(c.Request.Context(), muscleGroupID)
 	if err != nil {
+		// An unknown muscle group means the filter itself is wrong, so it is a bad
+		// request; anything else stays a generic 500 with no internal detail.
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid muscle group ID. Please select a valid muscle group and try again"})
+			return
+		}
 		handleInternalError(c, err, "internal server error")
 		return
 	}
@@ -165,6 +173,10 @@ func (h *ExerciseHandler) GetExercisesByEquipment(c *gin.Context) {
 
 	exercises, err := h.exerciseService.GetExercisesByEquipment(c.Request.Context(), equipmentID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID. Please select valid equipment and try again"})
+			return
+		}
 		handleInternalError(c, err, "internal server error")
 		return
 	}
@@ -193,6 +205,12 @@ func (h *ExerciseHandler) SearchExercises(c *gin.Context) {
 
 	exercises, err := h.exerciseService.SearchExercises(c.Request.Context(), req.Query, req.MuscleGroupID, req.EquipmentID)
 	if err != nil {
+		// A filter naming a muscle group or equipment item that does not exist is a
+		// bad request; the client sent a value the catalog cannot satisfy.
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid search parameters. Please check the filters and try again"})
+			return
+		}
 		handleInternalError(c, err, "internal server error")
 		return
 	}

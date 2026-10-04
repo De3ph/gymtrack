@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
@@ -122,13 +124,19 @@ func (h *WorkoutPlanHandler) GetPlan(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	userRole, _ := c.Get("userRole")
 
+	role := userRole.(models.UserRole)
+	if role != models.RoleTrainer && role != models.RoleAthlete {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers or athletes can view workout plans. Please log in with a trainer or athlete account"})
+		return
+	}
+
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
-	plan, err := h.service.GetPlan(c.Request.Context(), planID, userIDInt, userRole.(models.UserRole))
+	plan, err := h.service.GetPlan(c.Request.Context(), planID, userIDInt, role)
 	if err != nil {
 		if handleServiceError(c, err) {
 			return
@@ -383,10 +391,18 @@ func (h *WorkoutPlanHandler) GetClientPlans(c *gin.Context) {
 
 	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
 	if err != nil {
+		// A repository reports an unknown username as ErrNotFound, so it has to be
+		// recognised here; without this the caller sees a 500 for a request that
+		// simply names a client who does not exist.
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
+			return
+		}
 		handleInternalError(c, err, "internal server error")
 		return
 	}
 	if athlete == nil {
+		// Defensive: no repository returns (nil, nil), but a cache adapter might.
 		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}

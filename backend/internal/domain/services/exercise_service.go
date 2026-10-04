@@ -84,9 +84,14 @@ func (s *ExerciseServiceImpl) GetAllExercises(ctx context.Context) ([]models.Exe
 }
 
 func (s *ExerciseServiceImpl) GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error) {
-	// Validate muscle group exists
+	// An unknown muscle group is the caller's mistake, not a server fault, so the
+	// sentinel is returned unwrapped: the handler needs to tell it apart from a
+	// genuine repository error in order to answer 400 rather than 500.
 	_, err := s.muscleGroupRepo.GetMuscleGroupByID(ctx, muscleGroupID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, domainerrors.ErrNotFound
+		}
 		return nil, fmt.Errorf("invalid muscle group ID: %w", err)
 	}
 
@@ -99,9 +104,13 @@ func (s *ExerciseServiceImpl) GetExercisesByMuscleGroup(ctx context.Context, mus
 }
 
 func (s *ExerciseServiceImpl) GetExercisesByEquipment(ctx context.Context, equipmentID int) ([]models.Exercise, error) {
-	// Validate equipment exists
+	// As above: an unknown equipment id is reported as ErrNotFound so the handler
+	// can answer 400 instead of 500.
 	_, err := s.equipmentRepo.GetEquipmentByID(ctx, equipmentID)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, domainerrors.ErrNotFound
+		}
 		return nil, fmt.Errorf("invalid equipment ID: %w", err)
 	}
 
@@ -118,6 +127,9 @@ func (s *ExerciseServiceImpl) SearchExercises(ctx context.Context, query string,
 	if muscleGroupID != nil {
 		_, err := s.muscleGroupRepo.GetMuscleGroupByID(ctx, *muscleGroupID)
 		if err != nil {
+			if errors.Is(err, domainerrors.ErrNotFound) {
+				return nil, domainerrors.ErrNotFound
+			}
 			return nil, fmt.Errorf("invalid muscle group ID: %w", err)
 		}
 	}
@@ -125,6 +137,9 @@ func (s *ExerciseServiceImpl) SearchExercises(ctx context.Context, query string,
 	if equipmentID != nil {
 		_, err := s.equipmentRepo.GetEquipmentByID(ctx, *equipmentID)
 		if err != nil {
+			if errors.Is(err, domainerrors.ErrNotFound) {
+				return nil, domainerrors.ErrNotFound
+			}
 			return nil, fmt.Errorf("invalid equipment ID: %w", err)
 		}
 	}
@@ -154,6 +169,3 @@ func (s *ExerciseServiceImpl) GetAllEquipment(ctx context.Context) ([]models.Equ
 
 	return equipment, nil
 }
-
-
-

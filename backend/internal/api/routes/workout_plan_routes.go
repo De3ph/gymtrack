@@ -10,7 +10,8 @@ func RegisterWorkoutPlanRoutes(router *gin.RouterGroup, handler *handlers.Workou
 	plans := router.Group("/workout-plans")
 	plans.Use(authMw)
 	{
-		// Static routes must be registered before /:id
+		// Readability only: gin's router prefers a static segment over a wildcard at
+		// the same level, so /assigned resolves here regardless of registration order.
 		plans.GET("/assigned", handler.GetMyPlans) // athlete only
 
 		// CRUD

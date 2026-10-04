@@ -37,10 +37,10 @@ func newTrainerCtx(method, path, body string) (*gin.Context, *httptest.ResponseR
 func TestTrainerCatalogHandler_GetTrainers(t *testing.T) {
 	profileRepo := &fakeTrainerProfileRepo{
 		publicTrainers: []models.TrainerWithProfile{{
-			User:          models.User{UserID: 1, Username: "coach", Role: models.RoleTrainer},
-			TrainerProfile:       models.TrainerProfile{Bio: "yoga"},
-			AverageRating: 4,
-			ReviewCount:   2,
+			User:           models.User{UserID: 1, Username: "coach", Role: models.RoleTrainer},
+			TrainerProfile: models.TrainerProfile{Bio: "yoga"},
+			AverageRating:  4,
+			ReviewCount:    2,
 		}},
 		count: 1,
 	}

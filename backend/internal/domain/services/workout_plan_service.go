@@ -96,9 +96,9 @@ func (s *WorkoutPlanService) GetPlan(ctx context.Context, planID, requesterID in
 		if plan.CreatorID == requesterID {
 			return plan, nil
 		}
-		assignment, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, requesterID, planID)
+		assignment, err := s.findAssignment(ctx, requesterID, planID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to verify assignment: %w", err)
+			return nil, err
 		}
 		if assignment == nil {
 			return nil, NewServiceError("This workout plan hasn't been assigned to you. Ask your trainer to assign it first", "FORBIDDEN")
@@ -209,9 +209,9 @@ func (s *WorkoutPlanService) AssignPlan(
 			continue
 		}
 
-		existing, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, athleteID, planID)
+		existing, err := s.findAssignment(ctx, athleteID, planID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to check existing assignment: %w", err)
+			return nil, err
 		}
 		if existing != nil {
 			continue // idempotent: skip duplicates
@@ -251,16 +251,7 @@ func (s *WorkoutPlanService) GetMyPlans(ctx context.Context, athleteID int) ([]*
 		return nil, fmt.Errorf("failed to get assignments: %w", err)
 	}
 
-	plans := make([]*models.WorkoutPlan, 0)
-	for _, a := range assignments {
-		plan, err := s.planRepo.GetByID(ctx, a.PlanID)
-		if err != nil {
-			continue // skip unavailable plans
-		}
-		plans = append(plans, plan)
-	}
-
-	return plans, nil
+	return s.resolveAssignedPlans(ctx, assignments)
 }
 
 // StartWorkoutFromPlan creates a logged workout from a plan template
@@ -277,9 +268,9 @@ func (s *WorkoutPlanService) StartWorkoutFromPlan(
 	}
 
 	if plan.CreatorID != athleteID {
-		assignment, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, athleteID, planID)
+		assignment, err := s.findAssignment(ctx, athleteID, planID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to verify assignment: %w", err)
+			return nil, err
 		}
 		if assignment == nil {
 			return nil, NewServiceError("This workout plan hasn't been assigned to you yet. Ask your trainer to assign it first", "FORBIDDEN")
@@ -319,16 +310,56 @@ func (s *WorkoutPlanService) GetClientPlans(
 		return nil, fmt.Errorf("failed to get assignments: %w", err)
 	}
 
-	plans := make([]*models.WorkoutPlan, 0)
+	return s.resolveAssignedPlans(ctx, assignments)
+}
+
+// resolveAssignedPlans loads the plan behind each assignment.
+//
+// An assignment whose plan has since been deleted is skipped, so one stale row
+// cannot break the whole listing. Only ErrNotFound earns that leniency: any other
+// fault (an unreachable database, a permission problem) is propagated, because
+// silently returning a short list would report success while hiding a real outage.
+func (s *WorkoutPlanService) resolveAssignedPlans(ctx context.Context, assignments []*models.WorkoutPlanAssignment) ([]*models.WorkoutPlan, error) {
+	plans := make([]*models.WorkoutPlan, 0, len(assignments))
 	for _, a := range assignments {
 		plan, err := s.planRepo.GetByID(ctx, a.PlanID)
 		if err != nil {
-			continue
+			if isPlanMissing(err) {
+				continue // assignment points at a plan that no longer exists
+			}
+			return nil, fmt.Errorf("failed to get plan %d: %w", a.PlanID, err)
 		}
 		plans = append(plans, plan)
 	}
 
 	return plans, nil
+}
+
+// isPlanMissing reports whether err means the plan does not exist. Both the
+// repository sentinel and the service-level not-found error qualify, since a plan
+// row can also be absent by the time an assignment is resolved.
+func isPlanMissing(err error) bool {
+	return errors.Is(err, domainerrors.ErrNotFound) || errors.Is(err, ErrWorkoutPlanNotFound)
+}
+
+// findAssignment returns the assignment linking an athlete to a plan, or nil when
+// no such assignment exists.
+//
+// "Not assigned yet" is a normal state — it is the first-time path for every new
+// athlete and is exactly what the access rules below must distinguish from a real
+// storage fault. The repository reports a missing row as ErrNotFound, so that
+// sentinel is translated to a nil result here; anything else is propagated. Without
+// this, assigning a plan for the first time, or viewing one before assignment,
+// fails as an internal error instead of taking its intended branch.
+func (s *WorkoutPlanService) findAssignment(ctx context.Context, athleteID, planID int) (*models.WorkoutPlanAssignment, error) {
+	assignment, err := s.assignmentRepo.GetByAthleteAndPlan(ctx, athleteID, planID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to verify assignment: %w", err)
+	}
+	return assignment, nil
 }
 
 // convertPlanExercisesToWorkout converts plan exercises to workout exercises

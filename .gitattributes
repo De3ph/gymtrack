@@ -1,0 +1,14 @@
+# Normalise text files in the repository and check Go sources out with LF endings.
+#
+# The index already stores LF (git's autocrlf=true handles that), but without this
+# file every checkout writes CRLF into the working tree, which makes `gofmt -l`
+# report ~25 untouched Go files as unformatted. Pinning eol=lf keeps the working
+# tree identical to the index for Go code.
+*.go text eol=lf
+
+# Lockfiles and generated assets must never be rewritten.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
