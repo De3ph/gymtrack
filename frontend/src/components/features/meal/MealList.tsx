@@ -68,6 +68,15 @@ export function MealList({
     string | number | null
   >(null)
 
+  const [collapsedIds, setCollapsedIds] = React.useState<Record<string, boolean>>(
+    {},
+  );
+
+  const toggleCollapsed = (id: string | number) => {
+    const key = String(id);
+    setCollapsedIds((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const pageSize = PAGINATION.MEAL_PAGE_SIZE;
   const isSelfFetching = !propMeals;
 
@@ -149,6 +158,10 @@ export function MealList({
             <MealCard
               key={meal.mealId}
               meal={meal}
+              isCollapsed={Boolean(collapsedIds[String(meal.mealId)])}
+              onToggle={() => {
+                if (meal.mealId != null) toggleCollapsed(meal.mealId);
+              }}
               expandedCommentsId={expandedCommentsId}
               setExpandedCommentsId={setExpandedCommentsId}
             />
