@@ -42,7 +42,7 @@ export function AssignPlanDialog({
 
   const { mutate, isPending } = useMutation({
     mutationFn: () =>
-      workoutPlanApi.assign(planId, { athleteIds: selectedIds }),
+      workoutPlanApi.assign(planId, { athleteIds: selectedIds.map(String) }),
     onSuccess: async () => {
       await revalidateWorkoutPlansCache();
       await queryClient.invalidateQueries({ queryKey: ["workout-plans"] });

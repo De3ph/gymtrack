@@ -38,7 +38,7 @@ func TestTrainerCatalogHandler_GetTrainers(t *testing.T) {
 	profileRepo := &fakeTrainerProfileRepo{
 		publicTrainers: []models.TrainerWithProfile{{
 			User:          models.User{UserID: 1, Username: "coach", Role: models.RoleTrainer},
-			Profile:       models.TrainerProfile{Bio: "yoga"},
+			TrainerProfile:       models.TrainerProfile{Bio: "yoga"},
 			AverageRating: 4,
 			ReviewCount:   2,
 		}},

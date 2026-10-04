@@ -20,6 +20,7 @@ import { ArrowLeft, UserX } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
+import dayjs from "dayjs";
 
 export default function ClientDetailClient() {
   const params = useParams();
@@ -57,18 +58,18 @@ export default function ClientDetailClient() {
         await Promise.all([
           relationshipApi.getClientDetails(username),
           trainerClientApi.getClientWorkouts(username, {
-            ...(dateRange.start && { startDate: dateRange.start }),
-            ...(dateRange.end && { endDate: dateRange.end }),
+            ...(dateRange.start && { startDate: dayjs(dateRange.start).startOf("day").toISOString() }),
+            ...(dateRange.end && { endDate: dayjs(dateRange.end).endOf("day").toISOString() }),
             ...(exerciseType && { exerciseType }),
           }),
           trainerClientApi.getClientMeals(username, {
-            ...(dateRange.start && { startDate: dateRange.start }),
-            ...(dateRange.end && { endDate: dateRange.end }),
+            ...(dateRange.start && { startDate: dayjs(dateRange.start).startOf("day").toISOString() }),
+            ...(dateRange.end && { endDate: dayjs(dateRange.end).endOf("day").toISOString() }),
             ...(mealType && { mealType }),
           }),
           trainerClientApi.getClientMeasurements(username, {
-            ...(dateRange.start && { startDate: dateRange.start }),
-            ...(dateRange.end && { endDate: dateRange.end }),
+            ...(dateRange.start && { startDate: dayjs(dateRange.start).startOf("day").toISOString() }),
+            ...(dateRange.end && { endDate: dayjs(dateRange.end).endOf("day").toISOString() }),
           }),
           trainerClientApi.getClientStats(username),
         ]);

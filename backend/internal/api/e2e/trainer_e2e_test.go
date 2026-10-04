@@ -26,7 +26,7 @@ type trainerWithProfile struct {
 	UserID   int            `json:"userId"`
 	Username string         `json:"username"`
 	Role     string         `json:"role"`
-	Profile  trainerProfile `json:"profile"`
+	TrainerProfile trainerProfile `json:"trainerProfile"`
 }
 
 // availabilitySlot mirrors models.TrainerAvailability.
@@ -130,17 +130,17 @@ func TestE2E_Trainer_CatalogAndProfile(t *testing.T) {
 	RequireStatus(t, w, http.StatusOK)
 	var me trainerWithProfile
 	ParseJSON(t, w.Body.Bytes(), &me)
-	if me.Profile.Bio != "strength coach" || me.Profile.Location != "Berlin" ||
-		me.Profile.HourlyRate != 50 || me.Profile.YearsOfExperience != 4 ||
-		!me.Profile.IsAvailableForNewClients || len(me.Profile.Languages) != 2 {
-		t.Fatalf("me/profile mismatch: %+v", me.Profile)
+	if me.TrainerProfile.Bio != "strength coach" || me.TrainerProfile.Location != "Berlin" ||
+		me.TrainerProfile.HourlyRate != 50 || me.TrainerProfile.YearsOfExperience != 4 ||
+		!me.TrainerProfile.IsAvailableForNewClients || len(me.TrainerProfile.Languages) != 2 {
+		t.Fatalf("me/profile mismatch: %+v", me.TrainerProfile)
 	}
 
 	w = env.DoRequest(http.MethodGet, "/api/trainers/"+itoa(trainerID), nil, nil)
 	RequireStatus(t, w, http.StatusOK)
 	var detail trainerWithProfile
 	ParseJSON(t, w.Body.Bytes(), &detail)
-	if detail.Profile.Bio != "strength coach" || detail.UserID != trainerID || detail.Role != "trainer" {
+	if detail.TrainerProfile.Bio != "strength coach" || detail.UserID != trainerID || detail.Role != "trainer" {
 		t.Fatalf("public detail mismatch: %s", w.Body.String())
 	}
 

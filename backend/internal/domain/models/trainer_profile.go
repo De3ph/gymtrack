@@ -12,7 +12,7 @@ type TrainerProfile struct {
 
 type TrainerWithProfile struct {
 	User
-	Profile       TrainerProfile `json:"profile"`
-	AverageRating float64        `json:"averageRating,omitempty"`
-	ReviewCount   int            `json:"reviewCount,omitempty"`
+	TrainerProfile TrainerProfile `json:"trainerProfile,omitempty"`
+	AverageRating  float64        `json:"averageRating,omitempty"`
+	ReviewCount    int            `json:"reviewCount,omitempty"`
 }

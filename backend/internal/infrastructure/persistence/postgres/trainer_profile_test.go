@@ -81,11 +81,11 @@ func TestPostgresTrainerProfileRepository(t *testing.T) {
 		for _, tr := range trainers {
 			if tr.UserID == trainer1.UserID {
 				assert.Equal(t, "John Trainer", tr.User.Profile.Name)
-				assert.Equal(t, "Expert in strength training", tr.Profile.Bio)
-				assert.Equal(t, 75.0, tr.Profile.HourlyRate)
-				assert.Equal(t, 8, tr.Profile.YearsOfExperience)
-				assert.True(t, tr.Profile.IsAvailableForNewClients)
-				assert.Equal(t, []string{"English", "Spanish"}, tr.Profile.Languages)
+				assert.Equal(t, "Expert in strength training", tr.TrainerProfile.Bio)
+				assert.Equal(t, 75.0, tr.TrainerProfile.HourlyRate)
+				assert.Equal(t, 8, tr.TrainerProfile.YearsOfExperience)
+				assert.True(t, tr.TrainerProfile.IsAvailableForNewClients)
+				assert.Equal(t, []string{"English", "Spanish"}, tr.TrainerProfile.Languages)
 				assert.Greater(t, tr.AverageRating, 0.0)
 				assert.Equal(t, 2, tr.ReviewCount)
 				assert.Equal(t, "user", tr.Type)
@@ -109,7 +109,7 @@ func TestPostgresTrainerProfileRepository(t *testing.T) {
 		trainers, err = repo.GetPublicTrainers(ctx, filters, 10, 0)
 		require.NoError(t, err)
 		for _, tr := range trainers {
-			assert.True(t, tr.Profile.IsAvailableForNewClients)
+			assert.True(t, tr.TrainerProfile.IsAvailableForNewClients)
 		}
 
 		// Filter by specialization
@@ -140,7 +140,7 @@ func TestPostgresTrainerProfileRepository(t *testing.T) {
 		assert.Equal(t, trainer1.UserID, trainer.UserID)
 		assert.Equal(t, "tp_trainer1", trainer.Username)
 		assert.Equal(t, "John Trainer", trainer.User.Profile.Name)
-		assert.Equal(t, "Expert in strength training", trainer.Profile.Bio)
+		assert.Equal(t, "Expert in strength training", trainer.TrainerProfile.Bio)
 		assert.Equal(t, "user", trainer.Type)
 		assert.Greater(t, trainer.AverageRating, 0.0)
 		assert.Equal(t, 2, trainer.ReviewCount)
@@ -166,13 +166,13 @@ func TestPostgresTrainerProfileRepository(t *testing.T) {
 		trainer, err := repo.GetTrainerByID(ctx, trainer1.UserID)
 		require.NoError(t, err)
 		require.NotNil(t, trainer)
-		assert.Equal(t, "Updated bio", trainer.Profile.Bio)
-		assert.Equal(t, "https://example.com/photo.jpg", trainer.Profile.ProfilePhotoURL)
-		assert.Equal(t, 100.0, trainer.Profile.HourlyRate)
-		assert.Equal(t, 12, trainer.Profile.YearsOfExperience)
-		assert.False(t, trainer.Profile.IsAvailableForNewClients)
-		assert.Equal(t, "Chicago", trainer.Profile.Location)
-		assert.Equal(t, []string{"English", "French"}, trainer.Profile.Languages)
+		assert.Equal(t, "Updated bio", trainer.TrainerProfile.Bio)
+		assert.Equal(t, "https://example.com/photo.jpg", trainer.TrainerProfile.ProfilePhotoURL)
+		assert.Equal(t, 100.0, trainer.TrainerProfile.HourlyRate)
+		assert.Equal(t, 12, trainer.TrainerProfile.YearsOfExperience)
+		assert.False(t, trainer.TrainerProfile.IsAvailableForNewClients)
+		assert.Equal(t, "Chicago", trainer.TrainerProfile.Location)
+		assert.Equal(t, []string{"English", "French"}, trainer.TrainerProfile.Languages)
 
 		// Restore trainer1 profile for subsequent tests
 		require.NoError(t, repo.UpdateTrainerProfile(ctx, trainer1.UserID, &models.TrainerProfile{

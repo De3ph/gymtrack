@@ -351,7 +351,7 @@ export interface UpdateWorkoutPlanRequest {
 }
 
 export interface AssignPlanRequest {
-  athleteIds: number[];
+  athleteIds: string[];
 }
 
 export interface WorkoutPlanListResponse {

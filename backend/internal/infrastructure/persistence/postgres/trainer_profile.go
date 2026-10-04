@@ -109,7 +109,7 @@ func (r *PostgresTrainerProfileRepository) GetTrainerByID(ctx context.Context, t
 	}
 
 	trainer.Type = "user"
-	trainer.Profile = mapUserProfileToTrainerProfile(trainer.User.Profile)
+	trainer.TrainerProfile = mapUserProfileToTrainerProfile(trainer.User.Profile)
 
 	return trainer, nil
 }
@@ -254,7 +254,7 @@ func (r *PostgresTrainerProfileRepository) scanTrainerRows(rows pgx.Rows) ([]mod
 		}
 
 		trainer.Type = "user"
-		trainer.Profile = mapUserProfileToTrainerProfile(trainer.User.Profile)
+		trainer.TrainerProfile = mapUserProfileToTrainerProfile(trainer.User.Profile)
 		trainer.AverageRating = avgRating
 		trainer.ReviewCount = reviewCount
 
