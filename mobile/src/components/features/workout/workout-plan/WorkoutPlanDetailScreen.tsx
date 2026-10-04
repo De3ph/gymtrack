@@ -47,7 +47,6 @@ export function WorkoutPlanDetailScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editExercises, setEditExercises] = useState<{ name?: string; sets?: number; reps?: number; weight?: number }[]>([]);
   const [showAssignModal, setShowAssignModal] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -62,18 +61,12 @@ export function WorkoutPlanDetailScreen() {
         creatorId: user?.userId ?? 0,
         name: editName,
         description: editDescription,
-        exercises: editExercises.map((ex, index) => ({
-          exerciseId: 0, // This should be set properly
-          name: ex.name || "",
-          sets: Array(ex.sets || 0).fill(0).map(() => ({
-            setId: "",
-            weight: ex.weight || 0,
-            weightUnit: "kg",
-            reps: ex.reps || 0,
-            restTime: 60
-          })),
-          notes: "",
-          order: index
+        exercises: (data?.exercises ?? []).map((ex, index) => ({
+          exerciseId: ex.exerciseId,
+          name: ex.name,
+          sets: ex.sets ?? [],
+          notes: ex.notes ?? "",
+          order: ex.order ?? index,
         })),
       }),
     onSuccess: () => {
@@ -109,7 +102,6 @@ export function WorkoutPlanDetailScreen() {
     if (!data) return;
     setEditName(data.name ?? "");
     setEditDescription(data.description ?? "");
-    setEditExercises(flattenExercises(data.exercises));
     setIsEditing(true);
   };
 
