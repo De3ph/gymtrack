@@ -65,21 +65,30 @@ func run() error {
 
 	zap.L().Info("Connected to database")
 
-	// 1. Ensure the target athlete exists (idempotent) with the requested password.
+	// 1. Seed the exercise catalog (lookup tables + exercises) - idempotent.
+	seeded, err := seedExerciseCatalog(ctx, pool)
+	if err != nil {
+		return err
+	}
+	zap.L().Info("Exercise catalog seeded",
+		zap.Int("inserted", seeded),
+		zap.Int("skipped_existing", len(exerciseSeed)-seeded))
+
+	// 2. Ensure the target athlete exists (idempotent) with the requested password.
 	userID, err := ensureAthlete(ctx, pool)
 	if err != nil {
 		return err
 	}
 	zap.L().Info("Athlete ready", zap.Int("user_id", userID))
 
-	// 2. Load the exercise catalog for realistic workout exercises.
+	// 3. Load the exercise catalog for realistic workout exercises.
 	catalog, err := loadExerciseCatalog(ctx, pool)
 	if err != nil {
 		return err
 	}
 	zap.L().Info("Exercise catalog loaded", zap.Int("exercises", len(catalog)))
 
-	// 3. Clear any previously seeded meals/workouts for this athlete (idempotent reseed).
+	// 4. Clear any previously seeded meals/workouts for this athlete (idempotent reseed).
 	if _, err := pool.Exec(ctx, "DELETE FROM meals WHERE athlete_id = $1", userID); err != nil {
 		return fmt.Errorf("clear meals: %w", err)
 	}
@@ -90,13 +99,13 @@ func run() error {
 
 	start := time.Now()
 
-	// 4. Seed workouts: 30 on 30 distinct days, each with >= 4 exercises.
+	// 5. Seed workouts: 30 on 30 distinct days, each with >= 4 exercises.
 	if err := seedWorkouts(ctx, pool, userID, catalog, start); err != nil {
 		return err
 	}
 	zap.L().Info("Seeded workouts", zap.Int("count", workoutCount))
 
-	// 5. Seed meals: 30 on 30 distinct days.
+	// 6. Seed meals: 30 on 30 distinct days.
 	if err := seedMeals(ctx, pool, userID, start); err != nil {
 		return err
 	}
@@ -104,8 +113,80 @@ func run() error {
 
 	fmt.Println("\n✓ Seed completed")
 	fmt.Printf("  User:      %s (user_id=%d, password=%s)\n", targetUsername, userID, targetPassword)
+	fmt.Printf("  Exercises: %d catalog rows\n", len(catalog))
 	fmt.Printf("  Workouts:  %d\n", workoutCount)
 	fmt.Printf("  Meals:     %d\n", mealCount)
+	return nil
+}
+
+// lookupRow is a fixed-id row for the lookup tables. The explicit IDs are part
+// of the seed contract: the exercise rows below reference them directly as
+// muscle_group_id / equipment_id, so the ID -> code mapping must be stable.
+type lookupRow struct {
+	ID          int
+	Code        string
+	Description string
+}
+
+// catalogSeedExercise is one row of the exercise catalog seed. It mirrors the
+// exercises table columns written by the seed (name, category, FK ids,
+// instructions); id, created_by and media columns are left to their defaults.
+type catalogSeedExercise struct {
+	Name          string
+	Category      string
+	MuscleGroupID int
+	EquipmentID   int
+	Instructions  string
+}
+
+// seedExerciseCatalog seeds the lookup tables and the exercise catalog. It is
+// safe to run repeatedly:
+//   - muscle_groups / equipment_definitions rows are skipped when their
+//     primary key OR unique code already exists (targetless ON CONFLICT);
+//   - exercises rows are skipped when the name already exists
+//     (exercises_name_unique, added by migration 004).
+//
+// It returns how many exercise rows were newly inserted.
+func seedExerciseCatalog(ctx context.Context, pool *pgxpool.Pool) (int, error) {
+	if err := seedLookupRows(ctx, pool, "muscle_groups", muscleGroupSeed); err != nil {
+		return 0, fmt.Errorf("seed muscle_groups: %w", err)
+	}
+	if err := seedLookupRows(ctx, pool, "equipment_definitions", equipmentSeed); err != nil {
+		return 0, fmt.Errorf("seed equipment_definitions: %w", err)
+	}
+
+	const insertExercise = `INSERT INTO exercises (name, category, muscle_group_id, equipment_id, instructions, created_at)
+		VALUES ($1, $2, $3, $4, $5, NOW())
+		ON CONFLICT (name) DO NOTHING`
+
+	inserted := 0
+	for _, ex := range exerciseSeed {
+		tag, err := pool.Exec(ctx, insertExercise,
+			ex.Name, ex.Category, ex.MuscleGroupID, ex.EquipmentID, ex.Instructions)
+		if err != nil {
+			return inserted, fmt.Errorf("insert exercise %q: %w", ex.Name, err)
+		}
+		if tag.RowsAffected() > 0 {
+			inserted++
+		}
+	}
+	return inserted, nil
+}
+
+// seedLookupRows inserts fixed-id lookup rows. The unqualified ON CONFLICT
+// clause swallows conflicts on both the primary key (id) and the unique code,
+// so a row that already exists - under either key - is skipped instead of
+// failing the whole seed. `table` is a compile-time constant at both call sites.
+func seedLookupRows(ctx context.Context, pool *pgxpool.Pool, table string, rows []lookupRow) error {
+	query := fmt.Sprintf(
+		"INSERT INTO %s (id, code, description) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+		table,
+	)
+	for _, row := range rows {
+		if _, err := pool.Exec(ctx, query, row.ID, row.Code, row.Description); err != nil {
+			return fmt.Errorf("%s id=%d code=%q: %w", table, row.ID, row.Code, err)
+		}
+	}
 	return nil
 }
 
@@ -363,4 +444,105 @@ func buildMealItems(mealType models.MealType, rng *rand.Rand) []models.FoodItem 
 		items = append(items, pool[i])
 	}
 	return items
+}
+
+// muscleGroupSeed is the fixed muscle group taxonomy referenced by the
+// exercise rows below (IDs 1-7). Kept in sync with seed_exercises.sql.
+var muscleGroupSeed = []lookupRow{
+	{1, "chest", "Chest"},
+	{2, "back", "Back"},
+	{3, "shoulders", "Shoulders"},
+	{4, "arms", "Arms"},
+	{5, "legs", "Legs"},
+	{6, "core", "Core"},
+	{7, "full-body", "Full Body"},
+}
+
+// equipmentSeed is the fixed equipment taxonomy referenced by the exercise
+// rows below (IDs 1-8). Kept in sync with seed_exercises.sql.
+var equipmentSeed = []lookupRow{
+	{1, "barbell", "Barbell"},
+	{2, "dumbbell", "Dumbbell"},
+	{3, "machine", "Machine"},
+	{4, "cable", "Cable"},
+	{5, "bodyweight", "Bodyweight"},
+	{6, "kettlebell", "Kettlebell"},
+	{7, "resistance-band", "Resistance Band"},
+	{8, "other", "Other"},
+}
+
+// exerciseSeed is the exercise catalog: 58 rows across the seven muscle groups.
+// Name is the idempotency key (exercises_name_unique, added by migration 004).
+var exerciseSeed = []catalogSeedExercise{
+	// Chest (muscle_group_id = 1)
+	{Name: "Barbell Bench Press", Category: "strength", MuscleGroupID: 1, EquipmentID: 1, Instructions: "Lie on flat bench, grip barbell at shoulder width, lower to mid-chest, press up."},
+	{Name: "Dumbbell Bench Press", Category: "strength", MuscleGroupID: 1, EquipmentID: 2, Instructions: "Lie on flat bench holding dumbbells at chest level, press up until arms fully extended, lower with control."},
+	{Name: "Incline Barbell Bench Press", Category: "strength", MuscleGroupID: 1, EquipmentID: 1, Instructions: "Set bench to 30-45 degrees, press barbell from upper chest to full extension."},
+	{Name: "Incline Dumbbell Press", Category: "strength", MuscleGroupID: 1, EquipmentID: 2, Instructions: "Bench at 30-45 degrees, press dumbbells from upper chest to full extension."},
+	{Name: "Decline Bench Press", Category: "strength", MuscleGroupID: 1, EquipmentID: 1, Instructions: "Lie on decline bench, press barbell from lower chest to full extension."},
+	{Name: "Chest Fly (Machine)", Category: "strength", MuscleGroupID: 1, EquipmentID: 3, Instructions: "Sit at pec deck machine, bring handles together in front of chest with slight elbow bend."},
+	{Name: "Cable Chest Fly", Category: "strength", MuscleGroupID: 1, EquipmentID: 4, Instructions: "Stand between cable columns, bring hands together in front of chest with slight elbow bend."},
+	{Name: "Push-Up", Category: "strength", MuscleGroupID: 1, EquipmentID: 5, Instructions: "Start in plank position with hands shoulder-width apart, lower chest to floor, push back up."},
+	{Name: "Dumbbell Pullover", Category: "strength", MuscleGroupID: 1, EquipmentID: 2, Instructions: "Lie across a flat bench with hips low, hold one dumbbell with both hands above chest, lower behind head, bring back up."},
+
+	// Back (muscle_group_id = 2)
+	{Name: "Barbell Row", Category: "strength", MuscleGroupID: 2, EquipmentID: 1, Instructions: "Bend at hips with a flat back, grip barbell at shoulder width, pull to lower ribcage, lower with control."},
+	{Name: "Dumbbell Row", Category: "strength", MuscleGroupID: 2, EquipmentID: 2, Instructions: "Place one knee and hand on a bench, pull dumbbell to hip with the other arm, lower with control."},
+	{Name: "Pull-Up", Category: "strength", MuscleGroupID: 2, EquipmentID: 5, Instructions: "Hang from a bar with palms facing away, pull chin over the bar, lower with control."},
+	{Name: "Chin-Up", Category: "strength", MuscleGroupID: 2, EquipmentID: 5, Instructions: "Hang from a bar with palms facing toward you, pull chin over the bar, lower with control."},
+	{Name: "Lat Pulldown", Category: "strength", MuscleGroupID: 2, EquipmentID: 4, Instructions: "Sit at cable machine, grip bar wide overhead, pull to upper chest, return with control."},
+	{Name: "Seated Cable Row", Category: "strength", MuscleGroupID: 2, EquipmentID: 4, Instructions: "Sit with feet braced, grip handle, pull to lower abdomen keeping back straight, return with control."},
+	{Name: "T-Bar Row", Category: "strength", MuscleGroupID: 2, EquipmentID: 1, Instructions: "Straddle the T-bar, bend with a flat back, pull the bar to chest, lower with control."},
+	{Name: "Face Pull", Category: "strength", MuscleGroupID: 2, EquipmentID: 4, Instructions: "Set cable at upper-chest height with rope attachment, pull toward face while externally rotating shoulders."},
+
+	// Shoulders (muscle_group_id = 3)
+	{Name: "Overhead Press (Barbell)", Category: "strength", MuscleGroupID: 3, EquipmentID: 1, Instructions: "Stand with barbell at shoulders, press overhead until arms fully extended, lower to shoulders."},
+	{Name: "Dumbbell Shoulder Press", Category: "strength", MuscleGroupID: 3, EquipmentID: 2, Instructions: "Sit or stand with dumbbells at shoulder height, press overhead, lower with control."},
+	{Name: "Lateral Raise", Category: "strength", MuscleGroupID: 3, EquipmentID: 2, Instructions: "Stand with dumbbells at sides, raise arms out to the side to shoulder height, lower with control."},
+	{Name: "Front Raise", Category: "strength", MuscleGroupID: 3, EquipmentID: 2, Instructions: "Stand with dumbbells in front of thighs, raise arms forward to shoulder height, lower with control."},
+	{Name: "Reverse Fly", Category: "strength", MuscleGroupID: 3, EquipmentID: 2, Instructions: "Bend forward with a flat back holding dumbbells, raise arms out to sides, squeeze shoulder blades together."},
+	{Name: "Arnold Press", Category: "strength", MuscleGroupID: 3, EquipmentID: 2, Instructions: "Start with dumbbells in front of shoulders palms facing you, press overhead while rotating palms forward."},
+	{Name: "Upright Row", Category: "strength", MuscleGroupID: 3, EquipmentID: 1, Instructions: "Stand with barbell at thigh level, pull straight up to chin leading with elbows, lower with control."},
+	{Name: "Dumbbell Shrug", Category: "strength", MuscleGroupID: 3, EquipmentID: 2, Instructions: "Stand holding dumbbells at sides, shrug shoulders up toward ears, hold briefly, lower."},
+
+	// Arms (muscle_group_id = 4)
+	{Name: "Barbell Curl", Category: "strength", MuscleGroupID: 4, EquipmentID: 1, Instructions: "Stand with barbell at thigh level, curl bar to shoulders keeping elbows fixed, lower with control."},
+	{Name: "Dumbbell Curl", Category: "strength", MuscleGroupID: 4, EquipmentID: 2, Instructions: "Stand with dumbbells at sides, curl to shoulders alternating or together, keep elbows fixed."},
+	{Name: "Hammer Curl", Category: "strength", MuscleGroupID: 4, EquipmentID: 2, Instructions: "Stand with dumbbells at sides palms facing each other, curl to shoulders keeping palms facing in."},
+	{Name: "Tricep Pushdown", Category: "strength", MuscleGroupID: 4, EquipmentID: 4, Instructions: "Set cable at high position, grip rope or bar, push down to full arm extension, return with control."},
+	{Name: "Skull Crusher", Category: "strength", MuscleGroupID: 4, EquipmentID: 1, Instructions: "Lie on bench with barbell or EZ-bar above face, lower toward forehead by bending elbows, extend back up."},
+	{Name: "Tricep Dip", Category: "strength", MuscleGroupID: 4, EquipmentID: 5, Instructions: "Grip parallel bars or bench edge, lower body by bending elbows to 90 degrees, push back up."},
+	{Name: "Concentration Curl", Category: "strength", MuscleGroupID: 4, EquipmentID: 2, Instructions: "Sit on bench, rest elbow against inner thigh, curl dumbbell to shoulder, lower with control."},
+	{Name: "Overhead Tricep Extension", Category: "strength", MuscleGroupID: 4, EquipmentID: 2, Instructions: "Stand or sit holding a dumbbell overhead with both hands, lower behind head by bending elbows, extend back up."},
+
+	// Legs (muscle_group_id = 5)
+	{Name: "Barbell Back Squat", Category: "strength", MuscleGroupID: 5, EquipmentID: 1, Instructions: "Rest barbell on upper back, feet shoulder-width apart, squat to at least parallel, drive back up."},
+	{Name: "Front Squat", Category: "strength", MuscleGroupID: 5, EquipmentID: 1, Instructions: "Rest barbell across front of shoulders, keep torso upright, squat to parallel, drive back up."},
+	{Name: "Leg Press", Category: "strength", MuscleGroupID: 5, EquipmentID: 3, Instructions: "Sit in leg press machine, place feet shoulder-width on platform, lower until knees at 90 degrees, press back up."},
+	{Name: "Romanian Deadlift", Category: "strength", MuscleGroupID: 5, EquipmentID: 1, Instructions: "Hold barbell at hip level, hinge at hips pushing hips back, lower bar along legs until hamstrings stretch, return."},
+	{Name: "Leg Curl (Machine)", Category: "strength", MuscleGroupID: 5, EquipmentID: 3, Instructions: "Lie face down on leg curl machine, curl heels toward glutes, lower with control."},
+	{Name: "Leg Extension (Machine)", Category: "strength", MuscleGroupID: 5, EquipmentID: 3, Instructions: "Sit on leg extension machine, extend legs until straight, lower with control."},
+	{Name: "Standing Calf Raise", Category: "strength", MuscleGroupID: 5, EquipmentID: 3, Instructions: "Stand on calf raise machine with shoulders under pads, rise up on toes, lower with control."},
+	{Name: "Dumbbell Lunge", Category: "strength", MuscleGroupID: 5, EquipmentID: 2, Instructions: "Hold dumbbells at sides, step forward into lunge, lower back knee toward floor, push back to start."},
+	{Name: "Goblet Squat", Category: "strength", MuscleGroupID: 5, EquipmentID: 6, Instructions: "Hold a kettlebell or dumbbell at chest, squat to parallel keeping torso upright, drive back up."},
+	{Name: "Barbell Hip Thrust", Category: "strength", MuscleGroupID: 5, EquipmentID: 1, Instructions: "Sit on floor with upper back against bench, barbell across hips, thrust upward squeezing glutes at top."},
+
+	// Core (muscle_group_id = 6)
+	{Name: "Leg Raise", Category: "strength", MuscleGroupID: 6, EquipmentID: 5, Instructions: "Lie on back with legs straight, raise legs to 90 degrees keeping them straight, lower with control."},
+	{Name: "Russian Twist", Category: "strength", MuscleGroupID: 6, EquipmentID: 5, Instructions: "Sit with feet off floor, lean back slightly, rotate torso side to side optionally holding a weight."},
+	{Name: "Cable Crunch", Category: "strength", MuscleGroupID: 6, EquipmentID: 4, Instructions: "Kneel facing cable machine with rope attached overhead, crunch forward curling torso, return with control."},
+	{Name: "Hanging Leg Raise", Category: "strength", MuscleGroupID: 6, EquipmentID: 5, Instructions: "Hang from a bar, raise legs to parallel or higher keeping them straight, lower with control."},
+	{Name: "Pallof Press", Category: "strength", MuscleGroupID: 6, EquipmentID: 4, Instructions: "Stand sideways to cable column, grip handle at chest height, press hands forward resisting rotation, return."},
+
+	// Full Body (muscle_group_id = 7)
+	{Name: "Deadlift (Conventional)", Category: "strength", MuscleGroupID: 7, EquipmentID: 1, Instructions: "Stand with feet hip-width apart, barbell over mid-foot, bend down grip bar, drive through heels to stand up, lower with control."},
+	{Name: "Sumo Deadlift", Category: "strength", MuscleGroupID: 7, EquipmentID: 1, Instructions: "Stand with feet wide toes pointed out, grip bar inside knees, drive through heels to stand up."},
+	{Name: "Power Clean", Category: "strength", MuscleGroupID: 7, EquipmentID: 1, Instructions: "Pull barbell from floor to shoulders in one explosive motion, catch in partial squat, stand up."},
+	{Name: "Kettlebell Swing", Category: "strength", MuscleGroupID: 7, EquipmentID: 6, Instructions: "Stand with kettlebell between legs, hinge at hips, swing to chest height using hip drive."},
+	{Name: "Burpee", Category: "cardio", MuscleGroupID: 7, EquipmentID: 5, Instructions: "From standing squat down, kick feet to plank, do push-up, jump feet forward, explode up."},
+	{Name: "Farmer's Walk", Category: "strength", MuscleGroupID: 7, EquipmentID: 2, Instructions: "Hold heavy dumbbells at sides, walk with upright posture for distance or time."},
+	{Name: "Barbell Thruster", Category: "strength", MuscleGroupID: 7, EquipmentID: 1, Instructions: "Hold barbell at shoulders, squat to parallel, drive up into overhead press in one fluid motion."},
+	{Name: "Box Jump", Category: "cardio", MuscleGroupID: 7, EquipmentID: 8, Instructions: "Stand facing a sturdy box, squat slightly, jump onto box landing softly, step down."},
+	{Name: "Treadmill Running", Category: "cardio", MuscleGroupID: 7, EquipmentID: 3, Instructions: "Run or walk on treadmill at desired speed and incline."},
+	{Name: "Stationary Bike", Category: "cardio", MuscleGroupID: 7, EquipmentID: 3, Instructions: "Cycle on a stationary bike at desired resistance and pace."},
 }
