@@ -303,6 +303,7 @@
       "trainer": "Antrenör",
       "athlete": "Sporcu",
       "workout_plans": "Antrenman Planları",
+      "exercises": "Egzersizler",
       "menu": "Menü",
       "toggle_menu": "Gezinme menüsünü aç/kapat",
       "language": "Dil"
@@ -335,6 +336,7 @@
       "failed_load_workout_plan": "Antrenman planı yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "failed_load_body_measurements": "Ölçümler yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "failed_load_trainer_profile": "Antrenör profili yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
+      "failed_load_exercises": "Egzersiz kütüphanesi yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "unexpected_error": "Beklenmeyen bir hata oluştu. Tekrar dene."
     },
     "loading": "Yükleniyor...",
@@ -1454,6 +1456,29 @@
       "exercises_found": "egzersiz bulundu",
       "no_exercises_found": "Egzersiz bulunamadı",
       "clear_filters": "Filtreleri Temizle"
+    },
+    "library": {
+      "title": "Egzersiz Kütüphanesi",
+      "subtitle": "Katalogdaki tüm egzersizleri gösterim videosu ve adım adım talimatlarla incele.",
+      "filter_category": "Kategori",
+      "all_categories": "Tüm Kategoriler",
+      "results_total": "{count} egzersiz",
+      "results_filtered": "{total} egzersizden {count} tanesi",
+      "no_results_hint": "Bu filtrelere uyan egzersiz yok. Aramayı genişletmeyi dene.",
+      "catalog_empty": "Egzersiz kataloğu boş.",
+      "no_media": "Gösterim yok",
+      "media_label": "{name} egzersizi gösterimi",
+      "media_title": "Gösterim",
+      "media_present": "Yukarıda bir gösterim mevcut.",
+      "media_absent": "Bu egzersiz için henüz gösterim eklenmedi.",
+      "no_instructions": "Bu egzersiz için henüz talimat yazılmadı.",
+      "no_instructions_short": "Henüz talimat yok.",
+      "instructions_title": "Talimatlar",
+      "details_title": "Detaylar",
+      "detail_category": "Kategori",
+      "detail_muscle_group": "Kas Grubu",
+      "detail_equipment": "Ekipman",
+      "unknown": "Bilinmiyor"
     }
   },
   "review": {
