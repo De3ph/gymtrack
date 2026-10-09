@@ -29,7 +29,7 @@ const MEAL_TYPES: ("breakfast" | "lunch" | "dinner" | "snack")[] = [
   "snack"
 ]
 
-type MealType = (typeof MEAL_TYPES)[number]
+export type MealType = (typeof MEAL_TYPES)[number]
 
 interface NewFoodItem {
   id: string
@@ -77,20 +77,26 @@ interface MealFormModalProps {
   meal: Meal | null
   onClose: () => void
   onSaved: () => void
+  /**
+   * Pre-selects a meal type when creating. Ignored when editing an existing
+   * meal, which always derives its type from `meal.mealType`.
+   */
+  initialMealType?: MealType
 }
 
 export function MealFormModal({
   visible,
   meal,
   onClose,
-  onSaved
+  onSaved,
+  initialMealType
 }: MealFormModalProps) {
   const { t } = useI18n()
   const queryClient = useQueryClient()
 
   const [newDate, setNewDate] = useState(() => meal?.date ?? todayString())
   const [newMealType, setNewMealType] = useState<MealType>(
-    () => (meal?.mealType as MealType) ?? "breakfast"
+    () => (meal?.mealType as MealType) ?? initialMealType ?? "breakfast"
   )
   const [newItems, setNewItems] = useState<NewFoodItem[]>(() =>
     meal ? mealToItems(meal) : [createEmptyItem()]

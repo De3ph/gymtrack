@@ -1,12 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   FlatList,
   RefreshControl,
   ListRenderItemInfo,
   Alert,
+  View,
 } from "react-native"
 import { useRouter, type Href } from "expo-router"
-import Animated, { cubicBezier } from "react-native-reanimated"
 import { useI18n } from "@/lib/i18n"
 import { mealApi } from "@/api/mealApi"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -16,7 +16,6 @@ import { triggerHaptic } from "@/lib/haptics"
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Button, Host } from "@expo/ui";
-import { Pressable } from "@/components/ui/pressable";
 import { Spinner } from "@/components/ui/spinner";
 import { Icon, AddIcon } from "@/components/ui/icon";
 import { Center } from "@/components/ui/center";
@@ -24,7 +23,8 @@ import { MealIcon, PencilIcon, BinIcon } from "@/components/icons";
 import { useAppColors } from "@/lib/colors";
 import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
-import { MealFormModal } from "@/components/features/meal/MealFormModal";
+import { MealFormModal, type MealType } from "@/components/features/meal/MealFormModal";
+import { FabMenu, type FabMenuAction } from "@/components/ui/fab/fab-menu";
 import {
   HistoryCard,
   HistoryCardMenu,
@@ -36,19 +36,6 @@ import {
   type SwipeAction,
 } from "@/components/features/common/history-card";
 
-const EASE_OUT = cubicBezier(0.23, 1, 0.32, 1)
-
-const FAB_STYLE = {
-  transform: [{ scale: 1 }],
-  transitionProperty: "transform" as const,
-  transitionDuration: 120,
-  transitionTimingFunction: EASE_OUT
-}
-
-const FAB_PRESSED_STYLE = {
-  transform: [{ scale: 0.96 }]
-}
-
 type MealTypeKey = "breakfast" | "lunch" | "dinner" | "snack"
 
 const MEAL_TYPE_TONE: Record<MealTypeKey, HistoryCardTone> = {
@@ -59,6 +46,8 @@ const MEAL_TYPE_TONE: Record<MealTypeKey, HistoryCardTone> = {
 }
 
 const DEFAULT_MEAL_TONE = MEAL_TYPE_TONE.dinner
+
+const MEAL_TYPE_KEYS = ["breakfast", "lunch", "dinner", "snack"] as const
 
 interface MealCardProps {
   meal: Meal
@@ -219,8 +208,6 @@ export function MealsScreen() {
   const router = useRouter()
   const swipeCoordinator = useCreateSwipeCoordinator()
 
-  const [fabPressed, setFabPressed] = useState(false)
-
   const closeOpenSwipeRow = useCallback(
     () => swipeCoordinator.closeAll(),
     [swipeCoordinator]
@@ -241,7 +228,17 @@ export function MealsScreen() {
 
   const [modalVisible, setModalVisible] = useState(false)
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null)
+  const [newMealType, setNewMealType] = useState<MealType | undefined>(undefined)
   const [formKey, setFormKey] = useState(0)
+
+  const mealTypeMenuActions: FabMenuAction[] = useMemo(
+    () =>
+      MEAL_TYPE_KEYS.map((type) => ({
+        id: type,
+        title: t("meal.form.meal_type." + type)
+      })),
+    [t]
+  )
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => mealApi.delete(id),
@@ -253,16 +250,23 @@ export function MealsScreen() {
     }
   })
 
-  function openCreateModal() {
+  function openCreateModal(mealType?: MealType) {
     setEditingMeal(null)
+    setNewMealType(mealType)
     setFormKey((k) => k + 1)
     setModalVisible(true)
   }
 
   function openEditModal(meal: Meal) {
     setEditingMeal(meal)
+    setNewMealType(undefined)
     setFormKey((k) => k + 1)
     setModalVisible(true)
+  }
+
+  function handleFabMenuAction(id: string) {
+    triggerHaptic()
+    openCreateModal(id as MealType)
   }
 
   const handleDelete = useCallback(
@@ -284,11 +288,13 @@ export function MealsScreen() {
   function handleCancel() {
     setModalVisible(false)
     setEditingMeal(null)
+    setNewMealType(undefined)
   }
 
   function handleSaved() {
     setModalVisible(false)
     setEditingMeal(null)
+    setNewMealType(undefined)
   }
 
   const renderMealItem = useCallback(
@@ -369,30 +375,25 @@ export function MealsScreen() {
           }
         />
 
-      {/* FAB */}
+      {/* FAB — opens a menu of meal types to log */}
       {!modalVisible && (
-        <Pressable
-          onPressIn={() => setFabPressed(true)}
-          onPressOut={() => setFabPressed(false)}
-          onPress={() => {
-            triggerHaptic()
-            openCreateModal()
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t("meal.form.title")}
-          className="absolute bottom-6 right-6"
-        >
-          <Animated.View
-            className="h-14 w-14 items-center justify-center rounded-full bg-primary shadow-hard-2"
-            style={[FAB_STYLE, fabPressed && FAB_PRESSED_STYLE]}
+        <View className="absolute bottom-6 right-6">
+          <FabMenu
+            actions={mealTypeMenuActions}
+            onSelect={handleFabMenuAction}
+            title={t("meal.form.title")}
+            accessibilityLabel={t("meal.form.title")}
+            size="lg"
+            className="bg-primary"
+            testID="meals-fab"
           >
             <Icon
               as={AddIcon}
               size="xl"
               className="h-7 w-7 text-primary-foreground"
             />
-          </Animated.View>
-        </Pressable>
+          </FabMenu>
+        </View>
       )}
 
       {/* Create/Edit Modal */}
@@ -400,6 +401,7 @@ export function MealsScreen() {
         key={formKey}
         visible={modalVisible}
         meal={editingMeal}
+        initialMealType={newMealType}
         onClose={handleCancel}
         onSaved={handleSaved}
       />
