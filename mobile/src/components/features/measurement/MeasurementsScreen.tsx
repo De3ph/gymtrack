@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, memo } from "react";
 import {
   FlatList,
   RefreshControl,
-  ScrollView,
   Alert,
   useWindowDimensions,
 } from "react-native";
@@ -15,23 +14,9 @@ import type { BodyMeasurement } from "@/types";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Button, Host } from "@expo/ui";
-import { Input, InputField } from "@/components/ui/input";
-import { Textarea, TextareaInput } from "@/components/ui/textarea";
-import {
-  FormControl,
-  FormControlLabel,
-  FormControlLabelText,
-} from "@/components/ui/form-control";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Pressable } from "@/components/ui/pressable";
-import {
-  Modal,
-  ModalBackdrop,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-} from "@/components/ui/modal";
 import {
   AlertDialog,
   AlertDialogBackdrop,
@@ -41,72 +26,13 @@ import {
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { Icon, AddIcon, CloseIcon } from "@/components/ui/icon";
+import { Icon, AddIcon } from "@/components/ui/icon";
 import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
-
-type TranslateFn = (
-  key: string,
-  params?: Record<string, string | number>,
-) => string;
-
-/** Matches backend models.SupportedBodyParts. */
-const BODY_PARTS = [
-  "chest",
-  "waist",
-  "hips",
-  "neck",
-  "shoulders",
-  "bicepLeft",
-  "bicepRight",
-  "forearmLeft",
-  "forearmRight",
-  "thighLeft",
-  "thighRight",
-  "calfLeft",
-  "calfRight",
-];
-
-const labelClassName =
-  "text-xs font-bold uppercase tracking-[1px] text-text-secondary";
-
-const PART_LABEL_PREFIX = "body_measurement.list.part_labels.";
-
-function partLabel(t: TranslateFn, key: string): string {
-  const translated = t(PART_LABEL_PREFIX + key);
-  return translated === PART_LABEL_PREFIX + key ? key : translated;
-}
-
-function todayISO(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-function buildMeasurementBody(
-  date: string,
-  weight: string,
-  bodyFat: string,
-  notes: string,
-  parts: Record<string, string>,
-): Record<string, unknown> {
-  const body: Record<string, unknown> = { date };
-  if (weight) body.weight = Number(weight);
-  if (bodyFat) body.bodyFatPct = Number(bodyFat);
-  if (notes.trim()) body.notes = notes.trim();
-  body.weightUnit = "kg";
-  // Backend expects parts as Record<string, { value: number }>
-  const pv: Record<string, { value: number }> = {};
-  Object.entries(parts).forEach(([k, v]) => {
-    if (v) pv[k] = { value: Number(v) };
-  });
-  if (Object.keys(pv).length > 0) body.parts = pv;
-  return body;
-}
-
-function isValidNumber(value: string): boolean {
-  if (!value.trim()) return true;
-  const n = Number(value);
-  return !Number.isNaN(n) && n >= 0;
-}
+import {
+  MeasurementFormModal,
+  partLabel,
+} from "./MeasurementFormModal";
 
 function Sparkline({
   data,
@@ -222,17 +148,12 @@ const MeasurementCard = memo(function MeasurementCard({
 export function MeasurementsScreen() {
   const { t } = useI18n();
   const qc = useQueryClient();
-  const [showAdd, setShowAdd] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMeasurement, setEditingMeasurement] =
     useState<BodyMeasurement | null>(null);
   const [pendingDelete, setPendingDelete] = useState<BodyMeasurement | null>(
     null,
   );
-  const [weight, setWeight] = useState(""),
-    [bodyFat, setBodyFat] = useState("");
-  const [notes, setNotes] = useState("");
-  const [parts, setParts] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState("");
 
   const { data, isLoading, isRefetching, isError, error, refetch } = useQuery({
     queryKey: ["measurements"],
@@ -283,63 +204,30 @@ export function MeasurementsScreen() {
   const isPending = creating || updating;
 
   const closeForm = useCallback(() => {
-    setShowAdd(false);
+    setIsFormOpen(false);
     setEditingMeasurement(null);
-    setWeight("");
-    setBodyFat("");
-    setNotes("");
-    setParts({});
-    setFormError("");
   }, []);
 
   const openCreateForm = useCallback(() => {
-    closeForm();
-    setShowAdd(true);
-  }, [closeForm]);
+    setEditingMeasurement(null);
+    setIsFormOpen(true);
+  }, []);
 
   const openEditForm = useCallback((m: BodyMeasurement) => {
     setEditingMeasurement(m);
-    setWeight(m.weight != null ? String(m.weight) : "");
-    setBodyFat(m.bodyFatPct != null ? String(m.bodyFatPct) : "");
-    setNotes(m.notes ?? "");
-    const partsStr: Record<string, string> = {};
-    Object.entries(m.parts ?? {}).forEach(([k, part]) => {
-      if (part?.value != null) partsStr[k] = String(part.value);
-    });
-    setParts(partsStr);
-    setFormError("");
-    setShowAdd(true);
+    setIsFormOpen(true);
   }, []);
 
-  function handleSave() {
-    if (!isValidNumber(weight) || !isValidNumber(bodyFat)) {
-      setFormError(t("body_measurement.form.validation.invalid_number"));
-      return;
-    }
-    const badPart = Object.entries(parts).find(([, v]) => !isValidNumber(v));
-    if (badPart) {
-      setFormError(
-        t("body_measurement.form.validation.part_invalid", {
-          part: partLabel(t, badPart[0]),
-        }),
-      );
-      return;
-    }
-    setFormError("");
-    const body = buildMeasurementBody(
-      editingMeasurement?.date ?? todayISO(),
-      weight,
-      bodyFat,
-      notes,
-      parts,
-    );
-
-    if (editingMeasurement?.measurementId != null) {
-      update({ id: editingMeasurement.measurementId, body });
-    } else {
-      create(body);
-    }
-  }
+  const handleSave = useCallback(
+    (body: Record<string, unknown>) => {
+      if (editingMeasurement?.measurementId != null) {
+        update({ id: editingMeasurement.measurementId, body });
+      } else {
+        create(body);
+      }
+    },
+    [editingMeasurement, update, create],
+  );
 
   const handleDelete = useCallback((m: BodyMeasurement) => {
     if (m.measurementId == null) return;
@@ -377,13 +265,6 @@ export function MeasurementsScreen() {
     ),
     [openEditForm, handleDelete],
   );
-
-  const modalTitle = editingMeasurement
-    ? t("body_measurement.edit.title")
-    : t("body_measurement.form.create_title");
-  const saveLabel = editingMeasurement
-    ? t("common.actions.update")
-    : t("common.actions.save");
 
   return (
     <Box className="flex-1 bg-background">
@@ -503,7 +384,7 @@ export function MeasurementsScreen() {
           }
         />
       )}
-      {!showAdd && (
+      {!isFormOpen && (
         <Pressable
           onPress={openCreateForm}
           className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-hard-2"
@@ -515,110 +396,13 @@ export function MeasurementsScreen() {
           />
         </Pressable>
       )}
-      <Modal isOpen={showAdd} onClose={closeForm} size="lg">
-        <ModalBackdrop />
-        <ModalContent className="max-h-[85%] p-0">
-          <ScrollView contentContainerClassName="gap-2.5 bg-card p-6 pb-10">
-            <ModalHeader>
-              <Text className="mb-1.5 text-xl font-bold text-text">
-                {modalTitle}
-              </Text>
-              <ModalCloseButton>
-                <Icon as={CloseIcon} className="text-text-secondary" />
-              </ModalCloseButton>
-            </ModalHeader>
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText className={labelClassName}>
-                  {t("body_measurement.form.weight_label")}
-                </FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  value={weight}
-                  onChangeText={setWeight}
-                  keyboardType="numeric"
-                  placeholder="75.0"
-                />
-              </Input>
-            </FormControl>
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText className={labelClassName}>
-                  {t("body_measurement.form.body_fat_label")}
-                </FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  value={bodyFat}
-                  onChangeText={setBodyFat}
-                  keyboardType="numeric"
-                  placeholder="15.0"
-                />
-              </Input>
-            </FormControl>
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText className={labelClassName}>
-                  {t("body_measurement.form.notes_label")}
-                </FormControlLabelText>
-              </FormControlLabel>
-              <Textarea>
-                <TextareaInput
-                  value={notes}
-                  onChangeText={setNotes}
-                  placeholder={t("body_measurement.form.notes_placeholder")}
-                />
-              </Textarea>
-            </FormControl>
-            <Text className={labelClassName}>
-              {t("body_measurement.form.parts_label")}
-            </Text>
-            <VStack space="sm">
-              {BODY_PARTS.map((p) => (
-                <HStack key={p} space="sm" className="items-center">
-                  <Text className="w-24 shrink-0 text-[13px] font-semibold text-text-body">
-                    {partLabel(t, p)}
-                  </Text>
-                  <Input className="flex-1">
-                    <InputField
-                      value={parts[p] ?? ""}
-                      onChangeText={(v) =>
-                        setParts((pr) => ({ ...pr, [p]: v }))
-                      }
-                      keyboardType="numeric"
-                      placeholder="--"
-                    />
-                  </Input>
-                </HStack>
-              ))}
-            </VStack>
-            {formError ? (
-              <Box className="mb-4 rounded border-l-4 border-l-danger bg-danger-surface p-3">
-                <Text className="text-sm font-medium text-danger-text">
-                  {formError}
-                </Text>
-              </Box>
-            ) : null}
-            <HStack space="sm" className="mt-2">
-              <Host matchContents>
-                <Button
-                  label={t("common.actions.cancel")}
-                  variant="outlined"
-                  onPress={closeForm}
-                />
-              </Host>
-              <Host matchContents>
-                <Button
-                  label={saveLabel}
-                  onPress={handleSave}
-                  disabled={isPending}
-                />
-              </Host>
-            </HStack>
-          </ScrollView>
-        </ModalContent>
-      </Modal>
+      <MeasurementFormModal
+        isOpen={isFormOpen}
+        measurement={editingMeasurement}
+        isPending={isPending}
+        onClose={closeForm}
+        onSubmit={handleSave}
+      />
       <AlertDialog
         isOpen={pendingDelete != null}
         onClose={() => setPendingDelete(null)}

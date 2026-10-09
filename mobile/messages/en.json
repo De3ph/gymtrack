@@ -744,14 +744,26 @@
     },
     "form": {
       "create_title": "Record Measurement",
+      "date_label": "Date",
+      "metrics_label": "Key metrics",
       "weight_label": "Weight (kg)",
       "body_fat_label": "Body Fat %",
       "notes_label": "Notes",
       "parts_label": "Body Parts (cm)",
+      "parts_hint": "Optional — fill in only what you measure.",
+      "parts_progress": "{filled} of {total}",
+      "group_torso": "Torso",
+      "group_arms": "Arms",
+      "group_legs": "Legs",
+      "group_parts_label": "{part} (cm)",
       "notes_placeholder": "Optional...",
       "validation": {
         "invalid_number": "Weight and body fat must be non-negative numbers",
-        "part_invalid": "{part} must be a non-negative number"
+        "part_invalid": "{part} must be a non-negative number",
+        "weight_range": "Enter a weight between 1 and 500 kg",
+        "body_fat_range": "Enter a body fat percentage between 1 and 75",
+        "part_range": "{part} must be between 1 and 250 cm",
+        "fix_fields": "Check the highlighted fields and try again."
       }
     }
   },

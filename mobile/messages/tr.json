@@ -744,14 +744,26 @@
     },
     "form": {
       "create_title": "Ölçüm Kaydet",
+      "date_label": "Tarih",
+      "metrics_label": "Temel Ölçümler",
       "weight_label": "Ağırlık (kg)",
       "body_fat_label": "Vücut Yağı %",
       "notes_label": "Notlar",
       "parts_label": "Vücut Ölçüleri (cm)",
+      "parts_hint": "İsteğe bağlı — yalnızca ölçtüğünüz alanları doldurun.",
+      "parts_progress": "{total} değerden {filled} tanesi",
+      "group_torso": "Gövde",
+      "group_arms": "Kollar",
+      "group_legs": "Bacaklar",
+      "group_parts_label": "{part} (cm)",
       "notes_placeholder": "İsteğe bağlı...",
       "validation": {
         "invalid_number": "Ağırlık ve vücut yağı negatif olmayan sayılar olmalı",
-        "part_invalid": "{part} negatif olmayan bir sayı olmalı"
+        "part_invalid": "{part} negatif olmayan bir sayı olmalı",
+        "weight_range": "1 ile 500 kg arasında bir ağırlık girin",
+        "body_fat_range": "1 ile 75 arasında bir vücut yağı yüzdesi girin",
+        "part_range": "{part} 1 ile 250 cm arasında olmalı",
+        "fix_fields": "İşaretli alanları kontrol edip tekrar deneyin."
       }
     }
   },
