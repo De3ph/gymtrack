@@ -1,17 +1,12 @@
 import { Stack } from "expo-router";
 import { MealDetailScreen } from "@/components/features/meal/MealDetailScreen";
-import { DetailBackHeader } from "@/components/DetailBackHeader";
 
 export default function MealDetailPage() {
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTitle: "",
-          headerLeft: () => <DetailBackHeader />,
-        }}
-      />
+      {/* The screen renders its own themed back button; a native header here
+          would duplicate it and defaults to an unthemed white bar. */}
+      <Stack.Screen options={{ headerShown: false }} />
       <MealDetailScreen />
     </>
   );

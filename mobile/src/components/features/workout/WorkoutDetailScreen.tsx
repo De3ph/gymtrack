@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { RefreshControl } from "react-native";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { workoutApi } from "@/api/workoutApi";
 import { useI18n } from "@/lib/i18n";
@@ -57,6 +58,7 @@ const ExerciseCard = React.memo(function ExerciseCard({
 export function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useI18n();
 
   const { data, isLoading, isError, refetch, isRefetching } = useQuery<Workout>({
@@ -215,7 +217,11 @@ export function WorkoutDetailScreen() {
         keyExtractor={keyExtractor}
         ListHeaderComponent={headerComponent}
         ListFooterComponent={footerComponent}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{
+          // The detail routes hide the native header, so the list owns the insets.
+          paddingTop: insets.top + 8,
+          paddingBottom: 24 + insets.bottom,
+        }}
         ItemSeparatorComponent={() => <Box className="h-2" />}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />

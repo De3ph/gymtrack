@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { RefreshControl } from "react-native";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { mealApi } from "@/api/mealApi";
 import { useI18n } from "@/lib/i18n";
@@ -89,6 +90,7 @@ const ItemSeparator = () => <Box className="h-2" />;
 export function MealDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useI18n();
 
   const {
@@ -146,8 +148,13 @@ export function MealDetailScreen() {
   }, [refetch]);
 
   const contentContainerStyle = useMemo(
-    () => ({ paddingHorizontal: 20, paddingBottom: 48 }),
-    []
+    () => ({
+      paddingHorizontal: 20,
+      // The detail routes hide the native header, so the list owns the top inset.
+      paddingTop: insets.top + 8,
+      paddingBottom: 48 + insets.bottom,
+    }),
+    [insets.top, insets.bottom]
   );
 
   const renderItem = useCallback(
