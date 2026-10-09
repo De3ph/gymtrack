@@ -492,6 +492,8 @@
       "start_routine": "Start routine",
       "view_plan": "View plan",
       "manage_routines": "Manage routines",
+      "menu_my_routines": "My Routines",
+      "menu_last_plan": "Start Workout — {name}",
       "load_failed": "Failed to load routines",
       "exercises_count": "{count} exercises"
     },

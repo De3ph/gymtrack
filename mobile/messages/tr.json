@@ -492,6 +492,8 @@
       "start_routine": "Rutini başlat",
       "view_plan": "Planı görüntüle",
       "manage_routines": "Rutinleri yönet",
+      "menu_my_routines": "Rutinlerim",
+      "menu_last_plan": "Antrenmanı Başlat — {name}",
       "load_failed": "Rutinler yüklenemedi",
       "exercises_count": "{count} egzersiz"
     },

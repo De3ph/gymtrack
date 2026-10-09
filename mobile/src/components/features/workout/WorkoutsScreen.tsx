@@ -1,21 +1,25 @@
 import React, { useCallback, useMemo } from "react";
-import { RefreshControl, Alert } from "react-native";
+import { RefreshControl, Alert, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter, type Href } from "expo-router";
 import { useI18n } from "@/lib/i18n";
 import { workoutApi } from "@/api/workoutApi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Workout, WorkoutListResponse } from "@/types";
+import type { Workout, WorkoutListResponse, WorkoutPlan } from "@/types";
 import { canEdit } from "@/lib/canEdit";
+import { triggerHaptic } from "@/lib/haptics";
+import { workoutPlanApi } from "@/api/workoutPlanApi";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
-import { Button, Host, RNHostView } from "@expo/ui";
+import { Button, Host } from "@expo/ui";
 import { Spinner } from "@/components/ui/spinner";
-import { PlusIcon } from "@/components/icons";
+import { FabMenu, type FabMenuAction } from "@/components/ui/fab/fab-menu";
+import { Icon, AddIcon } from "@/components/ui/icon";
 import { WorkoutCard } from "./WorkoutCard";
 import { isSessionExpiredError } from "@/api/client";
 import { SessionExpiredView } from "@/components/features/auth/SessionExpiredView";
 import { useWorkoutFormStore } from "@/stores/workout-form-store";
+import { useAuthStore } from "@/stores/authStore";
 
 import {
   SwipeCoordinatorProvider,
@@ -28,7 +32,7 @@ export function WorkoutsScreen() {
   const router = useRouter();
   const swipeCoordinator = useCreateSwipeCoordinator();
 
-  const { startEdit } = useWorkoutFormStore();
+  const { startEdit, startCreate, startFromPlan } = useWorkoutFormStore();
 
   const closeOpenSwipeRow = useCallback(
     () => swipeCoordinator.closeAll(),
@@ -43,9 +47,72 @@ export function WorkoutsScreen() {
     [router],
   );
 
-  const openStart = useCallback(() => {
+  const openLog = useCallback(() => {
+    router.push("/workout-log" as Href);
+  }, [router]);
+
+  const openRoutines = useCallback(() => {
     router.push("/start-workout" as Href);
   }, [router]);
+
+  // /workout-plans/assigned is athlete-only and 403s for trainers, so the query
+  // is gated on role — a trainer just gets the menu without the routine entry.
+  const isAthlete = useAuthStore((s) => s.user?.role === "athlete");
+
+  const { data: planData } = useQuery({
+    queryKey: ["myPlans"],
+    queryFn: () => workoutPlanApi.getMyPlans(),
+    enabled: isAthlete,
+  });
+
+  // The most recently touched assigned routine — the best "jump back in" default.
+  const lastPlan = useMemo<WorkoutPlan | undefined>(() => {
+    const plans = (planData as { plans?: WorkoutPlan[] } | undefined)?.plans ?? [];
+    if (plans.length === 0) return undefined;
+    return [...plans].sort((a, b) => {
+      const aStamp = Date.parse(a.updatedAt ?? a.createdAt ?? "") || 0;
+      const bStamp = Date.parse(b.updatedAt ?? b.createdAt ?? "") || 0;
+      return bStamp - aStamp;
+    })[0];
+  }, [planData]);
+
+  const fabMenuActions = useMemo<FabMenuAction[]>(
+    () =>
+      [
+        { id: "routines", title: t("workout.start.menu_my_routines") },
+        ...(lastPlan
+          ? [
+              {
+                id: "plan",
+                title: t("workout.start.menu_last_plan", { name: lastPlan.name }),
+              },
+            ]
+          : []),
+        { id: "empty", title: t("workout.start.empty_workout") },
+      ] as FabMenuAction[],
+    [t, lastPlan],
+  );
+
+  const handleFabMenuAction = useCallback(
+    (id: string) => {
+      triggerHaptic();
+      switch (id) {
+        case "routines":
+          openRoutines();
+          return;
+        case "plan":
+          if (!lastPlan) return;
+          startFromPlan(lastPlan);
+          openLog();
+          return;
+        case "empty":
+          startCreate();
+          openLog();
+          return;
+      }
+    },
+    [openRoutines, openLog, lastPlan, startCreate, startFromPlan],
+  );
 
   const openEdit = useCallback(
     (workout: Workout) => {
@@ -164,32 +231,20 @@ export function WorkoutsScreen() {
         }
       />
 
-      <Host
-        matchContents
-        style={{ position: "absolute", bottom: 24, right: 24 }}
-      >
-        <Button
-          onPress={openStart}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-          }}
+      {/* FAB — menu of ways to start a workout */}
+      <View className="absolute bottom-6 right-6">
+        <FabMenu
+          actions={fabMenuActions}
+          onSelect={handleFabMenuAction}
+          title={t("workout.start.title")}
+          accessibilityLabel={t("athlete.workouts.log_workout")}
+          size="lg"
+          className="bg-primary"
+          testID="workouts-fab"
         >
-          <RNHostView
-            style={{
-              width: 32,
-              height: 32,
-            }}
-          >
-            <PlusIcon
-              size={32}
-              color="#ffffff"
-              style={{ width: 32, lineHeight: 32, textAlign: "center" }}
-            />
-          </RNHostView>
-        </Button>
-      </Host>
+          <Icon as={AddIcon} size="xl" className="h-7 w-7 text-primary-foreground" />
+        </FabMenu>
+      </View>
     </Box>
     </SwipeCoordinatorProvider>
   );
