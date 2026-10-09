@@ -34,6 +34,7 @@ function usePersistSession() {
 
 export function useInitializeAuth() {
   const setInitialized = useAuthStore((s) => s.setInitialized);
+  const resetSession = useAuthStore((s) => s.resetSession);
 
   const { data, error, isSuccess, isError } = useQuery({
     queryKey: authKeys.me,
@@ -49,11 +50,9 @@ export function useInitializeAuth() {
 
   useEffect(() => {
     if (isError) {
-      if (isSessionExpiredError(error)) {
-        void authLib.clearTokens().finally(setInitialized);
-      } else {
-        setInitialized();
-      }
+      // Any error during auth check (expired token, invalid token, network error, etc.)
+      // should clear the session and reset auth state
+      void resetSession();
       return;
     }
     if (isSuccess) {
@@ -64,7 +63,7 @@ export function useInitializeAuth() {
       );
       setInitialized();
     }
-  }, [data, error, isError, isSuccess, setInitialized]);
+  }, [data, error, isError, isSuccess, setInitialized, resetSession]);
 }
 
 export function useLogin() {
