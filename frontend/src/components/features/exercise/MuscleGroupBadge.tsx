@@ -3,6 +3,7 @@
 import { MuscleGroup } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useExerciseLookupLabels } from "./exercise-labels";
 
 interface MuscleGroupBadgeProps {
   muscleGroup: MuscleGroup;
@@ -15,6 +16,12 @@ export function MuscleGroupBadge({
   className,
   variant = "default",
 }: MuscleGroupBadgeProps) {
+  // The stored description is English-only, so the label is resolved from the
+  // code instead. It also guarantees a non-empty label: description is optional
+  // in the generated type because swagger 2.x emits no `required` list.
+  const { muscleGroupLabel } = useExerciseLookupLabels();
+  const label = muscleGroupLabel(muscleGroup);
+
   return (
     <Badge
       variant="outline"
@@ -24,7 +31,7 @@ export function MuscleGroupBadge({
         className,
       )}
     >
-      {muscleGroup.description}
+      {label}
     </Badge>
   );
 }

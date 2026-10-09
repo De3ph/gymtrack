@@ -107,5 +107,84 @@ func TestPostgresExerciseRepository(t *testing.T) {
 		assert.NotZero(t, ex1.ExerciseID)
 	})
 
+	// --- media columns ---
+
+	t.Run("CreateExercise_RoundTripsMedia", func(t *testing.T) {
+		ex, err := models.NewExerciseWithMedia("Kettlebell Swing", "strength", 1, 1, creatorID,
+			"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Swings/0.jpg", models.MediaTypeImage)
+		require.NoError(t, err)
+		require.NoError(t, repo.CreateExercise(ctx, ex))
+
+		fetched, err := repo.GetExerciseByID(ctx, ex.ExerciseID)
+		require.NoError(t, err)
+		assert.Equal(t, ex.MediaURL, fetched.MediaURL)
+		assert.Equal(t, models.MediaTypeImage, fetched.MediaType)
+	})
+
+	// The exercise library page renders a placeholder when media_url is NULL.
+	// Storing '' instead would make "no media" indistinguishable from a
+	// configured-but-broken asset, so an absent URL must land as SQL NULL.
+	t.Run("CreateExercise_EmptyMediaBecomesNull", func(t *testing.T) {
+		ex := &models.Exercise{Name: "No Media Exercise", Category: "flexibility", MuscleGroupID: 1, EquipmentID: 1}
+		require.NoError(t, repo.CreateExercise(ctx, ex))
+
+		fetched, err := repo.GetExerciseByID(ctx, ex.ExerciseID)
+		require.NoError(t, err)
+		assert.Empty(t, fetched.MediaURL)
+		// MediaType is NOT NULL with a 'gif' default; an exercise built without
+		// NewExerciseWithMedia carries Go's zero value and must still persist.
+		assert.Equal(t, models.MediaTypeGIF, fetched.MediaType)
+
+		var stored *string
+		err = pool.QueryRow(ctx, `SELECT media_url FROM exercises WHERE id = $1`, ex.ExerciseID).Scan(&stored)
+		require.NoError(t, err)
+		assert.Nil(t, stored, "an empty media URL must be stored as NULL, not ''")
+	})
+
+	// The backfill in migration 009 installs media_url rows. Reading them back is
+	// what proves the column list, scan order, and backfill agree with each other.
+	t.Run("GetAllExercises_ReadsBackfilledMedia", func(t *testing.T) {
+		var backfilled int
+		err := pool.QueryRow(ctx,
+			`SELECT count(*) FROM exercises WHERE media_url LIKE 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/%' AND media_type = 'image'`,
+		).Scan(&backfilled)
+		require.NoError(t, err)
+
+		exercises, err := repo.GetAllExercises(ctx)
+		require.NoError(t, err)
+
+		seen := 0
+		for _, ex := range exercises {
+			if ex.MediaURL == "" {
+				continue
+			}
+			seen++
+			assert.Equal(t, models.MediaTypeImage, ex.MediaType,
+				"a backfilled row must come back as an image, got %q for %s", ex.MediaType, ex.Name)
+		}
+		// Every non-empty URL the repository returned must correspond to a row the
+		// backfill (or an explicit write) actually installed.
+		assert.Equal(t, backfilled, seen)
+	})
+
+	// An unrelated field edit must not silently drop the demonstration asset:
+	// UpdateExercise writes the media columns from the struct, so a caller that
+	// loaded the row first has to round-trip them.
+	t.Run("UpdateExercise_PreservesMedia", func(t *testing.T) {
+		ex, err := models.NewExerciseWithMedia("Landmine Press", "strength", 1, 1, creatorID,
+			"https://example.com/landmine.gif", models.MediaTypeGIF)
+		require.NoError(t, err)
+		require.NoError(t, repo.CreateExercise(ctx, ex))
+
+		ex.Instructions = "Press up and slightly forward"
+		require.NoError(t, repo.UpdateExercise(ctx, ex))
+
+		fetched, err := repo.GetExerciseByID(ctx, ex.ExerciseID)
+		require.NoError(t, err)
+		assert.Equal(t, "Press up and slightly forward", fetched.Instructions)
+		assert.Equal(t, "https://example.com/landmine.gif", fetched.MediaURL)
+		assert.Equal(t, models.MediaTypeGIF, fetched.MediaType)
+	})
+
 	_ = domainerrors.ErrNotFound // ensure import used
 }

@@ -4171,6 +4171,19 @@ const docTemplate = `{
                 "equipmentId": {
                     "type": "integer"
                 },
+                "mediaType": {
+                    "description": "MediaType selects the renderer for MediaURL: gif | video | image.\nEmpty means gif.",
+                    "type": "string",
+                    "enum": [
+                        "gif",
+                        "video",
+                        "image"
+                    ]
+                },
+                "mediaUrl": {
+                    "description": "MediaURL is an absolute https URL to a demonstration asset. Optional: an\nempty value creates an exercise with no media, which the library page\nrenders as a placeholder rather than a broken frame.",
+                    "type": "string"
+                },
                 "muscleGroupId": {
                     "type": "integer"
                 },
@@ -4827,6 +4840,15 @@ const docTemplate = `{
                 "isVerified": {
                     "type": "boolean"
                 },
+                "mediaType": {
+                    "description": "MediaType selects the renderer: gif | video | image. Defaults to gif.",
+                    "type": "string",
+                    "example": "gif"
+                },
+                "mediaUrl": {
+                    "description": "MediaURL points at a demonstration asset (GIF, MP4, or still image) served\nover https. Empty means the exercise has no media and the UI renders a\nplaceholder instead of a broken frame.",
+                    "type": "string"
+                },
                 "muscleGroupId": {
                     "type": "integer",
                     "example": 1
@@ -5201,7 +5223,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "profile": {
-                    "$ref": "#/definitions/models.TrainerProfile"
+                    "$ref": "#/definitions/models.UserProfile"
                 },
                 "reviewCount": {
                     "type": "integer"
@@ -5220,6 +5242,9 @@ const docTemplate = `{
                 },
                 "status": {
                     "$ref": "#/definitions/models.UserStatus"
+                },
+                "trainerProfile": {
+                    "$ref": "#/definitions/models.TrainerProfile"
                 },
                 "type": {
                     "description": "Always \"user\"",
@@ -5448,12 +5473,12 @@ const docTemplate = `{
         "models.WorkoutExercise": {
             "type": "object",
             "required": [
-                "exerciseId",
                 "name",
                 "sets"
             ],
             "properties": {
                 "exerciseId": {
+                    "description": "0 = freeform exercise; Name is authoritative (exercises stored as JSONB, no catalog FK)",
                     "type": "integer",
                     "example": 1
                 },

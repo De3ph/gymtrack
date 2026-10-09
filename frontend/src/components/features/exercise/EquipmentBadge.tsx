@@ -3,6 +3,7 @@
 import { Equipment } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useExerciseLookupLabels } from "./exercise-labels";
 
 interface EquipmentBadgeProps {
   equipment: Equipment;
@@ -15,6 +16,11 @@ export function EquipmentBadge({
   className,
   variant = "default",
 }: EquipmentBadgeProps) {
+  // Resolved from `code` rather than the English-only description, and never
+  // blank even though description is optional in the generated type.
+  const { equipmentLabel } = useExerciseLookupLabels();
+  const label = equipmentLabel(equipment);
+
   return (
     <Badge
       variant="outline"
@@ -24,7 +30,7 @@ export function EquipmentBadge({
         className,
       )}
     >
-      {equipment.description}
+      {label}
     </Badge>
   );
 }

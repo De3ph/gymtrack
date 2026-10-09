@@ -32,9 +32,16 @@ func (r *PostgresExerciseRepository) CreateExercise(ctx context.Context, ex *mod
 		createdBy = ex.CreatedBy
 	}
 
-	query := `INSERT INTO exercises (name, category, muscle_group_id, equipment_id, instructions, created_by, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`
+	// MediaType is NOT NULL with a 'gif' default; an in-memory Exercise built
+	// without going through NewExerciseWithMedia carries the zero value, so
+	// normalise here rather than letting the INSERT fail on the constraint.
+	if ex.MediaType == "" {
+		ex.MediaType = models.MediaTypeGIF
+	}
+
+	query := `INSERT INTO exercises (name, category, muscle_group_id, equipment_id, instructions, media_url, media_type, created_by, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`
 	err := r.pool.QueryRow(ctx, query,
-		ex.Name, ex.Category, ex.MuscleGroupID, ex.EquipmentID, ex.Instructions, createdBy, ex.CreatedAt,
+		ex.Name, ex.Category, ex.MuscleGroupID, ex.EquipmentID, ex.Instructions, mediaURLArg(ex.MediaURL), ex.MediaType, createdBy, ex.CreatedAt,
 	).Scan(&ex.ExerciseID)
 	if err != nil {
 		return fmt.Errorf("failed to create exercise: %w", err)
@@ -42,13 +49,24 @@ func (r *PostgresExerciseRepository) CreateExercise(ctx context.Context, ex *mod
 	return nil
 }
 
-const exCols = `id, name, category, muscle_group_id, equipment_id, instructions, created_by, is_verified, created_at`
+const exCols = `id, name, category, muscle_group_id, equipment_id, instructions, media_url, media_type, created_by, is_verified, created_at`
+
+// mediaURLArg maps the domain's "no media" empty string onto SQL NULL, so the
+// column keeps a single meaning (NULL = nothing to show) instead of also
+// carrying ”.
+func mediaURLArg(mediaURL string) any {
+	if mediaURL == "" {
+		return nil
+	}
+	return mediaURL
+}
 
 func (r *PostgresExerciseRepository) scanExercise(row pgx.Row) (*models.Exercise, error) {
 	ex := &models.Exercise{}
 	var createdBy *int
 	var instructions *string
-	err := row.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.IsVerified, &ex.CreatedAt)
+	var mediaURL *string
+	err := row.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &mediaURL, &ex.MediaType, &createdBy, &ex.IsVerified, &ex.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domainerrors.ErrNotFound
@@ -60,6 +78,9 @@ func (r *PostgresExerciseRepository) scanExercise(row pgx.Row) (*models.Exercise
 	}
 	if instructions != nil {
 		ex.Instructions = *instructions
+	}
+	if mediaURL != nil {
+		ex.MediaURL = *mediaURL
 	}
 	return ex, nil
 }
@@ -76,7 +97,8 @@ func (r *PostgresExerciseRepository) scanExercises(rows pgx.Rows) ([]models.Exer
 		ex := models.Exercise{}
 		var createdBy *int
 		var instructions *string
-		if err := rows.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &createdBy, &ex.IsVerified, &ex.CreatedAt); err != nil {
+		var mediaURL *string
+		if err := rows.Scan(&ex.ExerciseID, &ex.Name, &ex.Category, &ex.MuscleGroupID, &ex.EquipmentID, &instructions, &mediaURL, &ex.MediaType, &createdBy, &ex.IsVerified, &ex.CreatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan exercise row: %w", err)
 		}
 		if createdBy != nil {
@@ -84,6 +106,9 @@ func (r *PostgresExerciseRepository) scanExercises(rows pgx.Rows) ([]models.Exer
 		}
 		if instructions != nil {
 			ex.Instructions = *instructions
+		}
+		if mediaURL != nil {
+			ex.MediaURL = *mediaURL
 		}
 		exercises = append(exercises, ex)
 	}
@@ -149,10 +174,15 @@ func (r *PostgresExerciseRepository) SearchExercises(ctx context.Context, query 
 var _ repositories.ExerciseRepository = (*PostgresExerciseRepository)(nil)
 
 func (r *PostgresExerciseRepository) UpdateExercise(ctx context.Context, exercise *models.Exercise) error {
-	query := `UPDATE exercises SET name=$1, category=$2, muscle_group_id=$3, equipment_id=$4, instructions=$5, is_verified=$6 WHERE id=$7`
+	// media_url / media_type are part of the SET list so an editor can add or
+	// clear an exercise's demonstration asset. Callers that loaded the row first
+	// round-trip the existing values, so omitting them here would silently drop
+	// the asset on any unrelated field edit.
+	query := `UPDATE exercises SET name=$1, category=$2, muscle_group_id=$3, equipment_id=$4, instructions=$5, media_url=$6, media_type=$7, is_verified=$8 WHERE id=$9`
 	tag, err := r.pool.Exec(ctx, query,
 		exercise.Name, exercise.Category, exercise.MuscleGroupID, exercise.EquipmentID,
-		exercise.Instructions, exercise.IsVerified, exercise.ExerciseID,
+		exercise.Instructions, mediaURLArg(exercise.MediaURL), exercise.MediaType,
+		exercise.IsVerified, exercise.ExerciseID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update exercise: %w", err)
@@ -175,5 +205,3 @@ func (r *PostgresExerciseRepository) DeleteExercise(ctx context.Context, exercis
 }
 
 var _ repositories.ExerciseRepository = (*PostgresExerciseRepository)(nil)
-
-

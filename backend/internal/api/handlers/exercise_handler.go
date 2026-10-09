@@ -26,6 +26,13 @@ type CreateExerciseRequest struct {
 	Category      string `json:"category" binding:"required"`
 	MuscleGroupID int    `json:"muscleGroupId" binding:"required"`
 	EquipmentID   int    `json:"equipmentId" binding:"required"`
+	// MediaURL is an absolute https URL to a demonstration asset. Optional: an
+	// empty value creates an exercise with no media, which the library page
+	// renders as a placeholder rather than a broken frame.
+	MediaURL string `json:"mediaUrl"`
+	// MediaType selects the renderer for MediaURL: gif | video | image.
+	// Empty means gif.
+	MediaType string `json:"mediaType" binding:"omitempty,oneof=gif video image"`
 }
 
 type SearchExercisesRequest struct {
@@ -250,15 +257,23 @@ func (h *ExerciseHandler) CreateExercise(c *gin.Context) {
 		return
 	}
 
-	exercise, err := h.exerciseService.CreateExercise(
+	exercise, err := h.exerciseService.CreateExerciseWithMedia(
 		c.Request.Context(),
 		req.Name,
 		req.Category,
 		req.MuscleGroupID,
 		req.EquipmentID,
 		userIDInt,
+		req.MediaURL,
+		req.MediaType,
 	)
 	if err != nil {
+		// A malformed media URL is the caller's mistake, not a server fault, so it
+		// is answered as 400 rather than swept into the generic 500.
+		if errors.Is(err, domainerrors.ErrInvalidMedia) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid exercise media. Use an absolute https URL and a media type of gif, video, or image"})
+			return
+		}
 		handleInternalError(c, err, "internal server error")
 		return
 	}

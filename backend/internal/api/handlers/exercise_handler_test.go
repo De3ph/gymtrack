@@ -410,6 +410,95 @@ func TestExerciseHandler_SearchExercises_RepositoryFailureIsGeneric500(t *testin
 
 const validExerciseBody = `{"name":"Bench Press","category":"strength","muscleGroupId":1,"equipmentId":1}`
 
+const validExerciseWithMediaBody = `{"name":"Kettlebell Swing","category":"strength","muscleGroupId":1,"equipmentId":1,"mediaUrl":"https://example.com/swing.gif","mediaType":"gif"}`
+
+func TestExerciseHandler_CreateExercise_StoresMedia(t *testing.T) {
+	muscleGroups, equipment := knownLookups()
+	exerciseRepo := &fakeExerciseRepo{}
+	handler := newExerciseHandler(exerciseRepo, muscleGroups, equipment)
+
+	ctx, w := newTrainerCtx(http.MethodPost, "/api/exercises", validExerciseWithMediaBody)
+	ctx.Set("userID", "42")
+	handler.CreateExercise(ctx)
+
+	require.Equal(t, http.StatusCreated, w.Code)
+
+	var body models.Exercise
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
+	assert.Equal(t, "https://example.com/swing.gif", body.MediaURL)
+	assert.Equal(t, "gif", body.MediaType)
+
+	require.NotNil(t, exerciseRepo.created)
+	assert.Equal(t, "https://example.com/swing.gif", exerciseRepo.created.MediaURL)
+}
+
+// Media is optional: an exercise created without it must still succeed and carry
+// the column default, which is what makes the library page fall back to a
+// placeholder instead of a broken frame.
+func TestExerciseHandler_CreateExercise_MediaIsOptional(t *testing.T) {
+	muscleGroups, equipment := knownLookups()
+	exerciseRepo := &fakeExerciseRepo{}
+	handler := newExerciseHandler(exerciseRepo, muscleGroups, equipment)
+
+	ctx, w := newTrainerCtx(http.MethodPost, "/api/exercises", validExerciseBody)
+	ctx.Set("userID", "42")
+	handler.CreateExercise(ctx)
+
+	require.Equal(t, http.StatusCreated, w.Code)
+
+	require.NotNil(t, exerciseRepo.created)
+	assert.Empty(t, exerciseRepo.created.MediaURL)
+	assert.Equal(t, models.MediaTypeGIF, exerciseRepo.created.MediaType)
+}
+
+// A malformed media URL is a bad request, not a server fault, and must be
+// rejected before anything is written.
+func TestExerciseHandler_CreateExercise_NonHttpsMediaURLIsBadRequest(t *testing.T) {
+	muscleGroups, equipment := knownLookups()
+	exerciseRepo := &fakeExerciseRepo{}
+	handler := newExerciseHandler(exerciseRepo, muscleGroups, equipment)
+
+	ctx, w := newTrainerCtx(http.MethodPost, "/api/exercises",
+		`{"name":"Bench Press","category":"strength","muscleGroupId":1,"equipmentId":1,"mediaUrl":"http://example.com/x.gif"}`)
+	ctx.Set("userID", "42")
+	handler.CreateExercise(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// The error must not echo the submitted URL back to the client.
+	assert.NotContains(t, responseError(t, w), "example.com")
+	assert.Nil(t, exerciseRepo.created)
+}
+
+func TestExerciseHandler_CreateExercise_RelativeMediaURLIsBadRequest(t *testing.T) {
+	muscleGroups, equipment := knownLookups()
+	exerciseRepo := &fakeExerciseRepo{}
+	handler := newExerciseHandler(exerciseRepo, muscleGroups, equipment)
+
+	ctx, w := newTrainerCtx(http.MethodPost, "/api/exercises",
+		`{"name":"Bench Press","category":"strength","muscleGroupId":1,"equipmentId":1,"mediaUrl":"/local/x.gif"}`)
+	ctx.Set("userID", "42")
+	handler.CreateExercise(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Nil(t, exerciseRepo.created)
+}
+
+// The binding tag rejects an unknown media type before the service runs, so the
+// fake repository never sees the write.
+func TestExerciseHandler_CreateExercise_UnknownMediaTypeIsBadRequest(t *testing.T) {
+	muscleGroups, equipment := knownLookups()
+	exerciseRepo := &fakeExerciseRepo{}
+	handler := newExerciseHandler(exerciseRepo, muscleGroups, equipment)
+
+	ctx, w := newTrainerCtx(http.MethodPost, "/api/exercises",
+		`{"name":"Bench Press","category":"strength","muscleGroupId":1,"equipmentId":1,"mediaUrl":"https://example.com/x.gif","mediaType":"webm"}`)
+	ctx.Set("userID", "42")
+	handler.CreateExercise(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Nil(t, exerciseRepo.created)
+}
+
 func TestExerciseHandler_CreateExercise_Success(t *testing.T) {
 	muscleGroups, equipment := knownLookups()
 	exerciseRepo := &fakeExerciseRepo{}

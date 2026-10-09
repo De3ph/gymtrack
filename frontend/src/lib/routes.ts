@@ -28,6 +28,9 @@ export const ROUTES = {
   // Athlete workout plans
   ATHLETE_WORKOUT_PLANS: '/athlete/workout-plans',
 
+  // Shared exercise library (any signed-in role)
+  EXERCISES: '/exercises',
+
   // Admin routes
   ADMIN_DASHBOARD: '/admin',
   ADMIN_USERS: '/admin/users',
@@ -46,6 +49,9 @@ export const DYNAMIC_ROUTES = {
 
   // Trainer viewing specific workout plan
   TRAINER_WORKOUT_PLAN_DETAIL: (id: string | number) => `/trainer/workout-plans/${id}`,
+
+  // Shared exercise library detail (any signed-in role)
+  EXERCISE_DETAIL: (id: string | number) => `/exercises/${id}`,
 } as const;
 
 // Type definitions for route safety

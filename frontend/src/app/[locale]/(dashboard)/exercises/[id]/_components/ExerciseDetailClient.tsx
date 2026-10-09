@@ -1,0 +1,132 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { ArrowLeft, Dumbbell, Layers, ListOrdered, Video } from "lucide-react";
+import type { ExerciseLibrary } from "@/types";
+import { ROUTES } from "@/lib/routes";
+import { Link } from "@/i18n/navigation";
+import { buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { MuscleGroupBadge } from "@/components/features/exercise/MuscleGroupBadge";
+import { EquipmentBadge } from "@/components/features/exercise/EquipmentBadge";
+import { ExerciseMediaPanel } from "@/components/features/exercise/ExerciseMediaPanel";
+import { useExerciseLookupLabels } from "@/components/features/exercise/exercise-labels";
+import {
+  ExerciseInstructions,
+  ExerciseSectionHeader,
+} from "@/components/features/exercise/ExerciseInstructions";
+
+interface ExerciseDetailClientProps {
+  exercise: ExerciseLibrary;
+}
+
+export function ExerciseDetailClient({ exercise }: ExerciseDetailClientProps) {
+  const t = useTranslations("exercise.library");
+  const tCommon = useTranslations("common.actions");
+  const { muscleGroupLabel, equipmentLabel } = useExerciseLookupLabels();
+
+  return (
+    <div className="container mx-auto py-6">
+      {/* Back is navigation, so it stays a real <a>: middle-click, open in new
+          tab, and "copy link address" all work, which a router.push button
+          would break. `buttonVariants` supplies the button styling without
+          wrapping the anchor in Base UI's Button, whose nativeButton prop
+          defaults to true and warns when the rendered element is not a
+          <button>. */}
+      <Link
+        href={ROUTES.EXERCISES}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-fit rounded-none font-mono text-[10px] uppercase tracking-[0.18em]",
+        )}
+      >
+        <ArrowLeft className="size-5" aria-hidden="true" />
+        {tCommon("back")}
+      </Link>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="space-y-6">
+          <ExerciseMediaPanel exercise={exercise} size="detail" />
+
+          <div className="border border-border px-4 py-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="text-xl font-semibold leading-tight tracking-tight text-foreground">
+                  {exercise.name}
+                </h1>
+                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {exercise.category}
+                </p>
+              </div>
+            </div>
+
+            {(exercise.muscleGroup || exercise.equipment) && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {exercise.muscleGroup && (
+                  <MuscleGroupBadge muscleGroup={exercise.muscleGroup} />
+                )}
+                {exercise.equipment && <EquipmentBadge equipment={exercise.equipment} />}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <section className="space-y-4">
+            <ExerciseSectionHeader icon={ListOrdered}>
+              {t("instructions_title")}
+            </ExerciseSectionHeader>
+            <ExerciseInstructions instructions={exercise.instructions} />
+          </section>
+
+          <Separator />
+
+          <section className="space-y-4">
+            <ExerciseSectionHeader icon={Video}>
+              {t("media_title")}
+            </ExerciseSectionHeader>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {exercise.mediaUrl ? t("media_present") : t("media_absent")}
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="space-y-4">
+            <ExerciseSectionHeader icon={Layers}>
+              {t("details_title")}
+            </ExerciseSectionHeader>
+            <dl className="divide-y divide-border border border-border">
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <dt className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  <Dumbbell className="size-4" aria-hidden="true" />
+                  {t("detail_category")}
+                </dt>
+                <dd className="text-sm capitalize text-foreground">
+                  {exercise.category}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("detail_muscle_group")}
+                </dt>
+                <dd className="text-sm text-foreground">
+                  {muscleGroupLabel(exercise.muscleGroup)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("detail_equipment")}
+                </dt>
+                <dd className="text-sm text-foreground">
+                  {equipmentLabel(exercise.equipment)}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -12,6 +12,7 @@ import (
 
 type ExerciseService interface {
 	CreateExercise(ctx context.Context, name, category string, muscleGroupID, equipmentID int, createdBy int) (*models.Exercise, error)
+	CreateExerciseWithMedia(ctx context.Context, name, category string, muscleGroupID, equipmentID int, createdBy int, mediaURL, mediaType string) (*models.Exercise, error)
 	GetExerciseByID(ctx context.Context, exerciseID int) (*models.Exercise, error)
 	GetAllExercises(ctx context.Context) ([]models.Exercise, error)
 	GetExercisesByMuscleGroup(ctx context.Context, muscleGroupID int) ([]models.Exercise, error)
@@ -53,6 +54,37 @@ func (s *ExerciseServiceImpl) CreateExercise(ctx context.Context, name, category
 	}
 
 	exercise := models.NewExercise(name, category, muscleGroupID, equipmentID, createdBy)
+	err = s.exerciseRepo.CreateExercise(ctx, exercise)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create exercise: %w", err)
+	}
+
+	return exercise, nil
+}
+
+// CreateExerciseWithMedia is CreateExercise plus an optional demonstration
+// asset. The media columns are validated by the model before any write, so an
+// unsupported media type or a non-https URL never reaches the database - the
+// catalog would otherwise gain a row the exercise library page cannot render.
+func (s *ExerciseServiceImpl) CreateExerciseWithMedia(ctx context.Context, name, category string, muscleGroupID, equipmentID, createdBy int, mediaURL, mediaType string) (*models.Exercise, error) {
+	// Validate muscle group exists
+	_, err := s.muscleGroupRepo.GetMuscleGroupByID(ctx, muscleGroupID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid muscle group ID: %w", err)
+	}
+
+	// Validate equipment exists
+	if _, err = s.equipmentRepo.GetEquipmentByID(ctx, equipmentID); err != nil {
+		return nil, fmt.Errorf("invalid equipment ID: %w", err)
+	}
+
+	exercise, err := models.NewExerciseWithMedia(name, category, muscleGroupID, equipmentID, createdBy, mediaURL, mediaType)
+	if err != nil {
+		// The sentinel is preserved unwrapped: the handler must be able to answer
+		// 400 for bad input rather than 500.
+		return nil, err
+	}
+
 	err = s.exerciseRepo.CreateExercise(ctx, exercise)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create exercise: %w", err)

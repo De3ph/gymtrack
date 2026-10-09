@@ -1425,10 +1425,43 @@
   "exercise": {
     "equipment": {
       "label": "Equipment",
-      "categories": "Categories"
+      "categories": "Categories",
+      "barbell": "Barbell",
+      "dumbbell": "Dumbbell",
+      "kettlebell": "Kettlebell",
+      "cable": "Cable",
+      "machine": "Machine",
+      "smith_machine": "Smith Machine",
+      "bodyweight": "Bodyweight",
+      "band": "Band",
+      "resistance_band": "Resistance Band",
+      "ez_bar": "EZ Bar",
+      "trap_bar": "Trap Bar",
+      "bench": "Bench",
+      "other": "Other"
     },
     "muscle_group": {
       "label": "Muscle Group"
+    },
+    "muscle_groups": {
+      "chest": "Chest",
+      "back": "Back",
+      "lats": "Lats",
+      "traps": "Traps",
+      "shoulders": "Shoulders",
+      "arms": "Arms",
+      "biceps": "Biceps",
+      "triceps": "Triceps",
+      "forearms": "Forearms",
+      "legs": "Legs",
+      "quadriceps": "Quadriceps",
+      "hamstrings": "Hamstrings",
+      "glutes": "Glutes",
+      "calves": "Calves",
+      "core": "Core",
+      "abs": "Abs",
+      "full_body": "Full Body",
+      "other": "Other"
     },
     "filters": {
       "label": "Filters",
@@ -1460,8 +1493,15 @@
     "library": {
       "title": "Exercise Library",
       "subtitle": "Browse every exercise in the catalog with demonstration media and step-by-step instructions.",
+      "filter_search": "Search",
       "filter_category": "Category",
+      "filter_muscle_group": "Muscle Group",
+      "filter_equipment": "Equipment",
+      "search_placeholder": "Search by name or instructions...",
       "all_categories": "All Categories",
+      "all_muscle_groups": "All Muscle Groups",
+      "all_equipment": "All Equipment",
+      "clear_filters": "Clear Filters",
       "results_total": "{count} exercises",
       "results_filtered": "{count} of {total} exercises",
       "no_results_hint": "No exercise matches these filters. Try widening the search.",

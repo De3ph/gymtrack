@@ -1425,10 +1425,43 @@
   "exercise": {
     "equipment": {
       "label": "Ekipman",
-      "categories": "Kategoriler"
+      "categories": "Kategoriler",
+      "barbell": "Halter",
+      "dumbbell": "Dambıl",
+      "kettlebell": "Kettlebell",
+      "cable": "Kablo",
+      "machine": "Makine",
+      "smith_machine": "Smith Makinesi",
+      "bodyweight": "Vücut Ağırlığı",
+      "band": "Bant",
+      "resistance_band": "Direnç Bandı",
+      "ez_bar": "EZ Bar",
+      "trap_bar": "Trap Bar",
+      "bench": "Sehpa",
+      "other": "Diğer"
     },
     "muscle_group": {
       "label": "Kas Grubu"
+    },
+    "muscle_groups": {
+      "chest": "Göğüs",
+      "back": "Sırt",
+      "lats": "Latissimus",
+      "traps": "Trapez",
+      "shoulders": "Omuz",
+      "arms": "Kollar",
+      "biceps": "Biceps",
+      "triceps": "Triceps",
+      "forearms": "Ön Kol",
+      "legs": "Bacaklar",
+      "quadriceps": "Quadriceps",
+      "hamstrings": "Hamstring",
+      "glutes": "Gluteus",
+      "calves": "Baldır",
+      "core": "Kontrol",
+      "abs": "Karın",
+      "full_body": "Tüm Vücut",
+      "other": "Diğer"
     },
     "filters": {
       "label": "Filtreler",
@@ -1460,8 +1493,15 @@
     "library": {
       "title": "Egzersiz Kütüphanesi",
       "subtitle": "Katalogdaki tüm egzersizleri gösterim videosu ve adım adım talimatlarla incele.",
+      "filter_search": "Ara",
       "filter_category": "Kategori",
+      "filter_muscle_group": "Kas Grubu",
+      "filter_equipment": "Ekipman",
+      "search_placeholder": "Ada veya talimata göre ara...",
       "all_categories": "Tüm Kategoriler",
+      "all_muscle_groups": "Tüm Kas Grupları",
+      "all_equipment": "Tüm Ekipmanlar",
+      "clear_filters": "Filtreleri Temizle",
       "results_total": "{count} egzersiz",
       "results_filtered": "{total} egzersizden {count} tanesi",
       "no_results_hint": "Bu filtrelere uyan egzersiz yok. Aramayı genişletmeyi dene.",

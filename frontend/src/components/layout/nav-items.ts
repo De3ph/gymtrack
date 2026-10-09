@@ -4,6 +4,7 @@ import {
   ClipboardList,
   Dumbbell,
   LayoutDashboard,
+  Library,
   Ruler,
   ShieldCheck,
   UserRound,
@@ -71,6 +72,12 @@ export function useNavItems(userRole?: string): NavItem[] {
           icon: ClipboardList,
           activeMatch: "endsWith",
         },
+        {
+          href: ROUTES.EXERCISES,
+          label: tNav("exercises"),
+          icon: Library,
+          activeMatch: "endsWith",
+        },
       ];
 
     case "trainer":
@@ -91,6 +98,12 @@ export function useNavItems(userRole?: string): NavItem[] {
           href: ROUTES.TRAINER_WORKOUT_PLANS,
           label: tNav("workout_plans"),
           icon: ClipboardList,
+          activeMatch: "endsWith",
+        },
+        {
+          href: ROUTES.EXERCISES,
+          label: tNav("exercises"),
+          icon: Library,
           activeMatch: "endsWith",
         },
       ];

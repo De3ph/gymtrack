@@ -19,6 +19,10 @@ var (
 	// ErrInvalidInput is returned when input is invalid
 	ErrInvalidInput = errors.New("the provided data is invalid. Please check the fields and try again")
 
+	// ErrInvalidMedia is returned when an exercise's demonstration asset cannot
+	// be rendered: an unsupported media type, or a URL that is not absolute https.
+	ErrInvalidMedia = errors.New("the exercise media is invalid. Use an absolute https URL and a media type of gif, video, or image")
+
 	// ErrInternal is returned when an internal error occurs
 	ErrInternal = errors.New("something went wrong on our side. Please try again later")
 

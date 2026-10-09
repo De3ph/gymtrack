@@ -11,6 +11,9 @@ import type {
 } from '@/lib/api/adminApi'
 import type {
   BodyMeasurement,
+  Equipment,
+  ExerciseLibrary,
+  MuscleGroup,
   TrainerProfile,
   WorkoutPlan,
   AssignmentListResponse,
@@ -190,6 +193,44 @@ async function serverFetch<T>(
   return res.json() as Promise<T>
 }
 
+/**
+ * Like serverFetch, but a 404 resolves to null instead of throwing.
+ *
+ * The exercise detail route renders a real "not found" state for an id that no
+ * longer exists, and it cannot know that id up front — the id comes from the URL.
+ * serverFetch would turn that expected outcome into a thrown Error, forcing the
+ * page to either swallow real backend faults along with it or render an error
+ * box where a 404 message belongs.
+ */
+async function serverFetchNullable<T>(
+  path: string,
+  accessToken: string,
+): Promise<T | null> {
+  const res = await fetch(`${BACKEND_URL}${path}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-store',
+  })
+
+  if (res.status === 404) return null
+
+  if (!res.ok) {
+    let message = `Backend ${path} failed: ${res.status}`
+    try {
+      const body = await res.json()
+      if (body?.message) message = body.message
+    } catch {
+      // ignore parse error
+    }
+    throw new Error(message)
+  }
+
+  if (res.status === 204) return null
+  return res.json() as Promise<T>
+}
+
 // -------- Admin data access (server-side, cached) --------
 
 export interface GetAdminUsersParams {
@@ -324,4 +365,54 @@ export async function getWorkoutPlanAssignmentsCached(
     accessToken,
   )
   return result as unknown as AssignmentListResponse
+}
+
+// --- Exercise library ---
+//
+// The catalog is identical for every user, so these reads are not session
+// scoped. The access token is still passed in rather than read inside the cache
+// scope: reading cookies() under 'use cache' would either throw or widen the
+// cache key to the session, which is the opposite of what we want for
+// reference data. These endpoints are public on the backend, so the token is
+// only used to keep the request shape identical to every other serverFetch.
+
+/** Whole exercise catalog, ordered by name. */
+export async function getExercisesCatalogCached(
+  accessToken: string,
+): Promise<ExerciseLibrary[]> {
+  'use cache'
+  cacheLife({ revalidate: 3600, expire: 86400 })
+  cacheTag('exercises')
+  return serverFetch<ExerciseLibrary[]>('/exercises', accessToken)
+}
+
+/** One exercise by ID. Returns null when the backend answers 404. */
+export async function getExerciseByIdCached(
+  accessToken: string,
+  exerciseId: string,
+): Promise<ExerciseLibrary | null> {
+  'use cache'
+  cacheLife({ revalidate: 3600, expire: 86400 })
+  cacheTag('exercises')
+  return serverFetchNullable<ExerciseLibrary>(`/exercises/${exerciseId}`, accessToken)
+}
+
+/** Muscle-group lookup table. Reference data — safe to cache for hours. */
+export async function getMuscleGroupsCached(
+  accessToken: string,
+): Promise<MuscleGroup[]> {
+  'use cache'
+  cacheLife({ revalidate: 3600, expire: 86400 })
+  cacheTag('exercises')
+  return serverFetch<MuscleGroup[]>('/muscle-groups', accessToken)
+}
+
+/** Equipment lookup table. */
+export async function getEquipmentCached(
+  accessToken: string,
+): Promise<Equipment[]> {
+  'use cache'
+  cacheLife({ revalidate: 3600, expire: 86400 })
+  cacheTag('exercises')
+  return serverFetch<Equipment[]>('/equipment', accessToken)
 }

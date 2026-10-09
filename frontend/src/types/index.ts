@@ -266,6 +266,8 @@ export interface CoachingRequestWithDetails {
 // --- Exercise library types (UI-enriched) ---
 
 /** Exercise catalog entry with populated relations (UI convenience). */
+export type ExerciseMediaType = "gif" | "video" | "image";
+
 export interface ExerciseLibrary {
   exerciseId: number;
   name: string;
@@ -277,6 +279,13 @@ export interface ExerciseLibrary {
   createdAt: string;
   muscleGroup?: MuscleGroup;
   equipment?: Equipment;
+  /**
+   * Absolute https URL of a demonstration asset. Absent or empty means the
+   * exercise has no media and the library renders a placeholder tile.
+   */
+  mediaUrl?: string;
+  /** Renderer hint for `mediaUrl`. Absent means `gif`. */
+  mediaType?: ExerciseMediaType;
 }
 
 export interface ExerciseListResponse {
