@@ -61,6 +61,12 @@
 
 Config at `eslint.config.mjs` — uses `eslint-config-next/core-web-vitals` + TypeScript. Ignores `.next/`, `out/`, `build/`, `next-env.d.ts`. Style rules are the standard Next.js defaults — turn off rules you disagree with rather than suppressing with comments.
 
+## Git safety
+
+**Never run `git reset --hard`.** It silently deletes uncommitted work, including changes you
+did not make, and the lost content is usually not recoverable. Use `git reset --soft` or
+`git reset --mixed` to undo a commit. Run `git status` before any history-rewriting command.
+
 ## Routable pages
 
 All under `src/app/[locale]/`:

@@ -6,6 +6,20 @@ Before any Next.js work, find and read the relevant doc in `frontend/node_module
 
 <!-- END:nextjs-agent-rules -->
 
+# Git safety
+
+**Never run `git reset --hard`.** It silently deletes uncommitted work, including changes
+you did not make. There is no undo for it and the lost content is usually not recoverable
+from any stash or reflog.
+
+- To undo a commit: `git reset --soft HEAD~1` (keeps changes staged) or
+  `git reset --mixed HEAD~1` (keeps changes unstaged). Only `--hard` is off-limits.
+- To throw away changes on purpose, say so explicitly and confirm first.
+- Before any history-rewriting command, run `git status` and check what is uncommitted.
+
+Also be careful with `git stash`: a stash pop that fails midway can leave corrupt ref files
+and break subsequent commits. Check `git fsck` if git starts reporting ref errors.
+
 # GymTrack — AI Agent Guide
 
 ## Project Overview

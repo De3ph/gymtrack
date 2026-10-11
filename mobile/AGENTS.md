@@ -2,6 +2,12 @@
 
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
+# Git safety
+
+**Never run `git reset --hard`.** It silently deletes uncommitted work, including changes you
+did not make, and the lost content is usually not recoverable. Use `git reset --soft` or
+`git reset --mixed` to undo a commit. Run `git status` before any history-rewriting command.
+
 # Safe area / headers
 
 The native stack header applies the top inset **itself**. Do not add `useSafeAreaInsets`

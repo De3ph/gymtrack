@@ -92,6 +92,12 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 - Role checks: middleware enforces roles (e.g., admin) from JWT claims.
 - Swagger UI: `http://localhost:8080/swagger/index.html`
 
+## Git safety
+
+**Never run `git reset --hard`.** It silently deletes uncommitted work, including changes you
+did not make, and the lost content is usually not recoverable. Use `git reset --soft` or
+`git reset --mixed` to undo a commit. Run `git status` before any history-rewriting command.
+
 ## Key patterns to follow
 
 - **Handler → Service → Repository**: Handlers parse requests and return responses. Services contain business logic. Repositories do data access. No business logic in handlers.
