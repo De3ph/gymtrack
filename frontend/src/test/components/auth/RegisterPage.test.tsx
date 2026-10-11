@@ -1,12 +1,14 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import RegisterPage from '@/app/[locale]/(auth)/register/page'
 import { authApi } from '@/lib/api'
 
-vi.mock('next/navigation', () => ({
+// The page imports useRouter from '@/i18n/navigation' (the next-intl wrapper),
+// not from 'next/navigation' — mocking the latter leaves push() unwired.
+vi.mock('@/i18n/navigation', () => ({
   useRouter: vi.fn(),
 }))
 
@@ -22,6 +24,14 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+const VALID = {
+  username: 'newuser',
+  email: 'newuser@example.com',
+  password: 'password123',
+  confirmPassword: 'password123',
+  name: 'New User',
+}
+
 describe('RegisterPage', () => {
   function renderPage() {
     const queryClient = new QueryClient({
@@ -34,6 +44,43 @@ describe('RegisterPage', () => {
     )
   }
 
+  const username = () => screen.getByLabelText(/username/i)
+  const email = () => screen.getByRole('textbox', { name: /email/i })
+  const password = () => screen.getByLabelText(/^password/i)
+  const confirmPassword = () => screen.getByLabelText(/confirm password/i)
+  const name = () => screen.getByLabelText(/full name/i)
+  const submit = () => screen.getByRole('button', { name: /create account/i })
+
+  /**
+   * The validation message belonging to a specific field.
+   * `FieldInfo` renders a `role="alert"` sibling of the input inside the same
+   * `Field` (role="group"), but does not wire `aria-describedby`, so the alert
+   * has to be found by scoping to that group rather than from the document.
+   */
+  const errorFor = (field: HTMLElement) =>
+    within(field.closest('[role="group"]') as HTMLElement).getByRole('alert')
+
+  /** Fills every field the form validates on, so submit reaches `onSubmit`. */
+  const fillValidForm = async (
+    user: ReturnType<typeof userEvent.setup>,
+    overrides: Partial<typeof VALID> = {},
+  ) => {
+    const values = { ...VALID, ...overrides }
+    const fields: Array<[() => HTMLElement, string]> = [
+      [username, values.username],
+      [email, values.email],
+      [password, values.password],
+      [confirmPassword, values.confirmPassword],
+      [name, values.name],
+    ]
+
+    for (const [field, value] of fields) {
+      // userEvent.type() rejects an empty string; an empty field is the point
+      // of the tests that override it with ''.
+      if (value) await user.type(field(), value)
+    }
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
       ; vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
@@ -42,14 +89,14 @@ describe('RegisterPage', () => {
   it('renders registration form with all fields', () => {
     renderPage()
 
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument()
-    expect(screen.getByLabelText('Password')).toBeInTheDocument()
+    expect(screen.getByLabelText(/username/i)).toBeInTheDocument()
+    expect(email()).toBeInTheDocument()
+    expect(password()).toBeInTheDocument()
     expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument()
-    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument()
+    expect(name()).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: /athlete/i })).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: /trainer/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument()
+    expect(submit()).toBeInTheDocument()
     expect(screen.getByText(/already have an account/i)).toBeInTheDocument()
   })
 
@@ -58,29 +105,26 @@ describe('RegisterPage', () => {
     const registerMock = vi.mocked(authApi.register)
     renderPage()
 
-    await user.type(screen.getByRole('textbox', { name: /email/i }), 'invalid-email')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.type(screen.getByLabelText('Confirm Password'), 'password123')
-    await user.type(screen.getByLabelText(/full name/i), 'Test User')
-    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await fillValidForm(user, { email: 'invalid-email' })
+    await user.click(submit())
 
     await waitFor(() => {
-      expect(registerMock).not.toHaveBeenCalled()
+      expect(screen.getByText(/please enter a valid email/i)).toBeInTheDocument()
     })
+    expect(registerMock).not.toHaveBeenCalled()
   })
 
   it('shows validation error when password is too short', async () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/^password/i), 'short')
-    await user.type(screen.getByLabelText(/confirm password/i), 'short')
-    await user.type(screen.getByLabelText(/full name/i), 'Test User')
-    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await fillValidForm(user, { password: 'short', confirmPassword: 'short' })
+    await user.click(submit())
 
     await waitFor(() => {
-      expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument()
+      // Matches the backend rule (swagger minLength: 8) and the field's own
+      // "At least 8 characters" placeholder.
+      expect(errorFor(password())).toHaveTextContent(/at least 8 characters/i)
     })
   })
 
@@ -88,14 +132,11 @@ describe('RegisterPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/^password/i), 'password123')
-    await user.type(screen.getByLabelText(/confirm password/i), 'password456')
-    await user.type(screen.getByLabelText(/full name/i), 'Test User')
-    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await fillValidForm(user, { confirmPassword: 'password456' })
+    await user.click(submit())
 
     await waitFor(() => {
-      expect(screen.getByText(/passwords don't match/i)).toBeInTheDocument()
+      expect(errorFor(confirmPassword())).toHaveTextContent(/passwords do not match/i)
     })
   })
 
@@ -103,13 +144,42 @@ describe('RegisterPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/^password/i), 'password123')
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await fillValidForm(user, { name: '' })
+    await user.click(submit())
 
     await waitFor(() => {
-      expect(screen.getByText(/name is required/i)).toBeInTheDocument()
+      // Exact match: /name is required/i also matches "Username is required".
+      expect(errorFor(name())).toHaveTextContent('Name is required')
+    })
+  })
+
+  it('shows validation error when username is empty', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await fillValidForm(user, { username: '' })
+    await user.click(submit())
+
+    await waitFor(() => {
+      expect(errorFor(username())).toHaveTextContent('Username is required')
+    })
+    expect(vi.mocked(authApi.register)).not.toHaveBeenCalled()
+  })
+
+  it('associates the validation message with the input', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await fillValidForm(user, { name: '' })
+    await user.click(submit())
+
+    // The error renders as a role="alert" next to the input, but that alone
+    // leaves the control with no description — aria-describedby is what ties
+    // them together for screen readers.
+    await waitFor(() => {
+      const describedBy = name().getAttribute('aria-describedby')
+      expect(describedBy).toBeTruthy()
+      expect(document.getElementById(describedBy!)).toBe(errorFor(name()))
     })
   })
 
@@ -134,22 +204,20 @@ describe('RegisterPage', () => {
 
     renderPage()
 
-    await user.type(screen.getByLabelText(/email/i), 'newuser@example.com')
-    await user.type(screen.getByLabelText(/^password/i), 'password123')
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
-    await user.type(screen.getByLabelText(/full name/i), 'New User')
-    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await fillValidForm(user)
+    await user.click(submit())
 
     await waitFor(() => {
       expect(authApi.register).toHaveBeenCalledWith({
-        email: 'newuser@example.com',
-        password: 'password123',
+        username: VALID.username,
+        email: VALID.email,
+        password: VALID.password,
         role: 'athlete',
-        profile: expect.objectContaining({ name: 'New User' }),
+        profile: expect.objectContaining({ name: VALID.name }),
       })
     })
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith('newuser@example.com', 'password123')
+      expect(mockLogin).toHaveBeenCalledWith(VALID.email, VALID.password)
       expect(mockPush).toHaveBeenCalledWith('/')
     })
   })
@@ -160,31 +228,25 @@ describe('RegisterPage', () => {
 
     renderPage()
 
-    await user.type(screen.getByLabelText(/email/i), 'existing@example.com')
-    await user.type(screen.getByLabelText(/^password/i), 'password123')
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
-    await user.type(screen.getByLabelText(/full name/i), 'Test User')
-    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await fillValidForm(user, { email: 'existing@example.com' })
+    await user.click(submit())
 
     await waitFor(() => {
-      expect(screen.getByText(/email already registered/i)).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent(/email already registered/i)
     })
   })
 
   it('disables submit button and shows loading state during submission', async () => {
     const user = userEvent.setup()
     vi.mocked(authApi.register).mockImplementation(
-      () => new Promise(resolve => setTimeout(resolve, 200))
+      () => new Promise(resolve => setTimeout(resolve, 200)),
     )
     mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 200)))
 
     renderPage()
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/^password/i), 'password123')
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
-    await user.type(screen.getByLabelText(/full name/i), 'Test User')
-    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await fillValidForm(user)
+    await user.click(submit())
 
     expect(screen.getByRole('button', { name: /creating account/i })).toBeDisabled()
   })

@@ -4,7 +4,7 @@
 
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
-import { FieldLabel } from "@/components/ui/field";
+import { FieldLabel, fieldErrorId } from "@/components/ui/field";
 import {
   Select,
   SelectItem,
@@ -51,6 +51,7 @@ export function MealFormFields({ form, t, mealTypeItems }: MealFormFieldsProps) 
                   id="mealTime"
                   data-testid="meal-time"
                   className="w-full md:w-[120px]"
+                  aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
               </div>
@@ -70,7 +71,10 @@ export function MealFormFields({ form, t, mealTypeItems }: MealFormFieldsProps) 
                   field.handleChange((e ?? "breakfast") as Parameters<typeof field.handleChange>[0]);
                 }}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger
+                  className="w-full"
+                  aria-describedby={fieldErrorId(field.name)}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

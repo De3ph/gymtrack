@@ -47,12 +47,12 @@ describe('MealForm', () => {
     renderWithQueryClient(<MealForm />)
 
     // Date & meal type labels use mock translation keys (last segment)
-    expect(screen.getByText('date_time_label')).toBeInTheDocument()
+    expect(screen.getByText('Date & Time')).toBeInTheDocument()
     expect(screen.getByDisplayValue('breakfast')).toBeInTheDocument()
     expect(screen.getByTestId('meal-food')).toBeInTheDocument()
     expect(screen.getByTestId('meal-quantity')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /add_food_item/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /log_meal/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add food item/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log meal/i })).toBeInTheDocument()
   })
 
   it('has correct form structure', () => {
@@ -73,7 +73,7 @@ describe('MealForm', () => {
     const user = userEvent.setup()
     renderWithQueryClient(<MealForm />)
 
-    const addButton = screen.getByRole('button', { name: /add_food_item/i })
+    const addButton = screen.getByRole('button', { name: /add food item/i })
     await user.click(addButton)
 
     const foodInputs = screen.getAllByTestId('meal-food')
@@ -90,7 +90,7 @@ describe('MealForm', () => {
     await user.type(screen.getByTestId('meal-food'), 'Oatmeal')
     await user.type(screen.getByTestId('meal-quantity'), '1 cup')
 
-    const logButton = screen.getByRole('button', { name: /log_meal/i })
+    const logButton = screen.getByRole('button', { name: /log meal/i })
     await user.click(logButton)
 
     await waitFor(() => {
@@ -109,7 +109,7 @@ describe('MealForm', () => {
     await user.type(screen.getByTestId('meal-food'), 'Oatmeal')
     await user.type(screen.getByTestId('meal-quantity'), '1 cup')
 
-    const logButton = screen.getByRole('button', { name: /log_meal/i })
+    const logButton = screen.getByRole('button', { name: /log meal/i })
     await user.click(logButton)
 
     // Button should be disabled while pending (Spinner shown)
@@ -125,7 +125,7 @@ describe('MealForm', () => {
     await user.type(screen.getByTestId('meal-food'), 'Oatmeal')
     await user.type(screen.getByTestId('meal-quantity'), '1 cup')
 
-    const logButton = screen.getByRole('button', { name: /log_meal/i })
+    const logButton = screen.getByRole('button', { name: /log meal/i })
     await user.click(logButton)
 
     await waitFor(() => {

@@ -11,6 +11,11 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+// `Comment.commentId` is typed optional, so the id is pinned here rather than
+// read off the fixture. The string form this file used to assert ("c1") never
+// matched the numeric ids the component actually passes.
+const FIRST_COMMENT_ID = 1
+
 const mockComments: Comment[] = [
   {
     type: 'comment',
@@ -20,9 +25,9 @@ const mockComments: Comment[] = [
     authorId: 1,
     authorRole: 'trainer',
     content: 'First comment',
-    parentCommentId: null,
+    parentCommentId: undefined,
     createdAt: new Date('2024-01-01T10:00:00Z').toISOString(),
-    editedAt: null,
+    editedAt: undefined,
   },
   {
     type: 'comment',
@@ -34,7 +39,7 @@ const mockComments: Comment[] = [
     content: 'Reply to first',
     parentCommentId: 1,
     createdAt: new Date('2024-01-01T10:05:00Z').toISOString(),
-    editedAt: null,
+    editedAt: undefined,
   },
   {
     type: 'comment',
@@ -44,9 +49,9 @@ const mockComments: Comment[] = [
     authorId: 3,
     authorRole: 'athlete',
     content: 'Second root comment',
-    parentCommentId: null,
+    parentCommentId: undefined,
     createdAt: new Date('2024-01-01T10:10:00Z').toISOString(),
-    editedAt: null,
+    editedAt: undefined,
   },
 ]
 
@@ -111,7 +116,8 @@ describe('CommentList', () => {
     )
     const replyBtn = screen.getAllByRole('button', { name: /reply/i })[0]
     fireEvent.click(replyBtn)
-    expect(onStartReply).toHaveBeenCalledWith('c1')
+    // `Comment.commentId` is numeric, so the handler receives the id, not a slug.
+    expect(onStartReply).toHaveBeenCalledWith(FIRST_COMMENT_ID)
   })
 
   it('renders reply form when replyingToId matches', () => {
@@ -121,12 +127,12 @@ describe('CommentList', () => {
         targetType="workout"
         targetId="w1"
         queryKey={['comments']}
-        replyingToId="c1"
+        replyingToId={FIRST_COMMENT_ID}
         onStartReply={vi.fn()}
         onCancelReply={vi.fn()}
       />
     )
-    expect(screen.getByPlaceholderText(/write a reply/i)).toBeInTheDocument()
+    expect(screen.getByText(/write a reply/i)).toBeInTheDocument()
   })
 
   it('hides reply button when readOnly=true', () => {

@@ -6,7 +6,7 @@ import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldInfo } from "@/components/ui/form-field";
 
@@ -40,16 +40,18 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
       </CardHeader>
       <CardContent className="grid gap-4 px-6 pb-6 md:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2 col-span-2">
-          <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.food_name_label")}</FieldLabel>
+          <FieldLabel htmlFor={`${testIdPrefix}-food`} className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.food_name_label")}</FieldLabel>
           <form.Field name={`items[${index}].food`}>
             {(subField: any) => (
               <Field>
                 <Input
+                  id={`${testIdPrefix}-food`}
                   value={subField.state.value}
                   onChange={(e) => subField.handleChange(e.target.value)}
                   onBlur={subField.handleBlur}
                   placeholder={t("form.food.placeholder")}
                   data-testid={`${testIdPrefix}-food`}
+                  aria-describedby={fieldErrorId(subField.name)}
                 />
                 <FieldInfo field={subField} />
               </Field>
@@ -58,16 +60,18 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
         </div>
 
         <div className="space-y-2">
-          <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.quantity.label")}</FieldLabel>
+          <FieldLabel htmlFor={`${testIdPrefix}-quantity`} className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.quantity.label")}</FieldLabel>
           <form.Field name={`items[${index}].quantity`}>
             {(subField: any) => (
               <Field>
                 <Input
+                  id={`${testIdPrefix}-quantity`}
                   value={subField.state.value}
                   onChange={(e) => subField.handleChange(e.target.value)}
                   onBlur={subField.handleBlur}
                   placeholder={t("form.quantity.placeholder")}
                   data-testid={`${testIdPrefix}-quantity`}
+                  aria-describedby={fieldErrorId(subField.name)}
                 />
                 <FieldInfo field={subField} />
               </Field>
@@ -76,17 +80,19 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
         </div>
 
         <div className="space-y-2">
-          <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.calories.label")}</FieldLabel>
+          <FieldLabel htmlFor={`${testIdPrefix}-calories`} className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.calories.label")}</FieldLabel>
           <form.Field name={`items[${index}].calories`}>
             {(subField: any) => (
               <Field>
                 <Input
+                  id={`${testIdPrefix}-calories`}
                   value={subField.state.value}
                   onChange={(e) => subField.handleChange(Number(e.target.value))}
                   onBlur={subField.handleBlur}
                   type="number"
                   placeholder={t("form.calories.placeholder")}
                   data-testid={`${testIdPrefix}-calories`}
+                  aria-describedby={fieldErrorId(subField.name)}
                 />
                 <FieldInfo field={subField} />
               </Field>

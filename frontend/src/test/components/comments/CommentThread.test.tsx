@@ -22,9 +22,9 @@ const mockComments: Comment[] = [
     authorId: 1,
     authorRole: 'trainer',
     content: 'Root comment',
-    parentCommentId: null,
+    parentCommentId: undefined,
     createdAt: new Date('2024-01-01T10:00:00Z').toISOString(),
-    editedAt: null,
+    editedAt: undefined,
   },
   {
     type: 'comment',
@@ -36,7 +36,7 @@ const mockComments: Comment[] = [
     content: 'Reply',
     parentCommentId: 1,
     createdAt: new Date('2024-01-01T10:05:00Z').toISOString(),
-    editedAt: null,
+    editedAt: undefined,
   },
 ]
 

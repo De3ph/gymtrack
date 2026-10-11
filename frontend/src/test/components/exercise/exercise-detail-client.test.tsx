@@ -77,7 +77,7 @@ describe('ExerciseDetailClient', () => {
         />,
       )
 
-      const heading = screen.getByRole('heading', { name: 'media_title' })
+      const heading = screen.getByRole('heading', { name: 'Demonstration' })
       // The media has to live in the same section as its own heading, not
       // somewhere else on the page that the heading merely refers to.
       const section = heading.closest('section')!
@@ -107,7 +107,7 @@ describe('ExerciseDetailClient', () => {
       render(<ExerciseDetailClient exercise={exercise} />)
 
       expect(screen.getByTestId('exercise-media-placeholder')).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: 'media_title' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Demonstration' })).toBeInTheDocument()
     })
   })
 })

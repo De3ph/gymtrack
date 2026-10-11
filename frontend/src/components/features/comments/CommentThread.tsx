@@ -43,6 +43,13 @@ export function CommentThread({
 
   return (
     <section className="border border-border" aria-label={t("list.title")}>
+      {/* `comments_count` is defined in messages/{en,tr}.json but was never
+          rendered, so the thread gave no indication of its size. */}
+      {comments.length > 0 && (
+        <h3 className="border-b border-border px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:px-6">
+          {t("list.comments_count", { count: comments.length })}
+        </h3>
+      )}
       {/* Body */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">

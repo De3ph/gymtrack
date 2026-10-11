@@ -75,7 +75,7 @@ export function WorkoutExerciseCard({
             variant="ghost"
             size="icon-sm"
             onClick={onToggle}
-            aria-label={isCollapsed ? "Expand exercise" : "Collapse exercise"}
+            aria-label={isCollapsed ? t("expand_exercise") : t("collapse_exercise")}
             className="h-6 w-6 shrink-0 rounded-none"
           >
             {isCollapsed ? (

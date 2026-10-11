@@ -3,14 +3,16 @@ import { describe, it, expect, vi } from 'vitest'
 import { ExerciseLibraryFilters } from '@/components/features/exercise/ExerciseLibraryFilters'
 import type { Equipment, MuscleGroup } from '@/types'
 
+// Descriptions are deliberately different from the English translation
+// ("Shoulders", "Cable", ...) so a test can prove which of the two rendered.
 const muscleGroups: MuscleGroup[] = [
-  { id: 1, code: 'chest', description: 'Chest' },
-  { id: 3, code: 'shoulders', description: 'Shoulders' },
+  { id: 1, code: 'chest', description: 'Pecs' },
+  { id: 3, code: 'shoulders', description: 'Deltoids' },
 ]
 
 const equipment: Equipment[] = [
-  { id: 1, code: 'barbell', description: 'Barbell' },
-  { id: 4, code: 'cable', description: 'Cable' },
+  { id: 1, code: 'barbell', description: 'Bar' },
+  { id: 4, code: 'cable', description: 'Pulley' },
 ]
 
 const baseProps = {
@@ -42,35 +44,35 @@ describe('ExerciseLibraryFilters', () => {
     // closed, so omitting `items` left nothing to resolve and the trigger printed
     // the raw value — "3" for Shoulders.
     //
-    // The shared next-intl mock resolves a key to its last segment, so a
-    // localised label renders as its code — 'shoulders', not the database's
-    // English 'Shoulders'. That difference is what proves the resolver ran
+    // Resolution order is translation first, database description second, so the
+    // fixtures above carry descriptions ("Deltoids", "Pulley") that differ from
+    // the English translation. Seeing the translation proves the resolver ran
     // instead of falling back to the description column.
     it('shows the muscle group label when one is selected', () => {
       renderFilters({ query: '', muscleGroupId: 3 })
 
       const trigger = screen.getByRole('combobox', {
-        name: 'filter_muscle_group',
+        name: 'Muscle Group',
       })
-      expect(trigger).toHaveTextContent('shoulders')
+      expect(trigger).toHaveTextContent('Shoulders')
       // Neither the raw id nor the untranslated description.
       expect(trigger).not.toHaveTextContent('3')
-      expect(trigger).not.toHaveTextContent('Shoulders')
+      expect(trigger).not.toHaveTextContent('Deltoids')
     })
 
     it('shows the equipment label when one is selected', () => {
       renderFilters({ query: '', equipmentId: 4 })
 
-      const trigger = screen.getByRole('combobox', { name: 'filter_equipment' })
-      expect(trigger).toHaveTextContent('cable')
+      const trigger = screen.getByRole('combobox', { name: 'Equipment' })
+      expect(trigger).toHaveTextContent('Cable')
       expect(trigger).not.toHaveTextContent('4')
-      expect(trigger).not.toHaveTextContent('Cable')
+      expect(trigger).not.toHaveTextContent('Pulley')
     })
 
     it('shows the category when one is selected', () => {
       renderFilters({ query: '', category: 'cardio' })
 
-      const trigger = screen.getByRole('combobox', { name: 'filter_category' })
+      const trigger = screen.getByRole('combobox', { name: 'Category' })
       expect(trigger).toHaveTextContent('cardio')
     })
 
@@ -78,14 +80,14 @@ describe('ExerciseLibraryFilters', () => {
       renderFilters({ query: '' })
 
       expect(
-        screen.getByRole('combobox', { name: 'filter_muscle_group' }),
-      ).toHaveTextContent('all_muscle_groups')
+        screen.getByRole('combobox', { name: 'Muscle Group' }),
+      ).toHaveTextContent('All Muscle Groups')
       expect(
-        screen.getByRole('combobox', { name: 'filter_equipment' }),
-      ).toHaveTextContent('all_equipment')
+        screen.getByRole('combobox', { name: 'Equipment' }),
+      ).toHaveTextContent('All Equipment')
       expect(
-        screen.getByRole('combobox', { name: 'filter_category' }),
-      ).toHaveTextContent('all_categories')
+        screen.getByRole('combobox', { name: 'Category' }),
+      ).toHaveTextContent('All Categories')
     })
   })
 
@@ -93,16 +95,16 @@ describe('ExerciseLibraryFilters', () => {
     it('names every filter control on screen', () => {
       renderFilters({ query: '' })
 
-      expect(screen.getByText('filter_search')).toBeInTheDocument()
-      expect(screen.getByText('filter_category')).toBeInTheDocument()
-      expect(screen.getByText('filter_muscle_group')).toBeInTheDocument()
-      expect(screen.getByText('filter_equipment')).toBeInTheDocument()
+      expect(screen.getByText('Search')).toBeInTheDocument()
+      expect(screen.getByText('Category')).toBeInTheDocument()
+      expect(screen.getByText('Muscle Group')).toBeInTheDocument()
+      expect(screen.getByText('Equipment')).toBeInTheDocument()
     })
 
     it('wires the search label to its input so clicking the label focuses it', () => {
       renderFilters({ query: '' })
 
-      expect(screen.getByLabelText('filter_search')).toHaveAttribute(
+      expect(screen.getByLabelText('Search')).toHaveAttribute(
         'id',
         'exercise-library-search',
       )
@@ -112,10 +114,10 @@ describe('ExerciseLibraryFilters', () => {
       renderFilters({ query: '' })
 
       expect(
-        screen.getByRole('combobox', { name: 'filter_muscle_group' }),
+        screen.getByRole('combobox', { name: 'Muscle Group' }),
       ).toBeInTheDocument()
       expect(
-        screen.getByRole('combobox', { name: 'filter_equipment' }),
+        screen.getByRole('combobox', { name: 'Equipment' }),
       ).toBeInTheDocument()
     })
   })
@@ -127,9 +129,9 @@ describe('ExerciseLibraryFilters', () => {
     // row-wise, stranding labels beside the wrong control. Each label must share
     // a parent with its own trigger.
     const cases = [
-      { label: 'filter_category', trigger: 'filter_category' },
-      { label: 'filter_muscle_group', trigger: 'filter_muscle_group' },
-      { label: 'filter_equipment', trigger: 'filter_equipment' },
+      { label: 'Category', trigger: 'Category' },
+      { label: 'Muscle Group', trigger: 'Muscle Group' },
+      { label: 'Equipment', trigger: 'Equipment' },
     ] as const
 
     it.each(cases)(
@@ -166,7 +168,7 @@ describe('ExerciseLibraryFilters', () => {
       // original visual bug. The wrapper has to establish its own box.
       renderFilters({ query: '' })
 
-      const label = screen.getByText('filter_category')
+      const label = screen.getByText('Category')
       const wrapper = label.parentElement!
 
       expect(wrapper.tagName).toBe('DIV')
@@ -182,7 +184,7 @@ describe('ExerciseLibraryFilters', () => {
         />,
       )
 
-      const search = screen.getByLabelText('filter_search')
+      const search = screen.getByLabelText('Search')
       const grid = container.querySelector('.sm\\:grid-cols-3')
 
       expect(grid!.contains(search)).toBe(false)
@@ -193,14 +195,14 @@ describe('ExerciseLibraryFilters', () => {
     it('is hidden when no filter is active', () => {
       renderFilters({ query: '' })
 
-      expect(screen.queryByRole('button', { name: /clear_filters/ })).toBeNull()
+      expect(screen.queryByRole('button', { name: /clear filters/i })).toBeNull()
     })
 
     it('appears when a filter is active', () => {
       renderFilters({ query: 'squat', muscleGroupId: 3 })
 
       expect(
-        screen.getByRole('button', { name: /clear_filters/ }),
+        screen.getByRole('button', { name: /clear filters/i }),
       ).toBeInTheDocument()
     })
 
@@ -216,7 +218,7 @@ describe('ExerciseLibraryFilters', () => {
         { onChange },
       )
 
-      screen.getByRole('button', { name: /clear_filters/ }).click()
+      screen.getByRole('button', { name: /clear filters/i }).click()
 
       expect(onChange).toHaveBeenCalledWith({ query: '' })
     })
@@ -239,8 +241,8 @@ describe('ExerciseLibraryFilters', () => {
       )
 
       expect(
-        screen.getByRole('combobox', { name: 'filter_muscle_group' }),
-      ).toHaveTextContent('shoulders')
+        screen.getByRole('combobox', { name: 'Muscle Group' }),
+      ).toHaveTextContent('Shoulders')
     })
 
     it('falls back to the code when a description is blank', () => {
@@ -256,8 +258,8 @@ describe('ExerciseLibraryFilters', () => {
 
       // Resolved from the code through the translation, never from the blank
       // description — a blank label would render an unusable option.
-      const trigger = screen.getByRole('combobox', { name: 'filter_equipment' })
-      expect(trigger).toHaveTextContent('resistance_band')
+      const trigger = screen.getByRole('combobox', { name: 'Equipment' })
+      expect(trigger).toHaveTextContent('Resistance Band')
     })
 
     it('keeps the database description for a code with no translation', () => {
@@ -276,7 +278,7 @@ describe('ExerciseLibraryFilters', () => {
       )
 
       // An unmapped code must never surface as a raw dotted translation key.
-      const trigger = screen.getByRole('combobox', { name: 'filter_muscle_group' })
+      const trigger = screen.getByRole('combobox', { name: 'Muscle Group' })
       expect(trigger).toHaveTextContent('Sternocleidomastoid')
       expect(trigger).not.toHaveTextContent('muscle_groups')
     })
@@ -286,16 +288,16 @@ describe('ExerciseLibraryFilters', () => {
         { query: '', equipmentId: 8 },
         {
           equipment: [
-            { id: 8, code: 'resistance-band', description: 'Band' },
+            { id: 8, code: 'resistance-band', description: 'Elastic strap' },
           ] as Equipment[],
         },
       )
 
       // Seed data uses both 'resistance-band' and 'resistance_band'; both must
       // resolve to the same translation rather than one silently falling back.
-      const trigger = screen.getByRole('combobox', { name: 'filter_equipment' })
-      expect(trigger).toHaveTextContent('resistance_band')
-      expect(trigger).not.toHaveTextContent('Band')
+      const trigger = screen.getByRole('combobox', { name: 'Equipment' })
+      expect(trigger).toHaveTextContent('Resistance Band')
+      expect(trigger).not.toHaveTextContent('Elastic strap')
     })
   })
 })

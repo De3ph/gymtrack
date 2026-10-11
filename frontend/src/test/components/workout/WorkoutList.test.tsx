@@ -55,14 +55,14 @@ describe('WorkoutList', () => {
     renderWithProvider(<WorkoutList workouts={mockWorkouts} />)
 
     expect(screen.getByText(/bench press/i)).toBeInTheDocument()
-    expect(screen.getByText(/sets_x/i)).toBeInTheDocument()
-    expect(screen.getAllByText(/set_detail/i)).toHaveLength(3)
+    expect(screen.getByText(/3 sets/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/kg x \d+/i)).toHaveLength(3)
   })
 
   it('shows empty state when no workouts', () => {
     renderWithProvider(<WorkoutList workouts={[]} />)
 
-    expect(screen.getByText(/no_workouts/i)).toBeInTheDocument()
+    expect(screen.getByText(/no workouts yet/i)).toBeInTheDocument()
   })
 
   it('shows loading state when fetching and no props', () => {

@@ -51,8 +51,17 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-const fieldVariants = cva(
-  "group/field flex w-full gap-3 data-[invalid=true]:text-destructive",
+/**
+ * Deterministic id for a field's error message.
+ *
+ * `FieldError` renders a `role="alert"` next to the control, so screen readers
+ * announce it when it appears — but without `aria-describedby` the control
+ * itself carries no description, so returning to the field reads nothing. Wire
+ * the control up with `aria-describedby={fieldErrorId(field.name)}`.
+ */
+const fieldErrorId = (fieldName: string) => `${fieldName}-field-error`;
+
+const fieldVariants = cva(  "group/field flex w-full gap-3 data-[invalid=true]:text-destructive",
   {
     variants: {
       orientation: {
@@ -235,4 +244,5 @@ export {
   FieldSet,
   FieldContent,
   FieldTitle,
+  fieldErrorId,
 }

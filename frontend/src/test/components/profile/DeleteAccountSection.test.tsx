@@ -34,14 +34,14 @@ describe('DeleteAccountSection', () => {
 
   it('renders delete button', () => {
     renderWithProviders(<DeleteAccountSection />)
-    expect(screen.getByRole('button', { name: 'confirm' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete My Account' })).toBeInTheDocument()
   })
 
   it('opens dialog on button click', async () => {
     const user = userEvent.setup()
     renderWithProviders(<DeleteAccountSection />)
 
-    await user.click(screen.getByRole('button', { name: 'confirm' }))
+    await user.click(screen.getByRole('button', { name: 'Delete My Account' }))
 
     await waitFor(() => {
       expect(screen.getByRole('alertdialog')).toBeInTheDocument()
@@ -52,17 +52,17 @@ describe('DeleteAccountSection', () => {
     const user = userEvent.setup()
     renderWithProviders(<DeleteAccountSection />)
 
-    await user.click(screen.getByRole('button', { name: 'confirm' }))
+    await user.click(screen.getByRole('button', { name: 'Delete My Account' }))
 
     await waitFor(() => {
       expect(screen.getByRole('alertdialog')).toBeInTheDocument()
     })
 
-    const passwordInput = screen.getByPlaceholderText('password_placeholder')
+    const passwordInput = screen.getByPlaceholderText('Enter current password')
     const dialog = screen.getByRole('alertdialog')
     const buttons = dialog.querySelectorAll('button')
     const confirmBtn = Array.from(buttons).find(
-      (b) => b.textContent === 'confirm'
+      (b) => b.textContent === 'Delete My Account'
     )!
 
     await user.type(passwordInput, 'correct123')
@@ -77,17 +77,17 @@ describe('DeleteAccountSection', () => {
     const user = userEvent.setup()
     renderWithProviders(<DeleteAccountSection />)
 
-    await user.click(screen.getByRole('button', { name: 'confirm' }))
+    await user.click(screen.getByRole('button', { name: 'Delete My Account' }))
 
     await waitFor(() => {
       expect(screen.getByRole('alertdialog')).toBeInTheDocument()
     })
 
-    const passwordInput = screen.getByPlaceholderText('password_placeholder')
+    const passwordInput = screen.getByPlaceholderText('Enter current password')
     const dialog = screen.getByRole('alertdialog')
     const buttons = dialog.querySelectorAll('button')
     const confirmBtn = Array.from(buttons).find(
-      (b) => b.textContent === 'confirm'
+      (b) => b.textContent === 'Delete My Account'
     )!
 
     await user.type(passwordInput, 'wrongpass')

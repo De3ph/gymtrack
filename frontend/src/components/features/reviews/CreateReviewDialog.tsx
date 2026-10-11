@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { FieldInfo } from "@/components/ui/form-field"
+import { fieldErrorId } from "@/components/ui/field"
 import { Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "@/components/ui/toast"
@@ -122,6 +123,7 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
                   onBlur={field.handleBlur}
                   className="mt-1"
                   rows={4}
+                  aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
               </div>

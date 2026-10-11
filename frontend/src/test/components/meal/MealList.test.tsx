@@ -62,15 +62,14 @@ describe('MealList', () => {
   it('shows empty state when no meals', () => {
     renderWithProvider(<MealList meals={[]} />)
 
-    // mock translation returns last segment "no_meals"
-    expect(screen.getByText('no_meals')).toBeInTheDocument()
+    expect(screen.getByText(/no meals yet/i)).toBeInTheDocument()
   })
 
   it('shows loading state when fetching and no props', () => {
     vi.mocked(mealApi.getAll).mockImplementation(() => new Promise(() => { }))
     renderWithProvider(<MealList />)
 
-    expect(screen.getByText('loading')).toBeInTheDocument()
+    expect(screen.getByText(/loading meals/i)).toBeInTheDocument()
   })
 
   it('fetches meals when no props provided', async () => {

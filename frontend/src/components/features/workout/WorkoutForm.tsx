@@ -499,8 +499,14 @@ export function WorkoutForm({
           disabled={isPending}
           className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.18em] md:ml-auto md:w-auto"
         >
-          {isPending && <Spinner className="size-5" />}
-          {t("submit")}
+          {isPending ? (
+            <>
+              <Spinner className="size-5" />
+              {t("submitting")}
+            </>
+          ) : (
+            t("submit")
+          )}
         </Button>
       </div>
     </form>

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Spinner } from "@/components/ui/spinner"
-import { Field, FieldLabel } from "@/components/ui/field"
+import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field"
 import { FieldInfo } from "@/components/ui/form-field"
 import { useTranslations } from "next-intl"
 
@@ -150,6 +150,7 @@ export default function RegisterPage() {
                 type='text'
                 id='username'
                 placeholder={t("username.placeholder")}
+                aria-describedby={fieldErrorId(field.name)}
               />
               <FieldInfo field={field} />
             </Field>
@@ -180,6 +181,7 @@ export default function RegisterPage() {
                 type='email'
                 id='email'
                 placeholder={t("email.placeholder")}
+                aria-describedby={fieldErrorId(field.name)}
               />
               <FieldInfo field={field} />
             </Field>
@@ -210,6 +212,7 @@ export default function RegisterPage() {
                 type='password'
                 id='password'
                 placeholder={t("password.placeholder")}
+                aria-describedby={fieldErrorId(field.name)}
               />
               <FieldInfo field={field} />
             </Field>
@@ -243,6 +246,7 @@ export default function RegisterPage() {
                 type='password'
                 id='confirmPassword'
                 placeholder={t("confirm_password.placeholder")}
+                aria-describedby={fieldErrorId(field.name)}
               />
               <FieldInfo field={field} />
             </Field>
@@ -304,6 +308,7 @@ export default function RegisterPage() {
                 type='text'
                 id='name'
                 placeholder={t("name.placeholder")}
+                aria-describedby={fieldErrorId(field.name)}
               />
               <FieldInfo field={field} />
             </Field>

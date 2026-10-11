@@ -11,7 +11,7 @@ import { authApi } from "@/lib/api/authApi";
 import { ROUTES } from "@/lib/routes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { Spinner } from "@/components/ui/spinner";
 import { stagger, reveal } from "@/components/features/auth/auth-variants";
@@ -212,6 +212,7 @@ export default function ForgotPasswordPage() {
                   autoComplete="email"
                   placeholder={t("email.placeholder")}
                   className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-semibold text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
               </Field>

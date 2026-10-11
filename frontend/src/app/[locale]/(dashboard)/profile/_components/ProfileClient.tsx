@@ -10,7 +10,7 @@ import { AcceptInvitationDialog } from "@/components/features/athlete/AcceptInvi
 import { MyTrainerButton } from "@/components/features/athlete/MyTrainerButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -343,6 +343,7 @@ function ProfileEdit({
                   onBlur={field.handleBlur}
                   type="text"
                   id="name"
+                  aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
               </Field>

@@ -59,7 +59,7 @@ describe('WorkoutCalendar', () => {
     await waitFor(() => {
       expect(workoutApi.getAll).toHaveBeenCalled()
     })
-    expect(screen.getByText(/select_date/i)).toBeInTheDocument()
+    expect(screen.getByText(/select a date to view workouts/i)).toBeInTheDocument()
   })
 
   it('shows selected date section with title', async () => {
@@ -69,7 +69,7 @@ describe('WorkoutCalendar', () => {
     await waitFor(() => {
       expect(workoutApi.getAll).toHaveBeenCalled()
     })
-    expect(screen.getByText(/select_date/i)).toBeInTheDocument()
+    expect(screen.getByText(/select a date to view workouts/i)).toBeInTheDocument()
   })
 
   it('displays workouts for selected day when data is loaded', async () => {
@@ -80,7 +80,7 @@ describe('WorkoutCalendar', () => {
     await waitFor(() => {
       expect(screen.getByText(/squats/i)).toBeInTheDocument()
     })
-    expect(screen.getByText(/sets_x/i)).toBeInTheDocument()
+    expect(screen.getByText(/\d+ sets/i)).toBeInTheDocument()
   })
 
   it('shows no workouts message when selected day has none', async () => {
@@ -89,7 +89,7 @@ describe('WorkoutCalendar', () => {
     renderWithProvider(<WorkoutCalendar />)
 
     await waitFor(() => {
-      expect(screen.getByText(/no_workouts/i)).toBeInTheDocument()
+      expect(screen.getByText(/no workouts on this date/i)).toBeInTheDocument()
     })
   })
 })

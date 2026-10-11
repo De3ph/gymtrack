@@ -95,13 +95,13 @@ describe('BodyMeasurementForm unit Select', () => {
     mockGetLatest.mockResolvedValue(null)
     renderForm()
 
-    await user.click(screen.getByRole('button', { name: /fetch_previous/i }))
+    await user.click(screen.getByRole('button', { name: /use previous/i }))
 
     await waitFor(() => expect(mockGetLatest).toHaveBeenCalledTimes(1))
 
     expect(unitTrigger()).toHaveTextContent('kg')
     expect(controlledSelectWarnings()).toHaveLength(0)
-    expect(screen.getByRole('alert')).toHaveTextContent(/no_previous_measurement/i)
+    expect(screen.getByRole('alert')).toHaveTextContent(/no previous measurement found/i)
   })
 
   it('keeps the unit Select controlled when "Use Previous" omits weightUnit', async () => {
@@ -112,7 +112,7 @@ describe('BodyMeasurementForm unit Select', () => {
     })
     renderForm()
 
-    await user.click(screen.getByRole('button', { name: /fetch_previous/i }))
+    await user.click(screen.getByRole('button', { name: /use previous/i }))
 
     await waitFor(() => expect(mockGetLatest).toHaveBeenCalledTimes(1))
 

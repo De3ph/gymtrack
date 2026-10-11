@@ -70,7 +70,7 @@ describe("DailyNutritionSummary", () => {
     renderWithProvider(<DailyNutritionSummary date={targetDate} />);
 
     await waitFor(() => {
-      expect(screen.getByText("title_with_date")).toBeInTheDocument();
+      expect(screen.getByText(/daily nutrition summary/i)).toBeInTheDocument();
     });
     expect(mealApi.getByDate).toHaveBeenCalledWith("2024-06-15", expect.anything());
   });

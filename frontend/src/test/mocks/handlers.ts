@@ -26,6 +26,15 @@ interface UpdateProfileRequestBody {
   profile: Partial<UserProfile>
 }
 
+interface PasswordRequestBody {
+  password: string
+}
+
+interface RestoreRequestBody {
+  identifier: string
+  password: string
+}
+
 interface WorkoutRequestBody {
   date: string
   exercises: WorkoutExercise[]
@@ -42,6 +51,15 @@ interface AcceptInvitationRequestBody {
 }
 
 // Mock data
+
+/**
+ * Passwords the account-management handlers accept. Exported so the tests that
+ * exercise the happy path can send the same literal instead of duplicating it,
+ * and so the failure branches stay reachable with any other value.
+ */
+export const DELETE_ACCOUNT_PASSWORD = 'correct123'
+export const RESTORE_PASSWORD = 'correct123'
+
 const mockUsers: User[] = [
   {
     userId: 1,
@@ -157,6 +175,31 @@ export const handlers = [
     return HttpResponse.json({ message: 'Logged out successfully' })
   }),
 
+  // Restoring a soft-deleted account. Only the exact password below succeeds, so
+  // the expired-window branch stays reachable without extra setup.
+  http.post('/api/auth/restore', async ({ request }) => {
+    const body = await request.json() as RestoreRequestBody
+
+    if (body.password !== RESTORE_PASSWORD) {
+      return HttpResponse.json(
+        { error: 'Invalid credentials or restore period expired' },
+        { status: 401 }
+      )
+    }
+
+    return HttpResponse.json({
+      user: {
+        userId: 4,
+        email: body.identifier,
+        role: 'athlete',
+        profile: {}
+      },
+      accessToken: 'restored-access-token',
+      refreshToken: 'restored-refresh-token',
+      token: 'restored-access-token'
+    })
+  }),
+
   // User endpoints
   http.get('/api/users/me', () => {
     return HttpResponse.json(mockUsers[0])
@@ -170,6 +213,21 @@ export const handlers = [
     })
   }),
 
+  // Soft delete. The account is scheduled for removal, not removed outright, so
+  // the success path is a message rather than a 204.
+  http.delete('/api/users/me', async ({ request }) => {
+    const body = await request.json() as PasswordRequestBody
+
+    if (body.password !== DELETE_ACCOUNT_PASSWORD) {
+      return HttpResponse.json(
+        { error: 'invalid password' },
+        { status: 401 }
+      )
+    }
+
+    return HttpResponse.json({ message: 'Account deleted successfully' })
+  }),
+
   // Workout endpoints
   http.get('/api/workouts', () => {
     return HttpResponse.json(mockWorkouts)
@@ -179,6 +237,7 @@ export const handlers = [
     const body = await request.json() as WorkoutRequestBody
     const newWorkout: Workout = {
       workoutId: 3,
+      athleteId: 1,
       type: 'workout',
       ...body,
       createdAt: new Date().toISOString(),
@@ -207,6 +266,7 @@ export const handlers = [
     const body = await request.json() as MealRequestBody
     const newMeal: Meal = {
       mealId: 3,
+      athleteId: 1,
       ...body,
       createdAt: new Date().toISOString()
     }

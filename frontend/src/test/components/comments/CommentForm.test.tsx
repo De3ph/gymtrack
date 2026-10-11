@@ -37,8 +37,8 @@ describe('CommentForm', () => {
   it('renders form with textarea and submit button', () => {
     renderWithQueryClient(<CommentForm targetType="workout" targetId="w1" queryKey={['comments']} />)
 
-    expect(screen.getByPlaceholderText('Add a comment...')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Comment' })).toBeInTheDocument()
+    expect(screen.getByTestId('comment-content')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Your comment' })).toBeInTheDocument()
   })
 
   it('renders with "Reply" button when parentCommentId provided', () => {
@@ -82,10 +82,10 @@ describe('CommentForm', () => {
       />
     )
 
-    const textarea = screen.getByPlaceholderText('Add a comment...')
+    const textarea = screen.getByTestId('comment-content')
     await user.type(textarea, 'Great workout!')
 
-    const submitButton = screen.getByRole('button', { name: 'Comment' })
+    const submitButton = screen.getByRole('button', { name: 'Your comment' })
     await user.click(submitButton)
 
     await waitFor(() => {
@@ -110,11 +110,11 @@ describe('CommentForm', () => {
       />
     )
 
-    const submitButton = screen.getByRole('button', { name: 'Comment' })
+    const submitButton = screen.getByRole('button', { name: 'Your comment' })
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText('Comment cannot be empty')).toBeInTheDocument()
+      expect(screen.getByText(/content is required/i)).toBeInTheDocument()
     })
   })
 
@@ -132,10 +132,10 @@ describe('CommentForm', () => {
       />
     )
 
-    const textarea = screen.getByPlaceholderText('Add a comment...')
+    const textarea = screen.getByTestId('comment-content')
     await user.type(textarea, 'Test comment')
 
-    const submitButton = screen.getByRole('button', { name: 'Comment' })
+    const submitButton = screen.getByRole('button', { name: 'Your comment' })
     await user.click(submitButton)
 
     await waitFor(() => {
@@ -157,10 +157,10 @@ describe('CommentForm', () => {
       />
     )
 
-    const textarea = screen.getByPlaceholderText('Add a comment...')
+    const textarea = screen.getByTestId('comment-content')
     await user.type(textarea, 'Test comment')
 
-    const submitButton = screen.getByRole('button', { name: 'Comment' })
+    const submitButton = screen.getByRole('button', { name: 'Your comment' })
     await user.click(submitButton)
 
     await waitFor(() => {
@@ -180,14 +180,14 @@ describe('CommentForm', () => {
       />
     )
 
-    const textarea = screen.getByPlaceholderText('Add a comment...')
+    const textarea = screen.getByTestId('comment-content')
     await user.type(textarea, 'Test comment')
 
-    const submitButton = screen.getByRole('button', { name: 'Comment' })
+    const submitButton = screen.getByRole('button', { name: 'Your comment' })
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Add a comment...')).toBeInTheDocument()
+      expect(screen.getByTestId('comment-content')).toBeInTheDocument()
     })
   })
 
@@ -201,6 +201,6 @@ describe('CommentForm', () => {
       />
     )
 
-    expect(screen.getByPlaceholderText('Write your thoughts...')).toBeInTheDocument()
+    expect(screen.getByText('Write your thoughts...')).toBeInTheDocument()
   })
 })

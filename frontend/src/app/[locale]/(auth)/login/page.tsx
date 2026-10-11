@@ -11,7 +11,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { ROUTES } from "@/lib/routes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
@@ -111,13 +111,20 @@ export default function LoginPage() {
                 </FieldLabel>
                 <Input
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value);
+                    // Editing after a failed attempt should clear the stale
+                    // banner; otherwise "Invalid credentials" sits on screen
+                    // while the user is actively correcting the field.
+                    if (error) setError("");
+                  }}
                   onBlur={field.handleBlur}
                   type="text"
                   id="identifier"
-                 
+                  
                   placeholder={t("email.placeholder")}
                   className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-semibold text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
               </Field>
@@ -150,13 +157,17 @@ export default function LoginPage() {
                 </FieldLabel>
                 <Input
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value);
+                    if (error) setError("");
+                  }}
                   onBlur={field.handleBlur}
                   type="password"
                   id="password"
-                 
+                  
                   placeholder={t("password.placeholder")}
                   className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-semibold text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
               </Field>

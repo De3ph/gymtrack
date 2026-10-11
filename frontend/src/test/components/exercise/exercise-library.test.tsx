@@ -37,7 +37,7 @@ describe('ExerciseMediaPanel', () => {
     // The test setup mocks next-intl so a translation resolves to its key; what
     // matters here is that the alt text is generated from a label rather than
     // left empty, since an unlabelled image is invisible to a screen reader.
-    expect(img.getAttribute('alt')).toBe('media_label')
+    expect(img.getAttribute('alt')).toBe('Demonstration of Bench Press')
   })
 
   it('renders a video element for a video asset', () => {
@@ -75,7 +75,7 @@ describe('ExerciseInstructions', () => {
   it('renders a placeholder when there are no instructions', () => {
     render(<ExerciseInstructions />)
 
-    expect(screen.getByText('no_instructions')).toBeInTheDocument()
+    expect(screen.getByText(/no instructions have been written/i)).toBeInTheDocument()
   })
 
   it('renders newline-separated instructions as numbered steps', () => {

@@ -388,7 +388,7 @@
         "placeholder": "••••••••",
         "error": {
           "required": "Şifre zorunludur",
-          "min_length": "Şifre en az 6 karakter olmalıdır"
+          "min_length": "Şifre en az 8 karakter olmalıdır"
         }
       },
       "submit": "Giriş Yap",
@@ -419,7 +419,7 @@
         "placeholder": "En az 8 karakter",
         "error": {
           "required": "Şifre zorunludur",
-          "min_length": "Şifre en az 6 karakter olmalıdır"
+          "min_length": "Şifre en az 8 karakter olmalıdır"
         }
       },
       "confirm_password": {
@@ -623,6 +623,8 @@
       },
       "submit": "Antrenman Kaydet",
       "submitting": "Kaydediliyor...",
+      "expand_exercise": "Egzersizi genişlet",
+      "collapse_exercise": "Egzersizi daralt",
       "validation": {
         "invalid_time_format": "Geçersiz saat formatı. SS:DD kullanın.",
         "exercise_selection_required": "Egzersiz seçimi gerekli",

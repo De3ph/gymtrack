@@ -1,11 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import LoginPage from '@/app/[locale]/(auth)/login/page'
 
-// Mock Next.js router
-vi.mock('next/navigation', () => ({
+// The page imports useRouter from '@/i18n/navigation' (the next-intl wrapper),
+// not from 'next/navigation' — mocking the latter leaves push() unwired.
+vi.mock('@/i18n/navigation', () => ({
   useRouter: vi.fn(),
 }))
 
@@ -43,7 +44,7 @@ describe('LoginPage', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/email is required/i)).toBeInTheDocument()
+      expect(screen.getByText(/email or username is required/i)).toBeInTheDocument()
       expect(screen.getByText(/password is required/i)).toBeInTheDocument()
     })
   })
@@ -59,7 +60,7 @@ describe('LoginPage', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/invalid email/i)).toBeInTheDocument()
+      expect(screen.getByText(/please enter a valid email or username/i)).toBeInTheDocument()
     })
   })
 
@@ -79,7 +80,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123')
-      expect(mockPush).toHaveBeenCalledWith('/profile')
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
     })
   })
 

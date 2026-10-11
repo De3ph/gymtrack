@@ -7,7 +7,7 @@ import { useForm } from "@tanstack/react-form";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { commentApi } from "@/lib/api";
 import {
@@ -87,15 +87,18 @@ export function CommentForm({
       >
         {(field) => (
           <Field>
-            <FieldLabel>{placeholder}</FieldLabel>
+            <FieldLabel htmlFor="comment-content">{placeholder}</FieldLabel>
             <Textarea
+              id="comment-content"
               data-testid="comment-content"
+              placeholder={placeholder}
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
               rows={3}
               className="resize-none"
               aria-invalid={field.state.meta.errors.length > 0 || undefined}
+              aria-describedby={fieldErrorId(field.name)}
             />
             <FieldInfo field={field} />
           </Field>

@@ -27,17 +27,17 @@ describe('WorkoutForm - Basic Tests', () => {
   it('renders workout form with basic elements', () => {
     renderWithQueryClient(<WorkoutForm />)
 
-    expect(screen.getByText(/fallback_name/i)).toBeInTheDocument()
-    expect(screen.getByText(/fallback_name/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /add_exercise/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument()
+    expect(screen.getByText(/exercise \d/i)).toBeInTheDocument()
+    expect(screen.getByText(/exercise \d/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add exercise/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log workout/i })).toBeInTheDocument()
   })
 
   it('has correct form structure', () => {
     renderWithQueryClient(<WorkoutForm />)
 
-    expect(screen.getByText(/fallback_name/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /add_exercise/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument()
+    expect(screen.getByText(/exercise \d/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add exercise/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log workout/i })).toBeInTheDocument()
   })
 })
