@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Keyboard, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BottomSheet, Button, Host } from "@expo/ui";
+import { Button, Host } from "@expo/ui";
 import { useI18n } from "@/lib/i18n";
 import { triggerHaptic } from "@/lib/haptics";
 import { parseNumeric } from "@/lib/numbers";
@@ -27,7 +27,14 @@ import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { Pressable } from "@/components/ui/pressable";
 import { Icon, AddIcon, AlertCircleIcon, CloseIcon, TrashIcon } from "@/components/ui/icon";
-
+import {
+  Modal,
+  ModalBackdrop,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/modal";
 
 const SECTION_LABEL = "text-[11px] font-bold uppercase tracking-[1px] text-text-tertiary";
 const FIELD_LABEL = "mb-1 text-[13px] font-semibold text-text-body";
@@ -189,8 +196,6 @@ export function CreateWorkoutPlanModal({
         clearExerciseError(pickerKey);
       }
       setPickerKey(null);
-      // The catalog's search field may hold the keyboard; don't let it linger
-      // over the restored form.
       Keyboard.dismiss();
     },
     [pickerKey, patchExercise, clearExerciseError]
@@ -211,9 +216,7 @@ export function CreateWorkoutPlanModal({
       if (!exercise.exerciseId || !exercise.name.trim()) {
         exerciseErrors.exercise = tt("validation.exercise_name_required");
       }
-      const setError = repsOrWeightError(exercise.sets, (key) =>
-        tt(`validation.${key}`)
-      );
+      const setError = repsOrWeightError(exercise.sets, (key) => tt(`validation.${key}`));
       if (setError) exerciseErrors.sets = setError;
       if (exerciseErrors.exercise || exerciseErrors.sets) {
         nextErrors.byExercise[exercise.key] = exerciseErrors;
@@ -246,226 +249,223 @@ export function CreateWorkoutPlanModal({
   const showBanner = hasErrors(errors) || !!errorMessage;
 
   return (
-    <BottomSheet
-      isPresented={visible}
-      onDismiss={handleClose}
-      showDragIndicator={true}
-      // No snapPoints -> dynamic sizing (fit to content on iOS, intrinsic on Android, max 85vh web)
-    >
-      {pickerKey !== null ? (
-          // Catalog mode: full-height list inside the same sheet
-          <ExerciseCatalogContent
-            onClose={() => setPickerKey(null)}
-            onSelect={handlePickerSelect}
-          />
-        ) : (
-          <>
-            <Box className="border-b border-border px-5 pb-3.5 pt-4">
-              <Box className="flex-1 pr-3">
-                <Text className="text-xl font-bold text-text">
-                  {tt(plan ? "edit" : "create")}
-                </Text>
-                <Text className="mt-0.5 text-[13px] text-text-secondary" numberOfLines={1}>
-                  {tt("description")}
-                </Text>
-              </Box>
-              <Pressable
-                onPress={handleClose}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={t("common.actions.cancel")}
-                className="h-9 w-9 items-center justify-center rounded-full"
-              >
-                <Icon as={CloseIcon} className="text-text-secondary" />
-              </Pressable>
-            </Box>
+    <>
+      <Modal isOpen={visible} onClose={handleClose} size="full">
+        <ModalBackdrop />
+        <ModalContent className={pickerKey !== null ? "h-[90%] p-0" : "max-h-[92%] p-0"}>
+          {pickerKey !== null ? (
+            <ExerciseCatalogContent
+              onClose={() => setPickerKey(null)}
+              onSelect={handlePickerSelect}
+            />
+          ) : (
+            <>
+              <ModalHeader className="border-b border-border px-5 pb-3.5 pt-4">
+                <Box className="flex-1 pr-3">
+                  <Text className="text-xl font-bold text-text">
+                    {tt(plan ? "edit" : "create")}
+                  </Text>
+                  <Text className="mt-0.5 text-[13px] text-text-secondary" numberOfLines={1}>
+                    {tt("description")}
+                  </Text>
+                </Box>
+                <ModalCloseButton
+                  hitSlop={8}
+                  accessibilityLabel={t("common.actions.cancel")}
+                  className="h-9 w-9 items-center justify-center rounded-full"
+                >
+                  <Icon as={CloseIcon} className="text-text-secondary" />
+                </ModalCloseButton>
+              </ModalHeader>
 
-            <ScrollView
-              style={{ flexShrink: 1 }}
-              contentContainerClassName="gap-5 px-5 pb-6 pt-5"
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-              showsVerticalScrollIndicator={false}
-            >
-              <VStack space="sm">
-                <VStack>
-                  <Text className={FIELD_LABEL}>{tt("plan_name")}</Text>
-                  <Input isInvalid={!!errors.name}>
-                    <InputField
-                      value={name}
-                      onChangeText={(value) => {
-                        setName(value);
-                        setErrors((prev) => ({ ...prev, name: undefined }));
-                      }}
-                      placeholder={tt("plan_name")}
-                      editable={!isPending}
-                      accessibilityLabel={tt("plan_name")}
-                    />
-                  </Input>
-                  {errors.name ? (
-                    <Text className="mt-1 text-[12px] font-medium text-danger">{errors.name}</Text>
+              <ScrollView
+                style={{ flexShrink: 1 }}
+                contentContainerClassName="gap-5 px-5 pb-6 pt-5"
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                showsVerticalScrollIndicator={false}
+              >
+                <VStack space="sm">
+                  <VStack>
+                    <Text className={FIELD_LABEL}>{tt("plan_name")}</Text>
+                    <Input isInvalid={!!errors.name}>
+                      <InputField
+                        value={name}
+                        onChangeText={(value) => {
+                          setName(value);
+                          setErrors((prev) => ({ ...prev, name: undefined }));
+                        }}
+                        placeholder={tt("plan_name")}
+                        editable={!isPending}
+                        accessibilityLabel={tt("plan_name")}
+                      />
+                    </Input>
+                    {errors.name ? (
+                      <Text className="mt-1 text-[12px] font-medium text-danger">{errors.name}</Text>
+                    ) : null}
+                  </VStack>
+
+                  <VStack>
+                    <Text className={FIELD_LABEL}>
+                      {tt("description_label")}
+                    </Text>
+                    <Textarea className="h-[72px]">
+                      <TextareaInput
+                        value={description}
+                        onChangeText={setDescription}
+                        placeholder={tt("description_placeholder")}
+                        editable={!isPending}
+                        accessibilityLabel={tt("description_label")}
+                      />
+                    </Textarea>
+                  </VStack>
+                </VStack>
+
+                <VStack space="sm">
+                  <HStack className="items-center justify-between">
+                    <Text className={SECTION_LABEL}>
+                      {tt("exercises")} ({exercises.length})
+                    </Text>
+                  </HStack>
+
+                  {exercises.map((exercise, index) => {
+                    const exerciseErrors = errors.byExercise[exercise.key];
+                    return (
+                      <Box
+                        key={exercise.key}
+                        className="gap-3 rounded-xl border border-border bg-card p-3"
+                      >
+                        <HStack className="items-center justify-between">
+                          <Text
+                            className="flex-1 text-[15px] font-semibold text-text"
+                            numberOfLines={1}
+                          >
+                            {exercise.name ||
+                              tt("fallback_exercise_name", { index: index + 1 })}
+                          </Text>
+                          <Pressable
+                            onPress={() => removeExercise(exercise.key)}
+                            disabled={isPending}
+                            accessibilityRole="button"
+                            accessibilityLabel={tt("remove")}
+                            hitSlop={8}
+                            className="pl-3"
+                          >
+                            <Icon as={TrashIcon} size="sm" className="text-danger" />
+                          </Pressable>
+                        </HStack>
+
+                        <Pressable
+                          onPress={() => setPickerKey(exercise.key)}
+                          disabled={isPending}
+                          accessibilityRole="button"
+                          accessibilityLabel={tt("pick_exercise")}
+                          className="flex-row items-center justify-center rounded-lg border border-dashed border-primary/50 py-2.5 active:bg-primary/5"
+                        >
+                          <Text className="text-[13px] font-semibold text-primary">
+                            {exercise.exerciseId
+                              ? tt("change_exercise")
+                              : tt("pick_exercise")}
+                          </Text>
+                        </Pressable>
+                        {exerciseErrors?.exercise ? (
+                          <Text className="text-[12px] font-medium text-danger">
+                            {exerciseErrors.exercise}
+                          </Text>
+                        ) : null}
+
+                        <PlanSetEditor
+                          sets={exercise.sets}
+                          onChange={(sets) => patchExercise(exercise.key, { sets })}
+                          disabled={isPending}
+                          error={exerciseErrors?.sets}
+                        />
+
+                        <VStack>
+                          <Text className={FIELD_LABEL}>
+                            {tt("notes_label")}
+                          </Text>
+                          <Textarea className="h-[56px]">
+                            <TextareaInput
+                              value={exercise.notes}
+                              onChangeText={(value) => patchExercise(exercise.key, { notes: value })}
+                              placeholder={tt("notes_placeholder")}
+                              editable={!isPending}
+                              accessibilityLabel={tt("notes_label")}
+                            />
+                          </Textarea>
+                        </VStack>
+                      </Box>
+                    );
+                  })}
+
+                  <Pressable
+                    onPress={addExercise}
+                    disabled={isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel={tt("add_exercise")}
+                    className="flex-row items-center justify-center gap-1 rounded-xl border border-dashed border-primary/50 py-3.5 active:bg-primary/5"
+                  >
+                    <Icon as={AddIcon} size="sm" className="text-primary" />
+                    <Text className="text-sm font-semibold text-primary">
+                      {tt("add_exercise")}
+                    </Text>
+                  </Pressable>
+
+                  {errors.exercises ? (
+                    <Text className="text-[12px] font-medium text-danger">{errors.exercises}</Text>
                   ) : null}
                 </VStack>
 
-                <VStack>
-                  <Text className={FIELD_LABEL}>
-                    {tt("description_label")}
-                  </Text>
-                  <Textarea className="h-[72px]">
-                    <TextareaInput
-                      value={description}
-                      onChangeText={setDescription}
-                      placeholder={tt("description_placeholder")}
-                      editable={!isPending}
-                      accessibilityLabel={tt("description_label")}
-                    />
-                  </Textarea>
-                </VStack>
-              </VStack>
-
-              <VStack space="sm">
-                <HStack className="items-center justify-between">
-                  <Text className={SECTION_LABEL}>
-                    {tt("exercises")} ({exercises.length})
-                  </Text>
-                </HStack>
-
-                {exercises.map((exercise, index) => {
-                  const exerciseErrors = errors.byExercise[exercise.key];
-                  return (
-                    <Box
-                      key={exercise.key}
-                      className="gap-3 rounded-xl border border-border bg-card p-3"
-                    >
-                      <HStack className="items-center justify-between">
-                        <Text
-                          className="flex-1 text-[15px] font-semibold text-text"
-                          numberOfLines={1}
-                        >
-                          {exercise.name ||
-                            tt("fallback_exercise_name", { index: index + 1 })}
-                        </Text>
-                        <Pressable
-                          onPress={() => removeExercise(exercise.key)}
-                          disabled={isPending}
-                          accessibilityRole="button"
-                          accessibilityLabel={tt("remove")}
-                          hitSlop={8}
-                          className="pl-3"
-                        >
-                          <Icon as={TrashIcon} size="sm" className="text-danger" />
-                        </Pressable>
-                      </HStack>
-
-                      <Pressable
-                        onPress={() => setPickerKey(exercise.key)}
-                        disabled={isPending}
-                        accessibilityRole="button"
-                        accessibilityLabel={tt("pick_exercise")}
-                        className="flex-row items-center justify-center rounded-lg border border-dashed border-primary/50 py-2.5 active:bg-primary/5"
-                      >
-                        <Text className="text-[13px] font-semibold text-primary">
-                          {exercise.exerciseId
-                            ? tt("change_exercise")
-                            : tt("pick_exercise")}
-                        </Text>
-                      </Pressable>
-                      {exerciseErrors?.exercise ? (
-                        <Text className="text-[12px] font-medium text-danger">
-                          {exerciseErrors.exercise}
-                        </Text>
-                      ) : null}
-
-                      <PlanSetEditor
-                        sets={exercise.sets}
-                        onChange={(sets) => patchExercise(exercise.key, { sets })}
-                        disabled={isPending}
-                        error={exerciseErrors?.sets}
-                      />
-
-                      <VStack>
-                        <Text className={FIELD_LABEL}>
-                          {tt("notes_label")}
-                        </Text>
-                        <Textarea className="h-[56px]">
-                          <TextareaInput
-                            value={exercise.notes}
-                            onChangeText={(value) => patchExercise(exercise.key, { notes: value })}
-                            placeholder={tt("notes_placeholder")}
-                            editable={!isPending}
-                            accessibilityLabel={tt("notes_label")}
-                          />
-                        </Textarea>
-                      </VStack>
-                    </Box>
-                  );
-                })}
-
-                <Pressable
-                  onPress={addExercise}
-                  disabled={isPending}
-                  accessibilityRole="button"
-                  accessibilityLabel={tt("add_exercise")}
-                  className="flex-row items-center justify-center gap-1 rounded-xl border border-dashed border-primary/50 py-3.5 active:bg-primary/5"
-                >
-                  <Icon as={AddIcon} size="sm" className="text-primary" />
-                  <Text className="text-sm font-semibold text-primary">
-                    {tt("add_exercise")}
-                  </Text>
-                </Pressable>
-
-                {errors.exercises ? (
-                  <Text className="text-[12px] font-medium text-danger">{errors.exercises}</Text>
+                {showBanner ? (
+                  <Box
+                    accessibilityRole="alert"
+                    accessibilityLiveRegion="polite"
+                    className="flex-row items-center gap-2 rounded-lg border border-danger-border bg-danger-surface px-3 py-2.5"
+                  >
+                    <Icon as={AlertCircleIcon} size="sm" className="text-danger-text" />
+                    <Text className="flex-1 text-[13px] font-medium text-danger-text">
+                      {errorMessage || tt("fix_fields")}
+                    </Text>
+                  </Box>
                 ) : null}
-              </VStack>
+              </ScrollView>
 
-              {showBanner ? (
-                <Box
-                  accessibilityRole="alert"
-                  accessibilityLiveRegion="polite"
-                  className="flex-row items-center gap-2 rounded-lg border border-danger-border bg-danger-surface px-3 py-2.5"
-                >
-                  <Icon as={AlertCircleIcon} size="sm" className="text-danger-text" />
-                  <Text className="flex-1 text-[13px] font-medium text-danger-text">
-                    {errorMessage || tt("fix_fields")}
-                  </Text>
-                </Box>
-              ) : null}
-            </ScrollView>
-
-            <Box
-              className="items-center justify-between gap-3 border-t border-border px-5 pt-3.5"
-              style={{ paddingBottom: Math.max(insets.bottom, 12) + 8 }}
-            >
-              <Text className="flex-1 text-[12px] text-text-secondary" numberOfLines={1}>
-                {tt("plan_summary", {
-                  exercises: exercises.length,
-                  sets: totalSets,
-                })}
-              </Text>
-              <Host matchContents>
-                <Button
-                  label={tt("cancel")}
-                  variant="outlined"
-                  onPress={handleClose}
-                  disabled={isPending}
-                />
-              </Host>
-              <Host matchContents>
-                <Button
-                  label={
-                    isPending
-                      ? tt("submitting")
-                      : tt(plan ? "plan_update" : "plan_create")
-                  }
-                  onPress={handleSubmit}
-                  disabled={isPending}
-                />
-              </Host>
-            </Box>
-          </>
-        )}
-      </BottomSheet>
+              <ModalFooter
+                className="items-center justify-between gap-3 border-t border-border px-5 pt-3.5"
+                style={{ paddingBottom: Math.max(insets.bottom, 12) + 8 }}
+              >
+                <Text className="flex-1 text-[12px] text-text-secondary" numberOfLines={1}>
+                  {tt("plan_summary", {
+                    exercises: exercises.length,
+                    sets: totalSets,
+                  })}
+                </Text>
+                <Host matchContents>
+                  <Button
+                    label={tt("cancel")}
+                    variant="outlined"
+                    onPress={handleClose}
+                    disabled={isPending}
+                  />
+                </Host>
+                <Host matchContents>
+                  <Button
+                    label={
+                      isPending
+                        ? tt("submitting")
+                        : tt(plan ? "plan_update" : "plan_create")
+                    }
+                    onPress={handleSubmit}
+                    disabled={isPending}
+                  />
+                </Host>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   );
 }
 
