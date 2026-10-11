@@ -209,6 +209,14 @@ func (f *fakePlanWorkoutRepo) CountAll(ctx context.Context) (int, error) {
 	return 0, nil
 }
 
+func (f *fakePlanWorkoutRepo) Update(ctx context.Context, workout *models.Workout) error {
+	return nil
+}
+
+func (f *fakePlanWorkoutRepo) Delete(ctx context.Context, workoutID int) error {
+	return nil
+}
+
 // fakePlanUserRepo implements repositories.UserRepository for the client lookup
 // performed by GetClientPlans.
 type fakePlanUserRepo struct {

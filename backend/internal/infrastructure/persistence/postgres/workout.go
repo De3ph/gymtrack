@@ -180,5 +180,42 @@ func (r *PostgresWorkoutRepository) CountAll(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+func (r *PostgresWorkoutRepository) Update(ctx context.Context, workout *models.Workout) error {
+	workout.UpdatedAt = time.Now()
+	exercisesJSON, err := MarshalWorkoutExercises(workout.Exercises)
+	if err != nil {
+		return fmt.Errorf("failed to marshal exercises: %w", err)
+	}
+
+	// Handle nullable plan_id: 0 means no plan
+	var planID any
+	if workout.PlanID != 0 {
+		planID = workout.PlanID
+	}
+
+	query := "UPDATE workouts SET date = $1, plan_id = $2, exercises = $3, updated_at = $4 WHERE id = $5"
+	tag, err := r.pool.Exec(ctx, query,
+		workout.Date, planID, exercisesJSON, workout.UpdatedAt, workout.WorkoutID,
+	)
+	if err != nil {
+		return mapWriteError(err, "failed to update workout")
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *PostgresWorkoutRepository) Delete(ctx context.Context, workoutID int) error {
+	tag, err := r.pool.Exec(ctx, "DELETE FROM workouts WHERE id = $1", workoutID)
+	if err != nil {
+		return mapWriteError(err, "failed to delete workout")
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
 // Compile-time interface compliance check.
 var _ repositories.WorkoutRepository = (*PostgresWorkoutRepository)(nil)

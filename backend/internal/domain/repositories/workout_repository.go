@@ -15,4 +15,6 @@ type WorkoutRepository interface {
 	GetByAthleteDateRange(ctx context.Context, athleteID int, startDate, endDate *time.Time, limit, offset int) ([]*models.Workout, error)
 	CountByAthlete(ctx context.Context, athleteID int, startDate, endDate *time.Time) (int, error)
 	CountAll(ctx context.Context) (int, error)
+	Update(ctx context.Context, workout *models.Workout) error
+	Delete(ctx context.Context, workoutID int) error
 }

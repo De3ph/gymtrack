@@ -97,6 +97,138 @@ func (h *WorkoutHandler) CreateWorkout(c *gin.Context) {
 	c.JSON(http.StatusCreated, workout)
 }
 
+// UpdateWorkoutRequest represents the request to update a workout
+// @Description Request to update an existing workout
+type UpdateWorkoutRequest struct {
+	Date      time.Time                `json:"date" validate:"required"`
+	Exercises []models.WorkoutExercise `json:"exercises" validate:"required,min=1,dive"`
+}
+
+// UpdateWorkout handles PUT /api/workouts/:id
+// @Summary Update a workout
+// @Description Update an existing workout (only within 24 hours of creation, athletes can only edit their own)
+// @Tags Workouts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Workout ID"
+// @Param request body UpdateWorkoutRequest true "Updated workout request"
+// @Success 200 {object} models.Workout "Workout updated successfully"
+// @Failure 400 {object} map[string]any "Invalid workout data. Please check the date and exercises and try again"
+// @Failure 401 {object} map[string]any "You need to log in to continue. Please log in and try again"
+// @Failure 403 {object} map[string]any "Access denied or edit window expired"
+// @Failure 404 {object} map[string]any "Workout not found. It may have been deleted or the ID is incorrect."
+// @Failure 500 {object} map[string]any "Something went wrong while updating the workout"
+// Router: /api/workouts/:id
+func (h *WorkoutHandler) UpdateWorkout(c *gin.Context) {
+	workoutID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout ID. Please check the URL and try again"})
+		return
+	}
+
+	athleteID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
+		return
+	}
+
+	userRole, exists := c.Get("userRole")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
+		return
+	}
+
+	var req UpdateWorkoutRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout data. Please check the date and exercises and try again"})
+		return
+	}
+
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
+		return
+	}
+
+	workout, err := h.workoutService.UpdateWorkout(c.Request.Context(), services.UpdateWorkoutInput{
+		WorkoutID: workoutID,
+		AthleteID: athleteIDInt,
+		UserRole:  userRole.(models.UserRole),
+		Date:      req.Date,
+		Exercises: req.Exercises,
+	})
+	if err != nil {
+		if handleServiceError(c, err) {
+			return
+		}
+		handleInternalError(c, err, "failed to update workout")
+		return
+	}
+
+	c.JSON(http.StatusOK, workout)
+}
+
+// DeleteWorkout handles DELETE /api/workouts/:id
+// @Summary Delete a workout
+// @Description Delete an existing workout (only within 24 hours of creation, athletes can only delete their own)
+// @Tags Workouts
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Workout ID"
+// @Success 200 {object} map[string]any "Workout deleted successfully"
+// @Failure 400 {object} map[string]any "Invalid workout ID. Please check the URL and try again"
+// @Failure 401 {object} map[string]any "You need to log in to continue. Please log in and try again"
+// @Failure 403 {object} map[string]any "Access denied or delete window expired"
+// @Failure 404 {object} map[string]any "Workout not found. It may have been deleted or the ID is incorrect."
+// @Failure 500 {object} map[string]any "Something went wrong while deleting the workout"
+// Router: /api/workouts/:id
+func (h *WorkoutHandler) DeleteWorkout(c *gin.Context) {
+	workoutID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workout ID. Please check the URL and try again"})
+		return
+	}
+
+	athleteID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
+		return
+	}
+
+	userRole, exists := c.Get("userRole")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
+		return
+	}
+
+	athleteIDInt, err := strconv.Atoi(athleteID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
+		return
+	}
+
+	err = h.workoutService.DeleteWorkout(c.Request.Context(), services.DeleteWorkoutInput{
+		WorkoutID: workoutID,
+		AthleteID: athleteIDInt,
+		UserRole:  userRole.(models.UserRole),
+	})
+	if err != nil {
+		if handleServiceError(c, err) {
+			return
+		}
+		handleInternalError(c, err, "failed to delete workout")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Workout deleted successfully"})
+}
+
 // GetWorkout handles GET /api/workouts/:id
 // @Summary Get a specific workout
 // @Description Retrieve workout details by ID (athletes can only access their own workouts)

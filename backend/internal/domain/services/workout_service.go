@@ -58,6 +58,83 @@ func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutI
 	return workout, nil
 }
 
+type UpdateWorkoutInput struct {
+	WorkoutID int
+	AthleteID int
+	UserRole  models.UserRole
+	Date      time.Time
+	Exercises []models.WorkoutExercise
+}
+
+func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutInput) (*models.Workout, error) {
+	if input.UserRole != models.RoleAthlete {
+		return nil, NewServiceError("Only athletes can edit workouts", "FORBIDDEN")
+	}
+
+	workout, err := s.workoutRepo.GetByID(ctx, input.WorkoutID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrWorkoutNotFound
+		}
+		return nil, fmt.Errorf("failed to get workout: %w", err)
+	}
+
+	if workout.AthleteID != input.AthleteID {
+		return nil, NewServiceError("This workout belongs to another athlete. You can only edit your own workouts", "FORBIDDEN")
+	}
+
+	if !workout.CanEdit() {
+		return nil, NewServiceError("This workout can no longer be edited because more than 24 hours have passed since it was logged", "FORBIDDEN")
+	}
+
+	workout.Date = input.Date
+	workout.Exercises = input.Exercises
+
+	if err := s.validator.Struct(workout); err != nil {
+		return nil, NewServiceError("Invalid workout data. Please check the date and exercises and try again", "VALIDATION")
+	}
+
+	if err := s.workoutRepo.Update(ctx, workout); err != nil {
+		return nil, fmt.Errorf("failed to update workout: %w", err)
+	}
+
+	return workout, nil
+}
+
+type DeleteWorkoutInput struct {
+	WorkoutID int
+	AthleteID int
+	UserRole  models.UserRole
+}
+
+func (s *WorkoutService) DeleteWorkout(ctx context.Context, input DeleteWorkoutInput) error {
+	if input.UserRole != models.RoleAthlete {
+		return NewServiceError("Only athletes can delete workouts", "FORBIDDEN")
+	}
+
+	workout, err := s.workoutRepo.GetByID(ctx, input.WorkoutID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrWorkoutNotFound
+		}
+		return fmt.Errorf("failed to get workout: %w", err)
+	}
+
+	if workout.AthleteID != input.AthleteID {
+		return NewServiceError("This workout belongs to another athlete. You can only delete your own workouts", "FORBIDDEN")
+	}
+
+	if !workout.CanEdit() {
+		return NewServiceError("This workout can no longer be deleted because more than 24 hours have passed since it was logged", "FORBIDDEN")
+	}
+
+	if err := s.workoutRepo.Delete(ctx, input.WorkoutID); err != nil {
+		return fmt.Errorf("failed to delete workout: %w", err)
+	}
+
+	return nil
+}
+
 type GetWorkoutInput struct {
 	WorkoutID     int
 	RequesterID   int

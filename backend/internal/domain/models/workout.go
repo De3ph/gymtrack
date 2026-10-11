@@ -37,3 +37,13 @@ func NewWorkout(athleteID int, date time.Time, exercises []WorkoutExercise, plan
 		UpdatedAt: now,
 	}
 }
+
+// WorkoutEditWindow is how long after creation a workout may still be edited
+// or deleted. Single source of truth for the domain rule; the API copy and
+// the client-side gates are derived from it.
+const WorkoutEditWindow = 24 * time.Hour
+
+// CanEdit checks if the workout can be edited (within WorkoutEditWindow of creation).
+func (w *Workout) CanEdit() bool {
+	return time.Since(w.CreatedAt) < WorkoutEditWindow
+}
