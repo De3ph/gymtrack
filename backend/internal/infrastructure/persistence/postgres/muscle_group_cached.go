@@ -32,7 +32,9 @@ func (r *CachedMuscleGroupRepository) GetAllMuscleGroups(ctx context.Context) ([
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetAllMuscleGroups(ctx)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetAllMuscleGroups(loadCtx)
 		if err != nil {
 			return nil, err
 		}

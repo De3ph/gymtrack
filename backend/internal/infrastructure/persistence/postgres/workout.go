@@ -67,7 +67,7 @@ func (r *PostgresWorkoutRepository) Create(ctx context.Context, workout *models.
 		workout.AthleteID, workout.Date, planID, exercisesJSON, workout.CreatedAt, workout.UpdatedAt,
 	).Scan(&workout.WorkoutID)
 	if err != nil {
-		return fmt.Errorf("failed to create workout: %w", err)
+		return mapWriteError(err, "failed to create workout")
 	}
 
 	workout.Type = "workout"

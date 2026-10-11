@@ -49,7 +49,7 @@ func (p *PostgresCodeBasedInvitation) GenerateInvitation(ctx context.Context, tr
 
 	err = p.pool.QueryRow(ctx, query, trainerID, code, now, expiresAt).Scan(&invitationID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create invitation: %w", err)
+		return nil, mapWriteError(err, "failed to create invitation")
 	}
 
 	return &models.Invitation{
@@ -63,22 +63,28 @@ func (p *PostgresCodeBasedInvitation) GenerateInvitation(ctx context.Context, tr
 	}, nil
 }
 
-// ValidateInvitation finds an invitation by code and checks it is still valid.
-func (p *PostgresCodeBasedInvitation) ValidateInvitation(ctx context.Context, code string) (*models.Invitation, error) {
+// ClaimInvitation validates a code and consumes it in one statement.
+//
+// The UPDATE ... RETURNING is the serialization point: only the first
+// transaction to match a pending, unexpired row gets a row back. Every later
+// caller matching the same code matches zero rows and is told the code is
+// already used. Reading the code first and marking it used afterwards — two
+// separate statements — would let concurrent accepts both observe "pending".
+func (p *PostgresCodeBasedInvitation) ClaimInvitation(ctx context.Context, code string) (*models.Invitation, error) {
 	if code == "" {
 		return nil, domainerrors.ErrInvitationCodeEmpty
 	}
 
+	now := p.clock.Now()
 	query := `
-		SELECT id, trainer_id, code, status, created_at, expires_at, used_at
-		FROM invitations
-		WHERE code = $1
-		LIMIT 1`
+		UPDATE invitations
+		SET status = 'used', used_at = $1
+		WHERE code = $2 AND status = 'pending' AND expires_at > $1
+		RETURNING id, trainer_id, code, status, created_at, expires_at, used_at`
 
 	inv := &models.Invitation{}
 	var usedAt *time.Time
-
-	err := p.pool.QueryRow(ctx, query, code).Scan(
+	err := p.pool.QueryRow(ctx, query, now, code).Scan(
 		&inv.InvitationID,
 		&inv.TrainerID,
 		&inv.Code,
@@ -89,45 +95,67 @@ func (p *PostgresCodeBasedInvitation) ValidateInvitation(ctx context.Context, co
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, domainerrors.ErrInvalidInvitationCode
+			// The claim lost the race, or the code is invalid/expired. One
+			// follow-up read distinguishes them so the client gets an accurate
+			// reason rather than a blanket "already used".
+			return nil, p.explainUnclaimable(ctx, code, now)
 		}
-		return nil, fmt.Errorf("failed to query invitation: %w", err)
+		return nil, fmt.Errorf("failed to claim invitation: %w", err)
 	}
 
 	if usedAt != nil {
 		inv.UsedAt = *usedAt
 	}
-
 	inv.Type = "invitation"
-
-	if inv.Status != "pending" {
-		return nil, domainerrors.ErrInvitationAlreadyUsed
-	}
-
-	if p.clock.Now().After(inv.ExpiresAt) {
-		return nil, domainerrors.ErrInvitationExpired
-	}
 
 	return inv, nil
 }
 
-// MarkInvitationUsed marks an invitation as used with a concurrency-safe update.
-func (p *PostgresCodeBasedInvitation) MarkInvitationUsed(ctx context.Context, invitationID int) error {
-	now := p.clock.Now()
-	query := `
-		UPDATE invitations
-		SET status = 'used', used_at = $1
-		WHERE id = $2 AND status = 'pending'`
-
-	tag, err := p.pool.Exec(ctx, query, now, invitationID)
+// explainUnclaimable reports why a claim matched no row.
+func (p *PostgresCodeBasedInvitation) explainUnclaimable(ctx context.Context, code string, now time.Time) error {
+	var status string
+	var expiresAt time.Time
+	err := p.pool.QueryRow(ctx,
+		`SELECT status, expires_at FROM invitations WHERE code = $1 LIMIT 1`, code,
+	).Scan(&status, &expiresAt)
 	if err != nil {
-		return fmt.Errorf("failed to mark invitation as used: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domainerrors.ErrInvalidInvitationCode
+		}
+		return fmt.Errorf("failed to inspect invitation after failed claim: %w", err)
 	}
 
-	if tag.RowsAffected() == 0 {
+	if status != "pending" {
 		return domainerrors.ErrInvitationAlreadyUsed
 	}
+	if !now.Before(expiresAt) {
+		return domainerrors.ErrInvitationExpired
+	}
+	// Pending and unexpired but the claim still matched nothing: another
+	// transaction claimed it between the UPDATE and this read.
+	return domainerrors.ErrInvitationAlreadyUsed
+}
 
+// ReleaseClaim returns a claimed invitation to pending so a failed accept can
+// be retried.
+//
+// Guarded on status = 'used' AND used_at = the timestamp ClaimInvitation wrote.
+// That exact-match timestamp is what makes the release safe: a code consumed by
+// a successful accept carries a different used_at, so a late or duplicated
+// release cannot resurrect it.
+func (p *PostgresCodeBasedInvitation) ReleaseClaim(ctx context.Context, invitation *models.Invitation) error {
+	if invitation == nil {
+		return fmt.Errorf("cannot release a nil invitation")
+	}
+
+	_, err := p.pool.Exec(ctx, `
+		UPDATE invitations
+		SET status = 'pending', used_at = NULL
+		WHERE id = $1 AND status = 'used' AND used_at = $2`,
+		invitation.InvitationID, invitation.UsedAt)
+	if err != nil {
+		return fmt.Errorf("failed to release invitation claim: %w", err)
+	}
 	return nil
 }
 

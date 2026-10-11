@@ -44,7 +44,7 @@ func (r *PostgresCommentRepository) Create(ctx context.Context, comment *models.
 		string(comment.AuthorRole), comment.Content, comment.ParentCommentID, comment.CreatedAt,
 	).Scan(&comment.CommentID)
 	if err != nil {
-		return fmt.Errorf("failed to create comment: %w", err)
+		return mapWriteError(err, "failed to create comment")
 	}
 
 	comment.Type = "comment"
@@ -146,7 +146,7 @@ func (r *PostgresCommentRepository) Update(ctx context.Context, comment *models.
 
 	tag, err := r.pool.Exec(ctx, query, comment.Content, comment.ParentCommentID, comment.EditedAt, comment.CommentID)
 	if err != nil {
-		return fmt.Errorf("failed to update comment: %w", err)
+		return mapWriteError(err, "failed to update comment")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -157,7 +157,7 @@ func (r *PostgresCommentRepository) Update(ctx context.Context, comment *models.
 func (r *PostgresCommentRepository) Delete(ctx context.Context, commentID int) error {
 	tag, err := r.pool.Exec(ctx, "DELETE FROM comments WHERE id = $1", commentID)
 	if err != nil {
-		return fmt.Errorf("failed to delete comment: %w", err)
+		return mapWriteError(err, "failed to delete comment")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound

@@ -87,21 +87,31 @@ func TestPostgresTrainerReviewRepository(t *testing.T) {
 		assert.Empty(t, reviews)
 	})
 
-	t.Run("GetByAthleteID", func(t *testing.T) {
-		review, err := repo.GetByAthleteID(ctx, athlete1.UserID)
+	t.Run("GetByTrainerAndAthlete", func(t *testing.T) {
+		review, err := repo.GetByTrainerAndAthlete(ctx, trainer.UserID, athlete1.UserID)
 		require.NoError(t, err)
+		assert.Equal(t, trainer.UserID, review.TrainerID)
 		assert.Equal(t, athlete1.UserID, review.AthleteID)
 		assert.Equal(t, "review", review.Type)
 	})
 
-	t.Run("GetByAthleteID_NotFound", func(t *testing.T) {
+	t.Run("GetByTrainerAndAthlete_NotFoundForThisTrainer", func(t *testing.T) {
+		// athlete1 has reviewed `trainer`. Asking for the same athlete against
+		// a different trainer must not match: the review is per trainer, and a
+		// cross-trainer match would wrongly block a legitimate first review.
+		otherTrainer := createReviewTestUser(t, "rev_other_trainer", models.RoleTrainer)
+		_, err := repo.GetByTrainerAndAthlete(ctx, otherTrainer.UserID, athlete1.UserID)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
+	})
+
+	t.Run("GetByTrainerAndAthlete_NotFound", func(t *testing.T) {
 		noAthlete := createReviewTestUser(t, "rev_no_review_athlete", models.RoleAthlete)
-		_, err := repo.GetByAthleteID(ctx, noAthlete.UserID)
+		_, err := repo.GetByTrainerAndAthlete(ctx, trainer.UserID, noAthlete.UserID)
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 	})
 
 	t.Run("UpdateReview", func(t *testing.T) {
-		existing, err := repo.GetByAthleteID(ctx, athlete1.UserID)
+		existing, err := repo.GetByTrainerAndAthlete(ctx, trainer.UserID, athlete1.UserID)
 		require.NoError(t, err)
 
 		existing.Rating = 2

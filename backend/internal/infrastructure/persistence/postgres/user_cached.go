@@ -21,11 +21,24 @@ type CachedUserRepository struct {
 	inner repositories.UserRepository
 	cache cache.Cache[*models.User]
 	sf    singleflight.Group
+	bus   *CacheInvalidationBus
 }
 
 // NewCachedUserRepository creates a CachedUserRepository.
-func NewCachedUserRepository(inner repositories.UserRepository, cache cache.Cache[*models.User]) *CachedUserRepository {
-	return &CachedUserRepository{inner: inner, cache: cache}
+//
+// bus may be nil, in which case cross-decorator invalidation is disabled.
+func NewCachedUserRepository(inner repositories.UserRepository, cache cache.Cache[*models.User], bus *CacheInvalidationBus) *CachedUserRepository {
+	r := &CachedUserRepository{inner: inner, cache: cache, bus: bus}
+	bus.subscribe(func(userID int) {
+		// A write to the users row from any repository (notably the trainer
+		// profile writer, which also updates users.profile) must drop this
+		// decorator's entry for that row. The email/username keys are left
+		// alone: they are populated by the auth login path, which needs the
+		// row's credentials rather than its profile, and a profile edit does
+		// not invalidate them.
+		r.cache.Invalidate("user:id:" + strconv.Itoa(userID))
+	})
+	return r
 }
 
 func (r *CachedUserRepository) CreateUser(ctx context.Context, user *models.User) error {
@@ -39,7 +52,9 @@ func (r *CachedUserRepository) GetUserByID(ctx context.Context, userID int) (*mo
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetUserByID(ctx, userID)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetUserByID(loadCtx, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +74,9 @@ func (r *CachedUserRepository) GetUserByEmail(ctx context.Context, email string)
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetUserByEmail(ctx, email)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetUserByEmail(loadCtx, email)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +96,9 @@ func (r *CachedUserRepository) GetUserByUsername(ctx context.Context, username s
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetUserByUsername(ctx, username)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetUserByUsername(loadCtx, username)
 		if err != nil {
 			return nil, err
 		}
@@ -104,6 +123,9 @@ func (r *CachedUserRepository) UpdateUser(ctx context.Context, user *models.User
 	r.cache.Invalidate("user:id:" + strconv.Itoa(user.UserID))
 	r.cache.Invalidate("user:email:" + strings.ToLower(user.Email))
 	r.cache.Invalidate("user:username:" + strings.ToLower(user.Username))
+	// UpdateUser can change any column of the users row, including the profile
+	// the trainer catalog renders, so the trainer namespaces must go too.
+	r.bus.notify(user.UserID)
 	return nil
 }
 

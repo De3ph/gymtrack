@@ -35,9 +35,24 @@ var RepositoryModule = fx.Module("repositories",
 			return utils.RealClock{}
 		},
 
-		// PostgreSQL connection pool
-		func(cfg *config.Config) (*pgxpool.Pool, error) {
-			return config.ProvidePostgresPool(&config.PostgresConfig{DSN: cfg.PostgresDSN})
+		// PostgreSQL connection pool.
+		//
+		// The pool owns background acquire-signal goroutines and idle
+		// connections, so it must be closed on shutdown. Without this hook fx
+		// has no reason to call pool.Close(): ProvidePostgresPool only closes on
+		// the ping-failure path.
+		func(cfg *config.Config, lc fx.Lifecycle) (*pgxpool.Pool, error) {
+			pool, err := config.ProvidePostgresPool(&config.PostgresConfig{DSN: cfg.PostgresDSN})
+			if err != nil {
+				return nil, err
+			}
+			lc.Append(fx.Hook{
+				OnStop: func(context.Context) error {
+					pool.Close()
+					return nil
+				},
+			})
+			return pool, nil
 		},
 
 		// Repository factory - creates all PostgreSQL repositories
@@ -68,9 +83,14 @@ var RepositoryModule = fx.Module("repositories",
 			return cache.NewTrainerPublicCache(reg, cfg.CacheEnabled)
 		},
 
+		// Cache invalidation bus. Decorators caching different projections of
+		// the same users row (user:* and trainer:*) coordinate through this so
+		// a write through one clears the other, without an fx dependency cycle.
+		postgres.NewCacheInvalidationBus,
+
 		// Cached repositories (implement same interfaces, transparent to services)
-		func(factory *persistence.RepositoryFactory, userCache cache.Cache[*models.User]) repositories.UserRepository {
-			return postgres.NewCachedUserRepository(factory.UserRepository(), userCache)
+		func(factory *persistence.RepositoryFactory, userCache cache.Cache[*models.User], bus *postgres.CacheInvalidationBus) repositories.UserRepository {
+			return postgres.NewCachedUserRepository(factory.UserRepository(), userCache, bus)
 		},
 		func(factory *persistence.RepositoryFactory, exerciseCache cache.Cache[[]models.Exercise]) repositories.ExerciseRepository {
 			return postgres.NewCachedExerciseRepository(factory.ExerciseRepository(), exerciseCache)
@@ -84,8 +104,8 @@ var RepositoryModule = fx.Module("repositories",
 		func(factory *persistence.RepositoryFactory, relationshipCache cache.Cache[[]*models.Relationship]) repositories.RelationshipRepository {
 			return postgres.NewCachedRelationshipRepository(factory.RelationshipRepository(), relationshipCache)
 		},
-		func(factory *persistence.RepositoryFactory, trainerIDCache cache.Cache[*models.TrainerWithProfile], trainerListCache cache.Cache[[]models.TrainerWithProfile]) repositories.TrainerProfileRepository {
-			return postgres.NewCachedTrainerProfileRepository(factory.TrainerProfileRepository(), trainerIDCache, trainerListCache)
+		func(factory *persistence.RepositoryFactory, trainerIDCache cache.Cache[*models.TrainerWithProfile], trainerListCache cache.Cache[[]models.TrainerWithProfile], bus *postgres.CacheInvalidationBus) repositories.TrainerProfileRepository {
+			return postgres.NewCachedTrainerProfileRepository(factory.TrainerProfileRepository(), trainerIDCache, trainerListCache, bus)
 		},
 
 		// Uncached repositories (no caching needed for write-heavy or non-reference data)

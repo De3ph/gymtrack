@@ -39,7 +39,7 @@ func (r *PostgresWorkoutPlanRepository) Create(ctx context.Context, plan *models
 		plan.CreatorID, plan.Name, plan.Description, exJSON, plan.CreatedAt, plan.UpdatedAt,
 	).Scan(&plan.PlanID)
 	if err != nil {
-		return fmt.Errorf("failed to create workout plan: %w", err)
+		return mapWriteError(err, "failed to create workout plan")
 	}
 	plan.Type = "workout_plan"
 	return nil
@@ -114,7 +114,7 @@ func (r *PostgresWorkoutPlanRepository) Update(ctx context.Context, plan *models
 		plan.CreatorID, plan.Name, plan.Description, exJSON, plan.UpdatedAt, plan.PlanID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update workout plan: %w", err)
+		return mapWriteError(err, "failed to update workout plan")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -125,7 +125,7 @@ func (r *PostgresWorkoutPlanRepository) Update(ctx context.Context, plan *models
 func (r *PostgresWorkoutPlanRepository) Delete(ctx context.Context, planID int) error {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM workout_plans WHERE id = $1`, planID)
 	if err != nil {
-		return fmt.Errorf("failed to delete workout plan: %w", err)
+		return mapWriteError(err, "failed to delete workout plan")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound

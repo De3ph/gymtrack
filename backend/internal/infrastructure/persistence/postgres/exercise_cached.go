@@ -45,7 +45,9 @@ func (r *CachedExerciseRepository) GetAllExercises(ctx context.Context) ([]model
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetAllExercises(ctx)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetAllExercises(loadCtx)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +67,9 @@ func (r *CachedExerciseRepository) GetExercisesByMuscleGroup(ctx context.Context
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetExercisesByMuscleGroup(ctx, muscleGroupID)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetExercisesByMuscleGroup(loadCtx, muscleGroupID)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +89,9 @@ func (r *CachedExerciseRepository) GetExercisesByEquipment(ctx context.Context, 
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetExercisesByEquipment(ctx, equipmentID)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetExercisesByEquipment(loadCtx, equipmentID)
 		if err != nil {
 			return nil, err
 		}

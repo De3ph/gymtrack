@@ -47,7 +47,7 @@ func (r *PostgresBodyMeasurementRepository) Create(ctx context.Context, m *model
 		m.AthleteID, m.Date, m.Weight, string(m.WeightUnit), bfPct, partsJSON, notes, m.CreatedAt, m.UpdatedAt,
 	).Scan(&m.MeasurementID)
 	if err != nil {
-		return fmt.Errorf("failed to create body measurement: %w", err)
+		return mapWriteError(err, "failed to create body measurement")
 	}
 	m.Type = "body_measurement"
 	return nil
@@ -133,7 +133,7 @@ func (r *PostgresBodyMeasurementRepository) Update(ctx context.Context, m *model
 		m.AthleteID, m.Date, m.Weight, string(m.WeightUnit), bfPct, partsJSON, notes, m.UpdatedAt, m.MeasurementID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update body measurement: %w", err)
+		return mapWriteError(err, "failed to update body measurement")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -144,7 +144,7 @@ func (r *PostgresBodyMeasurementRepository) Update(ctx context.Context, m *model
 func (r *PostgresBodyMeasurementRepository) Delete(ctx context.Context, id int) error {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM body_measurements WHERE id = $1`, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete body measurement: %w", err)
+		return mapWriteError(err, "failed to delete body measurement")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound

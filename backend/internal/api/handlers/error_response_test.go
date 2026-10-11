@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -131,6 +132,80 @@ func TestHandleBusinessError_WrappedResolvedRequestKeepsStatus(t *testing.T) {
 // TestCoachingRequestResolvedError_MessageIsStable guards against the status
 // being formatted into a template that changes shape, which would fragment log
 // grouping.
+// TestHandleInternalError_HonoursWriteViolations covers the gap that made the
+// repository-layer SQLSTATE mapping ineffective: most handlers report failures
+// through handleInternalError, not handleBusinessError, so a constraint
+// violation classified by the repository was still rendered as a 500.
+//
+// Simulates what postgres.mapWriteError produces — a wrapped *pgconn.PgError
+// alongside the sentinel — arriving at a handler's generic error path.
+func TestHandleInternalError_HonoursWriteViolations(t *testing.T) {
+	tests := []struct {
+		name       string
+		err        error
+		wantStatus int
+	}{
+		{
+			name: "duplicate key surfaces as conflict",
+			err: fmt.Errorf("failed to create user: %w [constraint users_email_key]: %w",
+				domainerrors.ErrConflict, &pgconn.PgError{Code: "23505", ConstraintName: "users_email_key"}),
+			wantStatus: http.StatusConflict,
+		},
+		{
+			name: "failed check surfaces as bad request",
+			err: fmt.Errorf("failed to create comment: %w [constraint comments_content_check]: %w",
+				domainerrors.ErrInvalidInput, &pgconn.PgError{Code: "23514", ConstraintName: "comments_content_check"}),
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:       "bare sentinel is still honoured",
+			err:        domainerrors.ErrConflict,
+			wantStatus: http.StatusConflict,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, w := newTestCtx()
+			handleInternalError(c, tt.err, "failed to write")
+
+			assert.Equal(t, tt.wantStatus, w.Code)
+			msg := responseError(t, w)
+			// The sentinel's own text, never the wrap: constraint names and
+			// driver detail stay in the logs.
+			assert.NotContains(t, msg, "constraint")
+			assert.NotContains(t, msg, "failed to create")
+			assert.NotContains(t, msg, "23505")
+		})
+	}
+}
+
+// TestHandleInternalError_OtherSentinelsStayInternal pins the blast radius of
+// the change above. Only write violations were reclassified; every other
+// unrecognised error must still be a generic 500, so GET handlers that surface
+// ErrNotFound keep their existing behaviour.
+func TestHandleInternalError_OtherErrorsRemainInternal(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{"bare not found on a read path", domainerrors.ErrNotFound},
+		{"unrecognised failure", fmt.Errorf("some failure nobody anticipated")},
+		{"infrastructure failure", fmt.Errorf("connection refused")},
+		{"unauthorized", domainerrors.ErrUnauthorized},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, w := newTestCtx()
+			handleInternalError(c, tt.err, "failed")
+
+			assert.Equal(t, http.StatusInternalServerError, w.Code)
+			assert.Equal(t, "Something went wrong while processing your request. Please try again later", responseError(t, w))
+		})
+	}
+}
+
 func TestCoachingRequestResolvedError_MessageIsStable(t *testing.T) {
 	pending := &services.CoachingRequestResolvedError{Status: "accepted"}
 	other := &services.CoachingRequestResolvedError{Status: "rejected"}

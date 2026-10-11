@@ -45,7 +45,9 @@ func (r *CachedRelationshipRepository) GetByTrainerID(ctx context.Context, train
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetByTrainerID(ctx, trainerID)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetByTrainerID(loadCtx, trainerID)
 		if err != nil {
 			return nil, err
 		}

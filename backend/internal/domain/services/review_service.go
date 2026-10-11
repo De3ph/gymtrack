@@ -39,10 +39,11 @@ func (s *ReviewService) CreateReview(ctx context.Context, trainerID int, athlete
 		return nil, ErrReviewRequiresActiveRelationship
 	}
 
-	// Check if athlete already reviewed this trainer. GetByAthleteID
-	// reports "no review yet" with ErrNotFound, which is the normal
-	// case for a first-time review, not a failure.
-	existingReview, err := s.reviewRepo.GetByAthleteID(ctx, athleteID)
+	// Check whether this athlete has already reviewed *this* trainer. The
+	// lookup is keyed on the pair: an athlete may review many trainers, one
+	// apiece, so an athlete-scoped check would wrongly block a first review of
+	// a second trainer. ErrNotFound is the normal first-review case.
+	existingReview, err := s.reviewRepo.GetByTrainerAndAthlete(ctx, trainerID, athleteID)
 	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, fmt.Errorf("failed to check existing review: %w", err)
 	}

@@ -45,11 +45,15 @@ type UserProfile struct {
 }
 
 type User struct {
-	Type         string      `json:"type"` // Always "user"
-	UserID       int         `json:"userId" example:"1"`
-	Username     string      `json:"username" validate:"required,min=3,max=30,alphanum"`
-	Email        string      `json:"email" validate:"required,email"`
-	PasswordHash string      `json:"passwordHash"`
+	Type     string `json:"type"` // Always "user"
+	UserID   int    `json:"userId" example:"1"`
+	Username string `json:"username" validate:"required,min=3,max=30,alphanum"`
+	Email    string `json:"email" validate:"required,email"`
+	// PasswordHash is a bcrypt digest and must never reach a response body.
+	// Many endpoints serialize models.User directly (trainer catalog,
+	// relationships, coaching requests, admin user lists), so the redaction is
+	// enforced here at the type level rather than per-handler.
+	PasswordHash string      `json:"-"`
 	Role         UserRole    `json:"role" validate:"required,oneof=trainer athlete admin"`
 	Status       UserStatus  `json:"status"`
 	Profile      UserProfile `json:"profile"`

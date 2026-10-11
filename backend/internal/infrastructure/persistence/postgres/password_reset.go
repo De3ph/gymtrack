@@ -46,7 +46,7 @@ func (r *PostgresPasswordResetTokenRepository) CreateToken(ctx context.Context, 
 		token.CreatedAt,
 	).Scan(&token.ID)
 	if err != nil {
-		return fmt.Errorf("failed to create password reset token: %w", err)
+		return mapWriteError(err, "failed to create password reset token")
 	}
 
 	return nil

@@ -38,7 +38,7 @@ func (r *PostgresCoachingRequestRepository) Create(ctx context.Context, req *mod
 		req.AthleteID, req.TrainerID, req.Message, string(req.Status), req.CreatedAt, req.UpdatedAt,
 	).Scan(&req.RequestID)
 	if err != nil {
-		return fmt.Errorf("failed to create coaching request: %w", err)
+		return mapWriteError(err, "failed to create coaching request")
 	}
 
 	req.Type = "coaching_request"
@@ -108,7 +108,7 @@ func (r *PostgresCoachingRequestRepository) Update(ctx context.Context, req *mod
 		req.AthleteID, req.TrainerID, req.Message, string(req.Status), req.UpdatedAt, req.RequestID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update coaching request: %w", err)
+		return mapWriteError(err, "failed to update coaching request")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -119,7 +119,7 @@ func (r *PostgresCoachingRequestRepository) Update(ctx context.Context, req *mod
 func (r *PostgresCoachingRequestRepository) Delete(ctx context.Context, requestID int) error {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM coaching_requests WHERE id = $1`, requestID)
 	if err != nil {
-		return fmt.Errorf("failed to delete coaching request: %w", err)
+		return mapWriteError(err, "failed to delete coaching request")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound

@@ -32,7 +32,7 @@ func (r *PostgresWorkoutPlanAssignmentRepository) Create(ctx context.Context, a 
 		a.PlanID, a.AthleteID, a.TrainerID, a.Status, a.CreatedAt,
 	).Scan(&a.AssignmentID)
 	if err != nil {
-		return fmt.Errorf("failed to create assignment: %w", err)
+		return mapWriteError(err, "failed to create assignment")
 	}
 	a.Type = "workout_plan_assignment"
 	return nil
@@ -106,7 +106,7 @@ func (r *PostgresWorkoutPlanAssignmentRepository) GetByTrainerID(ctx context.Con
 func (r *PostgresWorkoutPlanAssignmentRepository) DeleteByPlanID(ctx context.Context, planID int) error {
 	_, err := r.pool.Exec(ctx, `DELETE FROM workout_plan_assignments WHERE plan_id = $1`, planID)
 	if err != nil {
-		return fmt.Errorf("failed to delete assignments by plan: %w", err)
+		return mapWriteError(err, "failed to delete assignments by plan")
 	}
 	return nil
 }

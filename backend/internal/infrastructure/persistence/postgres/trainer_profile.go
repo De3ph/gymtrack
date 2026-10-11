@@ -72,8 +72,13 @@ func mapUserProfileToTrainerProfile(p models.UserProfile) models.TrainerProfile 
 	}
 }
 
+// trainerSelectBase backs the public trainer catalog. It deliberately does NOT
+// select users.password_hash: these routes are unauthenticated, so the digest
+// must never enter the process (it would otherwise be held in the in-process
+// trainer cache). Authenticated callers that legitimately need the hash go
+// through PostgresUserRepository.
 const trainerSelectBase = `
-	SELECT u.user_id, u.username, u.email, u.password_hash, u.role, u.profile, u.created_at, u.updated_at,
+	SELECT u.user_id, u.username, u.email, u.role, u.profile, u.created_at, u.updated_at,
 	       COALESCE(r.avg_rating, 0), COALESCE(r.review_count, 0)
 	FROM users u
 	LEFT JOIN (
@@ -124,7 +129,7 @@ func (r *PostgresTrainerProfileRepository) scanTrainerPoolRow(ctx context.Contex
 	var reviewCount int
 
 	err := r.pool.QueryRow(ctx, query, args...).Scan(
-		&trainer.UserID, &trainer.Username, &trainer.Email, &trainer.PasswordHash,
+		&trainer.UserID, &trainer.Username, &trainer.Email,
 		&trainer.Role, &profileRaw, &trainer.CreatedAt, &trainer.UpdatedAt,
 		&avgRating, &reviewCount,
 	)
@@ -184,7 +189,7 @@ func (r *PostgresTrainerProfileRepository) UpdateTrainerProfile(ctx context.Cont
 		updatedJSON, time.Now(), trainerID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update trainer profile: %w", err)
+		return mapWriteError(err, "failed to update trainer profile")
 	}
 	if tag.RowsAffected() == 0 {
 		// The row is locked and was confirmed to exist above, so reaching here
@@ -242,7 +247,7 @@ func (r *PostgresTrainerProfileRepository) scanTrainerRows(rows pgx.Rows) ([]mod
 		var reviewCount int
 
 		if err := rows.Scan(
-			&trainer.UserID, &trainer.Username, &trainer.Email, &trainer.PasswordHash,
+			&trainer.UserID, &trainer.Username, &trainer.Email,
 			&trainer.Role, &profileRaw, &trainer.CreatedAt, &trainer.UpdatedAt,
 			&avgRating, &reviewCount,
 		); err != nil {

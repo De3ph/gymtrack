@@ -23,6 +23,21 @@ func NewPostgresAvailabilityRepository(pool *pgxpool.Pool) *PostgresAvailability
 	return &PostgresAvailabilityRepository{pool: pool}
 }
 
+// clockLayout is the wire format for availability times. It matches the
+// documented contract on models.TrainerAvailability ("HH:MM", 24-hour).
+const clockLayout = "15:04"
+
+// formatClock renders a SQL TIME value as HH:MM.
+//
+// PostgreSQL TIME carries no date component, so pgx materialises it into a
+// time.Time anchored to year 0. The value must be formatted explicitly rather
+// than left to the driver's default text rendering, which is the full
+// "09:00:00.000000" — a different string shape from what the frontend sends
+// and what models.TrainerAvailability documents.
+func formatClock(t time.Time) string {
+	return t.Format(clockLayout)
+}
+
 func (r *PostgresAvailabilityRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerAvailability, error) {
 	rows, err := r.pool.Query(ctx,
 		"SELECT id, trainer_id, day_of_week, start_time, end_time, is_booked, created_at, updated_at FROM trainer_availabilities WHERE trainer_id = $1",
@@ -52,7 +67,7 @@ func (r *PostgresAvailabilityRepository) GetBySlotID(ctx context.Context, slotID
 		"SELECT id, trainer_id, day_of_week, start_time, end_time, is_booked, created_at, updated_at FROM trainer_availabilities WHERE id = $1",
 		slotID)
 
-	var startTime, endTime string
+	var startTime, endTime time.Time
 	var slot models.TrainerAvailability
 	err := row.Scan(&slot.AvailabilityID, &slot.TrainerID, &slot.DayOfWeek, &startTime, &endTime, &slot.IsBooked, &slot.CreatedAt, &slot.UpdatedAt)
 	if err != nil {
@@ -61,8 +76,8 @@ func (r *PostgresAvailabilityRepository) GetBySlotID(ctx context.Context, slotID
 		}
 		return nil, fmt.Errorf("failed to get availability slot: %w", err)
 	}
-	slot.StartTime = startTime
-	slot.EndTime = endTime
+	slot.StartTime = formatClock(startTime)
+	slot.EndTime = formatClock(endTime)
 
 	return &slot, nil
 }
@@ -82,7 +97,7 @@ func (r *PostgresAvailabilityRepository) UpsertAvailability(ctx context.Context,
 			slot.TrainerID, slot.DayOfWeek, slot.StartTime, slot.EndTime, slot.IsBooked, slot.CreatedAt, slot.UpdatedAt,
 		).Scan(&slot.AvailabilityID)
 		if err != nil {
-			return fmt.Errorf("failed to insert availability: %w", err)
+			return mapWriteError(err, "failed to insert availability")
 		}
 	} else {
 		// UPDATE existing
@@ -93,7 +108,7 @@ func (r *PostgresAvailabilityRepository) UpsertAvailability(ctx context.Context,
 			slot.TrainerID, slot.DayOfWeek, slot.StartTime, slot.EndTime, slot.IsBooked, slot.UpdatedAt, slot.AvailabilityID,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to update availability: %w", err)
+			return mapWriteError(err, "failed to update availability")
 		}
 		if tag.RowsAffected() == 0 {
 			return domainerrors.ErrNotFound
@@ -106,7 +121,7 @@ func (r *PostgresAvailabilityRepository) UpsertAvailability(ctx context.Context,
 func (r *PostgresAvailabilityRepository) DeleteAvailability(ctx context.Context, slotID int) error {
 	tag, err := r.pool.Exec(ctx, "DELETE FROM trainer_availabilities WHERE id = $1", slotID)
 	if err != nil {
-		return fmt.Errorf("failed to delete availability: %w", err)
+		return mapWriteError(err, "failed to delete availability")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -170,12 +185,12 @@ func (r *PostgresAvailabilityRepository) CleanupExpiredSlots(ctx context.Context
 // scanAvailability scans a row into a TrainerAvailability model.
 func scanAvailability(rows pgx.Rows) (models.TrainerAvailability, error) {
 	var slot models.TrainerAvailability
-	var startTime, endTime string
+	var startTime, endTime time.Time
 	err := rows.Scan(&slot.AvailabilityID, &slot.TrainerID, &slot.DayOfWeek, &startTime, &endTime, &slot.IsBooked, &slot.CreatedAt, &slot.UpdatedAt)
 	if err != nil {
 		return slot, fmt.Errorf("failed to scan availability: %w", err)
 	}
-	slot.StartTime = startTime
-	slot.EndTime = endTime
+	slot.StartTime = formatClock(startTime)
+	slot.EndTime = formatClock(endTime)
 	return slot, nil
 }

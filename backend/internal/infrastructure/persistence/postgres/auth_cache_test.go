@@ -82,7 +82,7 @@ func TestCachedUserRepository_AuthCacheHit(t *testing.T) {
 	// Wrap with cache — short TTL so test is self-contained.
 	gc := cache.NewGoCache[*models.User](5*time.Minute, 1*time.Minute, 0, nil)
 	countingWrapper := &countingUserRepo{inner: innerRepo}
-	cachedRepo := NewCachedUserRepository(countingWrapper, gc)
+	cachedRepo := NewCachedUserRepository(countingWrapper, gc, nil)
 
 	// First call — cache miss, inner repo called once.
 	fetched1, err := cachedRepo.GetUserByID(ctx, userID)
@@ -117,7 +117,7 @@ func TestCachedUserRepository_DeepCopyIsolation(t *testing.T) {
 	userID := user.UserID
 
 	gc := cache.NewGoCache[*models.User](5*time.Minute, 1*time.Minute, 0, nil)
-	cachedRepo := NewCachedUserRepository(innerRepo, gc)
+	cachedRepo := NewCachedUserRepository(innerRepo, gc, nil)
 
 	fetched1, err := cachedRepo.GetUserByID(ctx, userID)
 	require.NoError(t, err)

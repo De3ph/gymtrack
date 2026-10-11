@@ -44,7 +44,7 @@ func (r *PostgresExerciseRepository) CreateExercise(ctx context.Context, ex *mod
 		ex.Name, ex.Category, ex.MuscleGroupID, ex.EquipmentID, ex.Instructions, mediaURLArg(ex.MediaURL), ex.MediaType, createdBy, ex.CreatedAt,
 	).Scan(&ex.ExerciseID)
 	if err != nil {
-		return fmt.Errorf("failed to create exercise: %w", err)
+		return mapWriteError(err, "failed to create exercise")
 	}
 	return nil
 }
@@ -185,7 +185,7 @@ func (r *PostgresExerciseRepository) UpdateExercise(ctx context.Context, exercis
 		exercise.IsVerified, exercise.ExerciseID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update exercise: %w", err)
+		return mapWriteError(err, "failed to update exercise")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -196,7 +196,7 @@ func (r *PostgresExerciseRepository) UpdateExercise(ctx context.Context, exercis
 func (r *PostgresExerciseRepository) DeleteExercise(ctx context.Context, exerciseID int) error {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM exercises WHERE id = $1`, exerciseID)
 	if err != nil {
-		return fmt.Errorf("failed to delete exercise: %w", err)
+		return mapWriteError(err, "failed to delete exercise")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound

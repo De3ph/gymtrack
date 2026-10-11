@@ -38,7 +38,7 @@ func (r *PostgresTrainerReviewRepository) CreateReview(ctx context.Context, revi
 		review.TrainerID, review.AthleteID, review.Rating, review.Comment, review.CreatedAt, review.UpdatedAt,
 	).Scan(&review.ReviewID)
 	if err != nil {
-		return fmt.Errorf("failed to create review: %w", err)
+		return mapWriteError(err, "failed to create review")
 	}
 
 	review.Type = "review"
@@ -97,13 +97,19 @@ func (r *PostgresTrainerReviewRepository) GetByTrainerID(ctx context.Context, tr
 	return reviews, nil
 }
 
-func (r *PostgresTrainerReviewRepository) GetByAthleteID(ctx context.Context, athleteID int) (*models.TrainerReview, error) {
+// GetByTrainerAndAthlete returns the athlete's review of the given trainer.
+//
+// Scoped on both columns: the pair is what UNIQUE(trainer_id, athlete_id)
+// enforces, and this predicate is served directly by that unique index. An
+// athlete-only lookup would be a seq scan (no index leads with athlete_id) and
+// would return an arbitrary trainer's review.
+func (r *PostgresTrainerReviewRepository) GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.TrainerReview, error) {
 	query := `
 		SELECT id, trainer_id, athlete_id, rating, COALESCE(comment, ''), created_at, updated_at
-		FROM trainer_reviews WHERE athlete_id = $1 ORDER BY created_at DESC LIMIT 1`
+		FROM trainer_reviews WHERE trainer_id = $1 AND athlete_id = $2`
 
 	review := &models.TrainerReview{}
-	err := r.pool.QueryRow(ctx, query, athleteID).Scan(
+	err := r.pool.QueryRow(ctx, query, trainerID, athleteID).Scan(
 		&review.ReviewID, &review.TrainerID, &review.AthleteID,
 		&review.Rating, &review.Comment, &review.CreatedAt, &review.UpdatedAt,
 	)
@@ -111,7 +117,7 @@ func (r *PostgresTrainerReviewRepository) GetByAthleteID(ctx context.Context, at
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domainerrors.ErrNotFound
 		}
-		return nil, fmt.Errorf("failed to get review by athlete: %w", err)
+		return nil, fmt.Errorf("failed to get review by trainer and athlete: %w", err)
 	}
 
 	review.Type = "review"
@@ -125,7 +131,7 @@ func (r *PostgresTrainerReviewRepository) UpdateReview(ctx context.Context, revi
 
 	tag, err := r.pool.Exec(ctx, query, review.Rating, review.Comment, review.UpdatedAt, review.ReviewID)
 	if err != nil {
-		return fmt.Errorf("failed to update review: %w", err)
+		return mapWriteError(err, "failed to update review")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -136,7 +142,7 @@ func (r *PostgresTrainerReviewRepository) UpdateReview(ctx context.Context, revi
 func (r *PostgresTrainerReviewRepository) DeleteReview(ctx context.Context, reviewID int) error {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM trainer_reviews WHERE id = $1`, reviewID)
 	if err != nil {
-		return fmt.Errorf("failed to delete review: %w", err)
+		return mapWriteError(err, "failed to delete review")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound

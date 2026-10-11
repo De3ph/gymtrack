@@ -32,7 +32,9 @@ func (r *CachedEquipmentRepository) GetAllEquipment(ctx context.Context) ([]mode
 		if v, ok := r.cache.Get(key); ok {
 			return v, nil
 		}
-		v, err := r.inner.GetAllEquipment(ctx)
+		loadCtx, cancel := cacheLoadContext(ctx)
+		defer cancel()
+		v, err := r.inner.GetAllEquipment(loadCtx)
 		if err != nil {
 			return nil, err
 		}

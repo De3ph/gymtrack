@@ -192,11 +192,13 @@ func (f *fakeRelationshipRepo) Delete(ctx context.Context, relationshipID int) e
 	return nil
 }
 
-// GetByAthleteID mirrors the PostgreSQL repository, which reports "no review
-// yet" as ErrNotFound — the normal path for a first review, not a failure.
-func (f *fakeReviewRepo) GetByAthleteID(ctx context.Context, athleteID int) (*models.TrainerReview, error) {
+// GetByTrainerAndAthlete mirrors the PostgreSQL repository: it reports "this
+// athlete has not reviewed this trainer" as ErrNotFound — the normal path for a
+// first review, not a failure. The pair must both match, because an athlete may
+// review several trainers.
+func (f *fakeReviewRepo) GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.TrainerReview, error) {
 	for i := range f.byTrainer {
-		if f.byTrainer[i].AthleteID == athleteID {
+		if f.byTrainer[i].TrainerID == trainerID && f.byTrainer[i].AthleteID == athleteID {
 			review := f.byTrainer[i]
 			return &review, nil
 		}

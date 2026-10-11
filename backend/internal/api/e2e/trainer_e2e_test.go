@@ -23,9 +23,9 @@ type trainerProfile struct {
 
 // trainerWithProfile mirrors models.TrainerWithProfile (embedded user).
 type trainerWithProfile struct {
-	UserID   int            `json:"userId"`
-	Username string         `json:"username"`
-	Role     string         `json:"role"`
+	UserID         int            `json:"userId"`
+	Username       string         `json:"username"`
+	Role           string         `json:"role"`
 	TrainerProfile trainerProfile `json:"trainerProfile"`
 }
 
@@ -399,14 +399,28 @@ func TestE2E_Trainer_Reviews_Flow(t *testing.T) {
 	RequireJSONError(t, w, http.StatusConflict,
 		"you've already reviewed this trainer. You can edit or delete your existing review instead")
 
-	// Per-athlete duplicate guard (T5): after terminating T1 and taking T2
-	// as coach, the stale T1 review still blocks reviewing T2 — the check
-	// keys on the athlete, not the (athlete, trainer) pair.
+	// Per-trainer duplicate guard. Reviews are unique per (trainer, athlete) —
+	// that pair is what UNIQUE(trainer_id, athlete_id) enforces — so after
+	// terminating T1 and taking T2 as coach, the athlete must be able to review
+	// T2 even though a stale T1 review exists.
+	//
+	// This previously asserted the opposite ("the check keys on the athlete"),
+	// pinning a defect in which an athlete could only ever leave one review
+	// across their whole history. The lookup is now scoped to the pair.
 	w = env.DoAuthRequest(http.MethodDelete, "/api/relationships/"+itoa(relID), nil, athToken)
 	RequireJSONMessage(t, w, http.StatusOK, "Relationship terminated successfully")
 	establishRelationshipByInvitation(t, env, t2Token, athToken)
+	t2Review := createReview(t, env, athToken, t2ID, 4, "solid second coach")
+	if t2Review.ReviewID == 0 || t2Review.TrainerID != t2ID {
+		t.Fatalf("reviewing a second trainer must be allowed: %+v", t2Review)
+	}
+	if t2Review.ReviewID == r.ReviewID {
+		t.Fatalf("second review reused the first review's id: %d", t2Review.ReviewID)
+	}
+
+	// ...but the same trainer is still rejected, so the guard is per pair.
 	w = env.DoAuthRequest(http.MethodPost, "/api/trainers/"+itoa(t2ID)+"/reviews",
-		map[string]any{"rating": 4}, athToken)
+		map[string]any{"rating": 2}, athToken)
 	RequireJSONError(t, w, http.StatusConflict,
 		"you've already reviewed this trainer. You can edit or delete your existing review instead")
 

@@ -38,7 +38,7 @@ func (r *PostgresRelationshipRepository) Create(ctx context.Context, rel *models
 		rel.TrainerID, rel.AthleteID, string(rel.Status), rel.CreatedAt, rel.UpdatedAt,
 	).Scan(&rel.RelationshipID)
 	if err != nil {
-		return fmt.Errorf("failed to create relationship: %w", err)
+		return mapWriteError(err, "failed to create relationship")
 	}
 
 	rel.Type = "relationship"
@@ -147,7 +147,7 @@ func (r *PostgresRelationshipRepository) Update(ctx context.Context, rel *models
 
 	tag, err := r.pool.Exec(ctx, query, rel.TrainerID, rel.AthleteID, string(rel.Status), rel.UpdatedAt, rel.RelationshipID)
 	if err != nil {
-		return fmt.Errorf("failed to update relationship: %w", err)
+		return mapWriteError(err, "failed to update relationship")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound
@@ -158,7 +158,7 @@ func (r *PostgresRelationshipRepository) Update(ctx context.Context, rel *models
 func (r *PostgresRelationshipRepository) Delete(ctx context.Context, relationshipID int) error {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM relationships WHERE id = $1`, relationshipID)
 	if err != nil {
-		return fmt.Errorf("failed to delete relationship: %w", err)
+		return mapWriteError(err, "failed to delete relationship")
 	}
 	if tag.RowsAffected() == 0 {
 		return domainerrors.ErrNotFound

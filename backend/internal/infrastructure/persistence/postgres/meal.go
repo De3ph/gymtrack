@@ -39,7 +39,7 @@ func (r *PostgresMealRepository) Create(ctx context.Context, meal *models.Meal) 
 		meal.AthleteID, meal.Date, string(meal.MealType), itemsJSON, meal.CreatedAt, meal.UpdatedAt,
 	).Scan(&meal.MealID)
 	if err != nil {
-		return fmt.Errorf("failed to create meal: %w", err)
+		return mapWriteError(err, "failed to create meal")
 	}
 	meal.Type = "meal"
 	return nil

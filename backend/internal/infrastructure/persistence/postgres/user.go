@@ -50,7 +50,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 		user.UpdatedAt,
 	).Scan(&user.UserID)
 	if err != nil {
-		return fmt.Errorf("failed to create user: %w", err)
+		return mapWriteError(err, "failed to create user")
 	}
 
 	user.Type = "user"
@@ -236,7 +236,7 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 		user.UserID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+		return mapWriteError(err, "failed to update user")
 	}
 
 	if tag.RowsAffected() == 0 {
