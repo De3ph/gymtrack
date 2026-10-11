@@ -52,37 +52,9 @@ func run(dryRun bool, batchSize int, beforeDuration time.Duration) error {
 		zap.Time("cutoff", cutoff),
 	)
 
-	totalDeleted := 0
-
-	for {
-		ids, err := fetchExpiredUserIDs(ctx, pool, cutoff, batchSize)
-		if err != nil {
-			return fmt.Errorf("query expired users: %w", err)
-		}
-
-		if len(ids) == 0 {
-			break
-		}
-
-		if dryRun {
-			zap.L().Info("would delete users", zap.Int("count", len(ids)), zap.Ints("user_ids", ids))
-			totalDeleted += len(ids)
-			if len(ids) < batchSize {
-				break
-			}
-			continue
-		}
-
-		if err := deleteUsersInBatch(ctx, pool, ids); err != nil {
-			return fmt.Errorf("delete batch: %w", err)
-		}
-
-		totalDeleted += len(ids)
-		zap.L().Info("batch deleted", zap.Int("count", len(ids)))
-
-		if len(ids) < batchSize {
-			break
-		}
+	totalDeleted, err := cleanup(ctx, pool, cutoff, dryRun, batchSize)
+	if err != nil {
+		return err
 	}
 
 	zap.L().Info("cleanup complete",
@@ -92,26 +64,106 @@ func run(dryRun bool, batchSize int, beforeDuration time.Duration) error {
 	return nil
 }
 
-func fetchExpiredUserIDs(ctx context.Context, pool *pgxpool.Pool, cutoff time.Time, limit int) ([]int, error) {
-	query := `SELECT user_id FROM users WHERE deleted_at < $1 ORDER BY deleted_at LIMIT $2`
-	rows, err := pool.Query(ctx, query, cutoff, limit)
+// cleanup deletes every user soft-deleted before cutoff, in batches, and
+// returns how many rows it processed.
+//
+// The cursor advances every iteration regardless of mode. That is what makes
+// dry-run terminate: because it removes nothing, there is no window movement to
+// page past, so without a cursor it re-reads the same first page forever.
+func cleanup(ctx context.Context, pool *pgxpool.Pool, cutoff time.Time, dryRun bool, batchSize int) (int, error) {
+	total := 0
+	cursor := expiredCursor{}
+
+	for {
+		ids, next, err := fetchExpiredUserIDs(ctx, pool, cutoff, cursor, batchSize)
+		if err != nil {
+			return total, fmt.Errorf("query expired users: %w", err)
+		}
+
+		if len(ids) == 0 {
+			break
+		}
+
+		if dryRun {
+			zap.L().Info("would delete users", zap.Int("count", len(ids)), zap.Ints("user_ids", ids))
+			total += len(ids)
+			cursor = next
+			if len(ids) < batchSize {
+				break
+			}
+			continue
+		}
+
+		if err := deleteUsersInBatch(ctx, pool, ids); err != nil {
+			return total, fmt.Errorf("delete batch: %w", err)
+		}
+
+		total += len(ids)
+		zap.L().Info("batch deleted", zap.Int("count", len(ids)))
+		cursor = next
+
+		if len(ids) < batchSize {
+			break
+		}
+	}
+
+	return total, nil
+}
+
+// expiredCursor is a position in the (deleted_at, user_id) ordering, used as a
+// keyset rather than an OFFSET.
+//
+// OFFSET cannot page a result set that is being modified. In delete mode each
+// batch removes the rows it just returned, so every subsequent page would skip
+// that many rows; in dry-run mode nothing is removed, so the same page is
+// returned forever and the loop never terminates.
+//
+// keyset holds its position instead, so both modes advance. The zero value
+// sorts before every real row and therefore matches everything on the first
+// page. user_id is part of the key because deleted_at is not unique: without it
+// a batch boundary landing on a repeated timestamp would silently drop rows.
+type expiredCursor struct {
+	deletedAt time.Time
+	userID    int
+}
+
+// fetchExpiredUserIDs returns up to limit expired user IDs positioned strictly
+// after `after`, together with the cursor to resume from.
+//
+// `after` is passed by value so the caller's position is never mutated; the
+// zero value starts at the beginning.
+func fetchExpiredUserIDs(ctx context.Context, pool *pgxpool.Pool, cutoff time.Time, after expiredCursor, limit int) ([]int, expiredCursor, error) {
+	query := `
+		SELECT user_id, deleted_at
+		FROM users
+		WHERE deleted_at < $1
+		  AND (deleted_at, user_id) > ($2, $3)
+		ORDER BY deleted_at, user_id
+		LIMIT $4`
+
+	rows, err := pool.Query(ctx, query, cutoff, after.deletedAt, after.userID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("query users: %w", err)
+		return nil, expiredCursor{}, fmt.Errorf("query users: %w", err)
 	}
 	defer rows.Close()
 
 	var ids []int
+	next := after
 	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return nil, fmt.Errorf("scan user_id: %w", err)
+		var (
+			id        int
+			deletedAt time.Time
+		)
+		if err := rows.Scan(&id, &deletedAt); err != nil {
+			return nil, expiredCursor{}, fmt.Errorf("scan user_id: %w", err)
 		}
 		ids = append(ids, id)
+		next = expiredCursor{deletedAt: deletedAt, userID: id}
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("row iteration: %w", err)
+		return nil, expiredCursor{}, fmt.Errorf("row iteration: %w", err)
 	}
-	return ids, nil
+	return ids, next, nil
 }
 
 func deleteUsersInBatch(ctx context.Context, pool *pgxpool.Pool, ids []int) error {
