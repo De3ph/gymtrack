@@ -136,7 +136,7 @@ export function ExerciseSetInput({
                   )
                 }
                 disabled={disabled}
-                className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
+                className="no-spin h-8 w-full max-w-20 text-center font-mono tabular-nums"
                 placeholder="0"
                 data-testid="set-weight"
               />
@@ -150,7 +150,7 @@ export function ExerciseSetInput({
                   updateSet(set.id, "reps", parseInt(e.target.value) || 1)
                 }
                 disabled={disabled}
-                className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
+                className="no-spin h-8 w-full max-w-20 text-center font-mono tabular-nums"
                 placeholder="0"
                 data-testid="set-reps"
               />
@@ -169,7 +169,7 @@ export function ExerciseSetInput({
                   )
                 }
                 disabled={disabled}
-                className="h-8 w-full max-w-20 text-center font-mono tabular-nums"
+                className="no-spin h-8 w-full max-w-20 text-center font-mono tabular-nums"
                 placeholder="0"
                 data-testid="set-rest"
               />
