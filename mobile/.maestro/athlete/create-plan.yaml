@@ -1,0 +1,51 @@
+# Athlete — Create Workout Plan
+# Login → navigate to plans → open create sheet → pick exercise → submit → verify list
+# NOTE: athletes are capped at 3 plans (backend-enforced); repeated runs accumulate
+# plans until the FAB disappears at the limit.
+
+name: Create Workout Plan
+appId: com.gymtrack.app
+---
+# Login
+- launchApp
+- assertVisible:
+    text: "Login to Your Account"
+    timeout: 10000
+- tapOn: "Email or Username"
+- inputText: "${ATHLETE_EMAIL}"
+- tapOn: "Password"
+- inputText: "${ATHLETE_PASSWORD}"
+- tapOn: "Login"
+- assertVisible:
+    text: "Home"
+    timeout: 15000
+
+# Navigate to athlete workout plans via deep link (route is not in bottom tabs)
+- openLink:
+    url: "exp://localhost:8081/--/athlete/workout-plans"
+
+# Open the create sheet from the FAB (accessibility label)
+- tapOn: "Create Plan"
+
+# Plan identity
+- tapOn: "Plan Name"
+- inputText: "Maestro Athlete Plan"
+- tapOn: "Brief description of the plan"
+- inputText: "My own chest day"
+
+# Pick an exercise from the catalog
+- tapOn: "Pick Exercise"
+- assertVisible:
+    text: "Exercise Catalog"
+    timeout: 10000
+- tapOn: "Search exercises..."
+- inputText: "Bench"
+- tapOn: "Bench Press"
+
+# Submit the sheet
+- tapOn: "Create Plan"
+
+# The sheet closes and the new plan appears under My Plans
+- assertVisible:
+    text: "Maestro Athlete Plan"
+    timeout: 15000

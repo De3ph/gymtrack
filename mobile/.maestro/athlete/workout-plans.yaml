@@ -22,7 +22,10 @@ appId: com.gymtrack.app
 - openLink:
     url: "exp://localhost:8081/--/athlete/workout-plans"
 
-# Verify workout plans screen loads (plans list or empty state)
+# Verify workout plans screen loads (own-plans empty state + assigned empty state)
 - assertVisible:
-    text: "No assigned plans"
+    text: "No workout plans yet. Create your first one!"
+    timeout: 15000
+- assertVisible:
+    text: "You don't have any workout plans yet. Ask your trainer to create one!"
     timeout: 15000

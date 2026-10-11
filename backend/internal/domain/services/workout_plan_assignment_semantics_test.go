@@ -298,3 +298,9 @@ func (f *fakeWorkoutRepo) CountByAthlete(context.Context, int, *time.Time, *time
 }
 
 func (f *fakeWorkoutRepo) CountAll(context.Context) (int, error) { return 0, nil }
+
+func (f *fakeWorkoutRepo) Update(_ context.Context, workout *models.Workout) error {
+	return nil
+}
+
+func (f *fakeWorkoutRepo) Delete(_ context.Context, _ int) error { return nil }

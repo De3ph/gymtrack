@@ -1,8 +1,8 @@
 import { apiRequest } from "./client";
-import type { WorkoutPlan } from "@/types";
+import type { CreateWorkoutPlanRequest, WorkoutPlan } from "@/types";
 
 export const workoutPlanApi = {
-  create: (data: Omit<WorkoutPlan, "planId" | "createdAt" | "updatedAt">) =>
+  create: (data: CreateWorkoutPlanRequest) =>
     apiRequest<WorkoutPlan>("/workout-plans", { method: "POST", body: data }),
 
   getAll: () => apiRequest<{ plans: WorkoutPlan[] }>("/workout-plans"),
@@ -10,7 +10,7 @@ export const workoutPlanApi = {
   getById: (id: string | number) =>
     apiRequest<WorkoutPlan>(`/workout-plans/${id}`),
 
-  update: (id: string | number, data: Partial<Omit<WorkoutPlan, "planId" | "createdAt" | "updatedAt">>) =>
+  update: (id: string | number, data: CreateWorkoutPlanRequest) =>
     apiRequest<WorkoutPlan>(`/workout-plans/${id}`, { method: "PUT", body: data }),
 
   delete: (id: string | number) =>

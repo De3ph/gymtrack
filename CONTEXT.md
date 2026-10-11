@@ -144,7 +144,7 @@ backend/
 | Model | File | Key Fields | Business Rules |
 |-------|------|-----------|----------------|
 | **User** | `user.go` | id (int), email, password, role, profile | Roles: `trainer` \| `athlete` \| `admin`. Profile is JSONB |
-| **Workout** | `workout.go` | id, athleteId, date, exercises (JSONB) | Create/read only — no edit or delete |
+| **Workout** | `workout.go` | id, athleteId, date, exercises (JSONB) | Edit/delete within 24h of creation (athlete only) |
 | **Meal** | `meal.go` | id, athleteId, date, mealType, items (JSONB) | Create/read only — no edit or delete |
 | **Comment** | `comment.go` | id, targetType, targetId, authorId, content | Threaded (parentCommentId). Max 2000 chars |
 | **Relationship** | `relationship.go` | id, trainerId, athleteId, status | Status: pending\|active\|terminated |
@@ -188,6 +188,8 @@ PUT    /api/admin/profile               - Update admin profile
 POST   /api/workouts                    - Create workout (auth required)
 GET    /api/workouts                    - Get own workout history (paginated, date filtered)
 GET    /api/workouts/:id                - Get specific workout
+PUT    /api/workouts/:id                - Update workout (athlete, 24h window)
+DELETE /api/workouts/:id                - Delete workout (athlete, 24h window)
 GET    /api/clients/:id/workouts        - Trainer view client workouts
 ```
 

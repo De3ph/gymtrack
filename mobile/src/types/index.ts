@@ -86,9 +86,22 @@ export interface WorkoutPlanExercise {
 export interface WorkoutPlanSet {
   setId?: string;
   weight: number;
-  weightUnit: string;
+  weightUnit: WeightUnit;
   reps: number;
   restTime: number; // in seconds
+}
+
+export type WeightUnit = "kg" | "lbs";
+
+/**
+ * Body accepted by POST /api/workout-plans. Mirrors the web client's
+ * `CreateWorkoutPlanRequest` — the backend takes the creator from the JWT, so
+ * no `creatorId` is sent.
+ */
+export interface CreateWorkoutPlanRequest {
+  name: string;
+  description?: string;
+  exercises: WorkoutPlanExercise[];
 }
 
 export interface WorkoutListResponse {

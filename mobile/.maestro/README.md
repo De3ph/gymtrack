@@ -41,7 +41,8 @@ maestro test --env CI=true .maestro/
 │   ├── measurements.yaml     # Log body measurement (weight, BF%, parts)
 │   ├── trainer-connect.yaml  # Browse catalog + send coaching request
 │   └── workout-plans.yaml    # View assigned workout plans
-└── trainer/                  # Phase 4: Trainer flows (planned)
+└── trainer/                    # Phase 4: Trainer flows
+    └── create-plan.yaml          # Create workout plan (name, exercise, sets)
 ```
 
 ## Auth Flows (Phase 2)
@@ -103,7 +104,19 @@ Defined in `config.yaml`, overridable via `--env KEY=VALUE`:
 ### workout-plans.yaml (1 flow)
 | Flow | Description |
 |------|-------------|
-| **View Workout Plans** | Login → deep link to /athlete/workout-plans → verify list or empty state |
+| **View Workout Plans** | Login → deep link to /athlete/workout-plans → verify own-plans empty state + assigned empty state |
+
+### create-plan.yaml (1 flow)
+| Flow | Description |
+|------|-------------|
+| **Create Workout Plan** | Login as athlete → deep link to /athlete/workout-plans → open create sheet → fill name/description → pick "Bench Press" from catalog → submit → verify plan under My Plans |
+
+## Trainer Flows (Phase 4)
+
+### create-plan.yaml (1 flow)
+| Flow | Description |
+|------|-------------|
+| **Create Workout Plan** | Login as trainer → deep link to /trainer/plans → open create sheet → fill name/description → pick "Bench Press" from catalog → submit → verify plan in list |
 
 ## Notes
 
@@ -115,3 +128,5 @@ Defined in `config.yaml`, overridable via `--env KEY=VALUE`:
 - Date fields are pre-filled with today's date and skipped in flows.
 - Workout plans uses `openLink` deep link since the route is not in bottom tabs.
 - Trainer catalog uses `point: "50%,30%"` to tap first card (no unique text selectors on list items).
+- The create-plan flow appends a new plan to the trainer's account on every run — plans are not cleaned up between runs.
+- The athlete create-plan flow appends a plan on every run too, and athletes are capped at **3 plans** (backend-enforced) — after three runs the FAB is hidden and the flow can no longer create; delete plans manually to reset.

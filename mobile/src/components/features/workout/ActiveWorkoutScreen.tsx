@@ -356,15 +356,24 @@ export function ActiveWorkoutScreen() {
   const [discardOpen, setDiscardOpen] = useState(false);
   const [addMode, setAddMode] = useState(false);
 
+  // Freeze the session mode at mount. `editingWorkout` is cleared by
+  // resetForm() while this screen is still animating out after a save or
+  // discard, which would otherwise flip the screen back into logging mode
+  // and restart the counter mid-exit.
+  const [isEdit] = useState(() => editingWorkout !== null);
+
+  // The elapsed counter is a logging-only affordance: it runs while recording
+  // a new workout. Editing an existing workout is a plain form, so no timer
+  // (or any other logging state) is ever started in that mode.
   useEffect(() => {
+    if (isEdit) return;
     const startedAt = Date.now();
     const id = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startedAt) / 1000));
     }, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [isEdit]);
 
-  const isEdit = editingWorkout !== null;
   const title = isEdit
     ? t("workout.edit_dialog.title")
     : t("workout.form.title");
@@ -556,17 +565,19 @@ export function ActiveWorkoutScreen() {
             <Icon as={CloseIcon} size="md" className="text-text" />
           </Pressable>
 
-          <Box
-            accessibilityRole="text"
-            accessibilityLabel={
-              t("workout.log.timer_label") + ": " + formatElapsed(elapsed)
-            }
-            className="min-h-[36px] items-center justify-center rounded-full bg-surface-subtle px-3"
-          >
-            <Text className="text-[15px] font-semibold tabular-nums text-text-secondary">
-              {formatElapsed(elapsed)}
-            </Text>
-          </Box>
+          {!isEdit && (
+            <Box
+              accessibilityRole="text"
+              accessibilityLabel={
+                t("workout.log.timer_label") + ": " + formatElapsed(elapsed)
+              }
+              className="min-h-[36px] items-center justify-center rounded-full bg-surface-subtle px-3"
+            >
+              <Text className="text-[15px] font-semibold tabular-nums text-text-secondary">
+                {formatElapsed(elapsed)}
+              </Text>
+            </Box>
+          )}
 
           <Box className="flex-1" />
 

@@ -1,9 +1,7 @@
+-- GymTrack baseline migration — squashes 001_initial_schema through 009_seed_exercise_media
+-- Generated from a fully-migrated database on 2026-10-11.
+-- Apply this instead of the old migration chain.
 --
--- PostgreSQL database dump
---
-
-\restrict Edmh5aApqDRf68GtqP9doraDZgUjjfGa3yq42OTXUyih4EKWPhOEjb8B51a9MSF
-
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
 
@@ -181,7 +179,10 @@ CREATE TABLE public.exercises (
     equipment_id integer,
     instructions text,
     created_by integer,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    media_url text,
+    media_type text NOT NULL DEFAULT 'gif',
+    CONSTRAINT exercises_media_type_check CHECK (media_type IN ('gif', 'video', 'image'))
 );
 
 
@@ -342,16 +343,6 @@ CREATE SEQUENCE public.relationships_id_seq
 --
 
 ALTER SEQUENCE public.relationships_id_seq OWNED BY public.relationships.id;
-
-
---
--- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.schema_migrations (
-    version bigint NOT NULL,
-    dirty boolean NOT NULL
-);
 
 
 --
@@ -777,14 +768,6 @@ ALTER TABLE ONLY public.relationships
 
 ALTER TABLE ONLY public.relationships
     ADD CONSTRAINT relationships_trainer_id_athlete_id_key UNIQUE (trainer_id, athlete_id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -1341,5 +1324,5 @@ ALTER TABLE ONLY public.workouts
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Edmh5aApqDRf68GtqP9doraDZgUjjfGa3yq42OTXUyih4EKWPhOEjb8B51a9MSF
+
 

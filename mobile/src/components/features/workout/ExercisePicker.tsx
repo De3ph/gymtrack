@@ -25,7 +25,7 @@ import {
   SearchIcon,
 } from "@/components/ui/icon";
 
-interface Exercise {
+export interface Exercise {
   exerciseId: number;
   name: string;
   category?: string;
@@ -34,10 +34,170 @@ interface Exercise {
   instructions?: string;
 }
 
+/** Minimal shape the catalog hands back to its host. */
+export type PickedExercise = Pick<Exercise, "exerciseId" | "name">;
+
+interface ExerciseCatalogContentProps {
+  /** Back/close affordance inside the catalog surface (X button). */
+  onClose: () => void;
+  onSelect: (exercise: PickedExercise) => void;
+}
+
+/**
+ * The catalog UI itself — header, search, list — with **no** Modal of its own.
+ * Hosts render it inside their own surface: `ExercisePicker` wraps it in a
+ * standalone modal for screen-level use, and the workout-plan sheet swaps it
+ * in place of its form, because RN cannot reliably present a second Modal on
+ * top of one that is already open.
+ */
+export function ExerciseCatalogContent({ onClose, onSelect }: ExerciseCatalogContentProps) {
+  const { t } = useI18n();
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
+
+  // Mount == the catalog is on screen, so fetch right away.
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["exercises"],
+    queryFn: () => exerciseApi.getAll() as Promise<Exercise[]>,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const exercises = useMemo<Exercise[]>(
+    () => (Array.isArray(data) ? data : EMPTY_LIST),
+    [data]
+  );
+
+  const searchIndex = useMemo(
+    () =>
+      exercises.map((ex) =>
+        ex.category
+          ? `${ex.name.toLowerCase()} ${ex.category.toLowerCase()}`
+          : ex.name.toLowerCase()
+      ),
+    [exercises]
+  );
+
+  const filtered = useMemo(() => {
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return exercises;
+    return exercises.filter((_, i) => searchIndex[i].includes(q));
+  }, [exercises, searchIndex, deferredSearch]);
+
+  const handleItemPress = useCallback(
+    (item: Exercise) => {
+      onSelect(item);
+    },
+    [onSelect]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Exercise }) => <ExerciseRow item={item} onPress={handleItemPress} />,
+    [handleItemPress]
+  );
+
+  const keyExtractor = useCallback((item: Exercise) => String(item.exerciseId), []);
+
+  const clearSearch = useCallback(() => setSearch(""), []);
+
+  const handleRetry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const isSearching = search.trim().length > 0;
+
+  const listEmpty = useMemo(() => {
+    if (isLoading) return <ListLoading />;
+    if (isError) return <ListError onRetry={handleRetry} />;
+    return <ListEmpty searching={isSearching} />;
+  }, [isLoading, isError, isSearching, handleRetry]);
+
+  return (
+    <Box className="flex-1">
+      <ModalHeader className="flex-row items-start justify-between border-b border-border px-4 pb-3 pt-4">
+        <Box className="flex-1 pr-3">
+          <Text className="text-[17px] font-bold text-text">
+            {t("exercise.selector.catalog_title")}
+          </Text>
+          <Text className="mt-0.5 text-[13px] text-text-secondary">
+            {t("exercise.selector.description")}
+          </Text>
+        </Box>
+        <ModalCloseButton onPress={onClose}>
+          <Icon as={CloseIcon} className="text-text-secondary" size="md" />
+        </ModalCloseButton>
+      </ModalHeader>
+
+      <Box className="px-4 pb-2 pt-3">
+        <Input>
+          <InputSlot>
+            <InputIcon as={SearchIcon} />
+          </InputSlot>
+          <InputField
+            value={search}
+            onChangeText={setSearch}
+            placeholder={t("exercise.selector.search_placeholder")}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {isSearching ? (
+            <InputSlot>
+              <Pressable
+                onPress={clearSearch}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t("common.actions.clear")}
+              >
+                <Icon as={CloseCircleIcon} className="text-text-tertiary" size="sm" />
+              </Pressable>
+            </InputSlot>
+          ) : null}
+        </Input>
+      </Box>
+
+      {/* Plain flex container, not ModalBody (a ScrollView): FlashList needs
+          a bounded height from its parent to scroll. */}
+      <Box className="min-h-0 flex-1 px-4 pb-4">
+        <FlashList
+          data={filtered}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          ItemSeparatorComponent={RowSeparator}
+          ListEmptyComponent={listEmpty}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        />
+      </Box>
+    </Box>
+  );
+}
+
 interface ExercisePickerProps {
   visible: boolean;
   onClose: () => void;
-  onSelect: (exercise: Exercise) => void;
+  onSelect: (exercise: PickedExercise) => void;
+}
+
+/** Standalone catalog modal — for hosts that are not inside another modal. */
+export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerProps) {
+  const handleSelect = useCallback(
+    (exercise: PickedExercise) => {
+      onSelect(exercise);
+      onClose();
+    },
+    [onSelect, onClose]
+  );
+
+  return (
+    <Modal isOpen={visible} onClose={onClose} size="md">
+      <ModalBackdrop />
+      <ModalContent className="h-[85%] bg-background p-0">
+        {visible ? (
+          <ExerciseCatalogContent onClose={onClose} onSelect={handleSelect} />
+        ) : null}
+      </ModalContent>
+    </Modal>
+  );
 }
 
 const EMPTY_LIST: Exercise[] = [];
@@ -117,136 +277,5 @@ function ListEmpty({ searching }: { searching: boolean }) {
           : t("exercise.selector.no_exercises_hint")}
       </Text>
     </Box>
-  );
-}
-
-export function ExercisePicker({ visible, onClose, onSelect }: ExercisePickerProps) {
-  const { t } = useI18n();
-  const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search);
-
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["exercises"],
-    queryFn: () => exerciseApi.getAll() as Promise<Exercise[]>,
-    enabled: visible,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const handleClose = useCallback(() => {
-    setSearch("");
-    onClose();
-  }, [onClose]);
-
-  const exercises = useMemo<Exercise[]>(
-    () => (Array.isArray(data) ? data : EMPTY_LIST),
-    [data]
-  );
-
-  const searchIndex = useMemo(
-    () =>
-      exercises.map((ex) =>
-        ex.category
-          ? `${ex.name.toLowerCase()} ${ex.category.toLowerCase()}`
-          : ex.name.toLowerCase()
-      ),
-    [exercises]
-  );
-
-  const filtered = useMemo(() => {
-    const q = deferredSearch.trim().toLowerCase();
-    if (!q) return exercises;
-    return exercises.filter((_, i) => searchIndex[i].includes(q));
-  }, [exercises, searchIndex, deferredSearch]);
-
-  const handleItemPress = useCallback(
-    (item: Exercise) => {
-      onSelect(item);
-      handleClose();
-    },
-    [onSelect, handleClose]
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: Exercise }) => <ExerciseRow item={item} onPress={handleItemPress} />,
-    [handleItemPress]
-  );
-
-  const keyExtractor = useCallback((item: Exercise) => String(item.exerciseId), []);
-
-  const clearSearch = useCallback(() => setSearch(""), []);
-
-  const handleRetry = useCallback(() => {
-    void refetch();
-  }, [refetch]);
-
-  const isSearching = search.trim().length > 0;
-
-  const listEmpty = useMemo(() => {
-    if (isLoading) return <ListLoading />;
-    if (isError) return <ListError onRetry={handleRetry} />;
-    return <ListEmpty searching={isSearching} />;
-  }, [isLoading, isError, isSearching, handleRetry]);
-
-  return (
-    <Modal isOpen={visible} onClose={handleClose} size="md">
-      <ModalBackdrop />
-      <ModalContent className="h-[85%] bg-background p-0">
-        <ModalHeader className="flex-row items-start justify-between border-b border-border px-4 pb-3 pt-4">
-          <Box className="flex-1 pr-3">
-            <Text className="text-[17px] font-bold text-text">
-              {t("exercise.selector.catalog_title")}
-            </Text>
-            <Text className="mt-0.5 text-[13px] text-text-secondary">
-              {t("exercise.selector.description")}
-            </Text>
-          </Box>
-          <ModalCloseButton>
-            <Icon as={CloseIcon} className="text-text-secondary" size="md" />
-          </ModalCloseButton>
-        </ModalHeader>
-
-        <Box className="px-4 pb-2 pt-3">
-          <Input>
-            <InputSlot>
-              <InputIcon as={SearchIcon} />
-            </InputSlot>
-            <InputField
-              value={search}
-              onChangeText={setSearch}
-              placeholder={t("exercise.selector.search_placeholder")}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="search"
-            />
-            {isSearching ? (
-              <InputSlot>
-                <Pressable
-                  onPress={clearSearch}
-                  hitSlop={12}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("common.actions.clear")}
-                >
-                  <Icon as={CloseCircleIcon} className="text-text-tertiary" size="sm" />
-                </Pressable>
-              </InputSlot>
-            ) : null}
-          </Input>
-        </Box>
-
-        {/* Plain flex container, not ModalBody (a ScrollView): FlashList needs
-            a bounded height from its parent to scroll. */}
-        <Box className="min-h-0 flex-1 px-4 pb-4">
-          <FlashList
-            data={filtered}
-            renderItem={renderItem}
-            keyExtractor={keyExtractor}
-            ItemSeparatorComponent={RowSeparator}
-            ListEmptyComponent={listEmpty}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
-          />
-        </Box>
-      </ModalContent>
-    </Modal>
   );
 }

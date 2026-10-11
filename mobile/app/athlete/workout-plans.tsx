@@ -1,5 +1,5 @@
-import { MyWorkoutPlansScreen } from "@/components/features/workout/workout-plan/MyWorkoutPlansScreen";
+import { AthleteWorkoutPlansScreen } from "@/components/features/workout/workout-plan/AthleteWorkoutPlansScreen";
 
 export default function AthleteWorkoutPlansPage() {
-  return <MyWorkoutPlansScreen />;
+  return <AthleteWorkoutPlansScreen />;
 }

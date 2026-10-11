@@ -141,7 +141,7 @@ Go Backend (http://localhost:8080/api)
 | Model | Key Fields | Business Rules |
 |-------|-----------|----------------|
 | **User** | id, email, password, role, profile (JSONB) | Roles: trainer \| athlete \| admin |
-| **Workout** | id, athleteId, date, exercises (JSONB) | Create/read only — no edit or delete |
+| **Workout** | id, athleteId, date, exercises (JSONB) | Edit/delete within 24h of creation (athlete only) |
 | **Meal** | id, athleteId, date, mealType, items (JSONB) | Create/read only — no edit or delete |
 | **BodyMeasurement** | id, athleteId, date, weight, bodyFatPct, parts (JSONB) | Editable within 7d |
 | **Comment** | id, targetType, targetId, authorId, content | Threaded, max 2000 chars |
@@ -180,6 +180,8 @@ PUT    /api/admin/profile
 POST   /api/workouts                  # Create (auth required)
 GET    /api/workouts                  # Own history (paginated, date filtered)
 GET    /api/workouts/:id
+PUT    /api/workouts/:id              # Update (athlete, 24h window)
+DELETE /api/workouts/:id              # Delete (athlete, 24h window)
 GET    /api/clients/:id/workouts      # Trainer view
 ```
 
