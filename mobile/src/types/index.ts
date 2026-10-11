@@ -22,6 +22,38 @@ export type Exercise = components["schemas"]["models.Exercise"];
 export type TrainerAvailability = components["schemas"]["models.TrainerAvailability"];
 export type Relationship = components["schemas"]["models.Relationship"];
 export type TrainerReview = components["schemas"]["models.TrainerReview"];
+
+export type MuscleGroup = components["schemas"]["models.MuscleGroupDefinition"];
+export type Equipment = components["schemas"]["models.EquipmentDefinition"];
+
+export type ExerciseMediaType = "gif" | "video" | "image";
+
+/**
+ * Exercise catalog entry with populated relations (UI convenience).
+ * Mirrors frontend `ExerciseLibrary` in `frontend/src/types/index.ts`: the
+ * backend rows carry only foreign keys, so screens resolve labels once via
+ * lookup Maps rather than per-card scans.
+ */
+export interface ExerciseLibrary {
+  exerciseId: number;
+  name: string;
+  category?: string;
+  muscleGroupId?: number;
+  equipmentId?: number;
+  instructions?: string;
+  createdBy?: number;
+  createdAt?: string;
+  isVerified?: boolean;
+  muscleGroup?: MuscleGroup;
+  equipment?: Equipment;
+  /**
+   * Absolute https URL of a demonstration asset. Absent or empty means the
+   * exercise has no media and the UI renders a placeholder tile.
+   */
+  mediaUrl?: string;
+  /** Renderer hint for `mediaUrl`. Absent means `gif`. */
+  mediaType?: ExerciseMediaType;
+}
 // CoachingRequest is not in the generated types, using the request type instead
 export type CoachingRequest = components["schemas"]["handlers.CreateCoachingRequestRequest"] & {
   requestId?: number;

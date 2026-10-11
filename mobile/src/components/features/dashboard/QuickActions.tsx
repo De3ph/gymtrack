@@ -11,6 +11,7 @@ import { Host, Text as ExpoText } from "@expo/ui";
 import {
   MealIcon,
   MeasurementIcon,
+  ExerciseIcon,
   ProfileIcon,
   TrainerIcon,
   WorkoutIcon,
@@ -24,6 +25,7 @@ type QuickActionRoute =
   | "/(tabs)/workouts"
   | "/(tabs)/meals"
   | "/(tabs)/measurements"
+  | "/exercises"
   | "/trainer-catalog"
   | "/trainer/clients"
   | "/trainer/plans"
@@ -145,6 +147,12 @@ export const QuickActions = memo(function QuickActions({ title }: QuickActionsPr
           Icon: MeasurementIcon,
           iconColor: colors.warning,
           route: "/(tabs)/measurements",
+        },
+        {
+          key: "exercises",
+          Icon: ExerciseIcon,
+          iconColor: colors.danger,
+          route: "/exercises",
         },
         {
           key: "trainers",

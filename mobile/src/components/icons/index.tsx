@@ -24,6 +24,10 @@ export function MeasurementIcon(props: AppIconProps) {
   return <MaterialCommunityIcons name="tape-measure" {...props} />;
 }
 
+export function ExerciseIcon(props: AppIconProps) {
+  return <MaterialCommunityIcons name="weight-lifter" {...props} />;
+}
+
 export function TrainerIcon(props: AppIconProps) {
   return <MaterialCommunityIcons name="account-search-outline" {...props} />;
 }

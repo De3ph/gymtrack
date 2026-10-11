@@ -112,6 +112,7 @@ function AppNavigator() {
   return (
     <Stack screenOptions={themedHeader}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="exercises" />
       <Stack.Screen name="trainer" />
       <Stack.Screen name="trainer-catalog" />
       <Stack.Screen name="athlete" />
