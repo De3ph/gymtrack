@@ -74,8 +74,18 @@ func (s *MealService) GetMeal(ctx context.Context, input GetMealInput) (*models.
 		return nil, fmt.Errorf("failed to get meal: %w", err)
 	}
 
-	if input.RequesterRole == models.RoleAthlete && meal.AthleteID != input.RequesterID {
-		return nil, NewServiceError("This meal belongs to another athlete. You can only view your own meals", "FORBIDDEN")
+	if input.RequesterRole == models.RoleAthlete {
+		if meal.AthleteID != input.RequesterID {
+			return nil, NewServiceError("This meal belongs to another athlete. You can only view your own meals", "FORBIDDEN")
+		}
+	} else if input.RequesterRole == models.RoleTrainer {
+		hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, input.RequesterID, meal.AthleteID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to verify relationship: %w", err)
+		}
+		if !hasActive {
+			return nil, NewServiceError("You don't have an active coaching relationship with this athlete, so you can't view their meals", "FORBIDDEN")
+		}
 	}
 
 	return meal, nil

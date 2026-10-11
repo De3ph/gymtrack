@@ -150,8 +150,18 @@ func (s *WorkoutService) GetWorkout(ctx context.Context, input GetWorkoutInput) 
 		return nil, fmt.Errorf("failed to get workout: %w", err)
 	}
 
-	if input.RequesterRole == models.RoleAthlete && workout.AthleteID != input.RequesterID {
-		return nil, NewServiceError("This workout belongs to another athlete. You can only view your own workouts", "FORBIDDEN")
+	if input.RequesterRole == models.RoleAthlete {
+		if workout.AthleteID != input.RequesterID {
+			return nil, NewServiceError("This workout belongs to another athlete. You can only view your own workouts", "FORBIDDEN")
+		}
+	} else if input.RequesterRole == models.RoleTrainer {
+		hasActive, err := s.relationshipRepo.HasActiveRelationship(ctx, input.RequesterID, workout.AthleteID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to verify relationship: %w", err)
+		}
+		if !hasActive {
+			return nil, NewServiceError("You don't have an active coaching relationship with this athlete, so you can't view their workouts", "FORBIDDEN")
+		}
 	}
 
 	return workout, nil
