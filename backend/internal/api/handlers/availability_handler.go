@@ -140,8 +140,8 @@ func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
 		return
 	}
-	userRole, _ := c.Get("userRole")
-	if userRole != "trainer" {
+	userRole, exists := c.Get("userRole")
+	if !exists || userRole.(models.UserRole) != models.RoleTrainer {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can delete availability slots"})
 		return
 	}
@@ -165,7 +165,7 @@ func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Slot not found. It may have been deleted or the ID is incorrect"})
 			return
 		}
-		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden - not your slot"})
+		handleInternalError(c, err, "internal server error")
 		return
 	}
 
