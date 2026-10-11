@@ -1,8 +1,8 @@
 import { tokenService } from "@/lib/token-service"
+import { API_URL } from "@/lib/env"
 import type { PaginationParams } from "@/types"
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"
+const API_BASE_URL = API_URL
 
 type FetchOptions = RequestInit & {
   params?: Record<string, unknown> | PaginationParams

@@ -1,7 +1,18 @@
 import * as Sentry from "@sentry/nextjs";
 
+const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+
+if (process.env.NODE_ENV === "production" && !dsn) {
+  // Not a thrown error: the app must still run without monitoring, but a
+  // production deploy without a DSN is a misconfiguration that should be
+  // visible in the console/build logs.
+  console.error(
+    "[sentry] NEXT_PUBLIC_SENTRY_DSN is not set — client error monitoring is disabled."
+  );
+}
+
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn,
 
   // 100% in dev, 10% in production
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,

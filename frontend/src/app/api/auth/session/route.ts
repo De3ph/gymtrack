@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { encrypt, decrypt, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME, type SessionPayload } from '@/lib/session'
+import { API_URL } from '@/lib/env'
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+const BACKEND_URL = API_URL
 
 /**
  * GET /api/auth/session

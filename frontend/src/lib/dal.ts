@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cacheLife, cacheTag } from 'next/cache'
 import { decrypt, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/session'
+import { API_URL } from '@/lib/env'
 import type {
   AdminDashboardStats,
   AdminUserListItem,
@@ -19,8 +20,7 @@ import type {
   AssignmentListResponse,
 } from '@/types'
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+const BACKEND_URL = API_URL
 
 /**
  * Refresh slightly before the real expiry so a token cannot expire midway
