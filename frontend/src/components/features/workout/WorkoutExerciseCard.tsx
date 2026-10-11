@@ -39,6 +39,11 @@ interface WorkoutExerciseCardProps {
   form: any;
   isCollapsed: boolean;
   onToggle: () => void;
+  /**
+   * Ref callback for the card's root element. The form uses these to scroll to
+   * (and focus) a newly added exercise.
+   */
+  containerRef?: (node: HTMLElement | null) => void;
 }
 
 export function WorkoutExerciseCard({
@@ -48,6 +53,7 @@ export function WorkoutExerciseCard({
   form,
   isCollapsed,
   onToggle,
+  containerRef,
 }: WorkoutExerciseCardProps) {
   const t = useTranslations("workout.form");
 
@@ -61,7 +67,7 @@ export function WorkoutExerciseCard({
   };
 
   return (
-    <article className="border border-border">
+    <article ref={containerRef} className="border border-border">
       <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <Button

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ClipboardList, Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import { formatDate } from "@/lib/i18n/dayjs";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -105,6 +105,83 @@ const planExerciseToWorkoutExercise = (
   })),
 });
 
+/**
+ * Scrolls a newly added exercise into view and focuses its search input.
+ *
+ * Split out of `WorkoutForm` on purpose: `form.state` is a plain getter, not a
+ * store subscription, so reading the exercise count in `WorkoutForm`'s body
+ * would never re-render it and an effect there could never observe the array
+ * growing. This component is rendered *inside* the `Field` render prop (a real
+ * reactive boundary), so it re-renders whenever the array changes and the
+ * effect fires on every add.
+ */
+function ExerciseAutoScroll({
+  pendingIndex,
+  cardRefs,
+  onDone,
+}: {
+  /** Index to scroll to, or null when there's nothing pending. */
+  pendingIndex: number | null;
+  cardRefs: React.MutableRefObject<Array<HTMLElement | null>>;
+  onDone: () => void;
+}) {
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  });
+
+  /**
+   * The search input lives inside a client-only dynamic import, so it may not
+   * be mounted yet on the first attempt — hence the short retry loop.
+   */
+  const focusExerciseCard = useCallback(
+    (index: number) => {
+      const card = cardRefs.current[index];
+      if (!card) {
+        onDoneRef.current();
+        return;
+      }
+
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      const tryFocus = (attempt: number) => {
+        const input = card.querySelector<HTMLInputElement>(
+          "input:not([type='hidden'])",
+        );
+        if (input) {
+          input.focus({ preventScroll: true });
+          onDoneRef.current();
+          return;
+        }
+        if (attempt < 10) {
+          requestAnimationFrame(() => tryFocus(attempt + 1));
+        } else {
+          // Give up on the input but still treat the card as handled.
+          onDoneRef.current();
+        }
+      };
+
+      tryFocus(0);
+    },
+    [cardRefs],
+  );
+
+  useEffect(() => {
+    if (pendingIndex == null) return;
+
+    const card = cardRefs.current[pendingIndex];
+    if (!card) {
+      // Ref not attached yet — retry on the next frame.
+      const raf = requestAnimationFrame(() => focusExerciseCard(pendingIndex));
+      return () => cancelAnimationFrame(raf);
+    }
+
+    focusExerciseCard(pendingIndex);
+  }, [pendingIndex, cardRefs, focusExerciseCard]);
+
+  return null;
+}
+
 export function WorkoutForm({
   onSuccess,
   onClear,
@@ -186,6 +263,28 @@ export function WorkoutForm({
     setCollapsedMap((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
+  /** Exercise card root elements, by index — used to scroll to a new one. */
+  const exerciseCardRefs = useRef<Array<HTMLElement | null>>([]);
+  const exerciseCardRefCallbacks = useRef<
+    Array<((n: HTMLElement | null) => void) | undefined>
+  >([]);
+  /** Index awaiting scroll+focus, set when "Add exercise" is clicked. */
+  const [pendingScrollIndex, setPendingScrollIndex] = useState<number | null>(
+    null,
+  );
+
+  // Cached per index so React doesn't detach/reattach refs on every render.
+  const setExerciseCardRef = useCallback((index: number) => {
+    let cb = exerciseCardRefCallbacks.current[index];
+    if (!cb) {
+      cb = (node: HTMLElement | null) => {
+        exerciseCardRefs.current[index] = node;
+      };
+      exerciseCardRefCallbacks.current[index] = cb;
+    }
+    return cb;
+  }, []);
+
   const { data: ownPlansData } = useQuery({
     queryKey: ["workout-plans"],
     queryFn: () => workoutPlanApi.getAll(),
@@ -230,10 +329,6 @@ export function WorkoutForm({
     e.preventDefault();
     setSubmitError(null);
     form.handleSubmit();
-  };
-
-  const handleAddExercise = (field: ExerciseArrayFieldApi) => {
-    field.pushValue(createDefaultExercise() as unknown as WorkoutExercise);
   };
 
   return (
@@ -341,33 +436,48 @@ export function WorkoutForm({
       <Separator />
 
       <form.Field name="exercises" mode="array">
-        {(field) => (
-          <div className="space-y-4">
-            {field.state.value.map((exercise, index) => (
-              <WorkoutExerciseCard
-                key={`${exercise.exerciseId || "new"}-${index}`}
-                exercise={
-                  exercise as unknown as WorkoutExercise & { exerciseId: string }
-                }
-                index={index}
-                field={field as unknown as ExerciseArrayFieldApi}
-                form={form}
-                isCollapsed={!!collapsedMap[index]}
-                onToggle={() => toggleCollapsed(index)}
+        {(field) => {
+          const arrayField = field as unknown as ExerciseArrayFieldApi;
+          return (
+            <div className="space-y-4">
+              <ExerciseAutoScroll
+                pendingIndex={pendingScrollIndex}
+                cardRefs={exerciseCardRefs}
+                onDone={() => setPendingScrollIndex(null)}
               />
-            ))}
-            <Button
-              type="button"
-              onClick={() =>
-                handleAddExercise(field as unknown as ExerciseArrayFieldApi)
-              }
-              variant="outline"
-              className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
-            >
-              <Plus className="size-5" aria-hidden="true" /> {t("add_exercise")}
-            </Button>
-          </div>
-        )}
+              {field.state.value.map((exercise, index) => (
+                <WorkoutExerciseCard
+                  key={`${exercise.exerciseId || "new"}-${index}`}
+                  exercise={
+                    exercise as unknown as WorkoutExercise & {
+                      exerciseId: string;
+                    }
+                  }
+                  index={index}
+                  field={arrayField}
+                  form={form}
+                  isCollapsed={!!collapsedMap[index]}
+                  onToggle={() => toggleCollapsed(index)}
+                  containerRef={setExerciseCardRef(index)}
+                />
+              ))}
+              <Button
+                type="button"
+                onClick={() => {
+                  setPendingScrollIndex(arrayField.state.value.length);
+                  arrayField.pushValue(
+                    createDefaultExercise() as unknown as WorkoutExercise,
+                  );
+                }}
+                variant="outline"
+                className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+              >
+                <Plus className="size-5" aria-hidden="true" />{" "}
+                {t("add_exercise")}
+              </Button>
+            </div>
+          );
+        }}
       </form.Field>
 
       <Separator />
