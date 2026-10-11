@@ -9,11 +9,12 @@ import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { workoutApi } from "@/lib/api";
+import { markerStyles } from "@/components/ui/calendar-grid";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { WorkoutExercise, ExerciseSet } from "@/types";
 
 const CalendarGrid = dynamic(
-  () => import("./CalendarGrid").then((m) => m.CalendarGrid),
+  () => import("@/components/ui/calendar-grid").then((m) => m.CalendarGrid),
   { ssr: false, loading: () => <Skeleton className="h-[280px] w-full" /> },
 );
 
@@ -27,6 +28,7 @@ export function WorkoutCalendar() {
 
   const t = useTranslations("workout.calendar");
   const tList = useTranslations("workout.list");
+  const tDate = useTranslations("common.date");
 
   const { data: workoutsData, isLoading } = useQuery({
     queryKey: ["workouts"],
@@ -38,6 +40,13 @@ export function WorkoutCalendar() {
     return workoutsData.workouts.map((w) => dayjs(w.date).toDate());
   }, [workoutsData]);
 
+  const workoutMarkers = React.useMemo(
+    () => [
+      { name: "workout", dates: workoutDays, className: markerStyles.workoutUnderline },
+    ],
+    [workoutDays],
+  );
+
   const selectedDayWorkouts = React.useMemo(() => {
     if (!selectedDate || !workoutsData?.workouts) return [];
     return workoutsData.workouts.filter((w) =>
@@ -48,13 +57,17 @@ export function WorkoutCalendar() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <CalendarGrid
-        selectedDate={selectedDate}
+        selected={selectedDate}
         onSelect={(d) => {
           if (d) setSelectedDate(d);
         }}
-        currentMonth={currentMonth}
+        month={currentMonth}
         onMonthChange={setCurrentMonth}
-        workoutDays={workoutDays}
+        markers={workoutMarkers}
+        title={t("title")}
+        showTodayAction
+        todayLabel={tDate("today")}
+        calendarClassName="border border-border [--cell-radius:0]"
       />
 
       <section className="flex flex-col border border-border">

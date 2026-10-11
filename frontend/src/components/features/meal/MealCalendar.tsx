@@ -5,13 +5,14 @@ import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { mealApi } from "@/lib/api";
+import { markerStyles } from "@/components/ui/calendar-grid";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { DailyNutritionSummary } from "./DailyNutritionSummary";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl"
 
 const CalendarGrid = dynamic(
-  () => import("./CalendarGrid").then((m) => m.CalendarGrid),
+  () => import("@/components/ui/calendar-grid").then((m) => m.CalendarGrid),
   { ssr: false, loading: () => <Skeleton className="h-[280px] w-full rounded-none" /> },
 );
 
@@ -31,6 +32,11 @@ export function MealCalendar() {
     if (!mealsData?.meals) return [];
     return mealsData.meals.map((m) => dayjs(m.date).toDate());
   }, [mealsData]);
+
+  const mealMarkers = React.useMemo(
+    () => [{ name: "meal", dates: mealDays, className: markerStyles.mealUnderline }],
+    [mealDays],
+  );
 
   const selectedDayMeals = React.useMemo(() => {
     if (!selectedDate || !mealsData?.meals) return [];
@@ -78,11 +84,13 @@ export function MealCalendar() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <CalendarGrid
-          selectedDate={selectedDate}
+          selected={selectedDate}
           onSelect={(d) => {
             if (d) setSelectedDate(d);
           }}
-          mealDays={mealDays}
+          markers={mealMarkers}
+          title={t("title")}
+          calendarClassName="rounded-none border border-border"
         />
 
         <div className="border border-border">

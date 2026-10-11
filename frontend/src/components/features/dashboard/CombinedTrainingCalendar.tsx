@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import dynamic from "next/dynamic";
 import { mealApi, workoutApi } from "@/lib/api";
+import { markerStyles } from "@/components/ui/calendar-grid";
 import { Meal, Workout } from "@/types";
 import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
@@ -15,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardEvent, DashboardEventList } from "./DashboardEventList";
 
 const CalendarGrid = dynamic(
-  () => import("./CalendarGrid").then((m) => m.CalendarGrid),
+  () => import("@/components/ui/calendar-grid").then((m) => m.CalendarGrid),
   { ssr: false, loading: () => <Skeleton className="h-[350px] w-full rounded-none" /> },
 );
 
@@ -62,6 +63,15 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
   const meals = React.useMemo(() => mealData?.meals ?? [], [mealData]);
   const workoutDates = React.useMemo(() => workouts.map((w) => dayjs(w.date).toDate()), [workouts]);
   const mealDates = React.useMemo(() => meals.map((m) => dayjs(m.date).toDate()), [meals]);
+
+  const markers = React.useMemo(
+    () => [
+      { name: "workout", dates: workoutDates, className: markerStyles.workoutDot },
+      { name: "meal", dates: mealDates, className: markerStyles.mealDot },
+    ],
+    [workoutDates, mealDates],
+  );
+
   const isLoading = workoutsLoading || mealsLoading;
   const isRefetching = workoutsRefetching || mealsRefetching;
 
@@ -110,12 +120,12 @@ export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) 
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)] lg:divide-x lg:divide-border">
         <div className="p-6">
           <CalendarGrid
-            selectedDate={selectedDate}
+            selected={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
-            viewMonth={viewMonth}
+            month={viewMonth}
             onMonthChange={setViewMonth}
-            workoutDates={workoutDates}
-            mealDates={mealDates}
+            markers={markers}
+            calendarClassName="border-0 bg-background"
           />
         </div>
         <div className="space-y-4 border-t border-border p-6 lg:border-t-0">
