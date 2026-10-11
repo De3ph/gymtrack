@@ -386,15 +386,76 @@ export async function getExercisesCatalogCached(
   return serverFetch<ExerciseLibrary[]>('/exercises', accessToken)
 }
 
+/**
+ * Sentinel `name` for the not-found signal raised inside the cached lookup.
+ *
+ * A module-level class plus `instanceof` does NOT work here: the `'use cache'`
+ * scope is compiled into its own module graph, so the thrown error can arrive
+ * reconstructed rather than as the very class thrown. `instanceof` then fails,
+ * the miss escapes as a generic fault, and a genuinely missing exercise renders
+ * a "check your connection" error instead of a 404. The discriminator therefore
+ * has to be structural — `name` survives that boundary.
+ */
+const EXERCISE_NOT_FOUND = 'ExerciseNotFoundError';
+
+function isExerciseNotFound(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { name?: unknown }).name === EXERCISE_NOT_FOUND
+  );
+}
+
+/**
+ * Cached exercise lookup. Only ever stores a hit.
+ *
+ * A miss throws instead of returning null. That is deliberate: with `'use cache'`
+ * a returned null is persisted with the full `revalidate` window, so one
+ * transient 404 — backend restarting, a deploy in progress, a blip at the proxy
+ * — would be replayed as a hard "exercise does not exist" 404 for the next hour,
+ * even after the backend recovered. Nothing about a 404 is a durable fact worth
+ * an hour of caching, and a stale 404 is indistinguishable from a real one to
+ * the user.
+ *
+ * Not caching a miss costs one extra backend call per visit to an exercise that
+ * genuinely does not exist. That is the correct trade against serving a wrong
+ * 404 to every visitor for an hour.
+ */
+async function fetchExerciseCached(
+  accessToken: string,
+  exerciseId: string,
+): Promise<ExerciseLibrary> {
+  'use cache'
+  cacheLife({ revalidate: 3600, expire: 86400 })
+  cacheTag('exercises', `exercise:${exerciseId}`)
+  const exercise = await serverFetchNullable<ExerciseLibrary>(
+    `/exercises/${exerciseId}`,
+    accessToken,
+  )
+  if (!exercise) {
+    const err = new Error(`exercise ${exerciseId} not found`)
+    err.name = EXERCISE_NOT_FOUND
+    throw err
+  }
+  return exercise
+}
+
 /** One exercise by ID. Returns null when the backend answers 404. */
 export async function getExerciseByIdCached(
   accessToken: string,
   exerciseId: string,
 ): Promise<ExerciseLibrary | null> {
-  'use cache'
-  cacheLife({ revalidate: 3600, expire: 86400 })
-  cacheTag('exercises')
-  return serverFetchNullable<ExerciseLibrary>(`/exercises/${exerciseId}`, accessToken)
+  // The try/catch lives *outside* the `'use cache'` scope. Catching inside it
+  // would convert the throw back into a returned null and re-introduce the
+  // cached miss this split exists to prevent.
+  try {
+    return await fetchExerciseCached(accessToken, exerciseId)
+  } catch (err) {
+    if (isExerciseNotFound(err)) return null
+    // A genuine backend fault (5xx, unreachable) must not be reported as "this
+    // exercise does not exist" — the page turns it into a DataError instead.
+    throw err
+  }
 }
 
 /** Muscle-group lookup table. Reference data — safe to cache for hours. */

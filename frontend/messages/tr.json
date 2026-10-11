@@ -1509,8 +1509,6 @@
       "no_media": "Gösterim yok",
       "media_label": "{name} egzersizi gösterimi",
       "media_title": "Gösterim",
-      "media_present": "Yukarıda bir gösterim mevcut.",
-      "media_absent": "Bu egzersiz için henüz gösterim eklenmedi.",
       "no_instructions": "Bu egzersiz için henüz talimat yazılmadı.",
       "no_instructions_short": "Henüz talimat yok.",
       "instructions_title": "Talimatlar",

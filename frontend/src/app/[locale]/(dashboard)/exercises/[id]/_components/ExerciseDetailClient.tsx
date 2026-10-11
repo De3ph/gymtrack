@@ -6,7 +6,6 @@ import type { ExerciseLibrary } from "@/types";
 import { ROUTES } from "@/lib/routes";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { MuscleGroupBadge } from "@/components/features/exercise/MuscleGroupBadge";
 import { EquipmentBadge } from "@/components/features/exercise/EquipmentBadge";
@@ -45,32 +44,34 @@ export function ExerciseDetailClient({ exercise }: ExerciseDetailClientProps) {
         {tCommon("back")}
       </Link>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        <div className="space-y-6">
-          <ExerciseMediaPanel exercise={exercise} size="detail" />
-
-          <div className="border border-border px-4 py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h1 className="text-xl font-semibold leading-tight tracking-tight text-foreground">
-                  {exercise.name}
-                </h1>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {exercise.category}
-                </p>
-              </div>
-            </div>
-
-            {(exercise.muscleGroup || exercise.equipment) && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {exercise.muscleGroup && (
-                  <MuscleGroupBadge muscleGroup={exercise.muscleGroup} />
-                )}
-                {exercise.equipment && <EquipmentBadge equipment={exercise.equipment} />}
-              </div>
-            )}
-          </div>
+      {/* The title sits above the two columns rather than inside the left one.
+          Previously it lived in a card under the image, which put the page's
+          subject below the fold of its own hero and left the left column short.
+          Badges stay grouped with the title instead of being pushed to the far
+          edge, where a wide viewport left them visually detached from the
+          exercise they describe. */}
+      <header className="mt-6 space-y-3">
+        <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+          {exercise.name}
+        </h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {exercise.category}
+          </p>
+          {exercise.muscleGroup && <MuscleGroupBadge muscleGroup={exercise.muscleGroup} />}
+          {exercise.equipment && <EquipmentBadge equipment={exercise.equipment} />}
         </div>
+      </header>
+
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        {/* The demonstration is the page's hero, so it is a labelled section in
+            its own right. It previously rendered as an unlabelled image with a
+            separate "Demonstration — a demonstration is available above" block
+            in the other column, which described the image instead of showing it. */}
+        <section className="space-y-4">
+          <ExerciseSectionHeader icon={Video}>{t("media_title")}</ExerciseSectionHeader>
+          <ExerciseMediaPanel exercise={exercise} size="detail" />
+        </section>
 
         <div className="space-y-6">
           <section className="space-y-4">
@@ -80,32 +81,15 @@ export function ExerciseDetailClient({ exercise }: ExerciseDetailClientProps) {
             <ExerciseInstructions instructions={exercise.instructions} />
           </section>
 
-          <Separator />
-
           <section className="space-y-4">
-            <ExerciseSectionHeader icon={Video}>
-              {t("media_title")}
-            </ExerciseSectionHeader>
-            <p className="text-sm leading-6 text-muted-foreground">
-              {exercise.mediaUrl ? t("media_present") : t("media_absent")}
-            </p>
-          </section>
-
-          <Separator />
-
-          <section className="space-y-4">
-            <ExerciseSectionHeader icon={Layers}>
-              {t("details_title")}
-            </ExerciseSectionHeader>
+            <ExerciseSectionHeader icon={Layers}>{t("details_title")}</ExerciseSectionHeader>
             <dl className="divide-y divide-border border border-border">
               <div className="flex items-center justify-between gap-4 px-4 py-3">
                 <dt className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                   <Dumbbell className="size-4" aria-hidden="true" />
                   {t("detail_category")}
                 </dt>
-                <dd className="text-sm capitalize text-foreground">
-                  {exercise.category}
-                </dd>
+                <dd className="text-sm capitalize text-foreground">{exercise.category}</dd>
               </div>
               <div className="flex items-center justify-between gap-4 px-4 py-3">
                 <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

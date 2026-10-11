@@ -60,4 +60,54 @@ describe('ExerciseDetailClient', () => {
     ).toBeInTheDocument()
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
+
+  describe('demonstration section', () => {
+    // Regression: the page rendered an unlabelled image in one column and a
+    // "Demonstration — a demonstration is available above" text block in the
+    // other. That block described the image instead of being the video/GIF
+    // section, and it pointed upward at something with no heading of its own.
+    it('renders the media inside a labelled Demonstration section', () => {
+      render(
+        <ExerciseDetailClient
+          exercise={{
+            ...exercise,
+            mediaUrl: 'https://example.com/bench.gif',
+            mediaType: 'gif',
+          }}
+        />,
+      )
+
+      const heading = screen.getByRole('heading', { name: 'media_title' })
+      // The media has to live in the same section as its own heading, not
+      // somewhere else on the page that the heading merely refers to.
+      const section = heading.closest('section')!
+      expect(section).not.toBeNull()
+      expect(section.querySelector('img')).not.toBeNull()
+    })
+
+    it('no longer renders the "available above" pointer text', () => {
+      render(
+        <ExerciseDetailClient
+          exercise={{
+            ...exercise,
+            mediaUrl: 'https://example.com/bench.gif',
+            mediaType: 'gif',
+          }}
+        />,
+      )
+
+      expect(screen.queryByText('media_present')).toBeNull()
+      expect(screen.queryByText('media_absent')).toBeNull()
+    })
+
+    // "No demonstration yet" is a normal catalog state (the migration leaves
+    // unmapped movements with a NULL media_url), so it has to render as an
+    // intentional placeholder rather than an empty section.
+    it('shows the placeholder in place when there is no media', () => {
+      render(<ExerciseDetailClient exercise={exercise} />)
+
+      expect(screen.getByTestId('exercise-media-placeholder')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'media_title' })).toBeInTheDocument()
+    })
+  })
 })

@@ -1509,8 +1509,6 @@
       "no_media": "No demonstration",
       "media_label": "Demonstration of {name}",
       "media_title": "Demonstration",
-      "media_present": "A demonstration is available above.",
-      "media_absent": "No demonstration has been added for this exercise yet.",
       "no_instructions": "No instructions have been written for this exercise yet.",
       "no_instructions_short": "No instructions yet.",
       "instructions_title": "Instructions",
