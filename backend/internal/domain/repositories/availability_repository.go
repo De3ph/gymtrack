@@ -11,7 +11,7 @@ type AvailabilityRepository interface {
 	GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerAvailability, error)
 	GetBySlotID(ctx context.Context, slotID int) (*models.TrainerAvailability, error)
 	UpsertAvailability(ctx context.Context, slot *models.TrainerAvailability) error
-	DeleteAvailability(ctx context.Context, slotID int) error
+	DeleteAvailability(ctx context.Context, trainerID int, slotID int) error
 	GetAvailableSlots(ctx context.Context, trainerID int, dayOfWeek int) ([]models.TrainerAvailability, error)
 	BookSlotAtomic(ctx context.Context, slotID int) error
 	CleanupExpiredSlots(ctx context.Context, retentionDays int) error

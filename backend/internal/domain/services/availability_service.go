@@ -78,7 +78,7 @@ func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID in
 	cutoff := s.clock.Now().AddDate(0, 0, -olderThanDays)
 	for _, slot := range slots {
 		if slot.IsBooked && slot.CreatedAt.Before(cutoff) {
-			err := s.availabilityRepo.DeleteAvailability(ctx, slot.AvailabilityID)
+			err := s.availabilityRepo.DeleteAvailability(ctx, trainerID, slot.AvailabilityID)
 			if err != nil {
 				return fmt.Errorf("failed to delete expired slot %d: %w", slot.AvailabilityID, err)
 			}
@@ -87,8 +87,8 @@ func (s *AvailabilityService) ClearBookedSlots(ctx context.Context, trainerID in
 	return nil
 }
 
-func (s *AvailabilityService) DeleteSlot(ctx context.Context, slotID int) error {
-	return s.availabilityRepo.DeleteAvailability(ctx, slotID)
+func (s *AvailabilityService) DeleteSlot(ctx context.Context, trainerID int, slotID int) error {
+	return s.availabilityRepo.DeleteAvailability(ctx, trainerID, slotID)
 }
 
 func (s *AvailabilityService) CleanupExpiredSlots(ctx context.Context, retentionDays int) error {

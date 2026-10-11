@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
 
@@ -133,6 +135,17 @@ func (h *AvailabilityHandler) GetTrainerAvailability(c *gin.Context) {
 // @Failure 500 {object} map[string]any "Internal server error"
 // @Router /trainers/availability/{slotId} [delete]
 func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
+		return
+	}
+	userRole, _ := c.Get("userRole")
+	if userRole != "trainer" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only trainers can delete availability slots"})
+		return
+	}
+
 	slotIDStr := c.Param("slotId")
 	slotID, err := strconv.Atoi(slotIDStr)
 	if err != nil {
@@ -140,9 +153,19 @@ func (h *AvailabilityHandler) DeleteSlot(c *gin.Context) {
 		return
 	}
 
-	err = h.service.DeleteSlot(c.Request.Context(), slotID)
+	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
-		handleInternalError(c, err, "internal server error")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
+		return
+	}
+
+	err = h.service.DeleteSlot(c.Request.Context(), userIDInt, slotID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Slot not found. It may have been deleted or the ID is incorrect"})
+			return
+		}
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden - not your slot"})
 		return
 	}
 

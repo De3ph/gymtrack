@@ -118,8 +118,8 @@ func (r *PostgresAvailabilityRepository) UpsertAvailability(ctx context.Context,
 	return nil
 }
 
-func (r *PostgresAvailabilityRepository) DeleteAvailability(ctx context.Context, slotID int) error {
-	tag, err := r.pool.Exec(ctx, "DELETE FROM trainer_availabilities WHERE id = $1", slotID)
+func (r *PostgresAvailabilityRepository) DeleteAvailability(ctx context.Context, trainerID int, slotID int) error {
+	tag, err := r.pool.Exec(ctx, "DELETE FROM trainer_availabilities WHERE id = $1 AND trainer_id = $2", slotID, trainerID)
 	if err != nil {
 		return mapWriteError(err, "failed to delete availability")
 	}

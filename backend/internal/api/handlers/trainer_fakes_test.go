@@ -135,7 +135,7 @@ func (f *fakeAvailabilityRepo) UpsertAvailability(ctx context.Context, slot *mod
 	return nil
 }
 
-func (f *fakeAvailabilityRepo) DeleteAvailability(ctx context.Context, slotID int) error {
+func (f *fakeAvailabilityRepo) DeleteAvailability(ctx context.Context, trainerID int, slotID int) error {
 	f.deleted = append(f.deleted, slotID)
 	return f.deleteErr
 }
