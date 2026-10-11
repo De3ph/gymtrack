@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { reviewApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -21,52 +22,60 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
   const tEdit = useTranslations('review.edit')
   const tDelete = useTranslations('review.delete')
   const tCommon = useTranslations('common')
+  const queryClient = useQueryClient()
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [rating, setRating] = useState(review.rating)
   const [comment, setComment] = useState(review.comment || "")
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
 
   const isOwner = review.athleteId === currentUserId
 
-  const handleEdit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError("")
-
-    try {
-      await reviewApi.updateReview(review.reviewId!, { rating, comment })
+  const editMutation = useMutation({
+    mutationFn: (data: { rating: number; comment: string }) =>
+      reviewApi.updateReview(review.reviewId!, data),
+    onSuccess: () => {
       setEditOpen(false)
+      setError("")
+      queryClient.invalidateQueries({ queryKey: ["reviews"] })
       onReviewUpdated?.()
-    } catch (err: unknown) {
+    },
+    onError: (err: unknown) => {
       const serverError =
         typeof err === "object" && err !== null && "response" in err
           ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
           : undefined
       setError(serverError || tEdit('error_update'))
-    } finally {
-      setSubmitting(false)
-    }
-  }
+    },
+  })
 
-  const handleDelete = async () => {
-    setSubmitting(true)
-    setError("")
-
-    try {
-      await reviewApi.deleteReview(review.reviewId!)
+  const deleteMutation = useMutation({
+    mutationFn: () => reviewApi.deleteReview(review.reviewId!),
+    onSuccess: () => {
       setDeleteOpen(false)
+      setError("")
+      queryClient.invalidateQueries({ queryKey: ["reviews"] })
       onReviewUpdated?.()
-    } catch (err: unknown) {
+    },
+    onError: (err: unknown) => {
       const serverError =
         typeof err === "object" && err !== null && "response" in err
           ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
           : undefined
       setError(serverError || tEdit('error_delete'))
-    } finally {
-      setSubmitting(false)
-    }
+    },
+  })
+  const submitting = editMutation.isPending || deleteMutation.isPending
+
+  const handleEdit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    editMutation.mutate({ rating, comment })
+  }
+
+  const handleDelete = () => {
+    setError("")
+    deleteMutation.mutate()
   }
 
   const renderStars = (currentRating: number) => {

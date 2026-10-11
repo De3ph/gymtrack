@@ -2,10 +2,11 @@
 
 import { authApi } from "@/lib/api"
 import { useAuthStore } from "@/stores/authStore"
-import type { UserRole } from "@/types"
+import type { RegisterRequest, UserRole } from "@/types"
 import { useRouter } from "@/i18n/navigation"
 import { useRef, useEffect, useState } from "react"
 import { useForm } from "@tanstack/react-form"
+import { useMutation } from "@tanstack/react-query"
 import { ROUTES } from "@/lib/routes"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -19,9 +20,29 @@ export default function RegisterPage() {
   const router = useRouter()
   const { login } = useAuthStore()
   const [error, setError] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const t = useTranslations("auth.register")
+
+  const registerMutation = useMutation({
+    mutationFn: (payload: RegisterRequest) => authApi.register(payload),
+    onSuccess: async (_data, variables) => {
+      // Auto-login after registration
+      await login(variables.email, variables.password)
+
+      // Mark the one-time welcome GIF as pending for the dashboard
+      localStorage.setItem("gymtrack:welcome-gif-pending", "1")
+
+      router.push(ROUTES.HOME)
+    },
+    onError: (err: unknown) => {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again."
+      setError(errorMessage)
+    },
+  })
+  const isLoading = registerMutation.isPending
 
   const form = useForm({
     defaultValues: {
@@ -38,47 +59,27 @@ export default function RegisterPage() {
       certifications: "",
       specializations: ""
     },
-    onSubmit: async ({ value }) => {
-      setIsLoading(true)
+    onSubmit: ({ value }) => {
       setError("")
 
-      try {
-        // Reconstruct profile object
-        const profile = {
-          name: value.name,
-          age: value.age ? Number(value.age) : undefined,
-          weight: value.weight ? Number(value.weight) : undefined,
-          height: value.height ? Number(value.height) : undefined,
-          fitnessGoals: value.fitnessGoals,
-          certifications: value.certifications,
-          specializations: value.specializations
-        }
-
-        // Register user
-        await authApi.register({
-          username: value.username,
-          email: value.email,
-          password: value.password,
-          role: value.role as Exclude<UserRole, "admin">,
-          profile
-        })
-
-        // Auto-login after registration
-        await login(value.email, value.password)
-
-        // Mark the one-time welcome GIF as pending for the dashboard
-        localStorage.setItem("gymtrack:welcome-gif-pending", "1")
-
-        router.push(ROUTES.HOME)
-      } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Registration failed. Please try again."
-        setError(errorMessage)
-      } finally {
-        setIsLoading(false)
+      // Reconstruct profile object
+      const profile = {
+        name: value.name,
+        age: value.age ? Number(value.age) : undefined,
+        weight: value.weight ? Number(value.weight) : undefined,
+        height: value.height ? Number(value.height) : undefined,
+        fitnessGoals: value.fitnessGoals,
+        certifications: value.certifications,
+        specializations: value.specializations
       }
+
+      registerMutation.mutate({
+        username: value.username,
+        email: value.email,
+        password: value.password,
+        role: value.role as Exclude<UserRole, "admin">,
+        profile
+      })
     }
   })
 

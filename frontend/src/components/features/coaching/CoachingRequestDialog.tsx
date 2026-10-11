@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { coachingRequestApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -18,33 +19,38 @@ interface CoachingRequestDialogProps {
 
 export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, children }: CoachingRequestDialogProps) {
   const t = useTranslations('coaching.request_dialog')
+  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState("")
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError("")
-
-    try {
-      await coachingRequestApi.createCoachingRequest({
+  const requestMutation = useMutation({
+    mutationFn: (content: string) =>
+      coachingRequestApi.createCoachingRequest({
         trainerId: Number(trainerId),
-        message: message.trim()
-      })
+        message: content,
+      }),
+    onSuccess: () => {
       setOpen(false)
       setMessage("")
+      setError("")
+      queryClient.invalidateQueries({ queryKey: ["coachingRequests"] })
       onRequestSent?.()
-    } catch (err: unknown) {
+    },
+    onError: (err: unknown) => {
       const serverError =
         typeof err === "object" && err !== null && "response" in err
           ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
           : undefined
       setError(serverError || t('error_fallback'))
-    } finally {
-      setSubmitting(false)
-    }
+    },
+  })
+  const submitting = requestMutation.isPending
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    requestMutation.mutate(message.trim())
   }
 
   return (

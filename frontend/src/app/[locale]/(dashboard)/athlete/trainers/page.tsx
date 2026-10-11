@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useEffect, useTransition, useCallback } from "react"
+import { useState, useTransition } from "react"
+import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { trainerCatalogApi } from "@/lib/api"
+import { STALE_TIMES } from "@/lib/api/api-constants"
 import { TrainerWithProfile } from "@/types"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -29,9 +31,13 @@ import { useTranslations } from "next-intl"
 import { X } from "lucide-react"
 
 export default function TrainerCatalogPage() {
-  const [trainers, setTrainers] = useState<TrainerWithProfile[]>([])
-  const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
+    specialization: "",
+    location: "",
+    minRating: 0,
+    availableForNewClients: false,
+  })
+  const [appliedFilters, setAppliedFilters] = useState({
     specialization: "",
     location: "",
     minRating: 0,
@@ -41,59 +47,45 @@ export default function TrainerCatalogPage() {
   const t = useTranslations("athlete.trainers")
   const tCommon = useTranslations("common")
 
-  const loadTopTrainers = useCallback(async () => {
-    try {
-      const response = await trainerCatalogApi.searchTrainers({
+  const { data, isLoading } = useQuery({
+    queryKey: ["trainers", appliedFilters],
+    queryFn: () =>
+      trainerCatalogApi.searchTrainers({
         limit: 20,
-      })
-      setTrainers(response.trainers)
-    } catch (error) {
-      console.error("Failed to load top trainers:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+        specialization: appliedFilters.specialization || undefined,
+        location: appliedFilters.location || undefined,
+        minRating: appliedFilters.minRating || undefined,
+        availableForNewClients: appliedFilters.availableForNewClients || undefined,
+      }),
+    staleTime: STALE_TIMES.FIVE_MINUTES,
+    placeholderData: keepPreviousData,
+  })
+  const trainers: TrainerWithProfile[] = data?.trainers ?? []
 
-  useEffect(() => {
-    const start = async () => {
-      await loadTopTrainers();
-    };
-    void start();
-  }, [loadTopTrainers])
-
-  const searchTrainers = async () => {
-    setLoading(true)
-    try {
-      const response = await trainerCatalogApi.searchTrainers({
-        specialization: filters.specialization || undefined,
-        location: filters.location || undefined,
-        minRating: filters.minRating || undefined,
-        availableForNewClients: filters.availableForNewClients || undefined,
-      })
-      setTrainers(response.trainers)
-    } catch (error) {
-      console.error("Failed to search trainers:", error)
-    } finally {
-      setLoading(false)
-    }
+  const searchTrainers = () => {
+    startTransition(() => {
+      setAppliedFilters(filters)
+    })
   }
 
   const clearFilters = () => {
     startTransition(() => {
-      setFilters({
+      const cleared = {
         specialization: "",
         location: "",
         minRating: 0,
         availableForNewClients: false,
-      })
+      }
+      setFilters(cleared)
+      setAppliedFilters(cleared)
     })
   }
 
   const hasActiveFilters =
-    filters.specialization ||
-    filters.location ||
-    filters.minRating > 0 ||
-    filters.availableForNewClients
+    appliedFilters.specialization ||
+    appliedFilters.location ||
+    appliedFilters.minRating > 0 ||
+    appliedFilters.availableForNewClients
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
@@ -201,7 +193,7 @@ export default function TrainerCatalogPage() {
         )}
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center py-16">
           <Spinner />
         </div>

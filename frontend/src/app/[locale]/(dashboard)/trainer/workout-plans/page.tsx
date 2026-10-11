@@ -14,7 +14,7 @@ import { Plus } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { WorkoutPlanList } from "@/components/features/workout-plan/WorkoutPlanList";
 import { WorkoutPlanFormDialog } from "@/components/features/workout-plan/WorkoutPlanFormDialog";
 import { AssignPlanDialog } from "@/components/features/workout-plan/AssignPlanDialog";
@@ -57,17 +57,22 @@ export default function TrainerWorkoutPlansPage() {
     }
   }, [user, router]);
 
-  const handleDelete = async () => {
-    if (!deletingPlan) return;
-    try {
-      await workoutPlanApi.delete(deletingPlan.planId);
+  const deleteMutation = useMutation({
+    mutationFn: (planId: string | number) => workoutPlanApi.delete(planId),
+    onSuccess: async () => {
       await revalidateWorkoutPlansCache();
       queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
       setPlanFilter("");
       setDeletingPlan(null);
-    } catch (e) {
+    },
+    onError: (e) => {
       console.error(e);
-    }
+    },
+  });
+
+  const handleDelete = () => {
+    if (!deletingPlan) return;
+    deleteMutation.mutate(deletingPlan.planId);
   };
 
   const { data, isLoading } = useQuery({
@@ -179,6 +184,7 @@ export default function TrainerWorkoutPlansPage() {
             <Button
               variant="destructive"
               onClick={handleDelete}
+              disabled={deleteMutation.isPending}
               className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
             >
               {tc("delete")}

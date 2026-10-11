@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRouter } from 'next/navigation'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import RegisterPage from '@/app/[locale]/(auth)/register/page'
 import { authApi } from '@/lib/api'
 
@@ -22,13 +23,24 @@ vi.mock('@/lib/api', () => ({
 }))
 
 describe('RegisterPage', () => {
+  function renderPage() {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    })
+    return render(
+      <QueryClientProvider client={queryClient}>
+        <RegisterPage />
+      </QueryClientProvider>,
+    )
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
       ; vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
   })
 
   it('renders registration form with all fields', () => {
-    render(<RegisterPage />)
+    renderPage()
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument()
@@ -44,7 +56,7 @@ describe('RegisterPage', () => {
   it('does not call register API when email format is invalid', async () => {
     const user = userEvent.setup()
     const registerMock = vi.mocked(authApi.register)
-    render(<RegisterPage />)
+    renderPage()
 
     await user.type(screen.getByRole('textbox', { name: /email/i }), 'invalid-email')
     await user.type(screen.getByLabelText('Password'), 'password123')
@@ -59,7 +71,7 @@ describe('RegisterPage', () => {
 
   it('shows validation error when password is too short', async () => {
     const user = userEvent.setup()
-    render(<RegisterPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com')
     await user.type(screen.getByLabelText(/^password/i), 'short')
@@ -74,7 +86,7 @@ describe('RegisterPage', () => {
 
   it('shows validation error when passwords do not match', async () => {
     const user = userEvent.setup()
-    render(<RegisterPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com')
     await user.type(screen.getByLabelText(/^password/i), 'password123')
@@ -89,7 +101,7 @@ describe('RegisterPage', () => {
 
   it('shows validation error when name is empty', async () => {
     const user = userEvent.setup()
-    render(<RegisterPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com')
     await user.type(screen.getByLabelText(/^password/i), 'password123')
@@ -103,7 +115,7 @@ describe('RegisterPage', () => {
 
   it('allows role selection between athlete and trainer', async () => {
     const user = userEvent.setup()
-    render(<RegisterPage />)
+    renderPage()
 
     const athleteRadio = screen.getByRole('radio', { name: /athlete/i })
     const trainerRadio = screen.getByRole('radio', { name: /trainer/i })
@@ -120,7 +132,7 @@ describe('RegisterPage', () => {
     vi.mocked(authApi.register).mockResolvedValue({ message: 'Success', userId: 1 })
     mockLogin.mockResolvedValue(undefined)
 
-    render(<RegisterPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/email/i), 'newuser@example.com')
     await user.type(screen.getByLabelText(/^password/i), 'password123')
@@ -146,7 +158,7 @@ describe('RegisterPage', () => {
     const user = userEvent.setup()
     vi.mocked(authApi.register).mockRejectedValue(new Error('Email already registered'))
 
-    render(<RegisterPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/email/i), 'existing@example.com')
     await user.type(screen.getByLabelText(/^password/i), 'password123')
@@ -166,7 +178,7 @@ describe('RegisterPage', () => {
     )
     mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 200)))
 
-    render(<RegisterPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com')
     await user.type(screen.getByLabelText(/^password/i), 'password123')

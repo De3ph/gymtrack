@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { relationshipApi } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
 import {
   AlertDialog,
@@ -26,26 +28,29 @@ export function TerminateRelationshipDialog({
   trigger,
 }: TerminateRelationshipDialogProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [terminateError, setTerminateError] = useState<string | null>(null);
   const t = useTranslations("trainer.client_detail.terminate_dialog");
   const tClients = useTranslations("trainer.clients");
 
-  const handleTerminateRelationship = async () => {
-    try {
+  const terminateMutation = useMutation({
+    mutationFn: () => relationshipApi.terminateRelationship(clientId),
+    onSuccess: () => {
       setTerminateError(null);
-      // Import here to avoid circular dependencies
-      const { relationshipApi } = await import("@/lib/api");
-      await relationshipApi.terminateRelationship(clientId);
       setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["myClients"] });
+      queryClient.invalidateQueries({ queryKey: ["my-clients"] });
+      queryClient.invalidateQueries({ queryKey: ["clientData"] });
       router.push(ROUTES.TRAINER_CLIENTS);
-    } catch (err) {
+    },
+    onError: (err) => {
       setTerminateError(err instanceof Error ? err.message : t("error"));
-    }
-  };
+    },
+  });
 
   const handleTerminate = () => {
-    handleTerminateRelationship();
+    terminateMutation.mutate();
   };
 
   if (trigger) {

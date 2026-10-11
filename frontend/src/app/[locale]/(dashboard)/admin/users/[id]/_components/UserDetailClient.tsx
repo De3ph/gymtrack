@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -61,6 +62,7 @@ export interface UserDetailClientProps {
 
 export function UserDetailClient({ detail: initialDetail }: UserDetailClientProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [detail, setDetail] = useState(initialDetail);
   const [roleOpen, setRoleOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -68,27 +70,35 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
   const joinedDate = new Date(detail.createdAt);
   const profile = detail.profile;
 
-  const handleRoleChange = useCallback(async (newRole: UserRole) => {
-    try {
-      await adminApi.updateUserRole(detail.userId, newRole);
+  const roleMutation = useMutation({
+    mutationFn: (newRole: UserRole) => adminApi.updateUserRole(detail.userId, newRole),
+    onSuccess: async (_data, newRole) => {
       await revalidateAdminStatsCache();
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       setDetail((prev) => ({ ...prev, role: newRole }));
-    } catch {
-      // Error handled by API interceptor
-    }
-    setRoleOpen(false);
-  }, [detail.userId]);
+      setRoleOpen(false);
+    },
+    onSettled: () => setRoleOpen(false),
+  });
 
-  const handleStatusChange = useCallback(async (newStatus: UserStatus) => {
-    try {
-      await adminApi.updateUserStatus(detail.userId, newStatus);
+  const statusMutation = useMutation({
+    mutationFn: (newStatus: UserStatus) => adminApi.updateUserStatus(detail.userId, newStatus),
+    onSuccess: async (_data, newStatus) => {
       await revalidateAdminStatsCache();
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       setDetail((prev) => ({ ...prev, status: newStatus }));
-    } catch {
-      // Error handled by API interceptor
-    }
-    setStatusOpen(false);
-  }, [detail.userId]);
+      setStatusOpen(false);
+    },
+    onSettled: () => setStatusOpen(false),
+  });
+
+  const handleRoleChange = (newRole: UserRole) => {
+    roleMutation.mutate(newRole);
+  };
+
+  const handleStatusChange = (newStatus: UserStatus) => {
+    statusMutation.mutate(newStatus);
+  };
 
   return (
     <div className="space-y-6">

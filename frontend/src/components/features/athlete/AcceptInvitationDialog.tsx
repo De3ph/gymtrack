@@ -15,6 +15,7 @@ import { relationshipApi } from "@/lib/api"
 import { CheckCircle, Loader2, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "@tanstack/react-form"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
@@ -24,33 +25,39 @@ interface AcceptInvitationDialogProps {
 
 export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProps) {
   const t = useTranslations('athlete.invitation')
+  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  const acceptMutation = useMutation({
+    mutationFn: (code: string) => relationshipApi.acceptInvitation(code),
+    onSuccess: () => {
+      setError(null)
+      setSuccess(true)
+      queryClient.invalidateQueries({ queryKey: ["myTrainer"] })
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+      setTimeout(() => {
+        setOpen(false)
+        setSuccess(false)
+        form.reset()
+        onSuccess?.()
+      }, 2000)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to accept invitation")
+      setSuccess(false)
+    },
+  })
+  const loading = acceptMutation.isPending
 
   const form = useForm({
     defaultValues: {
       code: "",
     },
-    onSubmit: async ({ value }) => {
-      try {
-        setLoading(true)
-        setError(null)
-        await relationshipApi.acceptInvitation(value.code)
-        setSuccess(true)
-        setTimeout(() => {
-          setOpen(false)
-          setSuccess(false)
-          form.reset()
-          onSuccess?.()
-        }, 2000)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to accept invitation")
-        setSuccess(false)
-      } finally {
-        setLoading(false)
-      }
+    onSubmit: ({ value }) => {
+      setError(null)
+      acceptMutation.mutate(value.code)
     },
   })
 

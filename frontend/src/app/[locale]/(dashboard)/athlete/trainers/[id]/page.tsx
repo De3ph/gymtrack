@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowLeft, MapPin, Star } from "lucide-react";
 import dayjs from "dayjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { trainerCatalogApi, availabilityApi, reviewApi } from "@/lib/api";
+import { STALE_TIMES } from "@/lib/api/api-constants";
 import { useAuthStore } from "@/stores/authStore";
 import {
   TrainerWithProfile,
@@ -61,7 +62,8 @@ function Stars({ value }: { value: number }) {
   );
 }
 
-function formatTime(time: string) {
+function formatTime(time?: string) {
+  if (!time) return "—";
   const [hours, minutes] = time.split(":");
   const hour = parseInt(hours);
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -79,41 +81,40 @@ export default function TrainerProfilePage() {
   const params = useParams();
   const trainerId = params.id as string;
 
-  const [trainer, setTrainer] = useState<TrainerWithProfile | null>(null);
-  const [availability, setAvailability] = useState<TrainerAvailability[]>([]);
-  const [reviews, setReviews] = useState<TrainerReview[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
   const currentUserId = user?.userId ? String(user.userId) : "";
+  const queryClient = useQueryClient();
 
-  const refreshData = useCallback(async () => {
-    try {
-      const [trainerData, availabilityData, reviewsData] = await Promise.all([
-        trainerCatalogApi.getTrainerProfile(trainerId),
-        availabilityApi.getTrainerAvailability(trainerId),
-        reviewApi.getTrainerReviews(trainerId),
-      ]);
-      setTrainer(trainerData);
-      setAvailability(availabilityData.slots ?? []);
-      setReviews(reviewsData.reviews ?? []);
-    } catch (error) {
-      console.error("Failed to fetch trainer data:", error);
-    }
-  }, [trainerId]);
+  const { data: trainer, isLoading } = useQuery<TrainerWithProfile>({
+    queryKey: ["trainer", trainerId],
+    queryFn: () => trainerCatalogApi.getTrainerProfile(trainerId),
+    staleTime: STALE_TIMES.FIVE_MINUTES,
+    enabled: !!trainerId,
+  });
 
-  useEffect(() => {
-    let active = true;
-    const start = async () => {
-      await refreshData();
-      if (active) setLoading(false);
-    };
-    void start();
-    return () => {
-      active = false;
-    };
-  }, [refreshData]);
+  const { data: availabilityData } = useQuery({
+    queryKey: ["trainer-availability", trainerId],
+    queryFn: () => availabilityApi.getTrainerAvailability(trainerId),
+    staleTime: STALE_TIMES.FIVE_MINUTES,
+    enabled: !!trainerId,
+  });
+  const availability: TrainerAvailability[] = availabilityData?.slots ?? [];
 
-  if (loading) {
+  const { data: reviewsData } = useQuery({
+    queryKey: ["reviews", trainerId],
+    queryFn: () => reviewApi.getTrainerReviews(trainerId),
+    staleTime: STALE_TIMES.FIVE_MINUTES,
+    enabled: !!trainerId,
+  });
+  const reviews: TrainerReview[] = reviewsData?.reviews ?? [];
+
+  const refreshData = () => {
+    queryClient.invalidateQueries({ queryKey: ["trainer", trainerId] });
+    queryClient.invalidateQueries({ queryKey: ["trainer-availability", trainerId] });
+    queryClient.invalidateQueries({ queryKey: ["reviews", trainerId] });
+  };
+
+  if (isLoading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center px-6">
         <Spinner className="size-6" />
@@ -397,7 +398,6 @@ export default function TrainerProfilePage() {
                       {currentUserId && (
                         <ReviewActions
                           review={review}
-                          trainerId={trainerId}
                           currentUserId={currentUserId}
                           onReviewUpdated={refreshData}
                         />

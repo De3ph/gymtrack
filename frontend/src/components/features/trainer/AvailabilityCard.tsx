@@ -6,7 +6,7 @@ import { TrainerAvailability } from "@/types";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 
 interface AvailabilityCardProps {
@@ -15,8 +15,8 @@ interface AvailabilityCardProps {
 
 export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
   const t = useTranslations();
+  const queryClient = useQueryClient();
   const [availability, setAvailability] = useState<TrainerAvailability[]>([]);
-  const [saving, setSaving] = useState(false);
   const [syncedSlots, setSyncedSlots] = useState<TrainerAvailability[] | undefined>(undefined);
 
   const { data: availabilityData, isLoading } = useQuery({
@@ -34,6 +34,20 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
     setAvailability(slots);
   }
 
+  const saveMutation = useMutation({
+    mutationFn: (slotsToSave: TrainerAvailability[]) =>
+      availabilityApi.setMyAvailability(slotsToSave),
+    onSuccess: () => {
+      onMessage(t("trainer.availability.saved_success"));
+      queryClient.invalidateQueries({ queryKey: ["myAvailability"] });
+    },
+    onError: (error) => {
+      onMessage(t("trainer.availability.save_failed"));
+      console.error(error);
+    },
+  });
+  const saving = saveMutation.isPending;
+
   if (isLoading) {
     return (
       <div className="rounded-none border border-border">
@@ -44,18 +58,9 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
     );
   }
 
-  const handleAvailabilitySave = async () => {
-    setSaving(true);
+  const handleAvailabilitySave = () => {
     onMessage("");
-    try {
-      await availabilityApi.setMyAvailability(availability);
-      onMessage(t("trainer.availability.saved_success"));
-    } catch (error) {
-      onMessage(t("trainer.availability.save_failed"));
-      console.error(error);
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate(availability);
   };
 
   const addTimeSlot = (dayOfWeek: number) => {

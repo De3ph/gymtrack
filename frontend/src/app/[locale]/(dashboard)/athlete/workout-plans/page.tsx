@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { WorkoutPlanCard } from "@/components/features/workout-plan/WorkoutPlanCard";
 import { WorkoutPlanFormDialog } from "@/components/features/workout-plan/WorkoutPlanFormDialog";
 import { MyWorkoutPlans } from "@/components/features/workout-plan/MyWorkoutPlans";
@@ -51,17 +51,22 @@ export default function AthleteWorkoutPlansPage() {
   const ownPlans = ownData?.plans ?? [];
   const limitReached = ownPlans.length >= PLAN_LIMIT;
 
-  const handleDelete = async () => {
-    if (!deletingPlan) return;
-    try {
-      await workoutPlanApi.delete(deletingPlan.planId);
+  const deleteMutation = useMutation({
+    mutationFn: (planId: string | number) => workoutPlanApi.delete(planId),
+    onSuccess: async () => {
       await revalidateWorkoutPlansCache();
       queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
       queryClient.invalidateQueries({ queryKey: ["my-workout-plans"] });
       setDeletingPlan(null);
-    } catch (e) {
+    },
+    onError: (e) => {
       console.error(e);
-    }
+    },
+  });
+
+  const handleDelete = () => {
+    if (!deletingPlan) return;
+    deleteMutation.mutate(deletingPlan.planId);
   };
 
   return (
@@ -158,8 +163,8 @@ export default function AthleteWorkoutPlansPage() {
             <Button variant="outline" onClick={() => setDeletingPlan(null)}>
               {tc("cancel")}
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              {tc("delete")}
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? <Spinner /> : tc("delete")}
             </Button>
           </div>
         </DialogContent>

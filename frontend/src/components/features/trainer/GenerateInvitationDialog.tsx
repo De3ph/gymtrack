@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { relationshipApi } from "@/lib/api";
 import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
@@ -30,27 +31,31 @@ export function GenerateInvitationDialog({
   const t = useTranslations('trainer.generate_invitation')
   const [code, setCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [copying, setCopying] = useState(false);
 
-  const generateCode = async () => {
-    try {
-      setLoading(true);
+  // Generating an invitation code only affects local dialog state — no query
+  // reads invitation data, so no cache invalidation is needed here.
+  const generateMutation = useMutation({
+    mutationFn: () => relationshipApi.generateInvitation(),
+    onSuccess: (response) => {
       setError(null);
-      const response = await relationshipApi.generateInvitation();
       setCode(response.invitation.code);
       setExpiresAt(response.invitation.expiresAt);
-    } catch (err) {
+    },
+    onError: (err) => {
       setError(
         err instanceof Error
           ? err.message
           : t('error_fallback'),
       );
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+  const loading = generateMutation.isPending;
+
+  const generateCode = () => {
+    generateMutation.mutate();
   };
 
   const copyToClipboard = async () => {

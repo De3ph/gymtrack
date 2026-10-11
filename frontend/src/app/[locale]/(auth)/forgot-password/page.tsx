@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
 import { ArrowLeft, ArrowRight, RotateCw } from "lucide-react";
@@ -20,53 +21,44 @@ export default function ForgotPasswordPage() {
   const t = useTranslations("auth.forgot_password");
   const reducedMotion = useReducedMotion();
   const [submittedEmail, setSubmittedEmail] = useState<string>("");
-  const [isResending, setIsResending] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+
+  const toErrorMessage = (err: unknown) => {
+    const status = (err as { status?: number }).status;
+    return status === 429
+      ? t("error.too_many")
+      : err instanceof Error
+        ? err.message
+        : t("error.network");
+  };
+
+  const resetMutation = useMutation({
+    mutationFn: (email: string) => authApi.requestPasswordReset({ email }),
+    onSuccess: (_data, email) => {
+      setError("");
+      setSubmittedEmail(email);
+    },
+    onError: (err: unknown) => {
+      setError(toErrorMessage(err));
+    },
+  });
+  const isLoading = resetMutation.isPending;
+  const isResending = resetMutation.isPending;
 
   const form = useForm({
     defaultValues: {
       email: "",
     } satisfies ForgotPasswordFormData,
-    onSubmit: async ({ value }) => {
+    onSubmit: ({ value }) => {
       setError("");
-      setIsLoading(true);
-      try {
-        await authApi.requestPasswordReset({ email: value.email });
-        setSubmittedEmail(value.email);
-      } catch (err: unknown) {
-        const status = (err as { status?: number }).status;
-        const message =
-          status === 429
-            ? t("error.too_many")
-            : err instanceof Error
-              ? err.message
-              : t("error.network");
-        setError(message);
-      } finally {
-        setIsLoading(false);
-      }
+      resetMutation.mutate(value.email);
     },
   });
 
-  async function handleResend() {
-    if (!submittedEmail || isResending) return;
-    setIsResending(true);
+  function handleResend() {
+    if (!submittedEmail || resetMutation.isPending) return;
     setError("");
-    try {
-      await authApi.requestPasswordReset({ email: submittedEmail });
-    } catch (err: unknown) {
-      const status = (err as { status?: number }).status;
-      const message =
-        status === 429
-          ? t("error.too_many")
-          : err instanceof Error
-            ? err.message
-            : t("error.network");
-      setError(message);
-    } finally {
-      setIsResending(false);
-    }
+    resetMutation.mutate(submittedEmail);
   }
 
   if (submittedEmail) {

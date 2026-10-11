@@ -1,8 +1,16 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AcceptInvitationDialog } from '@/components/features/athlete/AcceptInvitationDialog'
 import { relationshipApi } from '@/lib/api'
+
+function renderWithQuery(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
 
 vi.mock('@/lib/api', () => ({
   relationshipApi: {
@@ -16,14 +24,14 @@ describe('AcceptInvitationDialog', () => {
   })
 
   it('renders trigger button to open dialog', () => {
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     expect(screen.getByRole('button', { name: /connect with trainer/i })).toBeInTheDocument()
   })
 
   it('opens dialog when trigger is clicked', async () => {
     const user = userEvent.setup()
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     await user.click(screen.getByRole('button', { name: /connect with trainer/i }))
 
@@ -33,7 +41,7 @@ describe('AcceptInvitationDialog', () => {
 
   it('validates invitation code must be exactly 8 alphanumeric characters', async () => {
     const user = userEvent.setup()
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     await user.click(screen.getByRole('button', { name: /connect with trainer/i }))
 
@@ -52,7 +60,7 @@ describe('AcceptInvitationDialog', () => {
 
   it('sanitizes input to alphanumeric only', async () => {
     const user = userEvent.setup()
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     await user.click(screen.getByRole('button', { name: /connect with trainer/i }))
 
@@ -64,7 +72,7 @@ describe('AcceptInvitationDialog', () => {
 
   it('disables submit when code is not exactly 8 characters', async () => {
     const user = userEvent.setup()
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     await user.click(screen.getByRole('button', { name: /connect with trainer/i }))
     const dialog = screen.getByRole('dialog')
@@ -80,7 +88,7 @@ describe('AcceptInvitationDialog', () => {
       {} as Awaited<ReturnType<typeof relationshipApi.acceptInvitation>>,
     )
 
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     await user.click(screen.getByRole('button', { name: /connect with trainer/i }))
     const dialog = screen.getByRole('dialog')
@@ -100,7 +108,7 @@ describe('AcceptInvitationDialog', () => {
     const user = userEvent.setup()
     vi.mocked(relationshipApi.acceptInvitation).mockRejectedValue(new Error('Invalid or expired code'))
 
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     await user.click(screen.getByRole('button', { name: /connect with trainer/i }))
     const dialog = screen.getByRole('dialog')
@@ -120,7 +128,7 @@ describe('AcceptInvitationDialog', () => {
       () => new Promise(resolve => { resolveSubmit = resolve as () => void })
     )
 
-    render(<AcceptInvitationDialog />)
+    renderWithQuery(<AcceptInvitationDialog />)
 
     await user.click(screen.getByRole('button', { name: /connect with trainer/i }))
     const dialog = screen.getByRole('dialog')
