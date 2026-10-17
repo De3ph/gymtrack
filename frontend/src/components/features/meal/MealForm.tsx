@@ -57,12 +57,14 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
       ],
     } as MealFormData,
     validators: {
-      onSubmit: (data: MealFormData) => {
-        const result = mealSchema.safeParse(data);
+      onSubmit: ({ value }) => {
+        const result = mealSchema.safeParse(value);
         if (!result.success) {
-          throw result.error;
+          return result.error.issues
+            .map((issue) => issue.message)
+            .join(". ");
         }
-        return result.data;
+        return undefined;
       },
     },
     onSubmit: async ({ value }) => {

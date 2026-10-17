@@ -4,6 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { userApi, relationshipApi, toUser } from "@/lib/api";
+import {
+  checkOptionalInt,
+  parseOptionalInt,
+  PROFILE_RANGES,
+  type IntRange,
+} from "@/lib/validations/profile";
 import { useAuthStore } from "@/stores/authStore";
 import type { User, UserProfile } from "@/types";
 import { AcceptInvitationDialog } from "@/components/features/athlete/AcceptInvitationDialog";
@@ -275,15 +281,16 @@ function ProfileEdit({
   const initials = getInitials(profile.name);
   const avatarColor = getAvatarColor(profile.name);
 
-  const validateRange =
-    (min: number, max: number) => (value: string) => {
-      if (value.trim() === "") return undefined;
-      const parsed = Number(value);
-      if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
-        return t("validation.out_of_range", { min, max });
-      }
-      return undefined;
-    };
+  // Bounds and parsing live in one pure module, so the validators below and the
+  // onSubmit conversion can never disagree about what a valid value is.
+  const intRule = (range: IntRange) => ({
+    onChange: ({ value }: { value: string }) => {
+      const failure = checkOptionalInt(value, range);
+      return failure
+        ? t("validation.out_of_range", { min: failure.min, max: failure.max })
+        : undefined;
+    },
+  });
 
   const form = useForm({
     defaultValues: {
@@ -305,9 +312,9 @@ function ProfileEdit({
       const next: UserProfile = { ...profile, name: value.name.trim() };
 
       if (currentUser.role === "athlete") {
-        next.age = value.age ? Number(value.age) : undefined;
-        next.weight = value.weight ? Number(value.weight) : undefined;
-        next.height = value.height ? Number(value.height) : undefined;
+        next.age = parseOptionalInt(value.age, PROFILE_RANGES.age).value;
+        next.weight = parseOptionalInt(value.weight, PROFILE_RANGES.weight).value;
+        next.height = parseOptionalInt(value.height, PROFILE_RANGES.height).value;
         next.fitnessGoals = value.fitnessGoals;
       }
 
@@ -376,7 +383,7 @@ function ProfileEdit({
           {currentUser.role === "athlete" && (
             <>
               <div className="grid grid-cols-2 gap-4">
-                <form.Field name="age" validators={{ onChange: ({ value }) => validateRange(13, 120)(value) }}>
+                <form.Field name="age" validators={intRule(PROFILE_RANGES.age)}>
                   {(field) => (
                     <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                       <FieldLabel htmlFor="age">{t("fields.age")}</FieldLabel>
@@ -398,7 +405,7 @@ function ProfileEdit({
                 </form.Field>
                 <form.Field
                   name="weight"
-                  validators={{ onChange: ({ value }) => validateRange(20, 500)(value) }}
+                  validators={intRule(PROFILE_RANGES.weight)}
                 >
                   {(field) => (
                     <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
@@ -425,7 +432,7 @@ function ProfileEdit({
 
               <form.Field
                 name="height"
-                validators={{ onChange: ({ value }) => validateRange(50, 300)(value) }}
+                validators={intRule(PROFILE_RANGES.height)}
               >
                 {(field) => (
                   <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>

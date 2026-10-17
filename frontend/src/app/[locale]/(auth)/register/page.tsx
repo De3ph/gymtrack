@@ -15,6 +15,12 @@ import { Spinner } from "@/components/ui/spinner"
 import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field"
 import { FieldInfo } from "@/components/ui/form-field"
 import { useTranslations } from "next-intl"
+import {
+  checkOptionalInt,
+  parseOptionalInt,
+  PROFILE_RANGES,
+  type IntRange,
+} from "@/lib/validations/profile"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -22,6 +28,18 @@ export default function RegisterPage() {
   const [error, setError] = useState<string>("")
   const formRef = useRef<HTMLFormElement>(null)
   const t = useTranslations("auth.register")
+  // Same bounds as the profile form (models.UserProfile stores these as int);
+  // the message lives in the profile namespace until a shared one exists.
+  const tProfile = useTranslations("profile")
+
+  const intRule = (range: IntRange) => ({
+    onChange: ({ value }: { value: string }) => {
+      const failure = checkOptionalInt(value, range)
+      return failure
+        ? tProfile("validation.out_of_range", { min: failure.min, max: failure.max })
+        : undefined
+    },
+  })
 
   const registerMutation = useMutation({
     mutationFn: (payload: RegisterRequest) => authApi.register(payload),
@@ -65,9 +83,9 @@ export default function RegisterPage() {
       // Reconstruct profile object
       const profile = {
         name: value.name,
-        age: value.age ? Number(value.age) : undefined,
-        weight: value.weight ? Number(value.weight) : undefined,
-        height: value.height ? Number(value.height) : undefined,
+        age: parseOptionalInt(value.age, PROFILE_RANGES.age).value,
+        weight: parseOptionalInt(value.weight, PROFILE_RANGES.weight).value,
+        height: parseOptionalInt(value.height, PROFILE_RANGES.height).value,
         fitnessGoals: value.fitnessGoals,
         certifications: value.certifications,
         specializations: value.specializations
@@ -321,9 +339,9 @@ export default function RegisterPage() {
               {selectedRole === "athlete" && (
                 <>
                   <div className='grid grid-cols-2 gap-4'>
-                    <form.Field name='age'>
+                    <form.Field name='age' validators={intRule(PROFILE_RANGES.age)}>
                       {(field) => (
-                        <Field>
+                        <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                           <FieldLabel htmlFor='age'>
                             {t("age.label")}
                           </FieldLabel>
@@ -332,15 +350,21 @@ export default function RegisterPage() {
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
                             type='number'
+                            inputMode='numeric'
+                            step={1}
+                            min={PROFILE_RANGES.age.min}
+                            max={PROFILE_RANGES.age.max}
                             id='age'
                             placeholder={t("age.placeholder")}
+                            aria-describedby={fieldErrorId(field.name)}
                           />
+                          <FieldInfo field={field} />
                         </Field>
                       )}
                     </form.Field>
-                    <form.Field name='weight'>
+                    <form.Field name='weight' validators={intRule(PROFILE_RANGES.weight)}>
                       {(field) => (
-                        <Field>
+                        <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                           <FieldLabel htmlFor='weight'>
                             {t("weight.label")}
                           </FieldLabel>
@@ -349,17 +373,23 @@ export default function RegisterPage() {
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
                             type='number'
+                            inputMode='numeric'
+                            step={1}
+                            min={PROFILE_RANGES.weight.min}
+                            max={PROFILE_RANGES.weight.max}
                             id='weight'
                             placeholder={t("weight.placeholder")}
+                            aria-describedby={fieldErrorId(field.name)}
                           />
+                          <FieldInfo field={field} />
                         </Field>
                       )}
                     </form.Field>
                   </div>
 
-                  <form.Field name='height'>
+                  <form.Field name='height' validators={intRule(PROFILE_RANGES.height)}>
                     {(field) => (
-                      <Field>
+                      <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                         <FieldLabel htmlFor='height'>
                           {t("height.label")}
                         </FieldLabel>
@@ -368,9 +398,15 @@ export default function RegisterPage() {
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           type='number'
+                          inputMode='numeric'
+                          step={1}
+                          min={PROFILE_RANGES.height.min}
+                          max={PROFILE_RANGES.height.max}
                           id='height'
                           placeholder={t("height.placeholder")}
+                          aria-describedby={fieldErrorId(field.name)}
                         />
+                        <FieldInfo field={field} />
                       </Field>
                     )}
                   </form.Field>
