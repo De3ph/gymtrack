@@ -4,17 +4,17 @@ type ValidationTranslator = (key: string) => string;
 
 const createMacrosSchema = (t: ValidationTranslator) =>
   z.object({
-    protein: z.number().min(0, t("macro_non_negative")).optional(),
-    carbs: z.number().min(0, t("macro_non_negative")).optional(),
-    fats: z.number().min(0, t("macro_non_negative")).optional(),
+    protein: z.number().min(0, t("macro_non_negative")).default(0),
+    carbs: z.number().min(0, t("macro_non_negative")).default(0),
+    fats: z.number().min(0, t("macro_non_negative")).default(0),
   });
 
 const createFoodItemSchema = (t: ValidationTranslator) =>
   z.object({
     food: z.string().trim().min(1, t("food_required")),
     quantity: z.string().trim().min(1, t("quantity_required")),
-    calories: z.number().min(0, t("calories_non_negative")).optional(),
-    macros: createMacrosSchema(t).optional(),
+    calories: z.number().min(0, t("calories_non_negative")).default(0),
+    macros: createMacrosSchema(t).default({ protein: 0, carbs: 0, fats: 0 }),
   });
 
 export const createMealSchema = (t: ValidationTranslator) =>

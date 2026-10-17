@@ -33,3 +33,16 @@ export const API_URL = requireEnv(
   'NEXT_PUBLIC_API_URL',
   'http://localhost:8080/api'
 )
+
+/**
+ * Public origin of this web app (no trailing slash).
+ *
+ * Used for SEO absolutes — `metadataBase`, canonical URLs, `sitemap.xml` and
+ * `robots.txt`. Like API_URL, a missing value in production would silently
+ * produce localhost links in crawled output, so it fails fast instead.
+ */
+export const SITE_URL = requireEnv(
+  process.env.NEXT_PUBLIC_SITE_URL,
+  'NEXT_PUBLIC_SITE_URL',
+  'http://localhost:3000'
+)
