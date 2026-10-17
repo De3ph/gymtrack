@@ -57,8 +57,10 @@ const formatPartsForApi = (
   const out: Record<string, BodyMeasurementPart> = {};
   if (!parts) return out;
   for (const [key, part] of Object.entries(parts)) {
-    if (part && Number.isFinite(part.value) && part.value > 0) {
-      out[key] = { value: part.value };
+    // part.value is optional in generated type
+    const value = part.value;
+    if (value != null && Number.isFinite(value) && value > 0) {
+      out[key] = { value };
     }
   }
   return out;
@@ -76,7 +78,8 @@ export function BodyMeasurementForm({
     if (initialMeasurement?.parts) {
       const map: Record<string, string> = {};
       for (const [k, v] of Object.entries(initialMeasurement.parts)) {
-        map[k] = String(v.value ?? "");
+        // v.value is optional in generated type
+        map[k] = v.value != null ? String(v.value) : "";
       }
       return map;
     }
@@ -123,7 +126,7 @@ export function BodyMeasurementForm({
         parts: formatPartsForApi(data.parts),
         notes: data.notes,
       };
-      if (initialMeasurement) {
+      if (initialMeasurement && initialMeasurement.measurementId != null) {
         return bodyMeasurementApi.update(
           initialMeasurement.measurementId,
           payload,
@@ -158,8 +161,16 @@ export function BodyMeasurementForm({
         setSubmitError(t("no_previous_measurement"));
         return;
       }
-      const nextParts: Record<string, BodyMeasurementPart> =
-        (latest.parts as Record<string, BodyMeasurementPart>) ?? {};
+      // latest.parts has optional value in generated type; normalize to required for form state
+      // Normalize parts: generated type has value? but form expects value required
+      const nextParts: Record<string, { value: number }> = {};
+      if (latest.parts) {
+        for (const [k, v] of Object.entries(latest.parts)) {
+          if (v.value != null) {
+            nextParts[k] = { value: v.value };
+          }
+        }
+      }
       form.reset({
         date: new Date(latest.date),
         measurementTime: formatDate(latest.date, "HH:mm"),
@@ -171,7 +182,7 @@ export function BodyMeasurementForm({
       });
       const map: Record<string, string> = {};
       for (const [k, v] of Object.entries(nextParts)) {
-        map[k] = String(v.value ?? "");
+        map[k] = String(v.value);
       }
       setPartInputs(map);
       setPartErrors({});
@@ -195,14 +206,14 @@ export function BodyMeasurementForm({
 
   const handlePartBlur = (
     field: {
-      state: { value: Record<string, BodyMeasurementPart> | undefined };
-      handleChange: (v: Record<string, BodyMeasurementPart>) => void;
+      state: { value: Record<string, { value: number }> | undefined };
+      handleChange: (v: Record<string, { value: number }>) => void;
     },
     key: string,
   ) => {
     const raw = partInputs[key] ?? "";
     const num = parseFloat(raw);
-    const current: Record<string, BodyMeasurementPart> =
+    const current: Record<string, { value: number }> =
       field.state.value ?? {};
     if (raw.trim() === "" || !Number.isFinite(num) || num <= 0) {
       const next = { ...current };

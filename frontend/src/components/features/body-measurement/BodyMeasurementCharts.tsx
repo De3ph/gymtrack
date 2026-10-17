@@ -136,9 +136,10 @@ export function BodyMeasurementCharts({
         const point: ChartDataPoint = {
           date: formatDate(m.date)
         };
-        // Convert to kg for chart consistency
+        // Convert to kg for chart consistency - m.weight is optional in generated type
+        const weight = m.weight ?? 0;
         point.weight =
-          m.weightUnit === "lbs" ? m.weight * 0.453592 : m.weight;
+          m.weightUnit === "lbs" ? weight * 0.453592 : weight;
         if (typeof m.bodyFatPct === "number" && m.bodyFatPct > 0) {
           point.bodyFatPct = m.bodyFatPct;
         }

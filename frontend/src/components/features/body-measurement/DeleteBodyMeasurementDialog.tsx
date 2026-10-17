@@ -68,7 +68,9 @@ export function DeleteBodyMeasurementDialog({
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
-              if (measurement) deleteMeasurement(measurement.measurementId);
+              if (measurement && measurement.measurementId != null) {
+                deleteMeasurement(measurement.measurementId);
+              }
             }}
             disabled={isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

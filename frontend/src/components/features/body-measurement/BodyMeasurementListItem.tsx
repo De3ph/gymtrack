@@ -52,7 +52,11 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
   const tCommon = useTranslations("common.actions");
 
   const weightChange = previous
-    ? formatChange(measurement.weight, previous.weight, measurement.weightUnit)
+    ? formatChange(
+        measurement.weight ?? 0,
+        previous.weight ?? 0,
+        measurement.weightUnit
+      )
     : null;
 
   return (
@@ -97,7 +101,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
             <Ruler className="mr-1 size-4" aria-hidden="true" />
             <span className="font-mono">
               {t("weight", {
-                value: measurement.weight.toFixed(1),
+                value: (measurement.weight ?? 0).toFixed(1),
                 unit: measurement.weightUnit
               })}
             </span>
