@@ -1,12 +1,5 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { WorkoutList } from "@/components/features/workout/WorkoutList";
 import { useTranslations } from "next-intl";
 import { Workout } from "@/types";

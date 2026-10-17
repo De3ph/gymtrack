@@ -1,12 +1,5 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { MealList } from "@/components/features/meal/MealList";
 import { useTranslations } from "next-intl";
 import { Meal } from "@/types";

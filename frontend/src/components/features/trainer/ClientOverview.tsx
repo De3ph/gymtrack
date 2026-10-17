@@ -1,7 +1,5 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { StatCard } from "./StatCard";
 import { Calendar } from "lucide-react";
 import { User, ClientStats } from "@/types";

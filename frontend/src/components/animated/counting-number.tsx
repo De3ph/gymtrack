@@ -36,7 +36,7 @@ function CountingNumber({
   ...props
 }: CountingNumberProps) {
   const localRef = React.useRef<HTMLSpanElement>(null)
-  React.useImperativeHandle(ref as any, () => localRef.current as HTMLSpanElement)
+  React.useImperativeHandle(ref, () => localRef.current as HTMLSpanElement)
 
   const numberStr = number.toString()
   const decimals =
@@ -89,7 +89,7 @@ function CountingNumber({
     : `0${decimals > 0 ? decimalSeparator + "0".repeat(decimals) : ""}`
 
   return (
-    <span className={className} data-slot="counting-number" ref={localRef} {...(props as any)}>
+    <span className={className} data-slot="counting-number" ref={localRef} {...props}>
       {initialText}
     </span>
   )

@@ -3,8 +3,6 @@ import {
   ExerciseLibrary,
   ExerciseListResponse,
   ExerciseSearchParams,
-  MuscleGroupListResponse,
-  EquipmentTypeListResponse,
   MuscleGroup,
   Equipment,
   CreateExerciseRequest

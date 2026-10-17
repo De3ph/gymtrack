@@ -7,7 +7,6 @@ import { coachingRequestApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 

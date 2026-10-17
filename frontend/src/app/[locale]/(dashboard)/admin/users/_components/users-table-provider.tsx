@@ -72,7 +72,10 @@ export function UsersTableProvider({
     staleTime: 30 * 1000,
   });
 
-  const users = (data?.users ?? []) as unknown as AdminUserListItem[];
+  const users = useMemo(
+    () => (data?.users ?? []) as unknown as AdminUserListItem[],
+    [data],
+  );
 
   // Client-side search filter (only filters the page; server returns full list)
   const filteredUsers = useMemo(() => {

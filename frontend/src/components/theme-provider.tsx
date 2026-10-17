@@ -136,10 +136,14 @@ export function ThemeProvider({
   value,
   nonce,
 }: ThemeProviderProps) {
-  const allThemes = themesProp ?? ["light", "dark"];
-  const attributes: Attribute[] = Array.isArray(attribute)
-    ? attribute
-    : [attribute];
+  const allThemes = React.useMemo(
+    () => themesProp ?? ["light", "dark"],
+    [themesProp],
+  );
+  const attributes = React.useMemo<Attribute[]>(
+    () => (Array.isArray(attribute) ? attribute : [attribute]),
+    [attribute],
+  );
 
   const [themeState, setThemeState] = React.useState<string>(() => {
     if (typeof window === "undefined") return defaultTheme;

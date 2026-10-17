@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Trash2, Weight, Repeat, Timer } from "lucide-react";
 import { WorkoutPlanSet } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import dayjs from "dayjs";
 
 interface PlanSetWithId extends WorkoutPlanSet {
   id: string;
@@ -34,19 +33,20 @@ export function PlanSetInput({
     }));
   });
 
-  // Sync external value into state, preserving ids by index so keys (and focus) stay stable.
-  // eslint-disable react-hooks/exhaustive-deps
-  useEffect(() => {
-    setSetsWithIds(prev => {
-      const valueSets = value || [];
-      // Preserve existing ids by index; only generate new ids for new rows (add/remove)
-      return valueSets.map((set, i) => {
-        const prevId = prev[i]?.id;
-        return { ...set, id: prevId || `set-${dayjs().valueOf()}-${i}` };
-      });
-    });
-  }, [value]);
-  // eslint-enable react-hooks/exhaustive-deps
+  // Sync the external value into state, preserving ids by index so keys (and
+  // focus) stay stable. Adjusting state during render is React's documented
+  // alternative to a setState-in-effect:
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [syncedValue, setSyncedValue] = useState(value);
+  if (value !== syncedValue) {
+    setSyncedValue(value);
+    setSetsWithIds((prev) =>
+      (value || []).map((set, i) => ({
+        ...set,
+        id: prev[i]?.id ?? `set-${i}-ext`,
+      })),
+    );
+  }
 
   const addSet = () => {
     const lastSet = setsWithIds[setsWithIds.length - 1];
@@ -55,7 +55,7 @@ export function PlanSetInput({
       weightUnit: lastSet ? lastSet.weightUnit : "kg",
       reps: lastSet ? lastSet.reps : 10,
       restTime: lastSet ? lastSet.restTime : 60,
-      id: `set-${dayjs().valueOf()}`
+      id: `set-${Date.now()}`
     };
     const newSetsWithIds = [...setsWithIds, newSet];
     setSetsWithIds(newSetsWithIds);

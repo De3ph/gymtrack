@@ -296,7 +296,7 @@ export async function getAdminStatsCached(accessToken: string): Promise<AdminDas
  */
 export async function getLatestBodyMeasurementCached(
   accessToken: string,
-  userId: string,
+  _userId: string,
 ): Promise<BodyMeasurement | null> {
   'use cache'
   cacheLife({ revalidate: 30, expire: 60 })
@@ -317,7 +317,7 @@ export async function getLatestBodyMeasurementCached(
  */
 export async function getTrainerProfileCached(
   accessToken: string,
-  userId: string,
+  _userId: string,
 ): Promise<TrainerProfile> {
   'use cache'
   cacheLife({ revalidate: 300, expire: 3600 })

@@ -17,7 +17,7 @@ import { useTranslations } from "next-intl";
 import { Zap } from "lucide-react";
 import Image from "next/image";
 import { motion } from "motion/react";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
 
 const LandingConsole = dynamic(
@@ -57,16 +57,17 @@ const sections = [
 const invertedSection =
   "relative isolate text-[#fafaf9] [--accent:#2dd4bf] [--accent-foreground:#0c0a09] [--background:#0c0a09] [--border:#ffffff40] [--card:#1c1917] [--card-foreground:#fafaf9] [--destructive:#f87171] [--destructive-foreground:#0c0a09] [--foreground:#fafaf9] [--input:#292524] [--muted:#292524] [--muted-foreground:#a8a29e] [--popover:#1c1917] [--popover-foreground:#fafaf9] [--primary:#ef4444] [--primary-foreground:#fafaf9] [--ring:#ef4444] [--secondary:#292524] [--secondary-foreground:#fafaf9]";
 
-export function LandingClient() {
+export function LandingClient({ authError = false }: { authError?: boolean }) {
   const t = useTranslations("dashboard");
-  const [showAuthError, setShowAuthError] = useState(false);
   const reducedMotion = useReducedMotion();
 
+  // Drop the ?error=auth_required marker from the URL once it has been
+  // rendered, so a refresh does not re-show the alert. The alert itself is
+  // driven by the server-resolved searchParam (no state needed).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("error") !== "auth_required") return;
-    setShowAuthError(true);
     params.delete("error");
     const qs = params.toString();
     window.history.replaceState(
@@ -134,7 +135,7 @@ export function LandingClient() {
               <LandingHeader />
             </div>
 
-            {showAuthError && (
+            {authError && (
               <Alert
                 variant="destructive"
                 className="mb-6 border-destructive/40 bg-destructive/5 font-mono text-xs"

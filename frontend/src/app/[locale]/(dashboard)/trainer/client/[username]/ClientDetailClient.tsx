@@ -9,7 +9,6 @@ import {
   usePathname,
 } from "next/navigation";
 import { trainerClientApi, relationshipApi } from "@/lib/api";
-import { ClientStats } from "@/types";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";

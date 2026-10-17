@@ -20,11 +20,6 @@ const CalendarGrid = dynamic(
   { ssr: false, loading: () => <Skeleton className="h-[350px] w-full rounded-none" /> },
 );
 
-interface CombinedTrainingCalendarProps {
-  startDate?: string;
-  endDate?: string;
-}
-
 function getMonthRange(date: Date) {
   return {
     startDate: dayjs(date).startOf("month").toISOString(),
@@ -32,7 +27,7 @@ function getMonthRange(date: Date) {
   };
 }
 
-export function CombinedTrainingCalendar(_props: CombinedTrainingCalendarProps) {
+export function CombinedTrainingCalendar() {
   const t = useTranslations("dashboard.calendar");
   const tEvent = useTranslations("dashboard.calendar.events");
   const tDate = useTranslations("common.date");

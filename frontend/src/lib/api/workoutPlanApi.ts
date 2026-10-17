@@ -1,7 +1,6 @@
 import api from "./api-client";
 import {
   WorkoutPlan,
-  WorkoutPlanAssignment,
   CreateWorkoutPlanRequest,
   UpdateWorkoutPlanRequest,
   AssignPlanRequest,

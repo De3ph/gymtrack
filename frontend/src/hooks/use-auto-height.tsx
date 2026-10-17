@@ -92,10 +92,13 @@ export function useAutoHeight<T extends HTMLElement = HTMLDivElement>(
   }, deps);
 
   React.useLayoutEffect(() => {
-    if (height === 0) {
-      const next = measure();
-      if (next !== 0) setHeight(next);
-    }
+    if (height !== 0) return;
+    const next = measure();
+    if (next === 0) return;
+    // Deferred so the correction lands after the layout pass instead of
+    // cascading a second synchronous render out of this effect.
+    const frame = requestAnimationFrame(() => setHeight(next));
+    return () => cancelAnimationFrame(frame);
   }, [height, measure]);
 
   return { ref, height } as const;

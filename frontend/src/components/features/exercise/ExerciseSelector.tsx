@@ -117,7 +117,7 @@ export function ExerciseSelector({
     setSelectedMuscleGroup(undefined);
     setSelectedEquipment(undefined);
     setSearchQuery("");
-  }, []);
+  }, [setSelectedMuscleGroup, setSelectedEquipment, setSearchQuery]);
 
   const muscleGroups = muscleGroupsData || [];
   const equipment = equipmentData || [];

@@ -17,7 +17,7 @@ async function HomeContent(props: { searchParams: Promise<{ error?: string }> })
     }
   }
 
-  return <LandingClient />;
+  return <LandingClient authError={searchParams.error === 'auth_required'} />;
 }
 
 export default function Home(props: { searchParams: Promise<{ error?: string }> }) {

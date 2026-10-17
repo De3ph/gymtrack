@@ -39,7 +39,7 @@ export default function TrainerClientsPage() {
     staleTime: STALE_TIMES.FIVE_MINUTES,
     enabled: user?.role === "trainer",
   });
-  const clients = data?.clients ?? [];
+  const clients = useMemo(() => data?.clients ?? [], [data]);
 
   useEffect(() => {
     if (user && user.role !== "trainer") {

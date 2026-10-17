@@ -1,11 +1,10 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Trash2, Dumbbell, Save, Pencil } from "lucide-react";
+import { Loader2, Plus, Trash2, Dumbbell, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";

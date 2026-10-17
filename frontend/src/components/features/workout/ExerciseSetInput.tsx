@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Trash2, Weight, Repeat, Timer } from "lucide-react";
 import { ExerciseSet } from "@/types";
 
@@ -35,27 +35,20 @@ export function ExerciseSetInput({
     }));
   });
 
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    const newVal = value ?? [];
-    setSetsWithIds((prev) => {
-      const updated = newVal.map((set, i) => {
-        const existing = i < prev.length ? prev[i] : null;
-        return existing
-          ? { ...set, id: existing.id }
-          : { ...set, id: `set-${Date.now()}-${i}` };
-      });
-      const changed = updated.some(
-        (s, i) =>
-          !prev[i] ||
-          prev[i].weight !== s.weight ||
-          prev[i].reps !== s.reps ||
-          prev[i].restTime !== s.restTime,
-      );
-      return changed ? updated : prev;
-    });
-  }, [value]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  // Sync the external value into state, preserving ids by index so keys (and
+  // focus) stay stable. Adjusting state during render is React's documented
+  // alternative to a setState-in-effect:
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [syncedValue, setSyncedValue] = useState(value);
+  if (value !== syncedValue) {
+    setSyncedValue(value);
+    setSetsWithIds((prev) =>
+      (value ?? []).map((set, i) => ({
+        ...set,
+        id: prev[i]?.id ?? `set-${i}-ext`,
+      })),
+    );
+  }
 
   const addSet = () => {
     const prevSet = setsWithIds[setsWithIds.length - 1];

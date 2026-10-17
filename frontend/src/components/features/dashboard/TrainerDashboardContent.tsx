@@ -69,7 +69,7 @@ export function TrainerDashboardContent() {
     queryFn: relationshipApi.getMyClients,
   });
 
-  const clients = clientData?.clients ?? [];
+  const clients = useMemo(() => clientData?.clients ?? [], [clientData]);
   const todayFocusClients = useMemo(() => clients
     .filter((client) => client.relationship.status === "active")
     .sort((a, b) => dayjs(b.relationship.createdAt).valueOf() - dayjs(a.relationship.createdAt).valueOf()),

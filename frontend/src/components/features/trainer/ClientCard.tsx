@@ -2,17 +2,8 @@
 
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ClientWithAthlete } from "@/types";
 import { Eye, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
-import dayjs from "dayjs";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { motion } from "motion/react";
 import { staggerItem } from "@/lib/animations";

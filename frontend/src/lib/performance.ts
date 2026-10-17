@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 /**
  * Simple performance monitoring utilities for tracking API calls and component render times
  */
@@ -26,23 +24,6 @@ const PerformanceMetrics = {
       // In real app: send to error tracking
     }
   }
-};
-
-/** Custom hook for measuring render performance */
-const usePerformanceMonitor = (componentName: string) => {
-  const startTime = React.useRef<number | null>(null);
-
-  React.useEffect(() => {
-    startTime.current = performance.now();
-    return () => {
-      if (startTime.current !== null) {
-        const duration = performance.now() - startTime.current;
-        PerformanceMetrics.trackRenderTime(componentName, duration);
-      }
-    };
-  }, [componentName]);
-
-  return { startTime };
 };
 
 /** Helper to wrap async functions with timing */

@@ -75,7 +75,7 @@ export default function TrainerWorkoutPlansPage() {
     deleteMutation.mutate(deletingPlan.planId);
   };
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["workout-plans"],
     queryFn: () => workoutPlanApi.getAll(),
     staleTime: STALE_TIMES.FIVE_MINUTES,

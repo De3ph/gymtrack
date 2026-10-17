@@ -76,7 +76,7 @@ export function AdminProfileClient() {
 
   if (!user) return null;
 
-  const joinedDate = new Date(user.createdAt ?? Date.now());
+  const joinedDate = user.createdAt ? new Date(user.createdAt) : null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -112,11 +112,15 @@ export function AdminProfileClient() {
         <InfoRow
           icon={Calendar}
           label="Member Since"
-          value={joinedDate.toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
+          value={
+            joinedDate
+              ? joinedDate.toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : "—"
+          }
         />
       </DetailPanel>
 
