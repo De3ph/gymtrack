@@ -32,6 +32,7 @@ interface CommentNode {
 function buildTree(comments: Comment[]): CommentNode[] {
   const byParent = new Map<number, Comment[]>();
   for (const c of comments) {
+    // c.parentCommentId is optional in generated type
     const pid = c.parentCommentId;
     if (pid == null || pid === 0) continue;
     if (!byParent.has(pid)) byParent.set(pid, []);
@@ -43,8 +44,10 @@ function buildTree(comments: Comment[]): CommentNode[] {
     );
   }
   function node(comment: Comment): CommentNode {
-    const children = (byParent.get(comment.commentId) ?? []).map(node);
-    return { comment, children };
+    // comment.commentId is optional in generated type but required for tree building
+    const cid = comment.commentId;
+    const children = (cid != null ? byParent.get(cid) : []) ?? [];
+    return { comment, children: children.map(node) };
   }
   const roots = comments
     .filter((c) => !c.parentCommentId || c.parentCommentId === 0)

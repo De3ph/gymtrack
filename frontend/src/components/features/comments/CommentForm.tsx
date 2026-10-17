@@ -17,7 +17,7 @@ import {
 interface CommentFormProps {
   targetType: "workout" | "meal";
   targetId: string | number;
-  parentCommentId?: string | number | null;
+  parentCommentId?: string | number;
   onSuccess?: () => void;
   queryKey: (string | number)[];
   placeholder?: string;
@@ -27,7 +27,7 @@ interface CommentFormProps {
 export function CommentForm({
   targetType,
   targetId,
-  parentCommentId = null,
+  parentCommentId,
   onSuccess,
   queryKey,
   placeholder: placeholderProp,
@@ -56,7 +56,7 @@ export function CommentForm({
         targetType,
         targetId: String(targetId),
         content: value.content,
-        parentCommentId: parentCommentId ? String(parentCommentId) : undefined,
+        parentCommentId: parentCommentId != null ? String(parentCommentId) : undefined,
       });
     },
   });

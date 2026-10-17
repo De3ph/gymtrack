@@ -66,7 +66,10 @@ export function CommentItem({
   const handleSaveEdit = () => {
     const result = updateCommentSchema.safeParse({ content: editContent });
     if (!result.success) return;
-    updateComment({ id: comment.commentId, content: editContent });
+    // comment.commentId is optional in generated type but required for update
+    if (comment.commentId != null) {
+      updateComment({ id: comment.commentId, content: editContent });
+    }
   };
 
   const handleCancelEdit = () => {
@@ -80,7 +83,9 @@ export function CommentItem({
       <div className="flex items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
         <span className="text-foreground">{comment.authorRole}</span>
         <span>
-          {formatDate(comment.createdAt, "MMM D, YYYY h:mm A")}
+          {comment.createdAt
+            ? formatDate(comment.createdAt, "MMM D, YYYY h:mm A")
+            : ""}
           {comment.editedAt && (
             <span className="ml-2">{t("item.edited_label")}</span>
           )}
@@ -116,11 +121,11 @@ export function CommentItem({
 
           {/* Actions — ghost buttons with mono uppercase labels */}
           <div className="mt-2 flex flex-wrap gap-1">
-            {onReply && !isReply && (
+            {onReply && !isReply && comment.commentId != null && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onReply(comment.commentId)}
+                onClick={() => onReply(comment.commentId!)}
                 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
               >
                 <MessageSquare className="mr-1.5 size-3.5" aria-hidden="true" />
@@ -162,7 +167,11 @@ export function CommentItem({
                       <AlertDialogCancel>{tCommon("actions.cancel")}</AlertDialogCancel>
                       <AlertDialogAction
                         variant="destructive"
-                        onClick={() => deleteComment(comment.commentId)}
+                        onClick={() => {
+                          if (comment.commentId != null) {
+                            deleteComment(comment.commentId);
+                          }
+                        }}
                         disabled={isDeleting}
                       >
                         {t("item.delete")}
