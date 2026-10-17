@@ -108,6 +108,15 @@ export interface RestoreAccountRequest {
 
 // --- Response / handler types ---
 export type UserResponse = components["schemas"]["handlers.UserResponse"];
+
+// CurrentUser is the shape of GET/PUT /users/me. It narrows UserResponse (whose
+// fields are all optional because swag marks them so) to the ones the Go handler
+// always populates: user_handler.go sets every UserResponse field unconditionally.
+// Use this instead of User for "the logged-in user" so consumers don't have to
+// re-assert the type or fabricate defaults for role/username.
+export interface CurrentUser extends User {
+  profile: UserProfile;
+}
 export type ClientStats = components["schemas"]["handlers.ClientStats"];
 export type GetClientDetailsResponse = components["schemas"]["handlers.GetClientDetailsResponse"];
 export type GetClientStatsResponse = components["schemas"]["handlers.GetClientStatsResponse"];

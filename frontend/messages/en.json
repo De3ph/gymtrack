@@ -1120,7 +1120,8 @@
       "cancel": "Cancel"
     },
     "validation": {
-      "field_required": "This field is required"
+      "field_required": "This field is required",
+      "out_of_range": "Enter a whole number between {min} and {max}"
     },
     "delete_account": {
       "title": "Delete Account",

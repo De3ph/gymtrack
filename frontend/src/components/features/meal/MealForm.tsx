@@ -46,7 +46,7 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
     defaultValues: {
       date: new Date(),
       mealTime: formatDate(new Date(), "HH:mm"),
-      mealType: "breakfast" as const,
+      mealType: "breakfast" as "breakfast" | "lunch" | "dinner" | "snack",
       items: [
         {
           food: "",
@@ -55,9 +55,15 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
           macros: { protein: 0, carbs: 0, fats: 0 },
         },
       ],
-    },
+    } as MealFormData,
     validators: {
-      onSubmit: mealSchema,
+      onSubmit: (data: MealFormData) => {
+        const result = mealSchema.safeParse(data);
+        if (!result.success) {
+          throw result.error;
+        }
+        return result.data;
+      },
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);

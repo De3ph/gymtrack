@@ -6,15 +6,21 @@ import { server } from '@/test/mocks/server'
 import { http, HttpResponse } from 'msw'
 import type { User } from '@/types'
 
-vi.mock('@/lib/api', () => ({
-  authApi: {
-    login: vi.fn(),
-    logout: vi.fn().mockResolvedValue({ message: 'Logged out' }),
-  },
-  userApi: {
-    getCurrentUser: vi.fn(),
-  },
-}))
+vi.mock('@/lib/api', async (importOriginal) => {
+  // Keep the real toUser - the store uses it to normalize the /users/me payload.
+  const actual = await importOriginal<typeof import('@/lib/api')>()
+
+  return {
+    ...actual,
+    authApi: {
+      login: vi.fn(),
+      logout: vi.fn().mockResolvedValue({ message: 'Logged out' }),
+    },
+    userApi: {
+      getCurrentUser: vi.fn(),
+    },
+  }
+})
 
 describe('AuthStore', () => {
   beforeEach(() => {

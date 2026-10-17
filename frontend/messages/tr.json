@@ -1120,7 +1120,8 @@
       "cancel": "İptal"
     },
     "validation": {
-      "field_required": "Bu alan zorunludur"
+      "field_required": "Bu alan zorunludur",
+      "out_of_range": "Lütfen {min} ile {max} arasında bir tam sayı girin"
     },
     "delete_account": {
       "title": "Hesabı Sil",

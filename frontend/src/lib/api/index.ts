@@ -1,7 +1,7 @@
 import api from "./api-client";
 
 import { authApi } from "./authApi";
-import { userApi } from "./userApi";
+import { userApi, toUser } from "./userApi";
 import { workoutApi } from "./workoutApi";
 import { mealApi } from "./mealApi";
 import { commentApi } from "./commentApi";
@@ -32,6 +32,7 @@ export {
   workoutPlanApi,
   bodyMeasurementApi,
   adminApi,
+  toUser,
 };
 
 export default api;

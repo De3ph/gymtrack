@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
-import { userApi, relationshipApi } from "@/lib/api";
+import { userApi, relationshipApi, toUser } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import type { User, UserProfile } from "@/types";
 import { AcceptInvitationDialog } from "@/components/features/athlete/AcceptInvitationDialog";
@@ -24,19 +24,24 @@ import {
   Mail,
   Shield,
   Calendar,
+  Cake,
+  Scale,
   Ruler,
-  Target,
+  Trophy,
   Award,
   Zap,
   Pencil,
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Shared date options - formatted through next-intl so it follows the locale. */
+const JOINED_DATE_FORMAT = { day: "numeric", month: "long", year: "numeric" } as const;
 
 function getInitials(name?: string): string {
   if (!name) return "?";
@@ -74,7 +79,7 @@ function getAvatarColor(name?: string): string {
 // Skeleton loader
 // ---------------------------------------------------------------------------
 
-function ProfileSkeleton() {
+function ProfileSkeleton({ title }: { title: string }) {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="flex items-center gap-4">
@@ -86,7 +91,7 @@ function ProfileSkeleton() {
         </div>
       </div>
       <Separator />
-      <DetailSection title="Personal Information">
+      <DetailSection title={title}>
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-12 w-full" />
         ))}
@@ -110,9 +115,19 @@ function ProfileView({
   t: ReturnType<typeof useTranslations<"profile">>;
   trainerSection: React.ReactNode;
 }) {
-  const joinedDate = new Date(currentUser.createdAt);
-  const initials = getInitials(currentUser.profile.name);
-  const avatarColor = getAvatarColor(currentUser.profile.name);
+  const format = useFormatter();
+  // currentUser.createdAt is optional in the generated type. Leave it undefined
+  // rather than falling back to today - InfoRow already renders "Not set".
+  const joinedDate = currentUser.createdAt
+    ? new Date(currentUser.createdAt)
+    : undefined;
+  // currentUser.profile is optional in generated type - provide fallbacks
+  const profile = currentUser.profile ?? {};
+  const initials = getInitials(profile.name);
+  const avatarColor = getAvatarColor(profile.name);
+  const joinedLabel = joinedDate
+    ? format.dateTime(joinedDate, JOINED_DATE_FORMAT)
+    : undefined;
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -128,7 +143,7 @@ function ProfileView({
 
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {currentUser.profile.name}
+            {profile.name}
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             @{currentUser.username} &middot; {currentUser.email}
@@ -137,14 +152,11 @@ function ProfileView({
             <Badge variant="default" className="capitalize">
               {currentUser.role}
             </Badge>
-            <span className="text-xs text-muted-foreground">
-              {t("member_since")}{" "}
-              {joinedDate.toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
+            {joinedLabel && (
+              <span className="text-xs text-muted-foreground">
+                {t("member_since")} {joinedLabel}
+              </span>
+            )}
           </div>
         </div>
 
@@ -161,7 +173,7 @@ function ProfileView({
         <InfoRow
           icon={UserIcon}
           label={t("fields.name")}
-          value={currentUser.profile.name}
+          value={profile.name}
         />
 
         <InfoRow
@@ -183,27 +195,19 @@ function ProfileView({
         <InfoRow
           icon={Calendar}
           label={t("member_since")}
-          value={joinedDate.toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
+          value={joinedLabel}
         />
 
         {currentUser.role === "athlete" && (
           <>
-            <InfoRow
-              icon={Calendar}
-              label={t("fields.age")}
-              value={currentUser.profile.age}
-            />
+            <InfoRow icon={Cake} label={t("fields.age")} value={profile.age} />
 
             <InfoRow
-              icon={Target}
+              icon={Scale}
               label={t("fields.weight")}
               value={
-                currentUser.profile.weight != null
-                  ? `${currentUser.profile.weight} ${t("units.kg")}`
+                profile.weight != null
+                  ? `${profile.weight} ${t("units.kg")}`
                   : undefined
               }
             />
@@ -212,16 +216,16 @@ function ProfileView({
               icon={Ruler}
               label={t("fields.height")}
               value={
-                currentUser.profile.height != null
-                  ? `${currentUser.profile.height} ${t("units.cm")}`
+                profile.height != null
+                  ? `${profile.height} ${t("units.cm")}`
                   : undefined
               }
             />
 
             <InfoRow
-              icon={Target}
+              icon={Trophy}
               label={t("fields.fitness_goals")}
-              value={currentUser.profile.fitnessGoals}
+              value={profile.fitnessGoals}
             />
           </>
         )}
@@ -231,13 +235,13 @@ function ProfileView({
             <InfoRow
               icon={Award}
               label={t("fields.certifications")}
-              value={currentUser.profile.certifications}
+              value={profile.certifications}
             />
 
             <InfoRow
               icon={Zap}
               label={t("fields.specializations")}
-              value={currentUser.profile.specializations}
+              value={profile.specializations}
             />
           </>
         )}
@@ -266,30 +270,53 @@ function ProfileEdit({
   isPending: boolean;
   t: ReturnType<typeof useTranslations<"profile">>;
 }) {
-  const initials = getInitials(currentUser.profile.name);
-  const avatarColor = getAvatarColor(currentUser.profile.name);
+  // currentUser.profile is optional in generated type - provide fallbacks
+  const profile = currentUser.profile ?? {};
+  const initials = getInitials(profile.name);
+  const avatarColor = getAvatarColor(profile.name);
+
+  const validateRange =
+    (min: number, max: number) => (value: string) => {
+      if (value.trim() === "") return undefined;
+      const parsed = Number(value);
+      if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
+        return t("validation.out_of_range", { min, max });
+      }
+      return undefined;
+    };
 
   const form = useForm({
     defaultValues: {
-      name: currentUser?.profile?.name || "",
-      age: currentUser?.profile?.age?.toString() || "",
-      weight: currentUser?.profile?.weight?.toString() || "",
-      height: currentUser?.profile?.height?.toString() || "",
-      fitnessGoals: currentUser?.profile?.fitnessGoals || "",
-      certifications: currentUser?.profile?.certifications || "",
-      specializations: currentUser?.profile?.specializations || "",
+      name: profile.name || "",
+      age: profile.age?.toString() || "",
+      weight: profile.weight?.toString() || "",
+      height: profile.height?.toString() || "",
+      fitnessGoals: profile.fitnessGoals || "",
+      certifications: profile.certifications || "",
+      specializations: profile.specializations || "",
     },
     onSubmit: async ({ value }) => {
-      const profile: UserProfile = {
-        name: value.name,
-        age: value.age ? Number(value.age) : undefined,
-        weight: value.weight ? Number(value.weight) : undefined,
-        height: value.height ? Number(value.height) : undefined,
-        fitnessGoals: value.fitnessGoals,
-        certifications: value.certifications,
-        specializations: value.specializations,
-      };
-      onSave(profile);
+      // The backend replaces users.profile wholesale (user_service.go), so the
+      // payload must carry every field worth keeping - not just the ones this
+      // form renders. Spreading the loaded profile preserves trainerAssignment,
+      // clientList, bio, hourlyRate and the fields owned by other pages. Only
+      // role-relevant fields are overwritten, so an athlete save can't blank a
+      // trainer's certifications (and vice versa).
+      const next: UserProfile = { ...profile, name: value.name.trim() };
+
+      if (currentUser.role === "athlete") {
+        next.age = value.age ? Number(value.age) : undefined;
+        next.weight = value.weight ? Number(value.weight) : undefined;
+        next.height = value.height ? Number(value.height) : undefined;
+        next.fitnessGoals = value.fitnessGoals;
+      }
+
+      if (currentUser.role === "trainer") {
+        next.certifications = value.certifications;
+        next.specializations = value.specializations;
+      }
+
+      onSave(next);
     },
   });
 
@@ -326,12 +353,8 @@ function ProfileEdit({
           <form.Field
             name="name"
             validators={{
-              onChange: ({ value }: { value: string }) => {
-                if (!value || value.trim().length === 0) {
-                  return t("validation.field_required");
-                }
-                return undefined;
-              },
+              onChange: ({ value }) =>
+                value.trim().length === 0 ? t("validation.field_required") : undefined,
             }}
           >
             {(field) => (
@@ -353,23 +376,32 @@ function ProfileEdit({
           {currentUser.role === "athlete" && (
             <>
               <div className="grid grid-cols-2 gap-4">
-                <form.Field name="age">
+                <form.Field name="age" validators={{ onChange: ({ value }) => validateRange(13, 120)(value) }}>
                   {(field) => (
-                    <Field>
+                    <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                       <FieldLabel htmlFor="age">{t("fields.age")}</FieldLabel>
                       <Input
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         type="number"
+                        inputMode="numeric"
+                        step={1}
+                        min={13}
+                        max={120}
                         id="age"
+                        aria-describedby={fieldErrorId(field.name)}
                       />
+                      <FieldInfo field={field} />
                     </Field>
                   )}
                 </form.Field>
-                <form.Field name="weight">
+                <form.Field
+                  name="weight"
+                  validators={{ onChange: ({ value }) => validateRange(20, 500)(value) }}
+                >
                   {(field) => (
-                    <Field>
+                    <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                       <FieldLabel htmlFor="weight">
                         {t("fields.weight")} ({t("units.kg")})
                       </FieldLabel>
@@ -378,16 +410,25 @@ function ProfileEdit({
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         type="number"
+                        inputMode="numeric"
+                        step={1}
+                        min={20}
+                        max={500}
                         id="weight"
+                        aria-describedby={fieldErrorId(field.name)}
                       />
+                      <FieldInfo field={field} />
                     </Field>
                   )}
                 </form.Field>
               </div>
 
-              <form.Field name="height">
+              <form.Field
+                name="height"
+                validators={{ onChange: ({ value }) => validateRange(50, 300)(value) }}
+              >
                 {(field) => (
-                  <Field>
+                  <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                     <FieldLabel htmlFor="height">
                       {t("fields.height")} ({t("units.cm")})
                     </FieldLabel>
@@ -396,8 +437,14 @@ function ProfileEdit({
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                       type="number"
+                      inputMode="numeric"
+                      step={1}
+                      min={50}
+                      max={300}
                       id="height"
+                      aria-describedby={fieldErrorId(field.name)}
                     />
+                    <FieldInfo field={field} />
                   </Field>
                 )}
               </form.Field>
@@ -462,7 +509,7 @@ function ProfileEdit({
         </DetailSection>
 
         <div className="flex gap-3">
-          <Button type="submit" className="flex-1" disabled={isPending}>
+          <Button type="submit" className="flex-1" disabled={isPending} aria-busy={isPending}>
             {isPending ? t("actions.saving") : t("actions.save")}
           </Button>
           <Button
@@ -489,12 +536,21 @@ export function ProfileClient() {
   const { user, setUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const queryClient = useQueryClient();
   const t = useTranslations("profile");
 
+  useEffect(() => {
+    return () => {
+      if (successTimer.current) clearTimeout(successTimer.current);
+    };
+  }, []);
+
   const { data: currentUser, isLoading } = useQuery<User>({
     queryKey: ["currentUser"],
-    queryFn: userApi.getCurrentUser,
+    queryFn: async () => toUser(await userApi.getCurrentUser(), user),
+    // Seed from the store so the page paints immediately; staleTime below decides
+    // whether a refetch happens on mount.
     initialData: user || undefined,
   });
 
@@ -507,11 +563,15 @@ export function ProfileClient() {
   const updateMutation = useMutation({
     mutationFn: userApi.updateCurrentUser,
     onSuccess: (data) => {
-      queryClient.setQueryData(["currentUser"], data);
-      setUser(data);
+      // Fall back to the user we already have rather than inventing role/username,
+      // since both drive role-gated UI across the app.
+      const safeUser = toUser(data, queryClient.getQueryData<User>(["currentUser"]));
+      queryClient.setQueryData(["currentUser"], safeUser);
+      setUser(safeUser);
       setIsEditing(false);
       setSuccessMessage(t("profile_saved"));
-      setTimeout(() => setSuccessMessage(""), 3000);
+      if (successTimer.current) clearTimeout(successTimer.current);
+      successTimer.current = setTimeout(() => setSuccessMessage(""), 3000);
     },
   });
 
@@ -524,7 +584,7 @@ export function ProfileClient() {
   };
 
   if (isLoading) {
-    return <ProfileSkeleton />;
+    return <ProfileSkeleton title={t("personal_info")} />;
   }
 
   if (!currentUser) {
@@ -550,7 +610,11 @@ export function ProfileClient() {
     <>
       {successMessage && (
         <div className="mx-auto mb-6 max-w-2xl">
-          <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-3 text-sm text-emerald-600 dark:text-emerald-400">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-3 text-sm text-emerald-600 dark:text-emerald-400"
+          >
             <CheckCircle2 className="size-5 shrink-0" />
             {successMessage}
           </div>
@@ -559,7 +623,10 @@ export function ProfileClient() {
 
       {updateMutation.isError && (
         <div className="mx-auto mb-6 max-w-2xl">
-          <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          <div
+            role="alert"
+            className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+          >
             <AlertCircle className="size-5 shrink-0" />
             {t("update_error")}
           </div>
@@ -585,4 +652,3 @@ export function ProfileClient() {
     </>
   );
 }
-

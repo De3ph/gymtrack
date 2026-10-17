@@ -80,8 +80,43 @@ export default function ClientDetailClient() {
         workouts: workoutsResp.workouts,
         meals: mealsResp.meals,
         measurements: measurementsResp.measurements,
-        workoutStats: statsResp.workoutStats,
-        mealStats: statsResp.mealStats,
+        workoutStats: statsResp.workoutStats
+          ? {
+              totalVolume: statsResp.workoutStats.totalVolume ?? 0,
+              weeklyVolume: (statsResp.workoutStats.weeklyVolume ?? []).map((w) => ({
+                week: w.week ?? "",
+                volume: w.volume ?? 0,
+                workouts: w.workouts ?? 0,
+              })),
+              maxWeight: 0, // Not in generated WorkoutStats
+              consistency: statsResp.workoutStats.consistency ?? 0,
+              exerciseBreakdown: (statsResp.workoutStats.exerciseBreakdown ?? []).map((e) => ({
+                name: e.name ?? "",
+                totalSets: 0,
+                totalReps: 0,
+                maxWeight: e.maxWeight ?? 0,
+              })),
+            }
+          : null,
+        mealStats: statsResp.mealStats
+          ? {
+              averageCalories: statsResp.mealStats.averageCalories ?? 0,
+              averageProtein: statsResp.mealStats.averageProtein ?? 0,
+              averageCarbs: statsResp.mealStats.averageCarbs ?? 0,
+              averageFats: statsResp.mealStats.averageFats ?? 0,
+              weeklyAverages: (statsResp.mealStats.weeklyAverages ?? []).map((w) => ({
+                week: w.week ?? "",
+                calories: w.calories ?? 0,
+                protein: w.protein ?? 0,
+                carbs: w.carbs ?? 0,
+                fats: w.fats ?? 0,
+              })),
+              mealTypeBreakdown: (statsResp.mealStats.mealTypeBreakdown ?? []).map((m) => ({
+                mealType: m.mealType ?? "",
+                count: m.count ?? 0,
+              })),
+            }
+          : null,
       };
     },
     staleTime: STALE_TIMES.FIVE_MINUTES,

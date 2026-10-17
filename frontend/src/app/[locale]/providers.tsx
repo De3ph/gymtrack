@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toast";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 import { initializeDayjsLocale } from "@/lib/i18n/dayjs";
@@ -12,6 +13,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 declare global {
   interface Window {
     __TANSTACK_QUERY_CLIENT__: import("@tanstack/react-query").QueryClient;
+    /** Client-side navigate callback exposed so authStore can router.push
+     *  (no full page reload) on auth errors. */
+    __NAVIGATE__?: (to: string) => void;
     __NEXT_INTL_LOCALE?: string;
   }
 }
@@ -42,6 +46,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
       initializeDayjsLocale(locale);
     }
   }, [locale]);
+
+  const router = useRouter();
+
+  // Expose a client-side navigate function on window so authStore.handleAuthError
+  // can router.push to login instead of doing a full page reload (which would
+  // drop React Query cache). Mirrors how window.__TANSTACK_QUERY_CLIENT__ exposes
+  // the query client to non-component code.
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.__NAVIGATE__ = (to: string) => router.push(to);
+    }
+  }, [router]);
 
   return (
     <ThemeProvider

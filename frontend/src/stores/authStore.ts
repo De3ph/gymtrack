@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { User } from '@/types';
-import { authApi, userApi } from '@/lib/api';
+import { authApi, userApi, toUser } from '@/lib/api';
 import { tokenService } from '@/lib/token-service';
 import { ROUTES } from '@/lib/routes';
 
@@ -120,9 +120,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 3. Fetch full user profile from Go backend
       const user = await userApi.getCurrentUser()
 
+      // The generated API type marks every field optional, but the backend always
+      // returns them. toUser narrows it to the local User type in one place.
+      const safeUser = toUser(user, state.user)
+
       set({
         token: session.accessToken,
-        user,
+        user: safeUser,
         isAuthenticated: true,
         isLoading: false,
         isInitialized: true,
@@ -211,10 +215,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         } catch { /* best-effort */ }
 
         if (typeof window !== 'undefined') {
-          if (window.__TANSTACK_QUERY_CLIENT__) {
-            window.__TANSTACK_QUERY_CLIENT__.clear()
+          // Clear React Query cache so stale server state doesn't survive the
+          // auth reset. (Avoids a full page reload, which would drop it.)
+          window.__TANSTACK_QUERY_CLIENT__?.clear()
+
+          // Client-side navigation via Next.js router — no full reload.
+          if (window.__NAVIGATE__) {
+            window.__NAVIGATE__(ROUTES.LOGIN)
+          } else {
+            window.location.href = ROUTES.LOGIN
           }
-          window.location.href = ROUTES.LOGIN
         }
         return
       }
