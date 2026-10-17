@@ -6,6 +6,7 @@
 |---|---|
 | `go run cmd/server/main.go` | Start server on port 8080 |
 | `go build -o server.exe cmd/server/main.go` | Build binary |
+| `go run cmd/db-roles/main.go` | Provision least-privilege DB roles (`gymtrack_app` DML-only, `gymtrack_migrate` owner). Run before `migrate`; idempotent |
 | `go run cmd/migrate/main.go` | Apply SQL migrations from embedded FS (default: `-dir up`) |
 | `go run cmd/migrate/main.go -dir down` | Roll back the last applied migration |
 | `go run cmd/migrate/main.go -dir force 3` | Force `schema_migrations` version (dirty-state recovery) |
@@ -81,6 +82,14 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 | `POSTGRES_DSN` | (required) | PostgreSQL connection string |
 | `POSTGRES_TEST_DSN` | (required) | PostgreSQL connection string for tests |
 | `JWT_SECRET` | (required) | Must be ≥32 characters |
+| `APP_ENV` | `development` | `production` selects gin release mode |
+| `GIN_MODE` | (derived) | Explicit `debug`/`release`/`test`; overrides `APP_ENV` |
+| `PORT` | `8080` | HTTP listen port |
+| `CORS_ALLOWED_ORIGINS` | dev localhost list | Comma-separated allow-list; empty in production = same-origin proxy only |
+| `TRUSTED_PROXIES` | (none) | Comma-separated IPs/CIDRs allowed to set `X-Forwarded-For`. Untrusted headers are ignored (`ClientIP` cannot be spoofed). Compose pins the `gymtrack` network to 172.31.0.0/24 and trusts only that subnet |
+| `POSTGRES_ADMIN_DSN` | falls back to `POSTGRES_DSN` | Admin DSN for `cmd/db-roles` (superuser) |
+| `APP_DB_USER` / `APP_DB_PASSWORD` | `gymtrack_app` / — | Runtime role provisioned by `cmd/db-roles` |
+| `MIGRATE_DB_USER` / `MIGRATE_DB_PASSWORD` | `gymtrack_migrate` / — | Migration role (schema owner) |
 
 `JWT_SECRET` is required and validated at startup — server will crash with `log.Fatal` if missing or too short.
 

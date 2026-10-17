@@ -32,23 +32,45 @@ type RateLimiter struct {
 	limiters map[string]*limiterEntry
 	rate     rate.Limit
 	burst    int
+
+	// The cleanup goroutine is started lazily on the first Allow call so an
+	// unused limiter does not spawn one, and stopped via Stop on shutdown.
+	startOnce sync.Once
+	stopOnce  sync.Once
+	done      chan struct{}
 }
 
 // NewRateLimiter creates a per-IP rate limiter with automatic cleanup.
 // r: requests per second allowed (e.g. 5).
 // burst: max burst size (e.g. 10).
 func NewRateLimiter(r rate.Limit, burst int) *RateLimiter {
-	rl := &RateLimiter{
+	return &RateLimiter{
 		limiters: make(map[string]*limiterEntry),
 		rate:     r,
 		burst:    burst,
+		done:     make(chan struct{}),
 	}
-	// cleanupLoop deferred to first request via lifecycle hook instead
-	return rl
+}
+
+// Stop terminates the background cleanup goroutine. It is idempotent and safe
+// to call before any request has been served.
+func (rl *RateLimiter) Stop() {
+	rl.stopOnce.Do(func() {
+		close(rl.done)
+	})
+}
+
+// ensureCleanup starts the pruning goroutine exactly once.
+func (rl *RateLimiter) ensureCleanup() {
+	rl.startOnce.Do(func() {
+		go rl.cleanupLoop()
+	})
 }
 
 // Allow returns true if the request from the given key is allowed.
 func (rl *RateLimiter) Allow(key string) bool {
+	rl.ensureCleanup()
+
 	rl.mu.Lock()
 	entry, exists := rl.limiters[key]
 	if !exists {
@@ -69,15 +91,25 @@ func (rl *RateLimiter) Allow(key string) bool {
 func (rl *RateLimiter) cleanupLoop() {
 	ticker := time.NewTicker(cleanupInterval)
 	defer ticker.Stop()
-	for range ticker.C {
-		rl.mu.Lock()
-		cutoff := time.Now().Add(-maxIdleTime)
-		for key, entry := range rl.limiters {
-			if entry.lastAccess.Before(cutoff) {
-				delete(rl.limiters, key)
-			}
+	for {
+		select {
+		case <-rl.done:
+			return
+		case <-ticker.C:
+			rl.pruneIdle(time.Now())
 		}
-		rl.mu.Unlock()
+	}
+}
+
+// pruneIdle removes entries not accessed since now-maxIdleTime.
+func (rl *RateLimiter) pruneIdle(now time.Time) {
+	cutoff := now.Add(-maxIdleTime)
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+	for key, entry := range rl.limiters {
+		if entry.lastAccess.Before(cutoff) {
+			delete(rl.limiters, key)
+		}
 	}
 }
 

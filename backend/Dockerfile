@@ -15,6 +15,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -trimpath -ldflags="-s -w" -o /out/migrate ./cmd/migrate && \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -trimpath -ldflags="-s -w" -o /out/db-roles ./cmd/db-roles && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -trimpath -ldflags="-s -w" -o /out/seed ./cmd/seed
 
 # ---- Runtime stage ----
@@ -25,6 +27,7 @@ RUN apk add --no-cache ca-certificates tzdata wget && \
 WORKDIR /app
 COPY --from=builder /out/server /app/server
 COPY --from=builder /out/migrate /app/migrate
+COPY --from=builder /out/db-roles /app/db-roles
 COPY --from=builder /out/seed /app/seed
 
 USER gymtrack:gymtrack

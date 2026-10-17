@@ -95,12 +95,17 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 	coachingRequestHandler := handlers.NewCoachingRequestHandler(coachingRequestService)
 	workoutPlanHandler := handlers.NewWorkoutPlanHandler(workoutPlanService, userRepo)
 
+	// Same tuning as production. The cleanup goroutine is stopped when the
+	// test finishes so it does not outlive the test process.
+	authLimiter := middleware.NewRateLimiter(5, 10)
+	t.Cleanup(authLimiter.Stop)
+
 	router := buildTestRouter(cfg, authService, userRepo,
 		authHandler, userHandler, workoutHandler, mealHandler,
 		bodyMeasurementHandler, commentHandler, exerciseHandler,
 		availabilityHandler, reviewHandler, trainerCatalogHandler,
 		adminHandler, passwordResetHandler, relationshipHandler,
-		coachingRequestHandler, workoutPlanHandler)
+		coachingRequestHandler, workoutPlanHandler, authLimiter)
 
 	return &TestEnv{
 		DB:     pool,
@@ -175,7 +180,7 @@ func buildTestRouter(cfg *config.Config, authSvc *services.AuthService, userRepo
 	reviewH *handlers.ReviewHandler, trainerH *handlers.TrainerCatalogHandler,
 	adminH *handlers.AdminHandler, pwH *handlers.PasswordResetHandler,
 	relH *handlers.RelationshipHandler, coachH *handlers.CoachingRequestHandler,
-	wpH *handlers.WorkoutPlanHandler,
+	wpH *handlers.WorkoutPlanHandler, authLimiter *middleware.RateLimiter,
 ) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
@@ -193,7 +198,7 @@ func buildTestRouter(cfg *config.Config, authSvc *services.AuthService, userRepo
 	authMw := middleware.JWTAuthMiddleware(cfg, authSvc, userRepo)
 
 	apiGroup := router.Group("/api")
-	routes.AuthRoutes(apiGroup, authH, pwH)
+	routes.AuthRoutes(apiGroup, authH, pwH, authLimiter)
 	routes.UserRoutes(apiGroup, userH, authMw)
 	routes.AdminRoutes(apiGroup, adminH, authMw)
 	routes.WorkoutRoutes(apiGroup, wsH, authMw)

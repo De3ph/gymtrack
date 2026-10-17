@@ -2,10 +2,7 @@ package app
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"gymtrack-backend/internal/api/handlers"
@@ -28,6 +25,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
+	"golang.org/x/time/rate"
 )
 
 var RepositoryModule = fx.Module("repositories",
@@ -209,8 +208,35 @@ var RepositoryModule = fx.Module("repositories",
 		handlers.NewBodyMeasurementHandler,
 		handlers.NewPasswordResetHandler,
 
-		func() *gin.Engine {
-			return gin.Default()
+		// Gin engine. The mode comes from GIN_MODE (or APP_ENV=production),
+		// not from the compiled binary, so production never runs in debug mode
+		// by accident. Trusted proxies default to none: X-Forwarded-For is only
+		// honoured from the CIDRs listed in TRUSTED_PROXIES (the compose
+		// reverse proxy). Trusting every proxy would let clients spoof
+		// ClientIP and bypass the per-IP rate limiter.
+		func(cfg *config.Config) *gin.Engine {
+			gin.SetMode(cfg.GinMode)
+			router := gin.Default()
+			if err := router.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+				zap.L().Warn("invalid TRUSTED_PROXIES; trusting no proxies",
+					zap.Strings("proxies", cfg.TrustedProxies), zap.Error(err))
+				_ = router.SetTrustedProxies(nil)
+			}
+			return router
+		},
+
+		// Per-IP limiter for the auth endpoints. It is provided (not created
+		// inline in the route table) so its cleanup goroutine can be stopped
+		// on shutdown by the lifecycle hook below.
+		func(lc fx.Lifecycle) *middleware.RateLimiter {
+			limiter := middleware.NewRateLimiter(rate.Limit(5), 10)
+			lc.Append(fx.Hook{
+				OnStop: func(context.Context) error {
+					limiter.Stop()
+					return nil
+				},
+			})
+			return limiter
 		},
 
 		func() *prometheus.Registry {
@@ -267,28 +293,25 @@ var RepositoryModule = fx.Module("repositories",
 		router *gin.Engine,
 		registry *prometheus.Registry,
 		pool *pgxpool.Pool,
+		authLimiter *middleware.RateLimiter,
 	) {
 		authMw := middleware.JWTAuthMiddleware(cfg, authService, userRepo)
 		metricsMw := middleware.MetricsMiddleware(registry)
 
 		corsConfig := cors.DefaultConfig()
-		allowedOrigins := []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"}
-		if v := os.Getenv("CORS_ALLOWED_ORIGINS"); v != "" {
-			allowedOrigins = nil
-			for _, origin := range strings.Split(v, ",") {
-				origin = strings.TrimSpace(origin)
-				if origin != "" {
-					allowedOrigins = append(allowedOrigins, origin)
-				}
-			}
-		}
-		corsConfig.AllowOrigins = allowedOrigins
-
-		// corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"} // Replaced by AllowAllOrigins above
 		corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}
 		corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 		corsConfig.AllowCredentials = true
-
+		if len(cfg.AllowedOrigins) == 0 {
+			// Production default: the browser talks to the backend through the
+			// same-origin reverse proxy, so no cross-origin access is needed.
+			// gin-contrib/cors panics on an empty allow-list ("all origins
+			// disabled"), so reject every origin explicitly instead.
+			corsConfig.AllowOriginFunc = func(string) bool { return false }
+			zap.L().Info("CORS: no ALLOWED_ORIGINS configured; cross-origin browser requests are rejected (same-origin reverse proxy expected)")
+		} else {
+			corsConfig.AllowOrigins = cfg.AllowedOrigins
+		}
 		router.Use(cors.New(corsConfig))
 		router.Use(middleware.BodyLimitMiddleware(middleware.DefaultMaxBodyBytes))
 
@@ -311,7 +334,7 @@ var RepositoryModule = fx.Module("repositories",
 		routes.RegisterSwaggerRoutes(router)
 
 		apiGroup := router.Group("/api")
-		routes.AuthRoutes(apiGroup, authHandler, pwResetHandler)
+		routes.AuthRoutes(apiGroup, authHandler, pwResetHandler, authLimiter)
 		routes.UserRoutes(apiGroup, userHandler, authMw)
 		routes.AdminRoutes(apiGroup, adminHandler, authMw)
 
@@ -333,12 +356,12 @@ var RepositoryModule = fx.Module("repositories",
 	fx.Invoke(StartServer),
 )
 
-func StartServer(lc fx.Lifecycle, router *gin.Engine) {
+func StartServer(lc fx.Lifecycle, router *gin.Engine, cfg *config.Config) {
 	var srv *http.Server
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			srv = &http.Server{
-				Addr:              ":8080",
+				Addr:              ":" + cfg.Port,
 				Handler:           router,
 				ReadTimeout:       10 * time.Second,
 				ReadHeaderTimeout: 5 * time.Second,
