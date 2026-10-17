@@ -30,7 +30,6 @@ COPY --from=builder /out/seed /app/seed
 USER gymtrack:gymtrack
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:8080/metrics >/dev/null || exit 1
+  CMD wget -q -O /dev/null http://127.0.0.1:8080/readyz || exit 1
 
-# Need a health endpoint. Check if backend has /health or /metrics.
 CMD ["/app/server"]

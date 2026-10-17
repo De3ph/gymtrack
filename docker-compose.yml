@@ -95,8 +95,9 @@ services:
         condition: service_completed_successfully
     ports:
       - "127.0.0.1:8080:8080"
+    # Mirrors the image HEALTHCHECK: readiness probe (DB ping), not liveness.
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/metrics"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/readyz"]
       interval: 30s
       timeout: 5s
       retries: 5

@@ -9,7 +9,7 @@
 -- database initialisation (i.e. when the pgdata volume is empty). If the
 -- volume already exists, the server will skip this file. In that case run
 -- it manually, e.g.:
---   docker exec -i gymtrack-postgres psql -U postgres -d fitness_app \
+--   docker exec -i gymtrack-postgres psql -U postgres -d gymtrack \
 --     < postgres/init-extensions.sql
 
 -- pg_stat_statements: per-query execution statistics for performance

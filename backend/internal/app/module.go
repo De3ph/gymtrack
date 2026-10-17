@@ -266,6 +266,7 @@ var RepositoryModule = fx.Module("repositories",
 		userRepo repositories.UserRepository,
 		router *gin.Engine,
 		registry *prometheus.Registry,
+		pool *pgxpool.Pool,
 	) {
 		authMw := middleware.JWTAuthMiddleware(cfg, authService, userRepo)
 		metricsMw := middleware.MetricsMiddleware(registry)
@@ -298,6 +299,10 @@ var RepositoryModule = fx.Module("repositories",
 
 		// pprof profiling endpoints (PPROF_ENABLED=true)
 		routes.RegisterProfilingRoutes(router, cfg.PProfEnabled)
+
+		// Liveness/readiness probe (DB ping). Registered before the metrics
+		// middleware so frequent health checks do not pollute HTTP metrics.
+		routes.RegisterHealthRoutes(router, pool)
 
 		// Prometheus metrics
 		router.Use(metricsMw)
