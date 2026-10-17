@@ -88,13 +88,16 @@ export default function LoginPage() {
             name="identifier"
             validators={{
               onChange: ({ value }) => {
-                if (!value || value.trim().length === 0) {
+                const identifier = value?.trim() ?? "";
+                if (identifier.length === 0) {
                   return t("email.error.required");
                 }
-                if (/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
+                // Mirrors the backend: an email address, or a 3-30 character
+                // alphanumeric username (models.User validate tag).
+                if (/^[\S]+@[\S]+\.[\S]+$/.test(identifier)) {
                   return undefined;
                 }
-                if (/^[a-zA-Z0-9]{3,30}$/.test(value)) {
+                if (/^[a-zA-Z0-9]{3,30}$/.test(identifier)) {
                   return undefined;
                 }
                 return t("email.error.invalid");
