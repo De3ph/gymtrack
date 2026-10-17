@@ -1,20 +1,27 @@
 'use server'
 
-import { revalidateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
+
+// `updateTag` is the Next 16 replacement for the deprecated single-argument
+// `revalidateTag(tag)` form. Both expire the tagged entries immediately so the
+// next read waits for fresh data — which is what these actions need, since each
+// runs after a mutation and the user must see their own write. Unlike
+// `revalidateTag`, `updateTag` may only be called from a Server Action, which
+// every function in this file is (see the 'use server' directive above).
 
 export async function revalidateTrainerProfileCache() {
-  revalidateTag('trainer-profile', 'max')
+  updateTag('trainer-profile')
 }
 
 export async function revalidateWorkoutPlansCache() {
-  revalidateTag('workout-plans', 'max')
+  updateTag('workout-plans')
 }
 
 export async function revalidateBodyMeasurementsCache() {
-  revalidateTag('body-measurements', 'max')
-  revalidateTag('latest-body-measurement', 'max')
+  updateTag('body-measurements')
+  updateTag('latest-body-measurement')
 }
 
 export async function revalidateAdminStatsCache() {
-  revalidateTag('admin-stats', 'max')
+  updateTag('admin-stats')
 }

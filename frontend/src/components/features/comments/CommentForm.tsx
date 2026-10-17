@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { commentApi } from "@/lib/api";
+import type { CreateCommentRequest } from "@/types";
 import {
   COMMENT_MAX_LENGTH,
   type CreateCommentFormData,
@@ -64,7 +65,10 @@ export function CommentForm({
   });
 
   const { mutate, isPending, error } = useMutation({
-    mutationFn: (data: CreateCommentFormData) => commentApi.create(data),
+    // The payload is built in onSubmit above, not taken from the form values —
+    // it always carries a normalized `parentCommentId: string | undefined`
+    // rather than the schema's wider `string | null | undefined`.
+    mutationFn: (data: CreateCommentRequest) => commentApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       form.reset();
