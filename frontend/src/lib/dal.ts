@@ -12,6 +12,7 @@ import type {
 } from '@/lib/api/adminApi'
 import type {
   BodyMeasurement,
+  CurrentUser,
   Equipment,
   ExerciseLibrary,
   MuscleGroup,
@@ -77,11 +78,11 @@ async function refreshAccessToken(
   }
 }
 
-async function getSessionPayload() {
+const getSessionPayload = cache(async () => {
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value
   return decrypt(sessionCookie)
-}
+})
 
 /**
  * Read-only session lookup. Returns null when not authenticated so Server
@@ -139,6 +140,17 @@ export const verifySession = cache(async () => {
     role: payload.role,
     accessToken,
   }
+})
+
+/**
+ * Authoritative current-user lookup for Server Components. Reads the session
+ * cookie (redirecting to /login when absent) and fetches the profile from the
+ * Go backend once per request. The dashboard layout passes the result down so
+ * the client does not have to re-fetch /users/me after hydration.
+ */
+export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
+  const session = await verifySession()
+  return serverFetch<CurrentUser>('/users/me', session.accessToken)
 })
 
 /**

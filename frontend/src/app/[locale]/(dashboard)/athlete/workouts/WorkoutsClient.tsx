@@ -21,16 +21,16 @@ import {
 } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
-import { Workout } from "@/types";
+import { WorkoutPlan } from "@/types";
 
 interface WorkoutsClientProps {
-  initialWorkout?: Workout;
+  initialPlan?: WorkoutPlan;
   initialPlanName?: string | null;
   planId: string | null;
 }
 
 export function WorkoutsClient({
-  initialWorkout,
+  initialPlan,
   initialPlanName,
   planId,
 }: WorkoutsClientProps) {
@@ -125,7 +125,7 @@ export function WorkoutsClient({
               <CardContent>
                 <WorkoutForm
                   key={planId || "default"}
-                  workout={initialWorkout}
+                  plan={initialPlan}
                   loadedPlanName={initialPlanName}
                   onSuccess={() => handleTabChange("list")}
                   onClear={handleClear}

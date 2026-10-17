@@ -1,33 +1,49 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/lib/hooks/useLogout";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { WelcomeGifDialog } from "@/components/features/welcome/welcome-gif-dialog";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { qk } from "@/lib/query-keys";
+import type { User } from "@/types";
 
 export function DashboardClientShell({
   children,
   defaultSidebarOpen,
+  initialUser,
 }: {
   children: React.ReactNode;
   /** Persisted sidebar rail state, read from the cookie in the server layout. */
   defaultSidebarOpen?: boolean;
+  /** Authoritative user fetched by the server layout (RSC). */
+  initialUser?: User;
 }) {
   const { user, initializeAuth, isInitialized, isLoading, isAuthenticated } =
     useAuthStore();
   const { logout } = useLogout();
+  const queryClient = useQueryClient();
+
+  // Seed the query cache before children render so the profile query (and any
+  // other consumer of qk.currentUser) starts with the server's data instead of
+  // firing a duplicate /users/me request after hydration.
+  useState(() => {
+    if (initialUser) queryClient.setQueryData(qk.currentUser, initialUser);
+  });
 
   const showAuthGate = isInitialized && !isLoading && !isAuthenticated;
 
-  // One-time initialization on mount (initializeAuth is a no-op if already done)
+  // One-time initialization on mount. Passing the server user skips the
+  // redundant /users/me round-trip; only the in-memory token still needs to be
+  // recovered from the HttpOnly cookie.
   useEffect(() => {
     if (!isInitialized) {
-      initializeAuth();
+      initializeAuth(initialUser);
     }
-  }, [initializeAuth, isInitialized]);
+  }, [initializeAuth, isInitialized, initialUser]);
 
   // Build locale-aware login URL from the current path
   const loginUrl =

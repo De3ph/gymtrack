@@ -39,6 +39,13 @@ interface WorkoutFormProps {
   onClear?: () => void;
   workout?: Workout;
   /**
+   * Workout plan seeded from `?planId=`. Mapping it here (instead of
+   * fabricating a Workout with `new Date()` timestamps in the RSC) keeps the
+   * server output deterministic — the form already owns "now" for a new
+   * workout.
+   */
+  plan?: WorkoutPlan;
+  /**
    * Name of the plan this workout was preloaded from, when it arrived via
    * `?planId=`. Seeds the inline "loaded from X" hint, which the server-side
    * seeding path would otherwise never set. The load toast is fired by
@@ -187,6 +194,7 @@ export function WorkoutForm({
   onSuccess,
   onClear,
   workout: initialWorkout,
+  plan: initialPlan,
   loadedPlanName: initialPlanName,
 }: WorkoutFormProps) {
   const queryClient = useQueryClient();
@@ -212,7 +220,9 @@ export function WorkoutForm({
             exerciseId: String(ex.exerciseId),
             sets: ex.sets.map((s) => ({ ...s, setId: s.setId ?? undefined })),
           }))
-        : [{ ...createDefaultExercise(), exerciseId: String(0) }],
+        : initialPlan?.exercises
+          ? initialPlan.exercises.map(planExerciseToWorkoutExercise)
+          : [{ ...createDefaultExercise(), exerciseId: String(0) }],
     },
     validators: {
       onSubmit: workoutWithPerSetSchema,
@@ -309,8 +319,9 @@ export function WorkoutForm({
     return merged;
   }, [ownPlansData, assignedPlansData]);
 
+  const seededPlanId = initialWorkout?.planId ?? initialPlan?.planId;
   const [selectedPlanId, setSelectedPlanId] = useState<string>(
-    initialWorkout?.planId != null ? String(initialWorkout.planId) : "",
+    seededPlanId != null ? String(seededPlanId) : "",
   );
   const [loadedPlanName, setLoadedPlanName] = useState<string | null>(
     initialPlanName ?? null,

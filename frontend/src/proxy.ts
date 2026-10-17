@@ -57,6 +57,15 @@ function isTrainerRoute(pathname: string): boolean {
 // separate keys list (decryptCacheOrder) as a FIFO queue because re-setting an
 // existing key would otherwise move it to the end of the Map's iteration
 // order — FIFO semantics must be preserved explicitly.
+/**
+ * Only re-sign the 7-day session cookie once it has lost a day of validity.
+ * Rolling on every navigation turned every request into a decrypt + JWT sign
+ * for no benefit — the cookie still had ~7 days left. With this threshold the
+ * vast majority of requests skip the work entirely; an active session still
+ * rolls once per day (and on any request inside that last day).
+ */
+const SESSION_ROLL_THRESHOLD_MS = 6 * 24 * 60 * 60 * 1000;
+
 const decryptCache = new Map<string, { payload: SessionPayload; exp: number }>();
 const decryptCacheOrder: string[] = [];
 const DECRYPT_CACHE_MAX = 1000;
@@ -88,8 +97,10 @@ export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
   const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value
 
+  let payload: SessionPayload | null = null
+
   if (!isPublicRoute(path)) {
-    const payload = sessionCookie ? await cachedDecrypt(sessionCookie) : null
+    payload = sessionCookie ? await cachedDecrypt(sessionCookie) : null
 
     if (!payload?.userId) {
       const loginUrl = new URL('/login', req.nextUrl)
@@ -111,20 +122,26 @@ export default async function proxy(req: NextRequest) {
     }
   }
 
-  // Let next-intl handle i18n routing
-  const response = await intlMiddleware(req)
+  // Extend session expiry only when the cookie is close to lapsing, and run the
+  // re-sign in parallel with next-intl's routing work instead of after it.
+  const needsRoll =
+    !!payload &&
+    payload.expiresAt.getTime() - Date.now() < SESSION_ROLL_THRESHOLD_MS
 
-  // Extend session expiry on every request if the session is valid
-  if (sessionCookie) {
-    const refreshed = await updateSession(sessionCookie)
-    if (refreshed) {
-      response.cookies.set(SESSION_COOKIE_NAME, refreshed, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      })
-    }
+  const [response, refreshed] = await Promise.all([
+    intlMiddleware(req),
+    needsRoll && sessionCookie
+      ? updateSession(sessionCookie)
+      : Promise.resolve(null),
+  ])
+
+  if (refreshed) {
+    response.cookies.set(SESSION_COOKIE_NAME, refreshed, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    })
   }
 
   // Roll the separate refresh-token cookie alongside the session so the

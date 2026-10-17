@@ -15,7 +15,7 @@ interface AuthState {
   login: (identifier: string, password: string) => Promise<User>
   logout: () => Promise<void>
   setUser: (user: User) => void
-  initializeAuth: () => Promise<void>
+  initializeAuth: (initialUser?: User) => Promise<void>
   handleAuthError: (error: unknown) => Promise<void>
   refreshAccessToken: () => Promise<boolean>
 }
@@ -89,7 +89,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user })
   },
 
-  initializeAuth: async () => {
+  initializeAuth: async (initialUser?: User) => {
     const state = get()
 
     // Prevent multiple initializations
@@ -117,12 +117,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       //    is recovered from its dedicated cookie via the GET handler.
       tokenService.setTokens(session.accessToken, session.refreshToken || '')
 
-      // 3. Fetch full user profile from Go backend
-      const user = await userApi.getCurrentUser()
+      // 3. Use the user the server layout already fetched, if present. This
+      //    removes the second sequential round-trip (/users/me) from the
+      //    critical path on every dashboard navigation.
+      let safeUser: User
+      if (initialUser) {
+        safeUser = initialUser
+      } else {
+        const user = await userApi.getCurrentUser()
 
-      // The generated API type marks every field optional, but the backend always
-      // returns them. toUser narrows it to the local User type in one place.
-      const safeUser = toUser(user, state.user)
+        // The generated API type marks every field optional, but the backend
+        // always returns them. toUser narrows it in one place.
+        safeUser = toUser(user, state.user)
+      }
 
       set({
         token: session.accessToken,
