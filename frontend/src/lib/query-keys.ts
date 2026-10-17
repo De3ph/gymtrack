@@ -44,6 +44,12 @@ export interface ClientDetailFilters {
   mealType?: string;
 }
 
+/** Params accepted by every trainer client-history endpoint. */
+export interface ClientHistoryParams extends ListParams {
+  exerciseType?: string;
+  mealType?: string;
+}
+
 export interface AdminUsersListParams {
   role?: string;
   period?: "all" | "today" | "week" | "month";
@@ -75,6 +81,9 @@ export const qk = {
   workouts: {
     all: ["workouts"] as const,
     list: (p: ListParams) => ["workouts", "list", p] as const,
+    /** Trainer viewing a client's workout history (paginated). */
+    clientList: (username: string, p: ClientHistoryParams) =>
+      ["workouts", "client", username, p] as const,
     calendar: ["workouts", "calendar"] as const,
     dashboard: (r: DateRange) => ["workouts", "dashboard", r] as const,
   },
@@ -82,6 +91,9 @@ export const qk = {
   meals: {
     all: ["meals"] as const,
     list: (p: ListParams) => ["meals", "list", p] as const,
+    /** Trainer viewing a client's meal history (paginated). */
+    clientList: (username: string, p: ClientHistoryParams) =>
+      ["meals", "client", username, p] as const,
     calendar: ["meals", "calendar"] as const,
     byDate: (date: string) => ["meals", "by-date", date] as const,
     dashboard: (r: DateRange) => ["meals", "dashboard", r] as const,
@@ -90,6 +102,18 @@ export const qk = {
   measurements: {
     all: ["body-measurements"] as const,
     list: (p: ListParams) => ["body-measurements", "list", p] as const,
+    /** Trainer viewing a client's measurement history (paginated). */
+    clientList: (username: string, p: ClientHistoryParams) =>
+      ["body-measurements", "client", username, p] as const,
+    /** Trainer charts — full-range fetch, not a single page. */
+    clientCharts: (username: string, f: MeasurementFilterParams) =>
+      [
+        "body-measurements",
+        "client",
+        username,
+        "charts",
+        { startDate: f.startDate, endDate: f.endDate },
+      ] as const,
     chartsAll: ["body-measurements", "charts"] as const,
     charts: (f: MeasurementFilterParams) =>
       ["body-measurements", "charts", { startDate: f.startDate, endDate: f.endDate }] as const,

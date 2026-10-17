@@ -18,6 +18,7 @@ import { workoutApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { useWorkoutListStore } from "@/stores/workout-list-store";
+import { useCollapseSeed } from "@/hooks/use-collapse-seed";
 import { WorkoutFilterBar } from "./WorkoutFilterBar";
 import { WorkoutCard } from "./WorkoutCard";
 import { Workout } from "@/types";
@@ -35,6 +36,16 @@ interface WorkoutListProps {
   onFilterChange?: (filter: WorkoutFilter) => void;
   page?: number;
   onPageChange?: (page: number) => void;
+  /**
+   * Server-side total for the current filter. Pass it when the caller owns
+   * the query (trainer client tabs); without it the list only paginates when
+   * it fetches by itself.
+   */
+  totalCount?: number;
+  /** Start every card except the newest one collapsed (trainer history view). */
+  collapseAllExceptFirst?: boolean;
+  /** Hide the built-in filter bar when the parent owns the filters. */
+  showFilterBar?: boolean;
 }
 
 export function WorkoutList({
@@ -43,6 +54,9 @@ export function WorkoutList({
   onFilterChange,
   page: pageProp,
   onPageChange,
+  totalCount: totalCountProp,
+  collapseAllExceptFirst = false,
+  showFilterBar = true,
 }: WorkoutListProps) {
   const t = useTranslations("workout.list");
   const tPagination = useTranslations("workout.pagination");
@@ -68,15 +82,6 @@ export function WorkoutList({
     string | number | null
   >(null);
 
-  const [collapsedIds, setCollapsedIds] = React.useState<Record<string, boolean>>(
-    {},
-  );
-
-  const toggleCollapsed = (id: string | number) => {
-    const key = String(id);
-    setCollapsedIds((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
   const pageSize = PAGINATION.WORKOUT_PAGE_SIZE;
   const isSelfFetching = !propWorkouts;
 
@@ -100,7 +105,21 @@ export function WorkoutList({
     enabled: isSelfFetching,
   });
 
-  const filterBar = isSelfFetching ? (
+  const workouts = propWorkouts || data?.workouts || [];
+
+  const propTotal = propWorkouts ? propWorkouts.length : undefined;
+  const totalCount = totalCountProp ?? propTotal ?? data?.count ?? 0;
+
+  // A caller that supplies its own total owns the paging UI; otherwise only
+  // the self-fetching list can paginate.
+  const canPaginate = isSelfFetching || totalCountProp !== undefined;
+
+  const { collapsedIds, toggleCollapsed } = useCollapseSeed(
+    workouts.map((w) => w.workoutId),
+    collapseAllExceptFirst,
+  );
+
+  const filterBar = isSelfFetching && showFilterBar ? (
     <WorkoutFilterBar filter={filter} onChange={handleFilterChange} />
   ) : null;
 
@@ -127,10 +146,8 @@ export function WorkoutList({
     );
   }
 
-  const workouts = propWorkouts || data?.workouts || [];
-  const totalCount = propWorkouts ? propWorkouts.length : (data?.count ?? 0);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const showPagination = isSelfFetching && totalPages > 1;
+  const showPagination = totalPages > 1 && canPaginate;
 
   if (workouts.length === 0) {
     return (
@@ -150,7 +167,7 @@ export function WorkoutList({
     <div className="space-y-4">
       {filterBar}
 
-      {isSelfFetching && totalCount > 0 && (
+      {canPaginate && totalCount > 0 && (
         <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {tPagination("count", { count: totalCount })}
         </div>

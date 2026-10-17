@@ -30,20 +30,32 @@ import {
   EmptyHeader,
   EmptyTitle
 } from "@/components/ui/empty";
-import { bodyMeasurementApi } from "@/lib/api";
+import { bodyMeasurementApi, trainerClientApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { DataError } from "@/components/features/DataError";
+import { fetchAllPages } from "@/lib/api/fetch-all-pages";
 import { BODY_PARTS, PAGINATION } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { BodyMeasurement } from "@/types";
 import { BodyMeasurementFilterBar } from "./BodyMeasurementFilterBar";
 import type { BodyMeasurementFilter } from "./BodyMeasurementList";
+import { toClientDateRange } from "@/components/features/trainer/client-tabs/client-date-range";
 
 interface BodyMeasurementChartsProps {
   measurements?: BodyMeasurement[];
   filter?: BodyMeasurementFilter;
   onFilterChange?: (filter: BodyMeasurementFilter) => void;
+  /**
+   * Trainer view: fetch the client's full history through the client
+   * endpoint. Charts must never be fed a single list page, so `clientUsername`
+   * and `clientDateRange` go together — passing the username without a range
+   * would silently plot the wrong window.
+   */
+  clientUsername?: string;
+  clientDateRange?: { start: string; end: string };
+  /** Keep the query idle until the caller's panel is actually visible. */
+  enabled?: boolean;
 }
 
 /** Body-part line colors — all from system ramps (chart-* + extensions) */
@@ -80,7 +92,10 @@ const CARD_CONTENT_OVERRIDES = "rounded-none px-6 py-6 sm:px-8";
 export function BodyMeasurementCharts({
   measurements: propMeasurements,
   filter: filterProp,
-  onFilterChange
+  onFilterChange,
+  clientUsername,
+  clientDateRange,
+  enabled = true,
 }: BodyMeasurementChartsProps) {
   const t = useTranslations("body_measurement.charts");
   const tParts = useTranslations("athlete.measurements.parts");
@@ -96,27 +111,58 @@ export function BodyMeasurementCharts({
     [onFilterChange],
   );
 
-  const isSelfFetching = !propMeasurements;
+  // Two independent modes: trainer client history (clientUsername + range
+  // together) or the signed-in athlete's own history. A missing range in
+  // client mode falls back to the unfiltered history rather than plotting a
+  // stale local filter.
+  const isClientMode = Boolean(clientUsername);
+  const fetchesRemote = !propMeasurements;
+
+  const range = isClientMode
+    ? toClientDateRange(clientDateRange ?? { start: "", end: "" })
+    : { startDate: filter.startDate, endDate: filter.endDate };
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: qk.measurements.charts({
-      startDate: filter.startDate,
-      endDate: filter.endDate
-    }),
-    queryFn: () =>
-      bodyMeasurementApi.getAll({
-        limit: PAGINATION.BODY_MEASUREMENT_CHART_LIMIT,
-        startDate: filter.startDate,
-        endDate: filter.endDate
-      }),
-    enabled: isSelfFetching
+    queryKey: isClientMode
+      ? qk.measurements.clientCharts(clientUsername!, {
+          startDate: range.startDate,
+          endDate: range.endDate
+        })
+      : qk.measurements.charts({
+          startDate: range.startDate,
+          endDate: range.endDate
+        }),
+    queryFn: () => {
+      const fetchPage = isClientMode
+        ? (offset: number, limit: number) =>
+            trainerClientApi
+              .getClientMeasurements(clientUsername!, {
+                limit,
+                offset,
+                startDate: range.startDate,
+                endDate: range.endDate
+              })
+              .then((res) => ({ items: res.measurements, count: res.count }))
+        : (offset: number, limit: number) =>
+            bodyMeasurementApi
+              .getAll({
+                limit,
+                offset,
+                startDate: range.startDate,
+                endDate: range.endDate
+              })
+              .then((res) => ({ items: res.measurements, count: res.count }));
+
+      return fetchAllPages(fetchPage, PAGINATION.BODY_MEASUREMENT_CHART_LIMIT);
+    },
+    enabled: fetchesRemote && enabled
   });
 
   // Derive the chart dataset once per data change so recharts doesn't
   // re-process identical data on unrelated re-renders. These hooks must
   // run before any early return to satisfy the rules of hooks.
   const raw = React.useMemo(
-    () => propMeasurements || data?.measurements || [],
+    () => propMeasurements || data || [],
     [propMeasurements, data],
   );
 
@@ -158,7 +204,7 @@ export function BodyMeasurementCharts({
     [chartData],
   );
 
-  if (isLoading && isSelfFetching) {
+  if (isLoading && fetchesRemote) {
     return (
       <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
         <Spinner />
@@ -167,14 +213,16 @@ export function BodyMeasurementCharts({
     );
   }
 
-  const filterBar = isSelfFetching ? (
-    <BodyMeasurementFilterBar
-      filter={filter}
-      onChange={handleFilterChange}
-    />
-  ) : null;
+  // The client-detail tabs own the filters, so the bar is athlete-only.
+  const filterBar =
+    fetchesRemote && !isClientMode ? (
+      <BodyMeasurementFilterBar
+        filter={filter}
+        onChange={handleFilterChange}
+      />
+    ) : null;
 
-  if (isSelfFetching && error) {
+  if (fetchesRemote && error) {
     return (
       <div className="space-y-4">
         {filterBar}

@@ -43,6 +43,18 @@ interface BodyMeasurementListProps {
   onFilterChange?: (filter: BodyMeasurementFilter) => void;
   page?: number;
   onPageChange?: (page: number) => void;
+  /**
+   * Server-side total for the current filter. Pass it when the caller owns
+   * the query (trainer client tabs); without it the list only paginates when
+   * it fetches by itself.
+   */
+  totalCount?: number;
+  /**
+   * The row that follows the last item on this page, used for its delta.
+   * Paging slices break the "previous row" chain, so the caller fetches the
+   * next page's newest row and hands it over.
+   */
+  previousOfLast?: BodyMeasurement;
 }
 
 export function BodyMeasurementList({
@@ -52,7 +64,9 @@ export function BodyMeasurementList({
   filter: filterProp,
   onFilterChange,
   page: pageProp,
-  onPageChange
+  onPageChange,
+  totalCount: totalCountProp,
+  previousOfLast
 }: BodyMeasurementListProps) {
   const t = useTranslations("body_measurement.list");
   const tPagination = useTranslations("body_measurement.pagination");
@@ -145,9 +159,16 @@ export function BodyMeasurementList({
   }
 
   const measurements = propMeasurements || data?.measurements || [];
-  const totalCount = propMeasurements ? propMeasurements.length : data?.count ?? 0;
+
+  const propTotal = propMeasurements ? propMeasurements.length : undefined;
+  const totalCount = totalCountProp ?? propTotal ?? data?.count ?? 0;
+
+  // A caller that supplies its own total owns the paging UI; otherwise only
+  // the self-fetching list can paginate.
+  const canPaginate = isSelfFetching || totalCountProp !== undefined;
+
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const showPagination = isSelfFetching && totalPages > 1;
+  const showPagination = totalPages > 1 && canPaginate;
 
   if (measurements.length === 0) {
     return (
@@ -168,7 +189,7 @@ export function BodyMeasurementList({
     <div className="space-y-4">
       {filterBar}
 
-      {isSelfFetching && totalCount > 0 && (
+      {(canPaginate) && totalCount > 0 && (
         <div className="text-xs text-muted-foreground">
           {tPagination("count", { count: totalCount })}
         </div>
@@ -178,7 +199,10 @@ export function BodyMeasurementList({
         <BodyMeasurementListItem
           key={m.measurementId}
           measurement={m}
-          previous={measurements[idx + 1]}
+          previous={
+            measurements[idx + 1] ??
+            (idx === measurements.length - 1 ? previousOfLast : undefined)
+          }
           readOnly={readOnly}
           onEdit={handleEdit}
           onDelete={handleDelete}

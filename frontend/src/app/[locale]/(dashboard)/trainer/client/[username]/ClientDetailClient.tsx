@@ -20,7 +20,6 @@ import { ArrowLeft, UserX } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
-import dayjs from "dayjs";
 
 const VALID_TABS = [
   "overview",
@@ -53,37 +52,21 @@ export default function ClientDetailClient() {
   const [mealType, setMealType] = useState("");
 
   const { data, isLoading, error } = useQuery({
-    queryKey: qk.clients.detail(username, {
-      dateRange,
-      exerciseType,
-      mealType,
-    }),
+    // Only the header + stats live in this query, so the shared filters must
+    // not be part of the key — they would refetch both calls for nothing.
+    queryKey: qk.clients.detail(username),
     queryFn: async () => {
-      const [details, workoutsResp, mealsResp, measurementsResp, statsResp] =
-        await Promise.all([
-          relationshipApi.getClientDetails(username),
-          trainerClientApi.getClientWorkouts(username, {
-            ...(dateRange.start && { startDate: dayjs(dateRange.start).startOf("day").toISOString() }),
-            ...(dateRange.end && { endDate: dayjs(dateRange.end).endOf("day").toISOString() }),
-            ...(exerciseType && { exerciseType }),
-          }),
-          trainerClientApi.getClientMeals(username, {
-            ...(dateRange.start && { startDate: dayjs(dateRange.start).startOf("day").toISOString() }),
-            ...(dateRange.end && { endDate: dayjs(dateRange.end).endOf("day").toISOString() }),
-            ...(mealType && { mealType }),
-          }),
-          trainerClientApi.getClientMeasurements(username, {
-            ...(dateRange.start && { startDate: dayjs(dateRange.start).startOf("day").toISOString() }),
-            ...(dateRange.end && { endDate: dayjs(dateRange.end).endOf("day").toISOString() }),
-          }),
-          trainerClientApi.getClientStats(username),
-        ]);
+      // Only the client header + stats live here. The workout / meal /
+      // measurement histories are paginated per tab (WorkoutsTab, MealsTab,
+      // MeasurementsTab) and filtered there, so pulling them here would fetch
+      // page one twice and ship the whole history to a tab that may never open.
+      const [details, statsResp] = await Promise.all([
+        relationshipApi.getClientDetails(username),
+        trainerClientApi.getClientStats(username),
+      ]);
       return {
         athlete: details.athlete,
         stats: details.stats,
-        workouts: workoutsResp.workouts,
-        meals: mealsResp.meals,
-        measurements: measurementsResp.measurements,
         workoutStats: statsResp.workoutStats
           ? {
               totalVolume: statsResp.workoutStats.totalVolume ?? 0,
@@ -131,9 +114,6 @@ export default function ClientDetailClient() {
     athlete: data?.athlete ?? null,
     stats: data?.stats ?? null,
   };
-  const workouts = data?.workouts ?? [];
-  const meals = data?.meals ?? [];
-  const measurements = data?.measurements ?? [];
   const workoutStats = data?.workoutStats ?? null;
   const mealStats = data?.mealStats ?? null;
   const loading = isLoading;
@@ -237,9 +217,7 @@ export default function ClientDetailClient() {
       <ClientTabs
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        workouts={workouts}
-        meals={meals}
-        measurements={measurements}
+        username={username}
         workoutStats={workoutStats}
         mealStats={mealStats}
         dateRange={dateRange}

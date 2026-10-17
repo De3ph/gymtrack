@@ -21,6 +21,7 @@ import { ApiErrorHandler } from "@/lib/error-handler"
 import { DataError } from "@/components/features/DataError"
 import { Meal } from "@/types"
 import { useMealListStore } from "@/stores/meal-list-store"
+import { useCollapseSeed } from "@/hooks/use-collapse-seed"
 import { MealCard } from "./MealCard"
 import { MealFilterBar } from "./MealFilterBar"
 import { PAGINATION } from "@/lib/constants"
@@ -37,6 +38,14 @@ interface MealListProps {
   onFilterChange?: (filter: MealFilter) => void
   page?: number
   onPageChange?: (page: number) => void
+  /**
+   * Server-side total for the current filter. Pass it when the caller owns
+   * the query (trainer client tabs); without it the list only paginates when
+   * it fetches by itself.
+   */
+  totalCount?: number
+  /** Start every card except the newest one collapsed (trainer history view). */
+  collapseAllExceptFirst?: boolean
 }
 
 export function MealList({
@@ -44,7 +53,9 @@ export function MealList({
   filter: filterProp,
   onFilterChange,
   page: pageProp,
-  onPageChange
+  onPageChange,
+  totalCount: totalCountProp,
+  collapseAllExceptFirst = false
 }: MealListProps) {
   const t = useTranslations("meal")
   const tPagination = useTranslations("meal.pagination")
@@ -71,15 +82,6 @@ export function MealList({
     string | number | null
   >(null)
 
-  const [collapsedIds, setCollapsedIds] = React.useState<Record<string, boolean>>(
-    {},
-  );
-
-  const toggleCollapsed = (id: string | number) => {
-    const key = String(id);
-    setCollapsedIds((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
   const pageSize = PAGINATION.MEAL_PAGE_SIZE;
   const isSelfFetching = !propMeals;
 
@@ -102,6 +104,20 @@ export function MealList({
     placeholderData: keepPreviousData,
     enabled: isSelfFetching
   })
+
+  const meals = propMeals || data?.meals || []
+
+  const propTotal = propMeals ? propMeals.length : undefined
+  const totalCount = totalCountProp ?? propTotal ?? data?.count ?? 0
+
+  // A caller that supplies its own total owns the paging UI; otherwise only
+  // the self-fetching list can paginate.
+  const canPaginate = isSelfFetching || totalCountProp !== undefined
+
+  const { collapsedIds, toggleCollapsed } = useCollapseSeed(
+    meals.map((m) => m.mealId),
+    collapseAllExceptFirst,
+  )
 
   const filterBar = isSelfFetching ? (
     <MealFilterBar
@@ -131,10 +147,8 @@ export function MealList({
     )
   }
 
-  const meals = propMeals || data?.meals || []
-  const totalCount = propMeals ? propMeals.length : data?.count ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
-  const showPagination = isSelfFetching && totalPages > 1
+  const showPagination = totalPages > 1 && canPaginate
 
   if (meals.length === 0) {
     return (
@@ -155,7 +169,7 @@ export function MealList({
     <div className="space-y-4">
       {filterBar}
 
-      {isSelfFetching && totalCount > 0 && (
+      {canPaginate && totalCount > 0 && (
         <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {tPagination("count", { count: totalCount })}
         </div>

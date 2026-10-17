@@ -941,6 +941,7 @@
         "measurements_list": "History",
         "measurements_charts": "Charts",
         "no_measurements": "No body measurements recorded",
+        "loading": "Loading",
         "plans": "Plans"
       },
       "terminate_dialog": {

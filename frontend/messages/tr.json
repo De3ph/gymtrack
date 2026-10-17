@@ -941,6 +941,7 @@
         "measurements_list": "Geçmiş",
         "measurements_charts": "Grafikler",
         "no_measurements": "Vücut ölçümü kaydedilmemiş",
+        "loading": "Yükleniyor",
         "plans": "Planlar"
       },
       "terminate_dialog": {
