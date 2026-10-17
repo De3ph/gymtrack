@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { relationshipApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ArrowLeft } from "lucide-react";
@@ -23,7 +24,7 @@ export default function TrainerDetailPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["myTrainer"],
+    queryKey: qk.myTrainer.detail,
     queryFn: relationshipApi.getMyTrainer,
     enabled: !!trainerId,
   });

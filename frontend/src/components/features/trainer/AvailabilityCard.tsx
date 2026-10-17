@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DAYS_OF_WEEK } from "@/lib/constants";
 import { availabilityApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { TrainerAvailability } from "@/types";
 import dayjs from "dayjs";
 import { useState } from "react";
@@ -20,7 +21,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
   const [syncedSlots, setSyncedSlots] = useState<TrainerAvailability[] | undefined>(undefined);
 
   const { data: availabilityData, isLoading } = useQuery({
-    queryKey: ["myAvailability"],
+    queryKey: qk.trainer.me.availability,
     queryFn: () => availabilityApi.getMyAvailability(),
     staleTime: STALE_TIMES.FIVE_MINUTES,
   });
@@ -39,7 +40,7 @@ export default function AvailabilityCard({ onMessage }: AvailabilityCardProps) {
       availabilityApi.setMyAvailability(slotsToSave),
     onSuccess: () => {
       onMessage(t("trainer.availability.saved_success"));
-      queryClient.invalidateQueries({ queryKey: ["myAvailability"] });
+      queryClient.invalidateQueries({ queryKey: qk.trainer.me.availability });
     },
     onError: (error) => {
       onMessage(t("trainer.availability.save_failed"));

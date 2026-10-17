@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/empty";
 import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import { relationshipApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { ROUTES } from "@/lib/routes";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -64,8 +67,8 @@ export function TrainerDashboardContent() {
   const tTrainer = useTranslations("trainer.dashboard");
   const tCommon = useTranslations("common.actions");
 
-  const { data: clientData } = useQuery({
-    queryKey: ["dashboard-trainer-clients"],
+  const { data: clientData, error, refetch } = useQuery({
+    queryKey: qk.clients.dashboard,
     queryFn: relationshipApi.getMyClients,
   });
 
@@ -80,12 +83,25 @@ export function TrainerDashboardContent() {
     router.push(`/trainer/client/${username}`);
   };
 
+  const shellProps = {
+    eyebrow: tTrainer("eyebrow"),
+    title: tTrainer("title"),
+    description: tTrainer("description"),
+  } as const;
+
+  if (error) {
+    return (
+      <DashboardShell {...shellProps}>
+        <DataError
+          message={ApiErrorHandler.handle(error)}
+          onRetry={() => refetch()}
+        />
+      </DashboardShell>
+    );
+  }
+
   return (
-    <DashboardShell
-      eyebrow={tTrainer("eyebrow")}
-      title={tTrainer("title")}
-      description={tTrainer("description")}
-    >
+    <DashboardShell {...shellProps}>
       <motion.section className="grid gap-4 md:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">
         <DashboardMetric label={t("stats.clients")} value={clients.length} hint={tTrainer("client_hint")} />
         <DashboardMetric label={tTrainer("today_focus")} value={todayFocusClients.length} hint={tTrainer("focus_hint")} />

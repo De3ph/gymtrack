@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
 import { commentApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { CommentList } from "./CommentList";
 import { CommentForm } from "./CommentForm";
 
@@ -28,7 +29,9 @@ export function CommentThread({
   const t = useTranslations("comment");
   const [replyingToId, setReplyingToId] = React.useState<string | number | null>(null);
 
-  const queryKey = ["comments", targetType, targetId];
+  // Shared across the list and the form so a mutation in either one
+  // invalidates exactly this thread.
+  const queryKey = qk.comments.thread(targetType, targetId);
   const { data, isLoading, error } = useQuery({
     queryKey,
     queryFn: () => commentApi.getByTarget(targetType, targetId),

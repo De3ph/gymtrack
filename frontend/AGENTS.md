@@ -35,6 +35,10 @@
 - **Middleware**: `src/proxy.ts` combines next-intl i18n middleware + auth guard. It strips locale prefix before checking public routes. **Read this before adding auth-gated routes.**
 - **State**: React Query v5 for server state (5 min staleTime, 10 min gcTime, retry: 1). Zustand for client-only state (`authStore`). TanStack Query client is stored on `window.__TANSTACK_QUERY_CLIENT__` for auth-error clearing.
 - **API layer**: Centralized in `src/lib/api/`. Each domain has its own module (`authApi`, `workoutApi`, etc.). All use the shared `api-client.ts` which auto-attaches the Bearer token and targets `http://localhost:8080/api`. Error responses return `{ error: "..." }`.
+- **React Query keys**: All `useQuery` / `invalidateQueries` / `setQueryData` keys come from the `qk` factory in `src/lib/query-keys.ts`. Never build inline array literals at call sites — the same resource cached under two spellings (`["myClients"]` vs `["my-clients"]` once both existed) only refreshes half-way on mutation. Rules:
+  - Every domain has an `all` prefix entry; invalidate with the prefix (`qk.plans.all`), not per-key, so multi-view resources refresh in one call.
+  - Before adding a query, check the factory first — if the resource is already keyed, reuse that entry.
+  - Invalidations are layered over `revalidateTag`/`updateTag` server actions (`src/lib/actions/cache.ts`): the server action refreshes the RSC payload, the client invalidation refreshes the React Query cache. When a mutation already invalidates a covering prefix, do not stack redundant extra invalidations.
 
 ## UI & styling
 

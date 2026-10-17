@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, usePathname } from "next/navigation";
+import { qk } from "@/lib/query-keys";
 
 import {
   Card,
@@ -73,10 +74,11 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
   useEffect(() => {
     if (!justSubmittedRef.current) return;
     if (activeTab === "list") {
-      queryClient.invalidateQueries({ queryKey: ["body-measurements"] });
-      queryClient.invalidateQueries({ queryKey: ["latest-body-measurement"] });
+      // Covers list, charts and latest through the shared `body-measurements` prefix.
+      queryClient.invalidateQueries({ queryKey: qk.measurements.all });
     } else if (activeTab === "charts") {
-      queryClient.invalidateQueries({ queryKey: ["body-measurements"] });
+      // Prefix key: must still match chart queries built with a date filter.
+      queryClient.invalidateQueries({ queryKey: qk.measurements.chartsAll });
     }
     justSubmittedRef.current = false;
   }, [activeTab, queryClient]);

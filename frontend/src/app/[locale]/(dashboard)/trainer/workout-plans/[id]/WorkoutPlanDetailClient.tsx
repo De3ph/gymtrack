@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 
 import { WorkoutPlanForm } from "@/components/features/workout-plan/WorkoutPlanForm";
 import { AssignPlanDialog } from "@/components/features/workout-plan/AssignPlanDialog";
@@ -82,7 +83,7 @@ export function WorkoutPlanDetailClient({
                   onSuccess={async () => {
                     setShowEditForm(false);
                     await queryClient.invalidateQueries({
-                      queryKey: ["workout-plan", planId],
+                      queryKey: qk.plans.detail(planId),
                     });
                   }}
                 />
@@ -149,7 +150,7 @@ export function WorkoutPlanDetailClient({
                 }
                 onSuccess={async () => {
                   await queryClient.invalidateQueries({
-                    queryKey: ["workout-plan-assignments", planId],
+                    queryKey: qk.plans.assignments(planId),
                   });
                 }}
               />

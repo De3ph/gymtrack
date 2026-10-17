@@ -337,7 +337,8 @@
       "failed_load_body_measurements": "Could not load measurements. Check connection and try again.",
       "failed_load_trainer_profile": "Could not load trainer profile. Check connection and try again.",
       "failed_load_exercises": "Could not load the exercise library. Check connection and try again.",
-      "unexpected_error": "Something unexpected happened. Try again."
+      "unexpected_error": "Something unexpected happened. Try again.",
+      "error_title": "Error"
     },
     "loading": "Loading...",
     "search": {

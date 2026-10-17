@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 import {
   Pagination,
@@ -12,6 +12,9 @@ import {
   PaginationPrevious
 } from "@/components/ui/pagination";
 import { bodyMeasurementApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { PAGINATION } from "@/lib/constants";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -80,16 +83,20 @@ export function BodyMeasurementList({
   const pageSize = PAGINATION.BODY_MEASUREMENT_PAGE_SIZE;
   const isSelfFetching = !propMeasurements;
 
-  const { data, isLoading } = useQuery({
-    queryKey: [
-      "body-measurements",
-      {
-        page,
-        pageSize,
-        startDate: filter.startDate,
-        endDate: filter.endDate
-      }
-    ],
+  const filterBar = isSelfFetching ? (
+    <BodyMeasurementFilterBar
+      filter={filter}
+      onChange={handleFilterChange}
+    />
+  ) : null;
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.measurements.list({
+      page,
+      pageSize,
+      startDate: filter.startDate,
+      endDate: filter.endDate
+    }),
     queryFn: () =>
       bodyMeasurementApi.getAll({
         limit: pageSize,
@@ -97,6 +104,8 @@ export function BodyMeasurementList({
         startDate: filter.startDate,
         endDate: filter.endDate
       }),
+    // Keep the previous page visible while the next one loads.
+    placeholderData: keepPreviousData,
     enabled: isSelfFetching
   });
 
@@ -123,17 +132,22 @@ export function BodyMeasurementList({
     );
   }
 
+  if (isSelfFetching && error) {
+    return (
+      <div className="space-y-4">
+        {filterBar}
+        <DataError
+          message={ApiErrorHandler.handle(error)}
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
+
   const measurements = propMeasurements || data?.measurements || [];
   const totalCount = propMeasurements ? propMeasurements.length : data?.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const showPagination = isSelfFetching && totalPages > 1;
-
-  const filterBar = isSelfFetching ? (
-    <BodyMeasurementFilterBar
-      filter={filter}
-      onChange={handleFilterChange}
-    />
-  ) : null;
 
   if (measurements.length === 0) {
     return (

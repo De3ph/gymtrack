@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { TrainerProfile } from "@/types";
 import { trainerCatalogApi } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import { revalidateTrainerProfileCache } from "@/lib/actions/cache";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ export function TrainerProfileClient({
       trainerCatalogApi.updateTrainerProfile(profile),
     onSuccess: async () => {
       await revalidateTrainerProfileCache();
-      queryClient.invalidateQueries({ queryKey: ["myTrainerProfile"] });
+      queryClient.invalidateQueries({ queryKey: qk.trainer.me.profile });
       setMessage(t("profile_saved"));
       setTimeout(() => setMessage(""), 3000);
     },

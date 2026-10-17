@@ -8,6 +8,9 @@ import {
   DashboardShell,
 } from "@/components/features/dashboard/DashboardShell";
 import { mealApi, relationshipApi, workoutApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
@@ -15,6 +18,8 @@ import { motion } from "motion/react";
 import { staggerContainer } from "@/lib/animations";
 
 function getWeekRange() {
+  // Quantized to day boundaries so the key is stable for the whole day:
+  // different ms values at render time would otherwise fragment the cache.
   const start = dayjs().subtract(1, "week").startOf("day");
   const end = dayjs().endOf("day");
 
@@ -31,33 +36,31 @@ export function AthleteDashboardContent() {
 
   const {
     data: workoutData,
+    error: workoutError,
+    refetch: refetchWorkouts,
     isFetching: workoutsFetching,
   } = useQuery({
-    queryKey: [
-      "dashboard-athlete-workouts",
-      weekRange.startDate,
-      weekRange.endDate,
-    ],
+    queryKey: qk.workouts.dashboard(weekRange),
     queryFn: () => workoutApi.getAll(weekRange),
   });
 
   const {
     data: mealData,
+    error: mealError,
+    refetch: refetchMeals,
     isFetching: mealsFetching,
   } = useQuery({
-    queryKey: [
-      "dashboard-athlete-meals",
-      weekRange.startDate,
-      weekRange.endDate,
-    ],
+    queryKey: qk.meals.dashboard(weekRange),
     queryFn: () => mealApi.getAll(weekRange),
   });
 
   const {
     data: trainerData,
+    error: trainerError,
+    refetch: refetchTrainer,
     isFetching: trainerFetching,
   } = useQuery({
-    queryKey: ["dashboard-my-trainer"],
+    queryKey: qk.myTrainer.dashboard,
     queryFn: relationshipApi.getMyTrainer,
   });
 
@@ -65,6 +68,12 @@ export function AthleteDashboardContent() {
   const mealsThisWeek = mealData?.meals?.length ?? 0;
   const activeTrainer = trainerData?.activeTrainer?.trainer;
   const metricsLoading = workoutsFetching || mealsFetching || trainerFetching;
+  const metricsError = [workoutError, mealError, trainerError].find(Boolean);
+  const refetchAll = () => {
+    if (workoutError) refetchWorkouts();
+    if (mealError) refetchMeals();
+    if (trainerError) refetchTrainer();
+  };
 
   return (
     <DashboardShell
@@ -101,6 +110,13 @@ export function AthleteDashboardContent() {
             <DashboardMetricSkeleton />
             <DashboardMetricSkeleton />
           </>
+        ) : metricsError ? (
+          <div className="md:col-span-3">
+            <DataError
+              message={ApiErrorHandler.handle(metricsError)}
+              onRetry={refetchAll}
+            />
+          </div>
         ) : (
           <>
             <DashboardMetric

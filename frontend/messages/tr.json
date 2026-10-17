@@ -337,7 +337,8 @@
       "failed_load_body_measurements": "Ölçümler yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "failed_load_trainer_profile": "Antrenör profili yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "failed_load_exercises": "Egzersiz kütüphanesi yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
-      "unexpected_error": "Beklenmeyen bir hata oluştu. Tekrar dene."
+      "unexpected_error": "Beklenmeyen bir hata oluştu. Tekrar dene.",
+      "error_title": "Hata"
     },
     "loading": "Yükleniyor...",
     "search": {

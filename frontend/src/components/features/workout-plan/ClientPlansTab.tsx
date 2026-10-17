@@ -6,14 +6,17 @@ import { workoutPlanApi } from "@/lib/api";
 import { WorkoutPlanCard } from "./WorkoutPlanCard";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 
 export function ClientPlansTab() {
   const t = useTranslations('trainer.workout_plans')
   const params = useParams();
   const username = params.username as string;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["client-plans", username],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.plans.byClient(username),
     queryFn: () => workoutPlanApi.getClientPlans(username),
     enabled: !!username,
   });
@@ -23,6 +26,15 @@ export function ClientPlansTab() {
       <div className="flex justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <DataError
+        message={ApiErrorHandler.handle(error)}
+        onRetry={() => refetch()}
+      />
     );
   }
 

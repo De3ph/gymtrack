@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { useTranslations } from "next-intl"
 
@@ -16,6 +16,9 @@ import {
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 import { mealApi } from "@/lib/api"
+import { qk } from "@/lib/query-keys"
+import { ApiErrorHandler } from "@/lib/error-handler"
+import { DataError } from "@/components/features/DataError"
 import { Meal } from "@/types"
 import { useMealListStore } from "@/stores/meal-list-store"
 import { MealCard } from "./MealCard"
@@ -81,16 +84,13 @@ export function MealList({
   const isSelfFetching = !propMeals;
 
   // Only fetch data if not provided as props
-  const { data, isLoading } = useQuery({
-    queryKey: [
-      "meals",
-      {
-        page,
-        pageSize,
-        startDate: filter.startDate,
-        endDate: filter.endDate
-      }
-    ],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.meals.list({
+      page,
+      pageSize,
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+    }),
     queryFn: () =>
       mealApi.getAll({
         limit: pageSize,
@@ -98,8 +98,17 @@ export function MealList({
         startDate: filter.startDate,
         endDate: filter.endDate
       }),
+    // Keep the previous page visible while the next one loads.
+    placeholderData: keepPreviousData,
     enabled: isSelfFetching
   })
+
+  const filterBar = isSelfFetching ? (
+    <MealFilterBar
+      filter={filter}
+      onChange={handleFilterChange}
+    />
+  ) : null
 
   if (isLoading && isSelfFetching) {
     return (
@@ -110,17 +119,22 @@ export function MealList({
     )
   }
 
+  if (isSelfFetching && error) {
+    return (
+      <div className="space-y-4">
+        {filterBar}
+        <DataError
+          message={ApiErrorHandler.handle(error)}
+          onRetry={() => refetch()}
+        />
+      </div>
+    )
+  }
+
   const meals = propMeals || data?.meals || []
   const totalCount = propMeals ? propMeals.length : data?.count ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const showPagination = isSelfFetching && totalPages > 1
-
-  const filterBar = isSelfFetching ? (
-    <MealFilterBar
-      filter={filter}
-      onChange={handleFilterChange}
-    />
-  ) : null
 
   if (meals.length === 0) {
     return (

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Dumbbell } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   Pagination,
   PaginationContent,
@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { DataError } from "@/components/features/DataError";
 import { workoutApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
 import { useWorkoutListStore } from "@/stores/workout-list-store";
 import { WorkoutFilterBar } from "./WorkoutFilterBar";
 import { WorkoutCard } from "./WorkoutCard";
@@ -77,16 +80,13 @@ export function WorkoutList({
   const pageSize = PAGINATION.WORKOUT_PAGE_SIZE;
   const isSelfFetching = !propWorkouts;
 
-  const { data, isLoading } = useQuery({
-    queryKey: [
-      "workouts",
-      {
-        page,
-        pageSize,
-        startDate: filter.startDate,
-        endDate: filter.endDate,
-      },
-    ],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.workouts.list({
+      page,
+      pageSize,
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+    }),
     queryFn: () =>
       workoutApi.getAll({
         limit: pageSize,
@@ -94,6 +94,9 @@ export function WorkoutList({
         startDate: filter.startDate,
         endDate: filter.endDate,
       }),
+    // Keep the previous page on screen while the next one loads instead of
+    // flashing a skeleton on every page turn.
+    placeholderData: keepPreviousData,
     enabled: isSelfFetching,
   });
 
@@ -108,6 +111,18 @@ export function WorkoutList({
         <WorkoutCardSkeleton />
         <WorkoutCardSkeleton />
         <WorkoutCardSkeleton />
+      </div>
+    );
+  }
+
+  if (isSelfFetching && error) {
+    return (
+      <div className="space-y-4">
+        {filterBar}
+        <DataError
+          message={ApiErrorHandler.handle(error)}
+          onRetry={() => refetch()}
+        />
       </div>
     );
   }

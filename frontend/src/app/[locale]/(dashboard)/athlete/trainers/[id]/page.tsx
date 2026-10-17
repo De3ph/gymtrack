@@ -8,6 +8,9 @@ import dayjs from "dayjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { trainerCatalogApi, availabilityApi, reviewApi } from "@/lib/api";
 import { STALE_TIMES } from "@/lib/api/api-constants";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { useAuthStore } from "@/stores/authStore";
 import {
   TrainerWithProfile,
@@ -85,15 +88,15 @@ export default function TrainerProfilePage() {
   const currentUserId = user?.userId ? String(user.userId) : "";
   const queryClient = useQueryClient();
 
-  const { data: trainer, isLoading } = useQuery<TrainerWithProfile>({
-    queryKey: ["trainer", trainerId],
+  const { data: trainer, isLoading, error: trainerError, refetch: refetchTrainer } = useQuery<TrainerWithProfile>({
+    queryKey: qk.trainer.profile(trainerId),
     queryFn: () => trainerCatalogApi.getTrainerProfile(trainerId),
     staleTime: STALE_TIMES.FIVE_MINUTES,
     enabled: !!trainerId,
   });
 
   const { data: availabilityData } = useQuery({
-    queryKey: ["trainer-availability", trainerId],
+    queryKey: qk.trainer.availability(trainerId),
     queryFn: () => availabilityApi.getTrainerAvailability(trainerId),
     staleTime: STALE_TIMES.FIVE_MINUTES,
     enabled: !!trainerId,
@@ -101,7 +104,7 @@ export default function TrainerProfilePage() {
   const availability: TrainerAvailability[] = availabilityData?.slots ?? [];
 
   const { data: reviewsData } = useQuery({
-    queryKey: ["reviews", trainerId],
+    queryKey: qk.reviews.trainer(trainerId),
     queryFn: () => reviewApi.getTrainerReviews(trainerId),
     staleTime: STALE_TIMES.FIVE_MINUTES,
     enabled: !!trainerId,
@@ -109,15 +112,29 @@ export default function TrainerProfilePage() {
   const reviews: TrainerReview[] = reviewsData?.reviews ?? [];
 
   const refreshData = () => {
-    queryClient.invalidateQueries({ queryKey: ["trainer", trainerId] });
-    queryClient.invalidateQueries({ queryKey: ["trainer-availability", trainerId] });
-    queryClient.invalidateQueries({ queryKey: ["reviews", trainerId] });
+    queryClient.invalidateQueries({ queryKey: qk.trainer.profile(trainerId) });
+    queryClient.invalidateQueries({ queryKey: qk.trainer.availability(trainerId) });
+    queryClient.invalidateQueries({ queryKey: qk.reviews.trainer(trainerId) });
   };
 
   if (isLoading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center px-6">
         <Spinner className="size-6" />
+      </main>
+    );
+  }
+
+  // Distinguish a failed fetch from an id the API simply does not know:
+  // the 404 state below would otherwise say "trainer not found" for
+  // network/auth failures too.
+  if (trainerError && !trainer) {
+    return (
+      <main className="flex min-h-[70vh] items-center justify-center px-6">
+        <DataError
+          message={ApiErrorHandler.handle(trainerError)}
+          onRetry={() => refetchTrainer()}
+        />
       </main>
     );
   }

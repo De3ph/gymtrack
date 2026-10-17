@@ -4,6 +4,9 @@ import { useState, useTransition } from "react"
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { trainerCatalogApi } from "@/lib/api"
 import { STALE_TIMES } from "@/lib/api/api-constants"
+import { qk } from "@/lib/query-keys"
+import { ApiErrorHandler } from "@/lib/error-handler"
+import { DataError } from "@/components/features/DataError"
 import { TrainerWithProfile } from "@/types"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -47,8 +50,8 @@ export default function TrainerCatalogPage() {
   const t = useTranslations("athlete.trainers")
   const tCommon = useTranslations("common")
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["trainers", appliedFilters],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.trainers.search(appliedFilters),
     queryFn: () =>
       trainerCatalogApi.searchTrainers({
         limit: 20,
@@ -197,6 +200,11 @@ export default function TrainerCatalogPage() {
         <div className="flex justify-center py-16">
           <Spinner />
         </div>
+      ) : error ? (
+        <DataError
+          message={ApiErrorHandler.handle(error)}
+          onRetry={() => refetch()}
+        />
       ) : trainers.length === 0 ? (
         <Empty className="rounded-none border border-border p-12">
           <EmptyHeader>

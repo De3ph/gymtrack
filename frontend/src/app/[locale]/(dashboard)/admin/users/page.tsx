@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getAdminUsers, verifyAdmin } from "@/lib/dal";
+import { PAGINATION } from "@/lib/constants";
 import type { AdminUserListResponse } from "@/lib/api/adminApi";
 import { UsersTableSkeleton } from "./_components/UsersTableSkeleton";
 import { UsersTableClientWrapper } from "./_components/UsersTableClientWrapper";
@@ -23,7 +24,7 @@ async function UsersTableContent() {
   const t = await getTranslations("common");
   let initialData: AdminUserListResponse;
   try {
-    initialData = await getAdminUsers({ limit: 25 });
+    initialData = await getAdminUsers({ limit: PAGINATION.ADMIN_USERS_PAGE_SIZE });
   } catch (err) {
     return (
       <DataError

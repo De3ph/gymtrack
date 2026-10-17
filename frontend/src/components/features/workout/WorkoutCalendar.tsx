@@ -9,6 +9,9 @@ import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { workoutApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { markerStyles } from "@/components/ui/calendar-grid";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { WorkoutExercise, ExerciseSet } from "@/types";
@@ -30,8 +33,8 @@ export function WorkoutCalendar() {
   const tList = useTranslations("workout.list");
   const tDate = useTranslations("common.date");
 
-  const { data: workoutsData, isLoading } = useQuery({
-    queryKey: ["workouts"],
+  const { data: workoutsData, isLoading, error, refetch } = useQuery({
+    queryKey: qk.workouts.calendar,
     queryFn: () => workoutApi.getAll(),
   });
 
@@ -88,6 +91,11 @@ export function WorkoutCalendar() {
             <div className="flex items-center justify-center gap-2 py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               <Spinner className="size-5" />
             </div>
+          ) : error ? (
+            <DataError
+              message={ApiErrorHandler.handle(error)}
+              onRetry={() => refetch()}
+            />
           ) : selectedDayWorkouts.length > 0 ? (
             <ul className="divide-y divide-border">
               {selectedDayWorkouts.map((workout) => (

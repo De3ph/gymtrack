@@ -7,6 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { mealApi } from "@/lib/api";
 import { withTiming } from "@/lib/performance";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { API, DATE_FORMATS } from "@/lib/constants";
 import dayjs from "dayjs";
 
@@ -18,8 +21,8 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
   const t = useTranslations("meal");
   const dateStr = date.format(DATE_FORMATS.DATE_ONLY);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["meals", dateStr],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.meals.byDate(dateStr),
     queryFn: () =>
       withTiming("daily-meals-fetch", () =>
         mealApi.getByDate(dateStr, { timeout: API.DEFAULT_TIMEOUT_MS })
@@ -46,7 +49,15 @@ export function DailyNutritionSummary({ date }: DailyNutritionSummaryProps) {
 
   const formatNumber = (value: number) => value.toLocaleString()
 
-  // Show skeleton while loading
+  if (error) {
+    return (
+      <DataError
+        message={ApiErrorHandler.handle(error)}
+        onRetry={() => refetch()}
+      />
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="border border-border">

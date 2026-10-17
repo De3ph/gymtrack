@@ -1,6 +1,7 @@
 "use client";
 
 import { useUsersTableContext } from "./users-table-context";
+import { DataError } from "@/components/features/DataError";
 import { Spinner } from "@/components/ui/spinner";
 import { Users } from "lucide-react";
 
@@ -22,8 +23,10 @@ export function UsersTableStateHandler({
 
   if (error) {
     return (
-      <div className="px-6 py-8 text-center text-destructive">
-        {error instanceof Error ? error.message : "Failed to load users"}
+      <div className="px-6 py-8">
+        <DataError
+          message={error instanceof Error ? error.message : "Failed to load users"}
+        />
       </div>
     );
   }

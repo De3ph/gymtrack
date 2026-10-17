@@ -19,6 +19,7 @@ const ExerciseSelector = dynamic(
 import { PlanSetInput } from "./PlanSetInput";
 import { WorkoutPlan, WorkoutPlanExercise, WorkoutPlanSet } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -70,7 +71,7 @@ export function WorkoutPlanForm({
     },
     onSuccess: async () => {
       await revalidateWorkoutPlansCache();
-      await queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      await queryClient.invalidateQueries({ queryKey: qk.plans.all });
       setName("");
       setDescription("");
       setExercises([createDefaultExercise()]);

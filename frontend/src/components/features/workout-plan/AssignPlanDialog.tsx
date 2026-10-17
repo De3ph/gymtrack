@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { relationshipApi, workoutPlanApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -34,7 +35,7 @@ export function AssignPlanDialog({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { data: clientsData, isLoading } = useQuery({
-    queryKey: ["my-clients"],
+    queryKey: qk.clients.list,
     queryFn: () => relationshipApi.getMyClients(),
   });
 
@@ -45,7 +46,7 @@ export function AssignPlanDialog({
       workoutPlanApi.assign(planId, { athleteIds: selectedIds.map(String) }),
     onSuccess: async () => {
       await revalidateWorkoutPlansCache();
-      await queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      await queryClient.invalidateQueries({ queryKey: qk.plans.all });
       setSelectedIds([]);
       if (onSuccess) onSuccess();
     },

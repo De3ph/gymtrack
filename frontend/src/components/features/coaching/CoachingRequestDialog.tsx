@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { coachingRequestApi } from "@/lib/api"
+import { qk } from "@/lib/query-keys"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
@@ -34,7 +35,7 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
       setOpen(false)
       setMessage("")
       setError("")
-      queryClient.invalidateQueries({ queryKey: ["coachingRequests"] })
+      queryClient.invalidateQueries({ queryKey: qk.coaching.all })
       onRequestSent?.()
     },
     onError: (err: unknown) => {

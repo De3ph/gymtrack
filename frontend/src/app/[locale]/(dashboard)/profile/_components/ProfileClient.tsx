@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { userApi, relationshipApi, toUser } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import {
   checkOptionalInt,
   parseOptionalInt,
@@ -559,7 +560,7 @@ export function ProfileClient() {
   }, []);
 
   const { data: currentUser, isLoading } = useQuery<User>({
-    queryKey: ["currentUser"],
+    queryKey: qk.currentUser,
     queryFn: async () => toUser(await userApi.getCurrentUser(), user),
     // Seed from the store so the page paints immediately; staleTime below decides
     // whether a refetch happens on mount.
@@ -567,7 +568,7 @@ export function ProfileClient() {
   });
 
   const { data: trainerData } = useQuery({
-    queryKey: ["myTrainer"],
+    queryKey: qk.myTrainer.detail,
     queryFn: relationshipApi.getMyTrainer,
     enabled: currentUser?.role === "athlete",
   });
@@ -577,8 +578,8 @@ export function ProfileClient() {
     onSuccess: (data) => {
       // Fall back to the user we already have rather than inventing role/username,
       // since both drive role-gated UI across the app.
-      const safeUser = toUser(data, queryClient.getQueryData<User>(["currentUser"]));
-      queryClient.setQueryData(["currentUser"], safeUser);
+      const safeUser = toUser(data, queryClient.getQueryData<User>(qk.currentUser));
+      queryClient.setQueryData(qk.currentUser, safeUser);
       setUser(safeUser);
       setIsEditing(false);
       setSuccessMessage(t("profile_saved"));

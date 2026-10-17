@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { WorkoutPlanCard } from "./WorkoutPlanCard";
 import { WorkoutPlan } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
@@ -34,7 +35,7 @@ export function WorkoutPlanList({
   const [viewingPlan, setViewingPlan] = useState<WorkoutPlan | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["workout-plans"],
+    queryKey: qk.plans.own,
     queryFn: () => workoutPlanApi.getAll(),
     enabled: providedPlans === undefined,
   });

@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { relationshipApi } from "@/lib/api"
+import { qk } from "@/lib/query-keys"
 import { CheckCircle, Loader2, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "@tanstack/react-form"
@@ -35,8 +36,8 @@ export function AcceptInvitationDialog({ onSuccess }: AcceptInvitationDialogProp
     onSuccess: () => {
       setError(null)
       setSuccess(true)
-      queryClient.invalidateQueries({ queryKey: ["myTrainer"] })
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+      queryClient.invalidateQueries({ queryKey: qk.myTrainer.all })
+      queryClient.invalidateQueries({ queryKey: qk.currentUser })
       setTimeout(() => {
         setOpen(false)
         setSuccess(false)

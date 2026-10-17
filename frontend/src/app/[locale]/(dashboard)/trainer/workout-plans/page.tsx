@@ -22,6 +22,7 @@ import { WorkoutPlan } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
+import { qk } from "@/lib/query-keys";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { DataError } from "@/components/features/DataError";
 import { revalidateWorkoutPlansCache } from "@/lib/actions/cache";
@@ -63,7 +64,7 @@ export default function TrainerWorkoutPlansPage() {
     mutationFn: (planId: string | number) => workoutPlanApi.delete(planId),
     onSuccess: async () => {
       await revalidateWorkoutPlansCache();
-      queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      queryClient.invalidateQueries({ queryKey: qk.plans.all });
       setPlanFilter("");
       setDeletingPlan(null);
     },
@@ -78,7 +79,7 @@ export default function TrainerWorkoutPlansPage() {
   };
 
   const { data, error, refetch } = useQuery({
-    queryKey: ["workout-plans"],
+    queryKey: qk.plans.own,
     queryFn: () => workoutPlanApi.getAll(),
     staleTime: STALE_TIMES.FIVE_MINUTES,
   });

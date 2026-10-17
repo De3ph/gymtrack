@@ -9,6 +9,7 @@ import {
   usePathname,
 } from "next/navigation";
 import { trainerClientApi, relationshipApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -52,7 +53,11 @@ export default function ClientDetailClient() {
   const [mealType, setMealType] = useState("");
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["clientData", username, dateRange, exerciseType, mealType],
+    queryKey: qk.clients.detail(username, {
+      dateRange,
+      exerciseType,
+      mealType,
+    }),
     queryFn: async () => {
       const [details, workoutsResp, mealsResp, measurementsResp, statsResp] =
         await Promise.all([

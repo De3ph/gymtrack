@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import dynamic from "next/dynamic";
 import { mealApi, workoutApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { markerStyles } from "@/components/ui/calendar-grid";
 import { Meal, Workout } from "@/types";
 import dayjs from "dayjs";
@@ -21,6 +24,8 @@ const CalendarGrid = dynamic(
 );
 
 function getMonthRange(date: Date) {
+  // Month-quantized so the cache key is stable within the same month
+  // regardless of when the range is computed.
   return {
     startDate: dayjs(date).startOf("month").toISOString(),
     endDate: dayjs(date).endOf("month").toISOString(),
@@ -40,8 +45,10 @@ export function CombinedTrainingCalendar() {
     data: workoutData,
     isLoading: workoutsLoading,
     isRefetching: workoutsRefetching,
+    error: workoutError,
+    refetch: refetchWorkouts,
   } = useQuery({
-    queryKey: ["dashboard-workouts", monthRange.startDate, monthRange.endDate],
+    queryKey: qk.workouts.dashboard(monthRange),
     queryFn: () => workoutApi.getAll(monthRange),
   });
 
@@ -49,8 +56,10 @@ export function CombinedTrainingCalendar() {
     data: mealData,
     isLoading: mealsLoading,
     isRefetching: mealsRefetching,
+    error: mealError,
+    refetch: refetchMeals,
   } = useQuery({
-    queryKey: ["dashboard-meals", monthRange.startDate, monthRange.endDate],
+    queryKey: qk.meals.dashboard(monthRange),
     queryFn: () => mealApi.getAll(monthRange),
   });
 
@@ -92,6 +101,26 @@ export function CombinedTrainingCalendar() {
 
   if (isLoading) {
     return <CalendarSkeleton />;
+  }
+
+  // Hard-fail only when both sources AND the cache have nothing to show; a
+  // single failing refetch keeps the calendar rendering with the data it
+  // already has (same silent-degrade behaviour as before).
+  const bothErrored = Boolean(workoutError && mealError);
+  if (bothErrored && !workoutData && !mealData) {
+    return (
+      <div className="border border-border bg-card">
+        <div className="p-6">
+          <DataError
+            message={ApiErrorHandler.handle(bothErrored)}
+            onRetry={() => {
+              refetchWorkouts();
+              refetchMeals();
+            }}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (

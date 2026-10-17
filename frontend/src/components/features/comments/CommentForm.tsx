@@ -22,7 +22,7 @@ interface CommentFormProps {
   targetId: string | number;
   parentCommentId?: string | number;
   onSuccess?: () => void;
-  queryKey: (string | number)[];
+  queryKey: readonly (string | number)[];
   placeholder?: string;
   onCancel?: () => void;
 }

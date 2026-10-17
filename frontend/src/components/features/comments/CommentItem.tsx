@@ -29,7 +29,7 @@ interface CommentItemProps {
   targetId: string | number;
   isReply?: boolean;
   onReply?: (parentCommentId: string | number) => void;
-  queryKey: (string | number)[];
+  queryKey: readonly (string | number)[];
 }
 
 export function CommentItem({

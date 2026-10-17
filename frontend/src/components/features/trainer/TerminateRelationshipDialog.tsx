@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { relationshipApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { ROUTES } from "@/lib/routes";
 import {
   AlertDialog,
@@ -39,9 +40,10 @@ export function TerminateRelationshipDialog({
     onSuccess: () => {
       setTerminateError(null);
       setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["myClients"] });
-      queryClient.invalidateQueries({ queryKey: ["my-clients"] });
-      queryClient.invalidateQueries({ queryKey: ["clientData"] });
+      // The clients list, the dashboard summary and the client detail
+      // payload all read different views of the same resource — the
+      // `clients` prefix refreshes them all in one call.
+      queryClient.invalidateQueries({ queryKey: qk.clients.all });
       router.push(ROUTES.TRAINER_CLIENTS);
     },
     onError: (err) => {

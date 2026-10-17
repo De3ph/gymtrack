@@ -14,6 +14,9 @@ import { workoutPlanApi } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 import { revalidateWorkoutPlansCache } from "@/lib/actions/cache";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import {
   Dialog,
   DialogContent,
@@ -43,8 +46,8 @@ export default function AthleteWorkoutPlansPage() {
     }
   }, [user, router]);
 
-  const { data: ownData, isLoading: ownLoading } = useQuery({
-    queryKey: ["workout-plans"],
+  const { data: ownData, isLoading: ownLoading, error: ownError, refetch: ownRefetch } = useQuery({
+    queryKey: qk.plans.own,
     queryFn: () => workoutPlanApi.getAll(),
     staleTime: STALE_TIMES.FIVE_MINUTES,
   });
@@ -55,8 +58,7 @@ export default function AthleteWorkoutPlansPage() {
     mutationFn: (planId: string | number) => workoutPlanApi.delete(planId),
     onSuccess: async () => {
       await revalidateWorkoutPlansCache();
-      queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
-      queryClient.invalidateQueries({ queryKey: ["my-workout-plans"] });
+      queryClient.invalidateQueries({ queryKey: qk.plans.all });
       setDeletingPlan(null);
     },
     onError: (e) => {
@@ -93,7 +95,12 @@ export default function AthleteWorkoutPlansPage() {
         {limitReached && (
           <p className="text-sm text-muted-foreground">{t("limit_reached")}</p>
         )}
-        {ownLoading ? (
+        {ownError ? (
+          <DataError
+            message={ApiErrorHandler.handle(ownError)}
+            onRetry={() => ownRefetch()}
+          />
+        ) : ownLoading ? (
           <div className="flex justify-center py-8">
             <Spinner />
           </div>

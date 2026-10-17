@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { adminApi } from "@/lib/api/adminApi";
+import { qk } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +38,7 @@ export function AdminProfileClient() {
       setConfirmPassword("");
       setPasswordError("");
       // Bust any cached admin data after credential change
-      queryClient.invalidateQueries({ queryKey: ["admin"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.all });
     },
     onError: (err: Error) => {
       setPasswordError(err.message);

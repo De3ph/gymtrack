@@ -35,7 +35,14 @@ export const PAGINATION = {
   BODY_MEASUREMENT_PAGE_SIZE: 10,
   BODY_MEASUREMENT_CHART_LIMIT: 365,
   WORKOUT_PAGE_SIZE: 10,
-  MEAL_PAGE_SIZE: 10
+  MEAL_PAGE_SIZE: 10,
+  /**
+   * Row budget for the admin users table. Both the RSC seed
+   * (getAdminUsers) and the client query (users-table-provider.tsx) must
+   * use this, otherwise the seeded cache serves a truncated response as
+   * if it were the complete list.
+   */
+  ADMIN_USERS_PAGE_SIZE: 500
 } as const;
 
 export const BODY_PARTS = [

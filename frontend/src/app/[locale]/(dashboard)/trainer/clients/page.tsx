@@ -14,6 +14,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { relationshipApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { useAuthStore } from "@/stores/authStore";
 import { UserPlus, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -34,7 +35,7 @@ export default function TrainerClientsPage() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["myClients"],
+    queryKey: qk.clients.list,
     queryFn: () => relationshipApi.getMyClients(),
     staleTime: STALE_TIMES.FIVE_MINUTES,
     enabled: user?.role === "trainer",

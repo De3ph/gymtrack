@@ -1,8 +1,11 @@
 ﻿"use client";
 
 import { useState, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api/adminApi";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import type { AdminComment } from "@/types";
 import {
   Table,
@@ -85,20 +88,22 @@ export default function ModerationClient() {
   const pageSize = 25;
   const targetTypeParam = targetType === "all" ? "" : targetType;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin-comments", page, targetTypeParam],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.admin.comments.page(page, targetTypeParam),
     queryFn: () =>
       adminApi.getComments({
         limit: pageSize,
         offset: page * pageSize,
         targetType: targetTypeParam,
       }),
+    // Keep the previous page visible while the next one loads.
+    placeholderData: keepPreviousData,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (commentId: number) => adminApi.deleteComment(commentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-comments"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.comments.all });
     },
   });
 
@@ -149,6 +154,13 @@ export default function ModerationClient() {
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Spinner className="size-6 text-muted-foreground" />
+          </div>
+        ) : error ? (
+          <div className="p-6">
+            <DataError
+              message={ApiErrorHandler.handle(error)}
+              onRetry={() => refetch()}
+            />
           </div>
         ) : data && data.comments.length > 0 ? (
           <>

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { relationshipApi } from "@/lib/api"
+import { qk } from "@/lib/query-keys"
 import { User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
@@ -15,7 +16,7 @@ export function MyTrainerButton() {
   const router = useRouter()
 
   const { data: trainerData, isLoading } = useQuery({
-    queryKey: ["myTrainer"],
+    queryKey: qk.myTrainer.detail,
     queryFn: relationshipApi.getMyTrainer,
     refetchOnWindowFocus: false,
   })

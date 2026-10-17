@@ -5,6 +5,9 @@ import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { mealApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { markerStyles } from "@/components/ui/calendar-grid";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { DailyNutritionSummary } from "./DailyNutritionSummary";
@@ -22,8 +25,8 @@ export function MealCalendar() {
   const { activeDate: selectedDate, setActiveDate: setSelectedDate } =
     useCalendarStore();
 
-  const { data: mealsData, isLoading } = useQuery({
-    queryKey: ["meals"],
+  const { data: mealsData, isLoading, error, refetch } = useQuery({
+    queryKey: qk.meals.calendar,
     queryFn: () => mealApi.getAll(),
   });
 
@@ -44,6 +47,15 @@ export function MealCalendar() {
       dayjs(m.date).isSame(selectedDate, "day"),
     );
   }, [selectedDate, mealsData]);
+
+  if (error) {
+    return (
+      <DataError
+        message={ApiErrorHandler.handle(error)}
+        onRetry={() => refetch()}
+      />
+    )
+  }
 
   if (isLoading) {
     return (

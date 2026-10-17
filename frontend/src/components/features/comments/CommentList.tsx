@@ -17,7 +17,7 @@ interface CommentListProps {
   comments: Comment[];
   targetType: "workout" | "meal";
   targetId: string | number;
-  queryKey: (string | number)[];
+  queryKey: readonly (string | number)[];
   readOnly?: boolean;
   replyingToId: string | number | null;
   onStartReply: (parentCommentId: string | number) => void;
@@ -70,7 +70,7 @@ const CommentNodeRow = memo(function CommentNodeRow({
   node: CommentNode;
   targetType: "workout" | "meal";
   targetId: string | number;
-  queryKey: (string | number)[];
+  queryKey: readonly (string | number)[];
   readOnly: boolean;
   replyingToId: string | number | null;
   onStartReply: (parentCommentId: string | number) => void;

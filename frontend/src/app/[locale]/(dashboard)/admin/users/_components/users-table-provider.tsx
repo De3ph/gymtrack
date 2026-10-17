@@ -20,6 +20,8 @@ import {
   type AdminUserListItem,
   type AdminUserListResponse,
 } from "@/lib/api/adminApi";
+import { qk } from "@/lib/query-keys";
+import { PAGINATION } from "@/lib/constants";
 import {
   UsersTableContext,
   type UsersTableState,
@@ -58,12 +60,16 @@ export function UsersTableProvider({
   });
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["admin", "users", roleFilter, period, search],
+    queryKey: qk.admin.users.list({
+      role: roleFilter === "all" ? undefined : roleFilter,
+      period,
+      search,
+    }),
     queryFn: () =>
       adminApi.getUsers({
         role: roleFilter === "all" ? undefined : roleFilter,
         search: search || undefined,
-        limit: 500,
+        limit: PAGINATION.ADMIN_USERS_PAGE_SIZE,
       }),
     enabled: isAuthenticated && user?.role === "admin",
     // Seed with server-fetched initial data (RSC streaming optimization)

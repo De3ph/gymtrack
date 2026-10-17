@@ -20,6 +20,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
 import { workoutApi, workoutPlanApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { Workout, WorkoutExercise, ExerciseSet, WorkoutPlan } from "@/types";
 import {
   createWorkoutWithPerSetSchema,
@@ -247,7 +248,7 @@ export function WorkoutForm({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"] });
+      queryClient.invalidateQueries({ queryKey: qk.workouts.all });
       form.reset();
       if (onSuccess) onSuccess();
     },
@@ -286,11 +287,11 @@ export function WorkoutForm({
   }, []);
 
   const { data: ownPlansData } = useQuery({
-    queryKey: ["workout-plans"],
+    queryKey: qk.plans.own,
     queryFn: () => workoutPlanApi.getAll(),
   });
   const { data: assignedPlansData } = useQuery({
-    queryKey: ["my-workout-plans"],
+    queryKey: qk.plans.assigned,
     queryFn: () => workoutPlanApi.getMyPlans(),
   });
   const plans = useMemo(() => {

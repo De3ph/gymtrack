@@ -4,6 +4,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { coachingRequestApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MessageCircle } from "lucide-react";
@@ -16,8 +19,8 @@ interface CoachingRequestsListProps {
 
 export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   const tList = useTranslations('coaching.list')
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["coachingRequests", userType],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.coaching.requests(userType),
     queryFn: () => coachingRequestApi.getMyRequests(),
     staleTime: STALE_TIMES.FIVE_MINUTES,
   });
@@ -28,7 +31,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   const { mutate: acceptMutate, isPending: acceptPending } = useMutation({
     mutationFn: (requestId: number) => coachingRequestApi.acceptRequest(requestId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
+      queryClient.invalidateQueries({ queryKey: qk.coaching.requests(userType) });
     },
     onError: (err: unknown) => {
       // handle error via toast or console; keeping simple
@@ -39,7 +42,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   const { mutate: rejectMutate, isPending: rejectPending } = useMutation({
     mutationFn: (requestId: number) => coachingRequestApi.rejectRequest(requestId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["coachingRequests", userType] });
+      queryClient.invalidateQueries({ queryKey: qk.coaching.requests(userType) });
     },
     onError: (err: unknown) => {
       console.error(err);
@@ -86,7 +89,10 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
     return (
       <div className="rounded-none border border-border">
         <div className="p-6">
-          <div className="text-center text-destructive">{error instanceof Error ? error.message : String(error)}</div>
+          <DataError
+            message={ApiErrorHandler.handle(error)}
+            onRetry={() => refetch()}
+          />
         </div>
       </div>
     );

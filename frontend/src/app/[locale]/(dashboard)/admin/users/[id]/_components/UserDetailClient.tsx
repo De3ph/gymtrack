@@ -18,6 +18,7 @@ import { ROUTES } from "@/lib/routes";
 import { InfoRow } from "@/components/ui/info-row";
 import { DetailPanel } from "@/app/[locale]/(dashboard)/admin/_components/detail-panel";
 import { adminApi } from "@/lib/api/adminApi";
+import { qk } from "@/lib/query-keys";
 import { revalidateAdminStatsCache } from "@/lib/actions/cache";
 import {
   ArrowLeft,
@@ -74,7 +75,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
     mutationFn: (newRole: UserRole) => adminApi.updateUserRole(detail.userId, newRole),
     onSuccess: async (_data, newRole) => {
       await revalidateAdminStatsCache();
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.users.all });
       setDetail((prev) => ({ ...prev, role: newRole }));
       setRoleOpen(false);
     },
@@ -85,7 +86,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
     mutationFn: (newStatus: UserStatus) => adminApi.updateUserStatus(detail.userId, newStatus),
     onSuccess: async (_data, newStatus) => {
       await revalidateAdminStatsCache();
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.users.all });
       setDetail((prev) => ({ ...prev, status: newStatus }));
       setStatusOpen(false);
     },

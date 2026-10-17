@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useDeferredValue } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import { Search, Dumbbell, SearchX } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useDebounce } from "@/lib/hooks/use-debounce";
@@ -74,7 +75,7 @@ export function ExerciseSelector({
     isLoading: isLoadingMuscleGroups,
     error: muscleGroupsError,
   } = useQuery({
-    queryKey: ["muscleGroups"],
+    queryKey: qk.exercises.muscleGroups,
     queryFn: () => exerciseApi.getMuscleGroups(),
     staleTime: STALE_TIMES.TWELVE_HOURS,
   });
@@ -84,7 +85,7 @@ export function ExerciseSelector({
     isLoading: isLoadingEquipment,
     error: equipmentError,
   } = useQuery({
-    queryKey: ["equipmentTypes"],
+    queryKey: qk.exercises.equipment,
     queryFn: () => exerciseApi.getEquipment(),
     staleTime: STALE_TIMES.TWELVE_HOURS,
   });
@@ -99,7 +100,7 @@ export function ExerciseSelector({
   }, [debouncedSearch, selectedMuscleGroup, selectedEquipment]);
 
   const { data: exercisesData, isLoading: isLoadingExercises } = useQuery({
-    queryKey: ["exercises", searchParams],
+    queryKey: qk.exercises.search(searchParams),
     queryFn: () => exerciseApi.search(searchParams),
     enabled: isDialogOpen,
     staleTime: STALE_TIMES.FIVE_MINUTES,

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { reviewApi } from "@/lib/api"
+import { qk } from "@/lib/query-keys"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
@@ -37,7 +38,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
     onSuccess: () => {
       setEditOpen(false)
       setError("")
-      queryClient.invalidateQueries({ queryKey: ["reviews"] })
+      queryClient.invalidateQueries({ queryKey: qk.reviews.all })
       onReviewUpdated?.()
     },
     onError: (err: unknown) => {
@@ -54,7 +55,7 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
     onSuccess: () => {
       setDeleteOpen(false)
       setError("")
-      queryClient.invalidateQueries({ queryKey: ["reviews"] })
+      queryClient.invalidateQueries({ queryKey: qk.reviews.all })
       onReviewUpdated?.()
     },
     onError: (err: unknown) => {

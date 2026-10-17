@@ -2,15 +2,18 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { workoutPlanApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { WorkoutPlanCard } from "./WorkoutPlanCard";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 
 export function MyWorkoutPlans() {
   const t = useTranslations("athlete.workout_plans");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["my-workout-plans"],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.plans.assigned,
     queryFn: () => workoutPlanApi.getMyPlans(),
   });
 
@@ -19,6 +22,15 @@ export function MyWorkoutPlans() {
       <div className="flex justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <DataError
+        message={ApiErrorHandler.handle(error)}
+        onRetry={() => refetch()}
+      />
     );
   }
 

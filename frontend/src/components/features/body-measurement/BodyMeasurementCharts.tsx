@@ -31,6 +31,9 @@ import {
   EmptyTitle
 } from "@/components/ui/empty";
 import { bodyMeasurementApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { BODY_PARTS, PAGINATION } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { BodyMeasurement } from "@/types";
@@ -95,15 +98,11 @@ export function BodyMeasurementCharts({
 
   const isSelfFetching = !propMeasurements;
 
-  const { data, isLoading } = useQuery({
-    queryKey: [
-      "body-measurements",
-      "all-for-charts",
-      {
-        startDate: filter.startDate,
-        endDate: filter.endDate
-      }
-    ],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: qk.measurements.charts({
+      startDate: filter.startDate,
+      endDate: filter.endDate
+    }),
     queryFn: () =>
       bodyMeasurementApi.getAll({
         limit: PAGINATION.BODY_MEASUREMENT_CHART_LIMIT,
@@ -174,6 +173,18 @@ export function BodyMeasurementCharts({
       onChange={handleFilterChange}
     />
   ) : null;
+
+  if (isSelfFetching && error) {
+    return (
+      <div className="space-y-4">
+        {filterBar}
+        <DataError
+          message={ApiErrorHandler.handle(error)}
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
 
   if (raw.length === 0) {
     return (

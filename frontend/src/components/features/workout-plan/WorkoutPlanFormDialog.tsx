@@ -9,7 +9,6 @@ import {
 import { WorkoutPlanForm } from "./WorkoutPlanForm";
 import { WorkoutPlan } from "@/types";
 import { useTranslations } from "next-intl";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface WorkoutPlanFormDialogProps {
   open: boolean;
@@ -27,7 +26,6 @@ export function WorkoutPlanFormDialog({
   onSuccess,
 }: WorkoutPlanFormDialogProps) {
   const t = useTranslations(namespace);
-  const queryClient = useQueryClient();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -41,10 +39,9 @@ export function WorkoutPlanFormDialog({
           <WorkoutPlanForm
             plan={plan}
             namespace={namespace}
+            // WorkoutPlanForm.invalidateQueries(qk.plans.all) already
+            // refreshes both the "own" and "assigned" plan lists.
             onSuccess={() => {
-              if (namespace === "athlete.workout_plans") {
-                queryClient.invalidateQueries({ queryKey: ["my-workout-plans"] });
-              }
               if (onSuccess) onSuccess();
             }}
           />

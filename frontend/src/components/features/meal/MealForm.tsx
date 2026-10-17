@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { mealApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import type { MealFormData, FoodItemFormData } from "@/lib/validations/meal";
 import { createMealSchema } from "@/lib/validations/meal";
@@ -109,7 +110,7 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meals"] });
+      queryClient.invalidateQueries({ queryKey: qk.meals.all });
       form.reset();
       if (onSuccess) onSuccess();
     },

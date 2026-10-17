@@ -25,6 +25,7 @@ import { ApiErrorHandler } from "@/lib/error-handler";
 import { BODY_PARTS } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { revalidateBodyMeasurementsCache } from "@/lib/actions/cache";
+import { qk } from "@/lib/query-keys";
 import { BodyMeasurement, BodyMeasurementPart } from "@/types";
 import {
   bodyMeasurementSchema,
@@ -136,9 +137,10 @@ export function BodyMeasurementForm({
     },
     onSuccess: async () => {
       await revalidateBodyMeasurementsCache();
-      queryClient.invalidateQueries({ queryKey: ["body-measurements"] });
-      queryClient.invalidateQueries({ queryKey: ["latest-body-measurement"] });
-      queryClient.invalidateQueries({ queryKey: ["client-measurements"] });
+      // Covers list, charts and latest (all share the `body-measurements`
+      // prefix through the key factory). `["client-measurements"]` used to
+      // be invalidated here but no query ever used that key.
+      queryClient.invalidateQueries({ queryKey: qk.measurements.all });
       form.reset();
       setPartInputs({});
       setPartErrors({});
