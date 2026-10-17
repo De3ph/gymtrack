@@ -120,12 +120,12 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 
 	// Generate tokens
 	userIDStr := strconv.Itoa(user.UserID)
-	accessToken, err := s.generateToken(userIDStr, user.Role, TokenTypeAccess, time.Hour)
+	accessToken, err := s.generateToken(userIDStr, user.Role, TokenTypeAccess, time.Hour, user.TokenVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	refreshToken, err := s.generateToken(userIDStr, user.Role, TokenTypeRefresh, time.Hour*24*7)
+	refreshToken, err := s.generateToken(userIDStr, user.Role, TokenTypeRefresh, time.Hour*24*7, user.TokenVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
@@ -178,12 +178,12 @@ func (s *AuthService) RestoreAccount(ctx context.Context, identifier, password s
 	}
 
 	userIDStr := strconv.Itoa(user.UserID)
-	accessToken, err := s.generateToken(userIDStr, user.Role, TokenTypeAccess, time.Hour)
+	accessToken, err := s.generateToken(userIDStr, user.Role, TokenTypeAccess, time.Hour, user.TokenVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	refreshToken, err := s.generateToken(userIDStr, user.Role, TokenTypeRefresh, time.Hour*24*7)
+	refreshToken, err := s.generateToken(userIDStr, user.Role, TokenTypeRefresh, time.Hour*24*7, user.TokenVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
@@ -200,15 +200,55 @@ func (s *AuthService) RestoreAccount(ctx context.Context, identifier, password s
 	}, nil
 }
 
-// RefreshToken generates a new access token from a refresh token
+// RefreshToken generates a new access token from a refresh token.
+//
+// The refresh token is treated as an authenticator only, never as an
+// authority: role and status are re-read from the database on every refresh
+// (security audit finding 3). A refresh token minted before a demotion,
+// suspension, or credential change can therefore no longer mint fresh
+// access tokens — previously the stale role embedded in the refresh token
+// was trusted for its full 7-day lifetime.
 func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*TokenResponse, error) {
 	claims, err := s.validateToken(refreshToken, TokenTypeRefresh)
 	if err != nil {
 		return nil, err
 	}
 
-	// Generate new access token
-	accessToken, err := s.generateToken(claims.UserID, claims.Role, TokenTypeAccess, time.Hour)
+	userID, err := strconv.Atoi(claims.UserID)
+	if err != nil {
+		return nil, ErrInvalidToken
+	}
+
+	user, err := s.userRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("failed to load user for token refresh: %w", err)
+	}
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
+
+	// Suspended/banned/deleted accounts must not be able to keep cycling
+	// fresh tokens while blocked at the middleware layer.
+	switch user.Status {
+	case models.UserStatusDeleted:
+		return nil, ErrAccountDeleted
+	case models.UserStatusActive:
+	default:
+		return nil, ErrAccountInactive
+	}
+
+	// Revocation check: the token was issued before the user's token version
+	// was bumped (password change/reset or role change) — reject it.
+	if user.TokenVersion != claims.TokenVersion {
+		return nil, ErrTokenRevoked
+	}
+
+	// Generate new access token with the DB-authoritative role and the
+	// current token version, not the values embedded in the refresh token.
+	accessToken, err := s.generateToken(claims.UserID, user.Role, TokenTypeAccess, time.Hour, user.TokenVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate new access token: %w", err)
 	}
@@ -223,13 +263,17 @@ func (s *AuthService) ValidateToken(ctx context.Context, tokenString string) (*T
 	return s.validateToken(tokenString, TokenTypeAccess)
 }
 
-// generateToken creates a JWT token with the specified claims
-func (s *AuthService) generateToken(userID string, role models.UserRole, tokenType TokenType, expiration time.Duration) (string, error) {
+// generateToken creates a JWT token with the specified claims.
+// tokenVersion is the user's current users.token_version value; every
+// consumer (auth middleware, refresh) compares it against the row to detect
+// revoked tokens.
+func (s *AuthService) generateToken(userID string, role models.UserRole, tokenType TokenType, expiration time.Duration, tokenVersion int) (string, error) {
 	claims := jwt.MapClaims{
-		"userId": userID,
-		"role":   role,
-		"exp":    s.clock.Now().Add(expiration).Unix(),
-		"type":   tokenType,
+		"userId":       userID,
+		"role":         role,
+		"exp":          s.clock.Now().Add(expiration).Unix(),
+		"type":         tokenType,
+		"tokenVersion": tokenVersion,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -279,9 +323,19 @@ func (s *AuthService) validateToken(tokenString string, expectedType TokenType) 
 		return nil, ErrInvalidToken
 	}
 
+	// Tokens minted before token versioning existed carry no claim; treat
+	// them as version 0 (the users.token_version default) so a deploy does
+	// not invalidate every live session — they simply expire naturally and
+	// any subsequent revocation bump invalidates them like every other token.
+	tokenVersion := 0
+	if v, ok := claims["tokenVersion"].(float64); ok {
+		tokenVersion = int(v)
+	}
+
 	return &TokenClaims{
-		UserID: userID,
-		Role:   models.UserRole(roleStr),
-		Type:   expectedType,
+		UserID:       userID,
+		Role:         models.UserRole(roleStr),
+		Type:         expectedType,
+		TokenVersion: tokenVersion,
 	}, nil
 }

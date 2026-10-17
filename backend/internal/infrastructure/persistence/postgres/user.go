@@ -59,7 +59,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 
 func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
+		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at
 		FROM users
 		WHERE email = $1`
 
@@ -74,6 +74,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 		&user.Role,
 		&user.Status,
 		&profileRaw,
+		&user.TokenVersion,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.DeletedAt,
@@ -95,7 +96,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 
 func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
+		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at
 		FROM users
 		WHERE LOWER(username) = LOWER($1)`
 
@@ -110,6 +111,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 		&user.Role,
 		&user.Status,
 		&profileRaw,
+		&user.TokenVersion,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.DeletedAt,
@@ -131,7 +133,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 
 func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
+		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at
 		FROM users
 		WHERE user_id = $1`
 
@@ -146,6 +148,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 		&user.Role,
 		&user.Status,
 		&profileRaw,
+		&user.TokenVersion,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.DeletedAt,
@@ -167,7 +170,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 
 func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
+		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at
 		FROM users
 		ORDER BY created_at DESC`
 
@@ -190,6 +193,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.Use
 			&user.Role,
 			&user.Status,
 			&profileRaw,
+			&user.TokenVersion,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 			&user.DeletedAt,
@@ -220,6 +224,10 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 		return fmt.Errorf("failed to marshal user profile: %w", err)
 	}
 
+	// token_version is deliberately NOT written here: it is only mutated by
+	// BumpTokenVersion. UpdateUser callers work read-modify-write on a
+	// possibly stale copy of the row, and persisting a stale token_version
+	// would silently undo a concurrent revocation bump.
 	query := `
 		UPDATE users
 		SET username = $1, email = $2, password_hash = $3, role = $4, status = $5, profile = $6, updated_at = $7
@@ -248,7 +256,7 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 
 func (r *PostgresUserRepository) GetAllUsersFiltered(ctx context.Context, role, search string, limit, offset int) ([]*models.User, error) {
 	query := `
-		SELECT user_id, username, email, password_hash, role, status, profile, created_at, updated_at, deleted_at
+		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at
 		FROM users
 		WHERE ($1 = '' OR role = $1)
 		  AND ($2 = '' OR username ILIKE '%' || $2 || '%' OR email ILIKE '%' || $2 || '%')
@@ -293,6 +301,7 @@ func (r *PostgresUserRepository) scanUserRows(rows pgx.Rows) ([]*models.User, er
 			&user.Role,
 			&user.Status,
 			&profileRaw,
+			&user.TokenVersion,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 			&user.DeletedAt,
@@ -313,6 +322,27 @@ func (r *PostgresUserRepository) scanUserRows(rows pgx.Rows) ([]*models.User, er
 	}
 
 	return users, nil
+}
+
+// BumpTokenVersion atomically increments users.token_version, immediately
+// invalidating every JWT outstanding for the user (see migration 010).
+// Returns the new version, or domainerrors.ErrNotFound if the user does not exist.
+func (r *PostgresUserRepository) BumpTokenVersion(ctx context.Context, userID int) (int, error) {
+	query := `
+		UPDATE users
+		SET token_version = token_version + 1, updated_at = NOW()
+		WHERE user_id = $1
+		RETURNING token_version`
+
+	var newVersion int
+	err := r.pool.QueryRow(ctx, query, userID).Scan(&newVersion)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, domainerrors.ErrNotFound
+		}
+		return 0, fmt.Errorf("failed to bump token version: %w", err)
+	}
+	return newVersion, nil
 }
 
 func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, userID int) error {

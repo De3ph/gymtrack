@@ -270,6 +270,10 @@ func (f *fakePlanUserRepo) CountUsers(ctx context.Context, role string, search s
 	return 0, nil
 }
 
+func (f *fakePlanUserRepo) BumpTokenVersion(ctx context.Context, userID int) (int, error) {
+	return 0, nil
+}
+
 func (f *fakePlanUserRepo) SoftDeleteUser(ctx context.Context, userID int) error { return nil }
 
 func (f *fakePlanUserRepo) RestoreUser(ctx context.Context, userID int) error { return nil }

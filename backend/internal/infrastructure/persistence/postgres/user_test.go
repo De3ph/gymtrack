@@ -341,6 +341,52 @@ func TestPostgresUserRepository(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 	})
 
+	t.Run("BumpTokenVersion", func(t *testing.T) {
+		user := &models.User{
+			Username:     "tokenversion_user",
+			Email:        "tokenversion@example.com",
+			PasswordHash: "hashedpassword",
+			Role:         models.RoleAthlete,
+			Status:       models.UserStatusActive,
+			Profile:      models.UserProfile{Name: "Token Version User"},
+		}
+		require.NoError(t, repo.CreateUser(ctx, user))
+
+		// Fresh users start at version 0.
+		fetched, err := repo.GetUserByID(ctx, user.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, 0, fetched.TokenVersion)
+
+		// Each bump increments and returns the new version.
+		v1, err := repo.BumpTokenVersion(ctx, user.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, 1, v1)
+
+		v2, err := repo.BumpTokenVersion(ctx, user.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, 2, v2)
+
+		// The bump is persisted and survives a read.
+		fetched, err = repo.GetUserByID(ctx, user.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, 2, fetched.TokenVersion)
+
+		// A full-row update must NOT clobber the bumped version (stale
+		// read-modify-write protection).
+		fetched.Profile.Name = "Renamed"
+		require.NoError(t, repo.UpdateUser(ctx, fetched))
+		fetched, err = repo.GetUserByID(ctx, user.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, 2, fetched.TokenVersion, "UpdateUser must not reset token_version")
+		assert.Equal(t, "Renamed", fetched.Profile.Name)
+	})
+
+	t.Run("BumpTokenVersion_NotFound", func(t *testing.T) {
+		_, err := repo.BumpTokenVersion(ctx, 999999)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
+	})
+
 	t.Run("HardDeleteUser_NotFound", func(t *testing.T) {
 		err := repo.HardDeleteUser(ctx, 999999)
 		require.Error(t, err)

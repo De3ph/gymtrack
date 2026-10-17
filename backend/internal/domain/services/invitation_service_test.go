@@ -136,6 +136,7 @@ func (s *stubUserRepo) GetAllUsersFiltered(context.Context, string, string, int,
 	return nil, nil
 }
 func (s *stubUserRepo) CountUsers(context.Context, string, string) (int, error) { return 0, nil }
+func (s *stubUserRepo) BumpTokenVersion(context.Context, int) (int, error)      { return 0, nil }
 func (s *stubUserRepo) SoftDeleteUser(context.Context, int) error               { return nil }
 func (s *stubUserRepo) RestoreUser(context.Context, int) error                  { return nil }
 func (s *stubUserRepo) GetUsersReadyForHardDelete(context.Context, time.Time) ([]int, error) {

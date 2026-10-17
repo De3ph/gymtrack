@@ -137,6 +137,25 @@ func (r *CachedUserRepository) CountUsers(ctx context.Context, role string, sear
 	return r.inner.CountUsers(ctx, role, search)
 }
 
+func (r *CachedUserRepository) BumpTokenVersion(ctx context.Context, userID int) (int, error) {
+	// The cached rows carry TokenVersion and the auth paths read from them
+	// (login mints tokens from the email/username keys, the middleware reads
+	// the id key), so a stale cached copy would keep accepting revoked tokens
+	// or mint new tokens with the wrong version. Drop every key for the row.
+	user, err := r.inner.GetUserByID(ctx, userID)
+	if err != nil {
+		return 0, err
+	}
+	newVersion, err := r.inner.BumpTokenVersion(ctx, userID)
+	if err != nil {
+		return 0, err
+	}
+	r.cache.Invalidate("user:id:" + strconv.Itoa(userID))
+	r.cache.Invalidate("user:email:" + strings.ToLower(user.Email))
+	r.cache.Invalidate("user:username:" + strings.ToLower(user.Username))
+	return newVersion, nil
+}
+
 func (r *CachedUserRepository) SoftDeleteUser(ctx context.Context, userID int) error {
 	user, err := r.inner.GetUserByID(ctx, userID)
 	if err != nil {

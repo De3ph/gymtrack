@@ -57,7 +57,13 @@ type User struct {
 	Role         UserRole    `json:"role" validate:"required,oneof=trainer athlete admin"`
 	Status       UserStatus  `json:"status"`
 	Profile      UserProfile `json:"profile"`
-	CreatedAt    time.Time   `json:"createdAt"`
-	UpdatedAt    time.Time   `json:"updatedAt"`
-	DeletedAt    *time.Time  `json:"deletedAt,omitempty"`
+	// TokenVersion backs JWT revocation: every issued token embeds this value
+	// and it is compared against the users.token_version column on each
+	// authenticated request and refresh. Bumped on password change/reset and
+	// role change to invalidate all outstanding tokens. Internal-only — it
+	// must never reach a response body, hence json:"-".
+	TokenVersion int        `json:"-"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
+	DeletedAt    *time.Time `json:"deletedAt,omitempty"`
 }

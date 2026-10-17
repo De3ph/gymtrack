@@ -185,6 +185,13 @@ func (s *AdminService) ChangePassword(ctx context.Context, req ChangePasswordReq
 		return fmt.Errorf("failed to update user password: %w", err)
 	}
 
+	// Revoke every outstanding JWT: an attacker holding a stolen refresh
+	// token must not retain access after the victim rotates the password
+	// (security audit finding 3c).
+	if _, err := s.userRepo.BumpTokenVersion(ctx, user.UserID); err != nil {
+		return fmt.Errorf("failed to revoke outstanding tokens after password change: %w", err)
+	}
+
 	return nil
 }
 
@@ -216,7 +223,17 @@ func (s *AdminService) UpdateUserRole(ctx context.Context, adminID int, targetUs
 
 	target.Role = newRole
 	target.UpdatedAt = time.Now()
-	return s.userRepo.UpdateUser(ctx, target)
+	if err := s.userRepo.UpdateUser(ctx, target); err != nil {
+		return fmt.Errorf("failed to update user role: %w", err)
+	}
+
+	// Revoke every outstanding JWT so the old role cannot be used from
+	// tokens minted before this change (security audit finding 3a).
+	if _, err := s.userRepo.BumpTokenVersion(ctx, targetUserID); err != nil {
+		return fmt.Errorf("failed to revoke outstanding tokens after role change: %w", err)
+	}
+
+	return nil
 }
 
 // UpdateUserStatus suspends, bans, or reactivates a user account.

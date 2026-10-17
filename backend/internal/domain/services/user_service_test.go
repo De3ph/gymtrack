@@ -99,11 +99,15 @@ func (f *fakeUserRepo) GetAllUsers(_ context.Context) ([]*models.User, error) {
 func (f *fakeUserRepo) UpdateUser(_ context.Context, user *models.User) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	if _, ok := f.users[user.UserID]; !ok {
+	existing, ok := f.users[user.UserID]
+	if !ok {
 		return domainerrors.ErrNotFound
 	}
 	user.UpdatedAt = time.Now().UTC()
 	clone := *user
+	// Mirror the Postgres repository: token_version is only mutated by
+	// BumpTokenVersion, never by a full-row update.
+	clone.TokenVersion = existing.TokenVersion
 	f.users[user.UserID] = &clone
 	return nil
 }
@@ -116,6 +120,17 @@ func (f *fakeUserRepo) CountUsers(_ context.Context, role string, search string)
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return len(f.users), nil
+}
+
+func (f *fakeUserRepo) BumpTokenVersion(_ context.Context, userID int) (int, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	u, ok := f.users[userID]
+	if !ok {
+		return 0, domainerrors.ErrNotFound
+	}
+	u.TokenVersion++
+	return u.TokenVersion, nil
 }
 
 func (f *fakeUserRepo) SoftDeleteUser(_ context.Context, userID int) error {

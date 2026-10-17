@@ -178,6 +178,13 @@ func (s *PasswordResetService) ConfirmPasswordReset(ctx context.Context, rawToke
 		return fmt.Errorf("failed to update password: %w", err)
 	}
 
+	// Revoke every outstanding JWT: a password reset is the account-recovery
+	// control, so tokens held by an attacker since before the reset must die
+	// with the old password (security audit finding 3c).
+	if _, err := s.userRepo.BumpTokenVersion(ctx, user.UserID); err != nil {
+		return fmt.Errorf("failed to revoke outstanding tokens after password reset: %w", err)
+	}
+
 	return nil
 }
 

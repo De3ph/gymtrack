@@ -44,6 +44,10 @@ type TokenClaims struct {
 	UserID string
 	Role   models.UserRole
 	Type   TokenType
+	// TokenVersion is the users.token_version value embedded at issuance.
+	// Tokens whose claim no longer matches the row have been revoked
+	// (password change/reset or role change) and must be rejected.
+	TokenVersion int
 }
 
 // Service errors
@@ -52,6 +56,7 @@ var (
 	ErrUsernameAlreadyExists   = NewServiceError("This username is already taken. Please choose a different username.", "USERNAME_EXISTS")
 	ErrInvalidCredentials      = NewServiceError("Incorrect email/username or password. Please check your credentials and try again.", "INVALID_CREDENTIALS")
 	ErrInvalidToken            = NewServiceError("Your session token is invalid. Please log in again.", "INVALID_TOKEN")
+	ErrTokenRevoked            = NewServiceError("Your session has been revoked because your credentials or role changed. Please log in again.", "TOKEN_REVOKED")
 	ErrTokenExpired            = NewServiceError("Your session has expired. Please log in again.", "TOKEN_EXPIRED")
 	ErrInvalidTokenType        = NewServiceError("Invalid token type for this action. Please log in again to get a fresh token.", "INVALID_TOKEN_TYPE")
 	ErrUserNotFound            = NewServiceError("User not found. It may have been deleted or the ID is incorrect.", "USER_NOT_FOUND")

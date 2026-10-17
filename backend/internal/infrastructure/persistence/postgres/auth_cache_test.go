@@ -46,6 +46,9 @@ func (c *countingUserRepo) GetAllUsersFiltered(ctx context.Context, role string,
 func (c *countingUserRepo) CountUsers(ctx context.Context, role string, search string) (int, error) {
 	return c.inner.CountUsers(ctx, role, search)
 }
+func (c *countingUserRepo) BumpTokenVersion(ctx context.Context, userID int) (int, error) {
+	return c.inner.BumpTokenVersion(ctx, userID)
+}
 func (c *countingUserRepo) SoftDeleteUser(ctx context.Context, userID int) error {
 	return c.inner.SoftDeleteUser(ctx, userID)
 }
