@@ -370,7 +370,10 @@
       "hours": "saat"
     },
     "not_set": "Belirtilmemiş",
-    "deleted_user": "Silinmiş kullanıcı"
+    "deleted_user": "Silinmiş kullanıcı",
+    "validation": {
+      "out_of_range": "Lütfen {min} ile {max} arasında bir tam sayı girin"
+    }
   },
   "auth": {
     "login": {
@@ -1120,8 +1123,7 @@
       "cancel": "İptal"
     },
     "validation": {
-      "field_required": "Bu alan zorunludur",
-      "out_of_range": "Lütfen {min} ile {max} arasında bir tam sayı girin"
+      "field_required": "Bu alan zorunludur"
     },
     "delete_account": {
       "title": "Hesabı Sil",

@@ -282,12 +282,16 @@ function ProfileEdit({
   const avatarColor = getAvatarColor(profile.name);
 
   // Bounds and parsing live in one pure module, so the validators below and the
-  // onSubmit conversion can never disagree about what a valid value is.
+  // onSubmit conversion can never disagree about what a valid value is. The
+  // message is in the shared namespace because the register form validates the
+  // same fields with the same bounds.
+  const tCommon = useTranslations("common");
+
   const intRule = (range: IntRange) => ({
     onChange: ({ value }: { value: string }) => {
       const failure = checkOptionalInt(value, range);
       return failure
-        ? t("validation.out_of_range", { min: failure.min, max: failure.max })
+        ? tCommon("validation.out_of_range", { min: failure.min, max: failure.max })
         : undefined;
     },
   });

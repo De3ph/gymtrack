@@ -28,15 +28,15 @@ export default function RegisterPage() {
   const [error, setError] = useState<string>("")
   const formRef = useRef<HTMLFormElement>(null)
   const t = useTranslations("auth.register")
-  // Same bounds as the profile form (models.UserProfile stores these as int);
-  // the message lives in the profile namespace until a shared one exists.
-  const tProfile = useTranslations("profile")
+  // Same bounds and message as the profile form (models.UserProfile stores
+  // these as int), so both live in the shared namespace.
+  const tCommon = useTranslations("common")
 
   const intRule = (range: IntRange) => ({
     onChange: ({ value }: { value: string }) => {
       const failure = checkOptionalInt(value, range)
       return failure
-        ? tProfile("validation.out_of_range", { min: failure.min, max: failure.max })
+        ? tCommon("validation.out_of_range", { min: failure.min, max: failure.max })
         : undefined
     },
   })

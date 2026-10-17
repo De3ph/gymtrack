@@ -370,7 +370,10 @@
       "hours": "hours"
     },
     "not_set": "Not set",
-    "deleted_user": "Deleted user"
+    "deleted_user": "Deleted user",
+    "validation": {
+      "out_of_range": "Enter a whole number between {min} and {max}"
+    }
   },
   "auth": {
     "login": {
@@ -1120,8 +1123,7 @@
       "cancel": "Cancel"
     },
     "validation": {
-      "field_required": "This field is required",
-      "out_of_range": "Enter a whole number between {min} and {max}"
+      "field_required": "This field is required"
     },
     "delete_account": {
       "title": "Delete Account",

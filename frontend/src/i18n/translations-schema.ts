@@ -108,6 +108,9 @@ const translationSchema = z.object({
       hours: z.string(),
     }),
     not_set: z.string(),
+    validation: z.object({
+      out_of_range: z.string(),
+    }),
   }),
   auth: z.object({
     login: z.object({
