@@ -55,7 +55,26 @@ export interface Workout {
 export type Meal = components["schemas"]["models.Meal"];
 export type FoodItem = components["schemas"]["models.FoodItem"];
 export type Macros = components["schemas"]["models.Macros"];
-export type User = components["schemas"]["models.User"];
+
+/**
+ * Tightened view of `models.User`.
+ *
+ * Same codegen artifact as `UserResponse` below: swaggo records no `required`
+ * list, so `profile`, `createdAt` and `updatedAt` are emitted as optional even
+ * though the Go struct declares them as non-pointer fields with no `omitempty`
+ * — every serialized `models.User` therefore carries all three. (Only
+ * `deletedAt` is genuinely omitempty, and `passwordHash` is `json:"-"`, so it
+ * never appears in a response at all.)
+ *
+ * Requiring them lets consumers read `user.profile.name` or pass
+ * `user.createdAt` to `new Date()` directly instead of guarding every access
+ * against `undefined`.
+ */
+export type User = components["schemas"]["models.User"] & {
+  profile: UserProfile;
+  createdAt: string;
+  updatedAt: string;
+};
 export type UserProfile = components["schemas"]["models.UserProfile"];
 export type Relationship = components["schemas"]["models.Relationship"];
 export type Comment = components["schemas"]["models.Comment"];
@@ -107,10 +126,52 @@ export interface RestoreAccountRequest {
 }
 
 // --- Response / handler types ---
-export type UserResponse = components["schemas"]["handlers.UserResponse"];
+
+/**
+ * Tightened view of `handlers.UserResponse`.
+ *
+ * openapi-typescript emits every field of this schema as optional because
+ * swaggo does not record a `required` list, but the Go source of truth
+ * (backend/internal/api/handlers/user_handler.go) declares `UserResponse` with
+ * non-pointer fields and no `omitempty`, so `GET /users/me` and
+ * `PUT /users/me` always serialize userId, username, email, role, createdAt,
+ * updatedAt and profile.
+ *
+ * Declaring them required here (rather than editing generated.ts, which
+ * `pnpm codegen:types` overwrites) lets consumers treat them as present instead
+ * of guarding every access. Fields *inside* `profile` keep their generated
+ * optionality — those genuinely use `omitempty`.
+ */
+export type UserResponse = components["schemas"]["handlers.UserResponse"] & {
+  userId: number;
+  username: string;
+  email: string;
+  role: UserRole;
+  profile: UserProfile;
+  createdAt: string;
+  updatedAt: string;
+};
 export type ClientStats = components["schemas"]["handlers.ClientStats"];
-export type GetClientDetailsResponse = components["schemas"]["handlers.GetClientDetailsResponse"];
-export type GetClientStatsResponse = components["schemas"]["handlers.GetClientStatsResponse"];
+
+// Both responses below declare their interesting fields as Go pointers with no
+// `omitempty` (see GetClientDetailsResponse/GetClientStatsResponse in
+// backend/internal/api/handlers/relationship_handler.go), so the JSON keys are
+// always present while the values may be `null`. The generated types model that
+// as "optional" instead, which forces consumers to re-null-check. The nested
+// stats use the hand-written `WorkoutStats`/`MealStats` interfaces below.
+export type GetClientDetailsResponse = Omit<
+  components["schemas"]["handlers.GetClientDetailsResponse"],
+  "athlete"
+> & {
+  athlete: User | null;
+};
+export type GetClientStatsResponse = Omit<
+  components["schemas"]["handlers.GetClientStatsResponse"],
+  "workoutStats" | "mealStats"
+> & {
+  workoutStats: WorkoutStats | null;
+  mealStats: MealStats | null;
+};
 
 // WorkoutStats and MealStats use manual definitions because the generated types
 // mark all fields as optional, but consumer code (chart components) expects required fields.

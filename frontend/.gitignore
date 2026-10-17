@@ -34,6 +34,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but the documented contract is committed — src/lib/env.ts points here when
+# a required variable is missing.
+!.env.example
 
 # vercel
 .vercel

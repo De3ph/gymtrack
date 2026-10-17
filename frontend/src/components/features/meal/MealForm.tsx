@@ -42,20 +42,26 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
     { value: "snack" as const, label: t("form.meal_type.snack") },
   ];
 
+  // Annotated with MealFormData so `mealType` widens from the "breakfast"
+  // literal to the schema's full union. Without the annotation the form data
+  // type is inferred as `mealType: "breakfast"`, and TanStack Form's validator
+  // slot then rejects the schema, whose input accepts all four meal types.
+  const defaultValues: MealFormData = {
+    date: new Date(),
+    mealTime: formatDate(new Date(), "HH:mm"),
+    mealType: "breakfast",
+    items: [
+      {
+        food: "",
+        quantity: "",
+        calories: 0,
+        macros: { protein: 0, carbs: 0, fats: 0 },
+      },
+    ],
+  };
+
   const form = useForm({
-    defaultValues: {
-      date: new Date(),
-      mealTime: formatDate(new Date(), "HH:mm"),
-      mealType: "breakfast" as const,
-      items: [
-        {
-          food: "",
-          quantity: "",
-          calories: 0,
-          macros: { protein: 0, carbs: 0, fats: 0 },
-        },
-      ],
-    },
+    defaultValues,
     validators: {
       onSubmit: mealSchema,
     },
