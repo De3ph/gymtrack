@@ -1,7 +1,8 @@
--- GymTrack baseline migration — squashes 001_initial_schema through 009_seed_exercise_media
--- Generated from a fully-migrated database on 2026-10-11.
--- Apply this instead of the old migration chain.
 --
+-- PostgreSQL database dump
+--
+
+
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
 
@@ -10,11 +11,46 @@ SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: log_users_audit(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.log_users_audit() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    actor_id INTEGER := NULL;
+BEGIN
+    BEGIN
+        actor_id := NULLIF(current_setting('app.current_user_id', true), '')::INTEGER;
+    EXCEPTION WHEN OTHERS THEN
+        actor_id := NULL;
+    END;
+
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO public.user_audit_logs (user_id, action, old_data, new_data, changed_by)
+        VALUES (NEW.user_id, 'INSERT', NULL, to_jsonb(NEW) - 'password_hash', actor_id);
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO public.user_audit_logs (user_id, action, old_data, new_data, changed_by)
+        VALUES (NEW.user_id, 'UPDATE', to_jsonb(OLD) - 'password_hash', to_jsonb(NEW) - 'password_hash', actor_id);
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO public.user_audit_logs (user_id, action, old_data, new_data, changed_by)
+        VALUES (OLD.user_id, 'DELETE', to_jsonb(OLD) - 'password_hash', NULL, actor_id);
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
+
+SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
@@ -180,9 +216,10 @@ CREATE TABLE public.exercises (
     instructions text,
     created_by integer,
     created_at timestamp with time zone DEFAULT now(),
+    is_verified boolean DEFAULT false NOT NULL,
     media_url text,
-    media_type text NOT NULL DEFAULT 'gif',
-    CONSTRAINT exercises_media_type_check CHECK (media_type IN ('gif', 'video', 'image'))
+    media_type text DEFAULT 'gif'::text NOT NULL,
+    CONSTRAINT exercises_media_type_check CHECK ((media_type = ANY (ARRAY['gif'::text, 'video'::text, 'image'::text])))
 );
 
 
@@ -311,6 +348,40 @@ ALTER SEQUENCE public.muscle_groups_id_seq OWNED BY public.muscle_groups.id;
 
 
 --
+-- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.password_reset_tokens (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    token_hash character(64) NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    used_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.password_reset_tokens_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.password_reset_tokens_id_seq OWNED BY public.password_reset_tokens.id;
+
+
+--
 -- Name: relationships; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -420,6 +491,42 @@ ALTER SEQUENCE public.trainer_reviews_id_seq OWNED BY public.trainer_reviews.id;
 
 
 --
+-- Name: user_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_audit_logs (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    action character varying(10) NOT NULL,
+    old_data jsonb,
+    new_data jsonb,
+    changed_by integer,
+    changed_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT user_audit_logs_action_check CHECK (((action)::text = ANY ((ARRAY['INSERT'::character varying, 'UPDATE'::character varying, 'DELETE'::character varying])::text[])))
+);
+
+
+--
+-- Name: user_audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_audit_logs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_audit_logs_id_seq OWNED BY public.user_audit_logs.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -432,7 +539,11 @@ CREATE TABLE public.users (
     profile jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT users_role_check CHECK (((role)::text = ANY ((ARRAY['trainer'::character varying, 'athlete'::character varying, 'admin'::character varying])::text[])))
+    token_version integer DEFAULT 0 NOT NULL,
+    status character varying(20) DEFAULT 'active'::character varying NOT NULL,
+    deleted_at timestamp with time zone,
+    CONSTRAINT users_role_check CHECK (((role)::text = ANY ((ARRAY['trainer'::character varying, 'athlete'::character varying, 'admin'::character varying])::text[]))),
+    CONSTRAINT users_status_check CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'suspended'::character varying, 'banned'::character varying, 'deleted'::character varying])::text[])))
 );
 
 
@@ -618,6 +729,13 @@ ALTER TABLE ONLY public.muscle_groups ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: password_reset_tokens id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens ALTER COLUMN id SET DEFAULT nextval('public.password_reset_tokens_id_seq'::regclass);
+
+
+--
 -- Name: relationships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -636,6 +754,13 @@ ALTER TABLE ONLY public.trainer_availabilities ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.trainer_reviews ALTER COLUMN id SET DEFAULT nextval('public.trainer_reviews_id_seq'::regclass);
+
+
+--
+-- Name: user_audit_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_audit_logs ALTER COLUMN id SET DEFAULT nextval('public.user_audit_logs_id_seq'::regclass);
 
 
 --
@@ -707,6 +832,14 @@ ALTER TABLE ONLY public.equipment_definitions
 
 
 --
+-- Name: exercises exercises_name_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exercises
+    ADD CONSTRAINT exercises_name_unique UNIQUE (name);
+
+
+--
 -- Name: exercises exercises_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -755,6 +888,22 @@ ALTER TABLE ONLY public.muscle_groups
 
 
 --
+-- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_token_hash_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_token_hash_key UNIQUE (token_hash);
+
+
+--
 -- Name: relationships relationships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -792,6 +941,14 @@ ALTER TABLE ONLY public.trainer_reviews
 
 ALTER TABLE ONLY public.trainer_reviews
     ADD CONSTRAINT trainer_reviews_trainer_id_athlete_id_key UNIQUE (trainer_id, athlete_id);
+
+
+--
+-- Name: user_audit_logs user_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_audit_logs
+    ADD CONSTRAINT user_audit_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -869,104 +1026,6 @@ CREATE INDEX idx_bm_athlete_date ON public.body_measurements USING btree (athlet
 --
 
 CREATE INDEX idx_bm_athlete_weight ON public.body_measurements USING btree (athlete_id, weight);
-
-
---
--- Name: idx_bm_bicep_left; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_bicep_left ON public.body_measurements USING btree (athlete_id, ((((parts -> 'bicepLeft'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'bicepLeft'::text);
-
-
---
--- Name: idx_bm_bicep_right; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_bicep_right ON public.body_measurements USING btree (athlete_id, ((((parts -> 'bicepRight'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'bicepRight'::text);
-
-
---
--- Name: idx_bm_calf_left; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_calf_left ON public.body_measurements USING btree (athlete_id, ((((parts -> 'calfLeft'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'calfLeft'::text);
-
-
---
--- Name: idx_bm_calf_right; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_calf_right ON public.body_measurements USING btree (athlete_id, ((((parts -> 'calfRight'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'calfRight'::text);
-
-
---
--- Name: idx_bm_chest; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_chest ON public.body_measurements USING btree (athlete_id, ((((parts -> 'chest'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'chest'::text);
-
-
---
--- Name: idx_bm_forearm_left; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_forearm_left ON public.body_measurements USING btree (athlete_id, ((((parts -> 'forearmLeft'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'forearmLeft'::text);
-
-
---
--- Name: idx_bm_forearm_right; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_forearm_right ON public.body_measurements USING btree (athlete_id, ((((parts -> 'forearmRight'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'forearmRight'::text);
-
-
---
--- Name: idx_bm_hips; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_hips ON public.body_measurements USING btree (athlete_id, ((((parts -> 'hips'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'hips'::text);
-
-
---
--- Name: idx_bm_neck; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_neck ON public.body_measurements USING btree (athlete_id, ((((parts -> 'neck'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'neck'::text);
-
-
---
--- Name: idx_bm_parts_gin; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_parts_gin ON public.body_measurements USING gin (parts);
-
-
---
--- Name: idx_bm_shoulder; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_shoulder ON public.body_measurements USING btree (athlete_id, ((((parts -> 'shoulder'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'shoulder'::text);
-
-
---
--- Name: idx_bm_thigh_left; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_thigh_left ON public.body_measurements USING btree (athlete_id, ((((parts -> 'thighLeft'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'thighLeft'::text);
-
-
---
--- Name: idx_bm_thigh_right; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_thigh_right ON public.body_measurements USING btree (athlete_id, ((((parts -> 'thighRight'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'thighRight'::text);
-
-
---
--- Name: idx_bm_waist; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bm_waist ON public.body_measurements USING btree (athlete_id, ((((parts -> 'waist'::text) ->> 'value'::text))::numeric)) WHERE (parts ? 'waist'::text);
 
 
 --
@@ -1061,6 +1120,13 @@ CREATE INDEX idx_meals_items_gin ON public.meals USING gin (items);
 
 
 --
+-- Name: idx_password_reset_tokens_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_password_reset_tokens_user_id ON public.password_reset_tokens USING btree (user_id);
+
+
+--
 -- Name: idx_relationships_athlete; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1079,6 +1145,34 @@ CREATE INDEX idx_relationships_trainer ON public.relationships USING btree (trai
 --
 
 CREATE INDEX idx_reviews_trainer ON public.trainer_reviews USING btree (trainer_id);
+
+
+--
+-- Name: idx_user_audit_logs_changed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_audit_logs_changed_at ON public.user_audit_logs USING btree (changed_at DESC);
+
+
+--
+-- Name: idx_user_audit_logs_user_changed; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_audit_logs_user_changed ON public.user_audit_logs USING btree (user_id, changed_at DESC);
+
+
+--
+-- Name: idx_user_audit_logs_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_audit_logs_user_id ON public.user_audit_logs USING btree (user_id);
+
+
+--
+-- Name: idx_users_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_deleted_at ON public.users USING btree (deleted_at);
 
 
 --
@@ -1142,6 +1236,13 @@ CREATE INDEX idx_wpa_athlete ON public.workout_plan_assignments USING btree (ath
 --
 
 CREATE INDEX idx_wpa_trainer ON public.workout_plan_assignments USING btree (trainer_id);
+
+
+--
+-- Name: users trg_users_audit; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_users_audit AFTER INSERT OR DELETE OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.log_users_audit();
 
 
 --
@@ -1233,6 +1334,14 @@ ALTER TABLE ONLY public.meals
 
 
 --
+-- Name: password_reset_tokens password_reset_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+
+--
 -- Name: relationships relationships_athlete_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1270,6 +1379,14 @@ ALTER TABLE ONLY public.trainer_reviews
 
 ALTER TABLE ONLY public.trainer_reviews
     ADD CONSTRAINT trainer_reviews_trainer_id_fkey FOREIGN KEY (trainer_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_audit_logs user_audit_logs_changed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_audit_logs
+    ADD CONSTRAINT user_audit_logs_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.users(user_id) ON DELETE SET NULL;
 
 
 --
@@ -1323,6 +1440,4 @@ ALTER TABLE ONLY public.workouts
 --
 -- PostgreSQL database dump complete
 --
-
-
 

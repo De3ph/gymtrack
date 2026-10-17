@@ -1,60 +1,97 @@
--- Rollback the squashed baseline migration.
--- Drops all application tables but preserves schema_migrations for golang-migrate.
+-- Rollback the squashed GymTrack baseline (001 through 009).
+-- Drops every object the baseline created, in reverse dependency order.
 
--- Drop foreign key constraints first (order matters for FK chains)
-ALTER TABLE IF EXISTS public.body_measurements DROP CONSTRAINT IF EXISTS body_measurements_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.coaching_requests DROP CONSTRAINT IF EXISTS coaching_requests_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.coaching_requests DROP CONSTRAINT IF EXISTS coaching_requests_trainer_id_fkey;
-ALTER TABLE IF EXISTS public.comments DROP CONSTRAINT IF EXISTS comments_author_id_fkey;
-ALTER TABLE IF EXISTS public.comments DROP CONSTRAINT IF EXISTS comments_parent_comment_id_fkey;
-ALTER TABLE IF EXISTS public.exercises DROP CONSTRAINT IF EXISTS exercises_created_by_fkey;
-ALTER TABLE IF EXISTS public.exercises DROP CONSTRAINT IF EXISTS exercises_equipment_id_fkey;
-ALTER TABLE IF EXISTS public.exercises DROP CONSTRAINT IF EXISTS exercises_muscle_group_id_fkey;
-ALTER TABLE IF EXISTS public.invitations DROP CONSTRAINT IF EXISTS invitations_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.invitations DROP CONSTRAINT IF EXISTS invitations_trainer_id_fkey;
-ALTER TABLE IF EXISTS public.meals DROP CONSTRAINT IF EXISTS meals_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.relationships DROP CONSTRAINT IF EXISTS relationships_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.relationships DROP CONSTRAINT IF EXISTS relationships_trainer_id_fkey;
-ALTER TABLE IF EXISTS public.trainer_availabilities DROP CONSTRAINT IF EXISTS trainer_availabilities_trainer_id_fkey;
-ALTER TABLE IF EXISTS public.trainer_reviews DROP CONSTRAINT IF EXISTS trainer_reviews_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.trainer_reviews DROP CONSTRAINT IF EXISTS trainer_reviews_trainer_id_fkey;
-ALTER TABLE IF EXISTS public.workout_plan_assignments DROP CONSTRAINT IF EXISTS workout_plan_assignments_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.workout_plan_assignments DROP CONSTRAINT IF EXISTS workout_plan_assignments_plan_id_fkey;
-ALTER TABLE IF EXISTS public.workout_plan_assignments DROP CONSTRAINT IF EXISTS workout_plan_assignments_trainer_id_fkey;
-ALTER TABLE IF EXISTS public.workout_plans DROP CONSTRAINT IF EXISTS workout_plans_creator_id_fkey;
-ALTER TABLE IF EXISTS public.workouts DROP CONSTRAINT IF EXISTS workouts_athlete_id_fkey;
-ALTER TABLE IF EXISTS public.workouts DROP CONSTRAINT IF EXISTS workouts_plan_id_fkey;
+-- ============================================================================
+-- 009 SEED — clear seeded media (only CDN links)
+-- ============================================================================
+UPDATE exercises
+SET media_url = NULL, media_type = 'gif'
+WHERE media_url LIKE 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/%';
 
--- Drop all application tables
-DROP TABLE IF EXISTS public.body_measurements;
-DROP TABLE IF EXISTS public.coaching_requests;
-DROP TABLE IF EXISTS public.comments;
-DROP TABLE IF EXISTS public.equipment_definitions;
-DROP TABLE IF EXISTS public.exercises;
-DROP TABLE IF EXISTS public.invitations;
-DROP TABLE IF EXISTS public.meals;
-DROP TABLE IF EXISTS public.muscle_groups;
-DROP TABLE IF EXISTS public.relationships;
-DROP TABLE IF EXISTS public.trainer_availabilities;
-DROP TABLE IF EXISTS public.trainer_reviews;
-DROP TABLE IF EXISTS public.users;
-DROP TABLE IF EXISTS public.workout_plan_assignments;
-DROP TABLE IF EXISTS public.workout_plans;
-DROP TABLE IF EXISTS public.workouts;
+-- ============================================================================
+-- 005 ACCOUNT DELETION — restore original status values
+-- ============================================================================
+UPDATE users SET status = 'active' WHERE status = 'deleted';
+DROP INDEX IF EXISTS idx_users_deleted_at;
 
--- Drop sequences
-DROP SEQUENCE IF EXISTS public.body_measurements_id_seq;
-DROP SEQUENCE IF EXISTS public.coaching_requests_id_seq;
-DROP SEQUENCE IF EXISTS public.comments_id_seq;
-DROP SEQUENCE IF EXISTS public.equipment_definitions_id_seq;
-DROP SEQUENCE IF EXISTS public.exercises_id_seq;
-DROP SEQUENCE IF EXISTS public.invitations_id_seq;
-DROP SEQUENCE IF EXISTS public.meals_id_seq;
-DROP SEQUENCE IF EXISTS public.muscle_groups_id_seq;
-DROP SEQUENCE IF EXISTS public.relationships_id_seq;
-DROP SEQUENCE IF EXISTS public.trainer_availabilities_id_seq;
-DROP SEQUENCE IF EXISTS public.trainer_reviews_id_seq;
-DROP SEQUENCE IF EXISTS public.users_user_id_seq;
-DROP SEQUENCE IF EXISTS public.workout_plan_assignments_id_seq;
-DROP SEQUENCE IF EXISTS public.workout_plans_id_seq;
-DROP SEQUENCE IF EXISTS public.workouts_id_seq;
+-- ============================================================================
+-- 008 EXERCISE MEDIA — remove columns and check constraint
+-- ============================================================================
+ALTER TABLE exercises DROP CONSTRAINT IF EXISTS exercises_media_type_check;
+ALTER TABLE exercises DROP COLUMN IF EXISTS media_type;
+ALTER TABLE exercises DROP COLUMN IF EXISTS media_url;
+
+-- ============================================================================
+-- 006 PASSWORD RESET
+-- ============================================================================
+DROP TABLE IF EXISTS password_reset_tokens;
+
+-- ============================================================================
+-- 007 USER AUDIT
+-- ============================================================================
+DROP TABLE IF EXISTS user_audit_logs;
+
+-- ============================================================================
+-- 001 TABLES — drop in reverse dependency order
+-- ============================================================================
+
+DROP INDEX IF EXISTS idx_workouts_plan;
+DROP INDEX IF EXISTS idx_workouts_exercises_gin;
+DROP INDEX IF EXISTS idx_workouts_athlete_date;
+DROP TABLE IF EXISTS workouts;
+
+DROP INDEX IF EXISTS idx_wpa_trainer;
+DROP INDEX IF EXISTS idx_wpa_athlete;
+DROP TABLE IF EXISTS workout_plan_assignments;
+
+DROP INDEX IF EXISTS idx_workout_plans_exercises_gin;
+DROP INDEX IF EXISTS idx_workout_plans_creator;
+DROP TABLE IF EXISTS workout_plans;
+
+DROP INDEX IF EXISTS idx_comments_parent;
+DROP INDEX IF EXISTS idx_comments_author;
+DROP INDEX IF EXISTS idx_comments_target;
+DROP TABLE IF EXISTS comments;
+
+DROP INDEX IF EXISTS idx_bm_athlete_weight;
+DROP INDEX IF EXISTS idx_bm_athlete_date;
+DROP TABLE IF EXISTS body_measurements;
+
+DROP INDEX IF EXISTS idx_meals_items_gin;
+DROP INDEX IF EXISTS idx_meals_athlete_date;
+DROP TABLE IF EXISTS meals;
+
+DROP INDEX IF EXISTS idx_invitations_trainer;
+DROP INDEX IF EXISTS idx_invitations_code;
+DROP TABLE IF EXISTS invitations;
+
+DROP INDEX IF EXISTS idx_availability_trainer_day;
+DROP TABLE IF EXISTS trainer_availabilities;
+
+DROP INDEX IF EXISTS idx_reviews_trainer;
+DROP TABLE IF EXISTS trainer_reviews;
+
+DROP INDEX IF EXISTS idx_coaching_requests_trainer;
+DROP INDEX IF EXISTS idx_coaching_requests_athlete;
+DROP TABLE IF EXISTS coaching_requests;
+
+DROP INDEX IF EXISTS idx_relationships_athlete;
+DROP INDEX IF EXISTS idx_relationships_trainer;
+DROP TABLE IF EXISTS relationships;
+
+DROP INDEX IF EXISTS idx_exercises_name;
+DROP INDEX IF EXISTS idx_exercises_equipment;
+DROP INDEX IF EXISTS idx_exercises_muscle;
+DROP INDEX IF EXISTS idx_exercises_category;
+DROP TABLE IF EXISTS exercises;
+
+DROP TABLE IF EXISTS equipment_definitions;
+DROP TABLE IF EXISTS muscle_groups;
+
+DROP INDEX IF EXISTS idx_users_email;
+DROP INDEX IF EXISTS idx_users_role;
+DROP TABLE IF EXISTS users;
+
+-- 007 USER AUDIT — the trigger is dropped with the users table above, so the
+-- function can be removed here.
+DROP FUNCTION IF EXISTS log_users_audit();
