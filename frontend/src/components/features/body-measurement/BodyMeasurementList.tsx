@@ -6,6 +6,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -16,6 +17,7 @@ import { qk } from "@/lib/query-keys";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { DataError } from "@/components/features/DataError";
 import { PAGINATION } from "@/lib/constants";
+import { getPaginationRange } from "@/lib/pagination";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Empty,
@@ -222,19 +224,25 @@ export function BodyMeasurementList({
                 className={page <= 1 ? "pointer-events-none opacity-50" : ""}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <PaginationItem key={p}>
-                <PaginationLink
-                  isActive={p === page}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(p);
-                  }}
-                >
-                  {p}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {getPaginationRange(page, totalPages).map((p, index) =>
+              p === "ellipsis" ? (
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    isActive={p === page}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(p);
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
             <PaginationItem>
               <PaginationNext
                 onClick={(e) => {

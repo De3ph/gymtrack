@@ -102,4 +102,37 @@ describe('WorkoutList', () => {
     await user.click(expandButton)
     expect(screen.getByText(/bench press/i)).toBeInTheDocument()
   })
+
+  it('windows pagination instead of rendering a link per page', async () => {
+    const user = userEvent.setup()
+    const onPageChange = vi.fn()
+    // 500 rows / WORKOUT_PAGE_SIZE(10) = 50 pages; unwindowed that is 50 links.
+    renderWithProvider(
+      <WorkoutList
+        workouts={mockWorkouts}
+        totalCount={500}
+        page={25}
+        onPageChange={onPageChange}
+      />,
+    )
+
+    // prev + next + the windowed pages 1, 24, 25, 26, 50.
+    const pageLinks = Array.from(
+      document.querySelectorAll('[data-slot="pagination-link"]'),
+    )
+      .map((el) => el.textContent?.trim())
+      .filter((text): text is string => Boolean(text) && /^\d+$/.test(text ?? ''))
+
+    // 1 … 24 25 26 … 50 — never one link per page.
+    expect(pageLinks).toEqual(['1', '24', '25', '26', '50'])
+
+    // PaginationLink renders an <a> without href, so it has no "link" role;
+    // select it by data-slot + text instead.
+    const pageFifty = Array.from(
+      document.querySelectorAll('[data-slot="pagination-link"]'),
+    ).find((el) => el.textContent?.trim() === '50')
+    expect(pageFifty).toBeDefined()
+    await user.click(pageFifty as HTMLElement)
+    expect(onPageChange).toHaveBeenCalledWith(50)
+  })
 })

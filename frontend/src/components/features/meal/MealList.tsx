@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl"
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -25,6 +26,7 @@ import { useCollapseSeed } from "@/hooks/use-collapse-seed"
 import { MealCard } from "./MealCard"
 import { MealFilterBar } from "./MealFilterBar"
 import { PAGINATION } from "@/lib/constants"
+import { getPaginationRange } from "@/lib/pagination"
 import { staggerContainer } from "@/lib/animations"
 
 export interface MealFilter {
@@ -210,19 +212,25 @@ export function MealList({
                 className={page <= 1 ? "pointer-events-none opacity-50" : ""}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <PaginationItem key={p}>
-                <PaginationLink
-                  isActive={p === page}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(p);
-                  }}
-                >
-                  {p}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {getPaginationRange(page, totalPages).map((p, index) =>
+              p === "ellipsis" ? (
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    isActive={p === page}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(p);
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
             <PaginationItem>
               <PaginationNext
                 onClick={(e) => {
