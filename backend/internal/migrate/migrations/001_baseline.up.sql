@@ -1441,3 +1441,8 @@ ALTER TABLE ONLY public.workouts
 -- PostgreSQL database dump complete
 --
 
+-- Restore default search path for subsequent migrations
+SELECT pg_catalog.set_config('search_path', 'public', false);
+
+
+
