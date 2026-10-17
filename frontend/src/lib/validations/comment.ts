@@ -1,22 +1,33 @@
-import { z } from "zod";
+/**
+ * Comment content rules, shared by the create form and the inline edit flow.
+ *
+ * Pure by design: no `t()`, no React. Each caller maps the returned code to a
+ * translated message, so the rule and its wording can't drift apart.
+ *
+ * COMMENT_MAX_LENGTH mirrors the backend's `validate:"required,min=1,max=2000"`
+ * on models.Comment.Content.
+ */
 
-const commentTargetTypeSchema = z.enum(["workout", "meal"]);
+export const COMMENT_MAX_LENGTH = 2000;
 
-const createCommentSchema = z.object({
-  targetType: commentTargetTypeSchema,
-  targetId: z.string().min(1, "Target ID is required"),
-  content: z
-    .string()
-    .min(1, "Comment cannot be empty")
-    .max(2000, "Comment must be at most 2000 characters"),
-  parentCommentId: z.string().optional(),
-});
+export type CommentContentFailure = "empty" | "too_long";
 
-export const updateCommentSchema = z.object({
-  content: z
-    .string()
-    .min(1, "Comment cannot be empty")
-    .max(2000, "Comment must be at most 2000 characters"),
-});
+export function validateCommentContent(raw: string): CommentContentFailure | undefined {
+  if (raw.trim().length === 0) return "empty";
+  if (raw.length > COMMENT_MAX_LENGTH) return "too_long";
+  return undefined;
+}
 
-export type CreateCommentFormData = z.infer<typeof createCommentSchema>;
+/**
+ * Shape of the comment form payload.
+ *
+ * Previously inferred from a schema nothing ever parsed: CommentForm validates
+ * `content` inline so the messages can come from next-intl. The bounds live in
+ * `validateCommentContent` above.
+ */
+export interface CreateCommentFormData {
+  targetType: "workout" | "meal";
+  targetId: string;
+  content: string;
+  parentCommentId?: string;
+}

@@ -1360,7 +1360,7 @@
       "submitting": "Submitting...",
       "cancel": "Cancel",
       "content_required": "Content is required",
-      "content_too_long": "Content must be less than 1000 characters",
+      "content_too_long": "Content must be at most {max} characters",
       "post_failed": "Could not post comment. Check connection and try again.",
       "reply_placeholder": "Write a reply..."
     },

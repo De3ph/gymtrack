@@ -11,7 +11,9 @@ import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
 import { commentApi } from "@/lib/api";
 import {
+  COMMENT_MAX_LENGTH,
   type CreateCommentFormData,
+  validateCommentContent,
 } from "@/lib/validations/comment";
 
 interface CommentFormProps {
@@ -38,11 +40,11 @@ export function CommentForm({
   const placeholder = placeholderProp ?? t("form.comment");
 
   const validateContent = ({ value }: { value: string }): string | undefined => {
-    if (!value || value.trim().length === 0) {
-      return t("form.content_required");
-    }
-    if (value.length > 1000) {
-      return t("form.content_too_long");
+    // Shared with the inline edit flow so both enforce the backend's limit.
+    const failure = validateCommentContent(value);
+    if (failure === "empty") return t("form.content_required");
+    if (failure === "too_long") {
+      return t("form.content_too_long", { max: COMMENT_MAX_LENGTH });
     }
     return undefined;
   };

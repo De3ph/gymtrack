@@ -20,7 +20,7 @@ import {
 import { commentApi } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { Comment } from "@/types";
-import { updateCommentSchema } from "@/lib/validations/comment";
+import { COMMENT_MAX_LENGTH, validateCommentContent } from "@/lib/validations/comment";
 import { formatDate } from "@/lib/i18n/dayjs";
 
 interface CommentItemProps {
@@ -44,6 +44,7 @@ export function CommentItem({
   const tCommon = useTranslations("common");
   const [isEditing, setIsEditing] = React.useState(false);
   const [editContent, setEditContent] = React.useState(comment.content);
+  const [editError, setEditError] = React.useState<string | undefined>(undefined);
 
   const isOwn = user?.userId === comment.authorId;
 
@@ -64,8 +65,18 @@ export function CommentItem({
   });
 
   const handleSaveEdit = () => {
-    const result = updateCommentSchema.safeParse({ content: editContent });
-    if (!result.success) return;
+    // Previously a failed parse returned silently, so an over-length edit made
+    // the Save button look broken. Surface the reason instead.
+    const failure = validateCommentContent(editContent);
+    if (failure) {
+      setEditError(
+        failure === "empty"
+          ? t("form.content_required")
+          : t("form.content_too_long", { max: COMMENT_MAX_LENGTH })
+      );
+      return;
+    }
+    setEditError(undefined);
     // comment.commentId is optional in generated type but required for update
     if (comment.commentId != null) {
       updateComment({ id: comment.commentId, content: editContent });
@@ -74,6 +85,7 @@ export function CommentItem({
 
   const handleCancelEdit = () => {
     setEditContent(comment.content);
+    setEditError(undefined);
     setIsEditing(false);
   };
 
@@ -96,10 +108,24 @@ export function CommentItem({
         <div className="mt-2 space-y-3">
           <Textarea
             value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
+            onChange={(e) => {
+              setEditContent(e.target.value);
+              setEditError(undefined);
+            }}
             rows={3}
             className="resize-none"
+            aria-invalid={editError ? true : undefined}
+            aria-describedby={editError ? "comment-edit-error" : undefined}
           />
+          {editError && (
+            <p
+              id="comment-edit-error"
+              role="alert"
+              className="text-sm font-medium text-destructive"
+            >
+              {editError}
+            </p>
+          )}
           <div className="flex gap-2">
             <Button
               size="sm"

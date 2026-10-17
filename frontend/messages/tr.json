@@ -1360,7 +1360,7 @@
       "submitting": "Gönderiliyor...",
       "cancel": "İptal",
       "content_required": "İçerik gereklidir",
-      "content_too_long": "İçerik 1000 karakterden az olmalıdır",
+      "content_too_long": "İçerik en fazla {max} karakter olabilir",
       "post_failed": "Yorum gönderilemedi. Bağlantını kontrol et ve tekrar dene.",
       "reply_placeholder": "Bir yanıt yazın..."
     },
