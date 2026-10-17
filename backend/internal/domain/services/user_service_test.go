@@ -294,3 +294,119 @@ func TestUserService_DeleteAccount_UserNotFound(t *testing.T) {
 	require.True(t, ok, "expected *ServiceError, got %T", err)
 	assert.Equal(t, "USER_NOT_FOUND", svcErr.Code)
 }
+
+// --- UserService.UpdateUserProfile tests ---
+
+// seedProfileUser creates a user with a fully-populated profile so the merge
+// behavior of UpdateUserProfile can be exercised.
+func seedProfileUser(t *testing.T, repo *fakeUserRepo) *models.User {
+	t.Helper()
+	u := &models.User{
+		Username:     "mergeuser",
+		Email:        "merge@example.com",
+		PasswordHash: hashPassword(t, "password"),
+		Role:         models.RoleTrainer,
+		Status:       models.UserStatusActive,
+		Profile: models.UserProfile{
+			Name:                     "Original Name",
+			Bio:                      "Original bio",
+			Age:                      30,
+			Weight:                   80,
+			Height:                   180,
+			FitnessGoals:             "Original goals",
+			Certifications:           "Original certs",
+			Specializations:          "Original specs",
+			TrainerAssignment:        42,
+			ClientList:               []int{7, 8},
+			ProfilePhotoURL:          "https://example.com/photo.jpg",
+			HourlyRate:               75.5,
+			YearsOfExperience:        10,
+			Location:                 "Berlin",
+			IsAvailableForNewClients: true,
+			Languages:                []string{"English"},
+		},
+	}
+	require.NoError(t, repo.CreateUser(context.Background(), u))
+	return u
+}
+
+func TestUserService_UpdateUserProfile_MergesOwnedFieldsAndPreservesOthers(t *testing.T) {
+	repo := newFakeUserRepo()
+	svc := NewUserService(repo)
+	ctx := context.Background()
+
+	user := seedProfileUser(t, repo)
+
+	// Only the fields owned by this endpoint are supplied; everything else is
+	// zero because the caller did not send it.
+	updated, err := svc.UpdateUserProfile(ctx, user.UserID, models.UserProfile{
+		Name:            "New Name",
+		Bio:             "New bio",
+		Age:             31,
+		Weight:          81,
+		Height:          181,
+		FitnessGoals:    "New goals",
+		Certifications:  "New certs",
+		Specializations: "New specs",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, "New Name", updated.Profile.Name)
+	assert.Equal(t, "New bio", updated.Profile.Bio)
+	assert.Equal(t, 31, updated.Profile.Age)
+	assert.Equal(t, 81, updated.Profile.Weight)
+	assert.Equal(t, 181, updated.Profile.Height)
+	assert.Equal(t, "New goals", updated.Profile.FitnessGoals)
+	assert.Equal(t, "New certs", updated.Profile.Certifications)
+	assert.Equal(t, "New specs", updated.Profile.Specializations)
+
+	// Trainer-catalog and server-managed fields must survive an update that
+	// omitted them.
+	assert.Equal(t, "https://example.com/photo.jpg", updated.Profile.ProfilePhotoURL)
+	assert.Equal(t, 75.5, updated.Profile.HourlyRate)
+	assert.Equal(t, 10, updated.Profile.YearsOfExperience)
+	assert.Equal(t, "Berlin", updated.Profile.Location)
+	assert.True(t, updated.Profile.IsAvailableForNewClients)
+	assert.Equal(t, []string{"English"}, updated.Profile.Languages)
+	assert.Equal(t, 42, updated.Profile.TrainerAssignment)
+	assert.Equal(t, []int{7, 8}, updated.Profile.ClientList)
+
+	// Persisted row reflects the same merge.
+	stored, err := repo.GetUserByID(ctx, user.UserID)
+	require.NoError(t, err)
+	assert.Equal(t, "New Name", stored.Profile.Name)
+	assert.Equal(t, 42, stored.Profile.TrainerAssignment)
+	assert.Equal(t, []int{7, 8}, stored.Profile.ClientList)
+}
+
+func TestUserService_UpdateUserProfile_IgnoresServerManagedFieldsFromClient(t *testing.T) {
+	repo := newFakeUserRepo()
+	svc := NewUserService(repo)
+	ctx := context.Background()
+
+	user := seedProfileUser(t, repo)
+
+	// A client attempting to self-assign a trainer or forge a client list must
+	// not be able to; the stored values win.
+	updated, err := svc.UpdateUserProfile(ctx, user.UserID, models.UserProfile{
+		Name:              "Attacker",
+		TrainerAssignment: 999,
+		ClientList:        []int{1, 2, 3, 4},
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, "Attacker", updated.Profile.Name)
+	assert.Equal(t, 42, updated.Profile.TrainerAssignment)
+	assert.Equal(t, []int{7, 8}, updated.Profile.ClientList)
+}
+
+func TestUserService_UpdateUserProfile_UserNotFound(t *testing.T) {
+	repo := newFakeUserRepo()
+	svc := NewUserService(repo)
+
+	_, err := svc.UpdateUserProfile(context.Background(), 999999, models.UserProfile{Name: "X"})
+	require.Error(t, err)
+	svcErr, ok := err.(*ServiceError)
+	require.True(t, ok, "expected *ServiceError, got %T", err)
+	assert.Equal(t, "USER_NOT_FOUND", svcErr.Code)
+}

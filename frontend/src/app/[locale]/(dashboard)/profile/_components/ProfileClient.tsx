@@ -303,12 +303,13 @@ function ProfileEdit({
       specializations: profile.specializations || "",
     },
     onSubmit: async ({ value }) => {
-      // The backend replaces users.profile wholesale (user_service.go), so the
-      // payload must carry every field worth keeping - not just the ones this
-      // form renders. Spreading the loaded profile preserves trainerAssignment,
-      // clientList, bio, hourlyRate and the fields owned by other pages. Only
-      // role-relevant fields are overwritten, so an athlete save can't blank a
-      // trainer's certifications (and vice versa).
+      // The backend now merges profile updates (user_service.go): it preserves
+      // server-managed (trainerAssignment, clientList) and trainer-catalog
+      // fields (hourlyRate, location, availability, photo, ...) from the stored
+      // row. Spreading the loaded profile is still good hygiene so this form
+      // doesn't drop fields it doesn't render, but it is no longer load-bearing
+      // for correctness. Only role-relevant fields are overwritten, so an athlete
+      // save can't blank a trainer's certifications (and vice versa).
       const next: UserProfile = { ...profile, name: value.name.trim() };
 
       if (currentUser.role === "athlete") {

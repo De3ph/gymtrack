@@ -52,7 +52,24 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, userID int, profile
 		return nil, ErrUserNotFound
 	}
 
-	user.Profile = profile
+	// Merge rather than blind-replace: only the fields owned by this endpoint
+	// are taken from the incoming profile. Server-managed fields
+	// (TrainerAssignment, ClientList) and the public trainer-catalog fields
+	// (hourly rate, location, availability, photo, ... — edited via the trainer
+	// profile endpoint) are preserved from the stored row, so a partial or stale
+	// client payload can never wipe them. This mirrors the read-modify-write
+	// merge in trainer_profile.go. Note bio is intentionally accepted here too:
+	// it is edited through this endpoint by the mobile profile screen.
+	existing := user.Profile
+	existing.Name = profile.Name
+	existing.Bio = profile.Bio
+	existing.Age = profile.Age
+	existing.Weight = profile.Weight
+	existing.Height = profile.Height
+	existing.FitnessGoals = profile.FitnessGoals
+	existing.Certifications = profile.Certifications
+	existing.Specializations = profile.Specializations
+	user.Profile = existing
 	user.UpdatedAt = time.Now()
 
 	if err := s.userRepo.UpdateUser(ctx, user); err != nil {
