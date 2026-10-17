@@ -4,6 +4,8 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"gymtrack-backend/internal/api/handlers"
@@ -269,7 +271,17 @@ var RepositoryModule = fx.Module("repositories",
 		metricsMw := middleware.MetricsMiddleware(registry)
 
 		corsConfig := cors.DefaultConfig()
-		corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"}
+		allowedOrigins := []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"}
+		if v := os.Getenv("CORS_ALLOWED_ORIGINS"); v != "" {
+			allowedOrigins = nil
+			for _, origin := range strings.Split(v, ",") {
+				origin = strings.TrimSpace(origin)
+				if origin != "" {
+					allowedOrigins = append(allowedOrigins, origin)
+				}
+			}
+		}
+		corsConfig.AllowOrigins = allowedOrigins
 
 		// corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://[IP_ADDRESS]:3000", "http://localhost:3001", "http://[IP_ADDRESS]:3001"} // Replaced by AllowAllOrigins above
 		corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "X-Requested-With", "Allow", "Origin", "Accept", "X-Abbreviate"}

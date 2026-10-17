@@ -110,9 +110,9 @@ function ProfileView({
   t: ReturnType<typeof useTranslations<"profile">>;
   trainerSection: React.ReactNode;
 }) {
-  const joinedDate = new Date(currentUser.createdAt);
-  const initials = getInitials(currentUser.profile.name);
-  const avatarColor = getAvatarColor(currentUser.profile.name);
+  const joinedDate = new Date(currentUser.createdAt ?? Date.now());
+  const initials = getInitials(currentUser.profile?.name);
+  const avatarColor = getAvatarColor(currentUser.profile?.name);
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -128,7 +128,7 @@ function ProfileView({
 
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {currentUser.profile.name}
+            {currentUser.profile?.name ?? ""}
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             @{currentUser.username} &middot; {currentUser.email}
@@ -161,7 +161,7 @@ function ProfileView({
         <InfoRow
           icon={UserIcon}
           label={t("fields.name")}
-          value={currentUser.profile.name}
+          value={currentUser.profile?.name ?? ""}
         />
 
         <InfoRow
@@ -195,15 +195,15 @@ function ProfileView({
             <InfoRow
               icon={Calendar}
               label={t("fields.age")}
-              value={currentUser.profile.age}
+              value={currentUser.profile?.age}
             />
 
             <InfoRow
               icon={Target}
               label={t("fields.weight")}
               value={
-                currentUser.profile.weight != null
-                  ? `${currentUser.profile.weight} ${t("units.kg")}`
+                currentUser.profile?.weight != null
+                  ? `${currentUser.profile?.weight} ${t("units.kg")}`
                   : undefined
               }
             />
@@ -212,8 +212,8 @@ function ProfileView({
               icon={Ruler}
               label={t("fields.height")}
               value={
-                currentUser.profile.height != null
-                  ? `${currentUser.profile.height} ${t("units.cm")}`
+                currentUser.profile?.height != null
+                  ? `${currentUser.profile?.height} ${t("units.cm")}`
                   : undefined
               }
             />
@@ -221,7 +221,7 @@ function ProfileView({
             <InfoRow
               icon={Target}
               label={t("fields.fitness_goals")}
-              value={currentUser.profile.fitnessGoals}
+              value={currentUser.profile?.fitnessGoals}
             />
           </>
         )}
@@ -231,13 +231,13 @@ function ProfileView({
             <InfoRow
               icon={Award}
               label={t("fields.certifications")}
-              value={currentUser.profile.certifications}
+              value={currentUser.profile?.certifications}
             />
 
             <InfoRow
               icon={Zap}
               label={t("fields.specializations")}
-              value={currentUser.profile.specializations}
+              value={currentUser.profile?.specializations}
             />
           </>
         )}
@@ -266,8 +266,8 @@ function ProfileEdit({
   isPending: boolean;
   t: ReturnType<typeof useTranslations<"profile">>;
 }) {
-  const initials = getInitials(currentUser.profile.name);
-  const avatarColor = getAvatarColor(currentUser.profile.name);
+  const initials = getInitials(currentUser.profile?.name);
+  const avatarColor = getAvatarColor(currentUser.profile?.name);
 
   const form = useForm({
     defaultValues: {
@@ -494,7 +494,7 @@ export function ProfileClient() {
 
   const { data: currentUser, isLoading } = useQuery<User>({
     queryKey: ["currentUser"],
-    queryFn: userApi.getCurrentUser,
+    queryFn: () => userApi.getCurrentUser() as Promise<User>,
     initialData: user || undefined,
   });
 
@@ -508,7 +508,7 @@ export function ProfileClient() {
     mutationFn: userApi.updateCurrentUser,
     onSuccess: (data) => {
       queryClient.setQueryData(["currentUser"], data);
-      setUser(data);
+      setUser(data as User);
       setIsEditing(false);
       setSuccessMessage(t("profile_saved"));
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -585,4 +585,5 @@ export function ProfileClient() {
     </>
   );
 }
+
 

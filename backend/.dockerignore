@@ -1,0 +1,25 @@
+# Version control
+.git
+.gitignore
+
+# Binaries
+*.exe
+*.out
+server
+migrate
+seed
+
+# Test artifacts
+*.test
+coverage.*
+
+# Env
+.env
+.env.*
+
+# Docs (keep backend/docs for swagger embed)
+*.md
+
+# IDE
+.vscode
+.idea
