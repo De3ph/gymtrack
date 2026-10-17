@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Geist_Mono, Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { SITE_URL } from "@/lib/env";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import { Providers } from "./providers";
 import "../globals.css";
@@ -19,9 +20,22 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const SITE_TITLE = "GymTrack - Fitness Tracking for Trainers & Athletes";
+const SITE_DESCRIPTION =
+  "Track workouts, meals, and progress with your personal trainer";
+
 export const metadata: Metadata = {
-  title: "GymTrack - Fitness Tracking for Trainers & Athletes",
-  description: "Track workouts, meals, and progress with your personal trainer",
+  // Absolute base so relative OG image URLs ("/images/...") resolve to
+  // absolute URLs in crawlers' <meta> tags. Without it Next cannot
+  // construct og:image URLs in production.
+  metadataBase: new URL(SITE_URL),
+  // Absolute base for metadata images, canonicals, sitemap/robots links.
+  title: {
+    default: SITE_TITLE,
+    // Public pages set a bare title and inherit "<title> | GymTrack".
+    template: "%s | GymTrack",
+  },
+  description: SITE_DESCRIPTION,
   applicationName: "GymTrack",
   appleWebApp: {
     capable: true,
@@ -29,6 +43,28 @@ export const metadata: Metadata = {
     title: "GymTrack",
   },
   formatDetection: { telephone: false },
+  // Pages that override any OG field must restate siteName/images (Next
+  // replaces nested metadata objects instead of merging) — see pageSocialMetadata.
+  openGraph: {
+    type: "website",
+    siteName: "GymTrack",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/images/hero-training.jpg",
+        width: 2400,
+        height: 1600,
+        alt: "GymTrack — athlete training with a coach",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/images/hero-training.jpg"],
+  },
 };
 
 export const viewport: Viewport = {
