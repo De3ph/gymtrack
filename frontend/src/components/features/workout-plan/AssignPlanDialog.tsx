@@ -79,24 +79,29 @@ export function AssignPlanDialog({
           </p>
         ) : (
           <div className="space-y-3 py-2">
-            {clients.map((client) => (
-              <div
-                key={client.athlete.userId}
-                className="flex items-center gap-3"
-              >
-                <Checkbox
-                  id={String(client.athlete.userId)}
-                  checked={selectedIds.includes(client.athlete.userId)}
-                  onCheckedChange={() => toggleClient(client.athlete.userId)}
-                />
-                <Label
-                  htmlFor={String(client.athlete.userId)}
-                  className="cursor-pointer"
+            {clients.map((client) => {
+              const athleteId = client.athlete.userId;
+              // athleteId is optional in generated type; skip if missing
+              if (athleteId == null) return null;
+              return (
+                <div
+                  key={athleteId}
+                  className="flex items-center gap-3"
                 >
-                  {client.athlete.profile?.name || client.athlete.username}
-                </Label>
-              </div>
-            ))}
+                  <Checkbox
+                    id={String(athleteId)}
+                    checked={selectedIds.includes(athleteId)}
+                    onCheckedChange={() => toggleClient(athleteId)}
+                  />
+                  <Label
+                    htmlFor={String(athleteId)}
+                    className="cursor-pointer"
+                  >
+                    {client.athlete.profile?.name || client.athlete.username}
+                  </Label>
+                </div>
+              );
+            })}
           </div>
         )}
         <DialogFooter>

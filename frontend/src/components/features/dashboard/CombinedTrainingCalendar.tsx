@@ -221,7 +221,7 @@ function workoutToEvent(workout: Workout, tEvent: (key: string) => string): Dash
 
 function mealToEvent(meal: Meal): DashboardEvent {
   return {
-    id: meal.mealId,
+    id: meal.mealId ?? 0,
     kind: "meal",
     title: capitalize(meal.mealType),
     time: formatDate(new Date(meal.date), "HH:mm"),

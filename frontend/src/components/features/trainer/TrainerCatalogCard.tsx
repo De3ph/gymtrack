@@ -17,8 +17,11 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
   const rating = trainer.averageRating || 0;
   const reviewCount = trainer.reviewCount || 0;
 
-  const primarySpecialty = trainer.profile.specializations
-    ? trainer.profile.specializations.split(",")[0].trim()
+  // trainer.profile is optional in generated type
+  const userProfile = trainer.profile ?? {};
+  const name = userProfile.name ?? "Trainer"; // fallback
+  const primarySpecialty = userProfile.specializations
+    ? userProfile.specializations.split(",")[0].trim()
     : undefined;
 
   return (
@@ -28,7 +31,7 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
     >
       <div className="flex flex-col items-center text-center">
         <TrainerAvatar
-          name={trainer.profile.name}
+          name={name}
           photoUrl={profile?.profilePhotoUrl}
           rating={rating}
           isAvailable={profile?.isAvailableForNewClients}
@@ -39,7 +42,7 @@ export function TrainerCatalogCard({ trainer }: TrainerCatalogCardProps) {
           className="mt-4 text-base font-semibold text-foreground"
           style={{ letterSpacing: "-0.01em" }}
         >
-          {trainer.profile.name}
+          {name}
         </h3>
 
         {primarySpecialty && (

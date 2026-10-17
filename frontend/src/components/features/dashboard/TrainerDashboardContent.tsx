@@ -27,7 +27,7 @@ function ClientRow({
   viewLabel,
   onNavigate,
 }: {
-  client: { athlete: { username: string; profile: { name?: string; fitnessGoals?: string } }; relationship: { relationshipId: string | number } };
+  client: { athlete: { username: string; profile?: { name?: string; fitnessGoals?: string } }; relationship: { relationshipId?: string | number } };
   viewLabel: string;
   onNavigate: (username: string) => void;
 }) {
@@ -40,17 +40,17 @@ function ClientRow({
       >
         <ItemContent>
           <ItemTitle className="font-sans text-sm font-semibold text-foreground">
-            {client.athlete.profile.name || ""}
+            {client.athlete.profile?.name || ""}
           </ItemTitle>
           <ItemDescription className="font-sans text-sm leading-6 text-muted-foreground">
-            {client.athlete.profile.fitnessGoals || ""}
+            {client.athlete.profile?.fitnessGoals || ""}
           </ItemDescription>
         </ItemContent>
         <button
           type="button"
           onClick={() => onNavigate(client.athlete.username)}
           className="shrink-0 font-mono text-xs uppercase tracking-[0.18em] text-foreground underline underline-offset-4 hover:text-muted-foreground"
-          aria-label={`${viewLabel} ${client.athlete.profile.name || client.athlete.username}`}
+          aria-label={`${viewLabel} ${client.athlete.profile?.name || client.athlete.username}`}
         >
           {viewLabel}
         </button>

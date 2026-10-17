@@ -8,6 +8,8 @@ interface MyTrainerProfileProps {
 
 export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
   const t = useTranslations('trainer.profile.my_profile')
+  // trainer.profile is optional in generated type - provide fallbacks
+  const profile = trainer.profile ?? {};
   return (
     <div className="rounded-none border border-border">
       <div className="px-6 py-4 border-b border-border">
@@ -22,7 +24,7 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
             {t('name_label')}
           </span>
           <p className="mt-1 text-base font-[600] text-foreground">
-            {trainer.profile.name}
+            {profile.name}
           </p>
         </div>
 
@@ -36,7 +38,7 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
           </div>
         </div>
 
-        {trainer.profile.certifications ? (
+        {profile.certifications ? (
           <div>
             <span className="text-sm font-[500] text-muted-foreground block">
               {t('certifications_label')}
@@ -44,19 +46,19 @@ export function MyTrainerProfile({ trainer }: MyTrainerProfileProps) {
             <div className="mt-1 flex items-start gap-2">
               <Award className="size-5 text-muted-foreground mt-0.5" aria-hidden="true" />
               <p className="text-foreground">
-                {trainer.profile.certifications}
+                {profile.certifications}
               </p>
             </div>
           </div>
         ) : null}
 
-        {trainer.profile.specializations ? (
+        {profile.specializations ? (
           <div>
             <span className="text-sm font-[500] text-muted-foreground block">
               {t('specializations_label')}
             </span>
             <p className="mt-1 text-foreground">
-              {trainer.profile.specializations}
+              {profile.specializations}
             </p>
           </div>
         ) : null}

@@ -24,13 +24,13 @@ export function ClientOverview({ athlete, stats }: ClientOverviewProps) {
         <div className="mb-6 grid gap-4 md:grid-cols-2">
           <StatCard
             title={t('workouts_this_week')}
-            value={stats.workoutsThisWeek}
+            value={stats?.workoutsThisWeek ?? 0}
             icon={Calendar}
             className="rounded-none border border-border"
           />
           <StatCard
             title={t('meals_this_week')}
-            value={stats.mealsThisWeek}
+            value={stats?.mealsThisWeek ?? 0}
             icon={Calendar}
             className="rounded-none border border-border"
           />

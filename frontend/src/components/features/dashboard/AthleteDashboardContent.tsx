@@ -115,7 +115,7 @@ export function AthleteDashboardContent() {
             />
             <DashboardMetric
               label={tAthlete("trainer")}
-              value={activeTrainer ? activeTrainer.profile.name : "—"}
+              value={activeTrainer?.profile?.name ?? "—"}
               hint={
                 activeTrainer
                   ? tAthlete("trainer_connected")
