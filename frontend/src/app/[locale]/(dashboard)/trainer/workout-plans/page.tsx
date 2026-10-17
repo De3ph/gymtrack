@@ -22,6 +22,8 @@ import { WorkoutPlan } from "@/types";
 import { workoutPlanApi } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
+import { ApiErrorHandler } from "@/lib/error-handler";
+import { DataError } from "@/components/features/DataError";
 import { revalidateWorkoutPlansCache } from "@/lib/actions/cache";
 import {
   Dialog,
@@ -75,7 +77,7 @@ export default function TrainerWorkoutPlansPage() {
     deleteMutation.mutate(deletingPlan.planId);
   };
 
-  const { data } = useQuery({
+  const { data, error, refetch } = useQuery({
     queryKey: ["workout-plans"],
     queryFn: () => workoutPlanApi.getAll(),
     staleTime: STALE_TIMES.FIVE_MINUTES,
@@ -193,12 +195,19 @@ export default function TrainerWorkoutPlansPage() {
         </DialogContent>
       </Dialog>
 
-      <WorkoutPlanList
-        plans={filteredPlans}
-        onEdit={(plan) => setEditingPlan(plan)}
-        onDelete={(plan) => setDeletingPlan(plan)}
-        onAssign={(plan) => setAssigningPlan(plan)}
-      />
+      {error ? (
+        <DataError
+          message={ApiErrorHandler.handle(error)}
+          onRetry={() => refetch()}
+        />
+      ) : (
+        <WorkoutPlanList
+          plans={filteredPlans}
+          onEdit={(plan) => setEditingPlan(plan)}
+          onDelete={(plan) => setDeletingPlan(plan)}
+          onAssign={(plan) => setAssigningPlan(plan)}
+        />
+      )}
     </div>
   );
 }
