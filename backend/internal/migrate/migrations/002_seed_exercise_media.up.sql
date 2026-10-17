@@ -1,3 +1,6 @@
+-- Ensure tables resolve even if a prior baseline migration reset search_path.
+SET search_path = public;
+
 -- Migration 002: Seed exercise media URLs (idempotent, non-destructive)
 --
 -- Backfills media_url and media_type for exercises that have NULL media.

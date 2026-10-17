@@ -1,3 +1,5 @@
+SET search_path = public;
+
 -- Rollback migration 002: Clear seeded exercise media URLs
 --
 -- Only clears rows that point to the seeded GitHub CDN.
