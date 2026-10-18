@@ -14,6 +14,7 @@
 | `go test ./...` | Run all tests |
 | `go test ./internal/infrastructure/persistence/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
 | `go run cmd/seed/main.go` | Seed mock data: 30 workouts + 30 meals for `de3ph` (password `1234567890`) |
+| `go run cmd/create-admin/main.go` | Bootstrap the first admin (idempotent). Reads `ADMIN_EMAIL` / `ADMIN_PASSWORD_FILE` / `ADMIN_PASSWORD` / `ADMIN_USERNAME`, or the matching flags. Run once after `cmd/migrate` on every fresh deploy |
 
 **No hot-reload** — stop and restart after every edit, or use a tool like `air`.
 
@@ -88,7 +89,11 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 | `PORT` | `8080` | HTTP listen port |
 | `CORS_ALLOWED_ORIGINS` | dev localhost list | Comma-separated allow-list; empty in production = same-origin proxy only |
 | `TRUSTED_PROXIES` | (none) | Comma-separated IPs/CIDRs allowed to set `X-Forwarded-For`. Untrusted headers are ignored (`ClientIP` cannot be spoofed). Compose pins the `gymtrack` network to 172.31.0.0/24 and trusts only that subnet |
-| `POSTGRES_ADMIN_DSN` | falls back to `POSTGRES_DSN` | Admin DSN for `cmd/db-roles` (superuser) |
+| `POSTGRES_ADMIN_DSN` | falls back to `POSTGRES_DSN` | Admin DSN for `cmd/db-roles` (superuser), also used by `cmd/create-admin` |
+| `ADMIN_EMAIL` | (none) | Required by `cmd/create-admin`. No default: a deploy must name its admin explicitly |
+| `ADMIN_USERNAME` | email local part | Username for the bootstrapped admin (max 30 chars, per `users.username`) |
+| `ADMIN_PASSWORD_FILE` | falls back to `ADMIN_PASSWORD` | Path to a file holding the admin password (trailing newline trimmed). Preferred in production so the secret need not sit in an env var |
+| `ADMIN_PASSWORD` | (none) | Admin password for `cmd/create-admin` |
 | `APP_DB_USER` / `APP_DB_PASSWORD` | `gymtrack_app` / — | Runtime role provisioned by `cmd/db-roles` |
 | `MIGRATE_DB_USER` / `MIGRATE_DB_PASSWORD` | `gymtrack_migrate` / — | Migration role (schema owner) |
 | `SWAGGER_SERVER_URL` | (empty) | Absolute server URL advertised by the OpenAPI spec, e.g. `https://api.example.com/api`. Empty = host-relative spec. Either way `basePath` is `/api` |

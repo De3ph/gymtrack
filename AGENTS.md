@@ -317,6 +317,7 @@ cd frontend && pnpm test:e2e                      # Playwright E2E
 cd backend && go run cmd/migrate/main.go          # Run migrations
 cd backend && go run cmd/ensure-schema/main.go    # Verify schema
 cd backend && go run cmd/seed/main.go             # Seed mock workouts + meals for de3ph (30 each)
+cd backend && go run cmd/create-admin/main.go      # Bootstrap first admin (ADMIN_EMAIL/ADMIN_PASSWORD; idempotent)
 
 # i18n
 cd frontend && pnpm validate:i18n                 # Check translation coverage
