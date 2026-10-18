@@ -1,12 +1,31 @@
 import 'server-only'
 import { SignJWT, jwtVerify } from 'jose'
 
-const secretKey = process.env.SESSION_SECRET
-if (!secretKey) {
-  throw new Error('SESSION_SECRET environment variable is not set')
+/**
+ * Resolved on first use, not at module evaluation.
+ *
+ * SESSION_SECRET is a runtime secret and is deliberately absent from the image
+ * build (see frontend/Dockerfile). Reading it at module scope made `next build`
+ * fail while collecting page data for /[locale]: prerendering imports this
+ * module through lib/dal.ts, so the throw fired during the build even though no
+ * session was actually being encrypted. Reading it lazily keeps the fail-fast
+ * behaviour where it belongs — at the first real encrypt/decrypt — while
+ * leaving the build secret-free.
+ */
+let cachedKey: Uint8Array | null = null
+
+function getSecretKey(): Uint8Array {
+  if (cachedKey) return cachedKey
+
+  const secretKey = process.env.SESSION_SECRET
+  if (!secretKey) {
+    throw new Error('SESSION_SECRET environment variable is not set')
+  }
+
+  cachedKey = new TextEncoder().encode(secretKey)
+  return cachedKey
 }
 
-const encodedKey = new TextEncoder().encode(secretKey)
 const SESSION_COOKIE_NAME = 'session'
 const REFRESH_COOKIE_NAME = 'refresh_token'
 
@@ -22,7 +41,7 @@ export async function encrypt(payload: SessionPayload): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(encodedKey)
+    .sign(getSecretKey())
 }
 
 export async function decrypt(
@@ -31,7 +50,7 @@ export async function decrypt(
   if (!session) return null
 
   try {
-    const { payload } = await jwtVerify(session, encodedKey, {
+    const { payload } = await jwtVerify(session, getSecretKey(), {
       algorithms: ['HS256'],
     })
 

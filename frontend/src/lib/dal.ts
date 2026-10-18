@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cacheLife, cacheTag } from 'next/cache'
 import { decrypt, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/session'
-import { API_URL } from '@/lib/env'
+import { INTERNAL_API_URL } from '@/lib/server-env'
 import type {
   AdminDashboardStats,
   AdminUserListItem,
@@ -21,7 +21,9 @@ import type {
   AssignmentListResponse,
 } from '@/types'
 
-const BACKEND_URL = API_URL
+// Server-side fetch needs an absolute URL; the public API_URL may be the
+// same-origin relative "/api" (browser-only). See INTERNAL_API_URL in server-env.ts.
+const BACKEND_URL = INTERNAL_API_URL
 
 /**
  * Refresh slightly before the real expiry so a token cannot expire midway

@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { encrypt, decrypt, SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME, type SessionPayload } from '@/lib/session'
-import { API_URL } from '@/lib/env'
+import { INTERNAL_API_URL } from '@/lib/server-env'
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-const BACKEND_URL = API_URL
+// Absolute server-side base: route handlers run in Node, where fetch rejects
+// the browser-facing relative "/api" value of NEXT_PUBLIC_API_URL.
+const BACKEND_URL = INTERNAL_API_URL
+
+/**
+ * The session response is per-user and short-lived. `no-store` keeps the
+ * browser HTTP cache, Next's full route cache (cacheComponents prerenders
+ * GET handlers that touch no runtime data — this one reads cookies(), but the
+ * header also guards any future refactor) and any intermediary from replaying
+ * a stale accessToken/refreshToken. The service worker separately never
+ * intercepts /api/* (public/sw.js).
+ */
+const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' } as const
 
 /**
  * GET /api/auth/session
@@ -16,13 +28,19 @@ export async function GET() {
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
   if (!sessionCookie) {
-    return NextResponse.json({ accessToken: null, refreshToken: null, user: null })
+    return NextResponse.json(
+      { accessToken: null, refreshToken: null, user: null },
+      { headers: NO_STORE_HEADERS },
+    )
   }
 
   const payload = await decrypt(sessionCookie)
   if (!payload) {
     // Cookie exists but is invalid/expired — clear both cookies
-    const response = NextResponse.json({ accessToken: null, refreshToken: null, user: null })
+    const response = NextResponse.json(
+      { accessToken: null, refreshToken: null, user: null },
+      { headers: NO_STORE_HEADERS },
+    )
     response.cookies.delete(SESSION_COOKIE_NAME)
     response.cookies.delete(REFRESH_COOKIE_NAME)
     return response
@@ -33,12 +51,15 @@ export async function GET() {
   // token. Return it to the client so authStore can restore it in memory.
   const refreshToken = cookieStore.get(REFRESH_COOKIE_NAME)?.value || null
 
-  return NextResponse.json({
-    accessToken: payload.accessToken,
-    userId: payload.userId,
-    role: payload.role,
-    refreshToken,
-  })
+  return NextResponse.json(
+    {
+      accessToken: payload.accessToken,
+      userId: payload.userId,
+      role: payload.role,
+      refreshToken,
+    },
+    { headers: NO_STORE_HEADERS },
+  )
 }
 
 /**
