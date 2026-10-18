@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Tabs,
@@ -11,7 +12,7 @@ import {
 
 import { WorkoutForm } from "@/components/features/workout/WorkoutForm";
 import { WorkoutList } from "@/components/features/workout/WorkoutList";
-import { WorkoutCalendar } from "@/components/features/workout/WorkoutCalendar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -22,6 +23,15 @@ import {
 import { toast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
 import { WorkoutPlan } from "@/types";
+
+// react-day-picker only ships when the athlete opens the calendar tab.
+const WorkoutCalendar = dynamic(
+  () =>
+    import("@/components/features/workout/WorkoutCalendar").then(
+      (m) => m.WorkoutCalendar,
+    ),
+  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full" /> },
+);
 
 interface WorkoutsClientProps {
   initialPlan?: WorkoutPlan;

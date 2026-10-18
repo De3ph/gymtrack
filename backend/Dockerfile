@@ -26,13 +26,12 @@ RUN apk add --no-cache ca-certificates tzdata wget && \
     adduser -S -u 10001 -G gymtrack gymtrack
 WORKDIR /app
 COPY --from=builder /out/server /app/server
-COPY --from=builder /out/migrate /app/migrate
-COPY --from=builder /out/db-roles /app/db-roles
-COPY --from=builder /out/seed /app/seed
+
+ENV GIN_MODE=release
 
 USER gymtrack:gymtrack
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:8080/readyz || exit 1
+  CMD wget -q -O /dev/null http://[IP_ADDRESS]:8080/readyz || exit 1
 
 CMD ["/app/server"]

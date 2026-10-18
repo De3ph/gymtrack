@@ -12,11 +12,13 @@
  * - Never touches the API origin, same-origin /api routes, or the Sentry
  *   tunnel (/monitoring).
  *
- * Bump CACHE_VERSION whenever precached assets change — a byte-level diff in
- * this file is what triggers the browser's update flow.
+ * CACHE_VERSION is stamped automatically by scripts/stamp-sw-version.mjs at
+ * the start of `pnpm build` (manual: `pnpm stamp:sw`) as a content hash of
+ * this file plus every precached asset — edit anything hashed and the version
+ * changes, triggering the browser's update flow. Never edit by hand.
  */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = '0e043ac5ff63b1b2';
 const PRECACHE = `gymtrack-precache-${CACHE_VERSION}`;
 const RUNTIME = `gymtrack-runtime-${CACHE_VERSION}`;
 

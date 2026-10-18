@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:debug": "next build --experimental-debug-memory-usage",
-    "build:heap": "node --heap-prof node_modules/next/dist/bin/next build",
-    "build:inspect": "cross-env NODE_OPTIONS=--inspect next build",
+    "build": "node scripts/stamp-sw-version.mjs && next build",
+    "build:debug": "node scripts/stamp-sw-version.mjs && next build --experimental-debug-memory-usage",
+    "build:heap": "node scripts/stamp-sw-version.mjs && node --heap-prof node_modules/next/dist/bin/next build",
+    "build:inspect": "node scripts/stamp-sw-version.mjs && cross-env NODE_OPTIONS=--inspect next build",
     "dev:inspect": "cross-env NODE_OPTIONS=--inspect next dev",
-    "analyze": "cross-env ANALYZE=true next build",
+    "analyze": "node scripts/stamp-sw-version.mjs && cross-env ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -22,6 +22,7 @@
     "email": "email dev --dir emails --port 3000",
     "email:export": "tsx scripts/export-email.tsx",
     "generate:icons": "node scripts/generate-pwa-icons.mjs",
+    "stamp:sw": "node scripts/stamp-sw-version.mjs",
     "codegen:types": "openapi-typescript ../backend/docs/swagger.json -o ./src/types/generated.ts"
   },
   "dependencies": {

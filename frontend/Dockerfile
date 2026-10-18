@@ -18,12 +18,15 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Public env vars are inlined at build time.
-ARG NEXT_PUBLIC_API_URL=/api
+# NEXT_PUBLIC_API_URL must point to the backend at build time for CSP and rewrites.
+# Defaults to http://backend:8080/api for compose internal DNS; override via build arg.
+ARG NEXT_PUBLIC_API_URL=http://backend:8080/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ARG SESSION_SECRET=build-time-placeholder-not-for-runtime
-ENV SESSION_SECRET=$SESSION_SECRET
 ARG NODE_ENV=production
 ENV NODE_ENV=$NODE_ENV
+
+# SESSION_SECRET is a runtime secret — do NOT bake into image.
+# It is injected at runtime via docker-compose environment.
 
 RUN pnpm build
 

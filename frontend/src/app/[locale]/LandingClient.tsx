@@ -164,6 +164,7 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
                   alt=""
                   fill
                   priority
+                  fetchPriority="high"
                   className="object-cover brightness-50 contrast-125 grayscale"
                   sizes="100vw"
                 />

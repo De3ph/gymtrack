@@ -64,6 +64,14 @@ const nextConfig: NextConfig = {
   // Type errors are tracked separately; keep production builds unblocked.
   typescript: { ignoreBuildErrors: true },
   cacheComponents: true,
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_URL ?? "http://backend:8080/api"}/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {

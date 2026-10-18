@@ -1,8 +1,10 @@
 import { tokenService } from "@/lib/token-service"
 import { API_URL } from "@/lib/env"
+import { API } from "@/lib/constants"
 import type { PaginationParams } from "@/types"
 
 const API_BASE_URL = API_URL
+const DEFAULT_TIMEOUT_MS = API.DEFAULT_TIMEOUT_MS
 
 type FetchOptions = RequestInit & {
   params?: Record<string, unknown> | PaginationParams
@@ -13,7 +15,7 @@ async function request<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { params, headers, timeout, ...rest } = options
+  const { params, headers, timeout = DEFAULT_TIMEOUT_MS, signal: externalSignal, ...rest } = options
 
   const defaultHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -36,24 +38,36 @@ async function request<T>(
     url += `?${searchParams.toString()}`
   }
 
-  const controller = timeout !== undefined ? new AbortController() : undefined
+  // Every request gets a timeout so hung connections abort instead of hanging
+  // forever. Callers can override via `timeout`, or opt out with `timeout: 0`.
+  // An externally passed AbortSignal still aborts independently.
+  const controller = new AbortController()
+  const onExternalAbort = () => controller.abort()
+  externalSignal?.addEventListener("abort", onExternalAbort, { once: true })
   const timeoutId =
-    timeout !== undefined
-      ? setTimeout(() => controller?.abort(), timeout)
-      : undefined
+    timeout > 0 ? setTimeout(() => controller.abort(), timeout) : undefined
 
-  // Intentionally omit the X-Abbreviate header. The backend allows it in CORS,
-  // but no handler consumes it, so it is not required for this client flow.
-  const response = await fetch(url, {
-    ...rest,
-    headers: {
-      ...defaultHeaders
-    },
-    signal: controller?.signal
-  })
-
-  if (controller) {
-    clearTimeout(timeoutId)
+  let response: Response
+  try {
+    // Intentionally omit the X-Abbreviate header. The backend allows it in CORS,
+    // but no handler consumes it, so it is not required for this client flow.
+    response = await fetch(url, {
+      ...rest,
+      headers: {
+        ...defaultHeaders
+      },
+      signal: controller.signal
+    })
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timed out")
+    }
+    throw error
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+    }
+    externalSignal?.removeEventListener("abort", onExternalAbort)
   }
 
   if (!response.ok) {
@@ -80,12 +94,7 @@ async function request<T>(
     return null as T
   }
 
-  return response.json().catch((error) => {
-    if (error instanceof Error && error.message.includes("AbortError")) {
-      throw new Error("Request timed out")
-    }
-    throw error
-  })
+  return response.json()
 }
 
 const api = {

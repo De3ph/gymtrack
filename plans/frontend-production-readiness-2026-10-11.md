@@ -13,15 +13,12 @@ Overall: codebase is in decent shape (clean architecture, DAL with `'use cache'`
 Production builds skip type checking entirely — every type regression ships silently.
 **Action:** Remove the flag, fix resulting errors, make `tsc --noEmit` a CI gate if builds are memory-constrained.
 
-### 2. No security headers
-`next.config.ts` sets no `headers()`. Add:
-- `Strict-Transport-Security` (HTTPS only)
-- `Content-Security-Policy` — needs nonce-based script-src because of the inline theme script in `src/app/[locale]/layout.tsx` and Next's inline scripts
-- `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `X-Frame-Options` / `frame-ancestors`, `Permissions-Policy`
+### 2. ✅ No security headers — DONE
+`next.config.ts` now sets `headers()` on `/:path*` with: `Strict-Transport-Security` (prod only), `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`.
+Note: CSP uses `'unsafe-inline'` for `script-src` instead of nonce — deliberate tradeoff (nonce would force dynamic rendering on every route, breaking static prerender + PWA), documented in the config.
 
-### 3. `NEXT_PUBLIC_API_URL` silently falls back to `http://localhost:8080/api`
-Found in `src/lib/api/api-client.ts`, `src/app/api/auth/session/route.ts`, `src/lib/dal.ts`. If unset in prod, the app points at localhost instead of failing.
-**Action:** single validated env module that throws at startup when unset.
+### 3. ✅ `NEXT_PUBLIC_API_URL` silently falls back to `http://localhost:8080/api` — DONE
+New single validated env module `src/lib/env.ts` throws at startup in production when unset (dev keeps localhost fallback for zero-config `pnpm dev`). `api-client.ts`, `src/app/api/auth/session/route.ts`, `src/lib/dal.ts` all import from it now. Also validates `NEXT_PUBLIC_SITE_URL`.
 
 ### 4. Sentry production config verification
 - `tunnelRoute: "/monitoring"` excluded in middleware matcher ✅ (already done)
@@ -81,11 +78,11 @@ Only root layout + about page. Add `title.template: '%s | GymTrack'`, OG images,
 
 ## 🟠 PWA / Service Worker
 
-### 15. Hand-maintained `public/sw.js` with manual `CACHE_VERSION`
-Easy to forget to bump. Generate at build time or version from build ID.
+### 15. ✅ Hand-maintained `public/sw.js` with manual `CACHE_VERSION` — DONE
+`CACHE_VERSION` is now stamped automatically: `scripts/stamp-sw-version.mjs` writes a content hash (sha256/16) of `sw.js` (version line normalized → idempotent) + every `PRECACHE_URLS` file + `src/app/manifest.ts` into `public/sw.js`. Wired into every build path (`build`, `build:debug`, `build:heap`, `build:inspect`, `analyze`); manual: `pnpm stamp:sw`. No git/`.next/BUILD_ID` dependency (works in Docker where `.git` is dockerignored).
 
-### 16. Verify PWA assets exist
-`PRECACHE_URLS` references `/offline.html`, `/icons/icon-192.png`, `/icons/icon-512.png`. `cache.addAll` fails atomically — if any 404s, the SW never installs. Manifest also references `icon-maskable-*` icons. Verify all exist; test install on iOS Safari.
+### 16. ✅ Verify PWA assets exist — DONE (device check still manual)
+`scripts/pwa-assets.mjs` resolves `PRECACHE_URLS` (incl. `OFFLINE_URL` identifier) + manifest icon `src`s and checks every file exists non-empty; `/manifest.webmanifest` treated as generated route (verifies `src/app/manifest.ts`). Gates: stamp script fails the build before `next build` (so `cache.addAll` can never 404) + Vitest `src/test/pwa/pwa-assets.test.ts` (assets, PNG signatures, absolute paths, stamped-version format). iOS Safari install test remains a manual pre-deploy step.
 
 ---
 
@@ -115,12 +112,12 @@ Add `/api/health` route that verifies backend reachability for prod monitoring.
 
 | Phase | Items | Est. effort |
 |-------|-------|-------------|
-| 1 | #1 type gate, #2 security headers, #3 env validation | half a day |
+| 1 | #1 type gate, ~~#2 security headers~~ ✅, ~~#3 env validation~~ ✅ | half a day |
 | 2 | #5–#8 auth hardening (refresh dedupe, 401 retry, router logout) | 1–2 days |
 | 3 | #9 RSC prefetch/hydration on hottest pages (workouts, meals, measurements) | 1–2 days |
 | 4 | #12 Sentry on handled errors, #17 replay/privacy decision | half a day |
 | 5 | #13/#14 SEO basics | half a day |
-| 6 | #15/#16 PWA verification on real devices | half a day |
+| 6 | ~~#15/#16 PWA verification~~ ✅ — iOS Safari device check still manual | half a day |
 | 7 | #23 CI gates | half a day |
 
 ---

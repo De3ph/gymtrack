@@ -30,6 +30,41 @@ const BACKEND_URL = API_URL
 const TOKEN_REFRESH_SKEW_MS = 60_000
 
 /**
+ * Server fetch policy: one retry on transient network/5xx blips, per-attempt
+ * timeout so a hung backend cannot hang rendering forever.
+ */
+const SERVER_FETCH_TIMEOUT_MS = 5000
+const SERVER_FETCH_RETRIES = 1
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Backend ${url} timed out after ${timeoutMs}ms`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
+function isRetriableFetchError(error: unknown): boolean {
+  if (error instanceof Error) {
+    // Network failure, timeout, or connection reset — worth one retry.
+    if (error.message.includes("timed out")) return true
+    if (error instanceof TypeError) return true
+  }
+  return false
+}
+
+/**
  * Reads a JWT's `exp` claim without verifying the signature.
  *
  * This is only a liveness check to decide whether a refresh is worth
@@ -64,15 +99,29 @@ async function refreshAccessToken(
   refreshToken: string,
 ): Promise<string | null> {
   try {
-    const res = await fetch(`${BACKEND_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-      cache: 'no-store',
-    })
-    if (!res.ok) return null
-    const data = (await res.json()) as { accessToken?: string }
-    return data.accessToken ?? null
+    // Auth-scoped: never cached, single retry on transient network blips.
+    for (let attempt = 0; attempt <= SERVER_FETCH_RETRIES; attempt++) {
+      try {
+        const res = await fetchWithTimeout(
+          `${BACKEND_URL}/auth/refresh`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken }),
+            cache: 'no-store',
+          },
+          SERVER_FETCH_TIMEOUT_MS,
+        )
+        if (!res.ok) return null
+        const data = (await res.json()) as { accessToken?: string }
+        return data.accessToken ?? null
+      } catch (error) {
+        if (attempt >= SERVER_FETCH_RETRIES || !isRetriableFetchError(error)) {
+          return null
+        }
+      }
+    }
+    return null
   } catch {
     return null
   }
@@ -168,41 +217,70 @@ export const verifyAdmin = cache(async () => {
 /**
  * Server-side fetch helper that forwards the session's access token
  * to the Go backend. Only callable from server components / RSC.
+ *
+ * Retries once on network failure / 5xx (transient blips), with a per-attempt
+ * timeout so a hung backend cannot hang rendering forever. `cache: 'no-store'`
+ * keeps auth-scoped reads fresh — cross-request caching is layered explicitly
+ * above via 'use cache' on reference data only (exercises, muscle-groups,
+ * equipment).
  */
 async function serverFetch<T>(
   path: string,
   accessToken: string,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(`${BACKEND_URL}${path}`, {
-    ...init,
-    headers: {
-      ...(init?.headers as Record<string, string> | undefined),
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    // Don't cache at the fetch level — we layer cache() / unstable_cache above
-    cache: 'no-store',
-  })
-
-  if (!res.ok) {
-    let message = `Backend ${path} failed: ${res.status}`
-    try {
-      const body = await res.json()
-      if (body?.message) message = body.message
-    } catch {
-      // ignore parse error
-    }
-    throw new Error(message)
+  const headers = {
+    ...(init?.headers as Record<string, string> | undefined),
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
   }
+  let lastError: unknown = null
+  for (let attempt = 0; attempt <= SERVER_FETCH_RETRIES; attempt++) {
+    try {
+      const res = await fetchWithTimeout(
+        `${BACKEND_URL}${path}`,
+        {
+          ...init,
+          headers,
+          // Don't cache at the fetch level — we layer cache() / unstable_cache above
+          cache: 'no-store',
+        },
+        SERVER_FETCH_TIMEOUT_MS,
+      )
 
-  // A 204 carries no body. Returning `{}` here would fabricate an empty object
-  // that callers type as their real response model, so an absent resource
-  // silently arrives looking valid with every field undefined. Return `null`
-  // instead and let callers narrow. (GET /measurements/latest is currently the
-  // only 204 in the API; see getLatestBodyMeasurementCached below.)
-  if (res.status === 204) return null as T
-  return res.json() as Promise<T>
+      // One retry on transient 5xx (excluding the final attempt).
+      if (res.status >= 500 && attempt < SERVER_FETCH_RETRIES) {
+        lastError = new Error(`Backend ${path} failed: ${res.status}`)
+        continue
+      }
+
+      if (!res.ok) {
+        let message = `Backend ${path} failed: ${res.status}`
+        try {
+          const body = await res.json()
+          if (body?.message) message = body.message
+        } catch {
+          // ignore parse error
+        }
+        throw new Error(message)
+      }
+
+      // A 204 carries no body. Returning `{}` here would fabricate an empty object
+      // that callers type as their real response model, so an absent resource
+      // silently arrives looking valid with every field undefined. Return `null`
+      // instead and let callers narrow. (GET /measurements/latest is currently the
+      // only 204 in the API; see getLatestBodyMeasurementCached below.)
+      if (res.status === 204) return null as T
+      return res.json() as Promise<T>
+    } catch (error) {
+      lastError = error
+      // Only retry network/timeout faults; HTTP 4xx and parsed errors throw above.
+      if (attempt >= SERVER_FETCH_RETRIES || !isRetriableFetchError(error)) {
+        throw error
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(`Backend ${path} failed`)
 }
 
 /**
@@ -218,29 +296,51 @@ async function serverFetchNullable<T>(
   path: string,
   accessToken: string,
 ): Promise<T | null> {
-  const res = await fetch(`${BACKEND_URL}${path}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    cache: 'no-store',
-  })
-
-  if (res.status === 404) return null
-
-  if (!res.ok) {
-    let message = `Backend ${path} failed: ${res.status}`
+  let lastError: unknown = null
+  for (let attempt = 0; attempt <= SERVER_FETCH_RETRIES; attempt++) {
     try {
-      const body = await res.json()
-      if (body?.message) message = body.message
-    } catch {
-      // ignore parse error
-    }
-    throw new Error(message)
-  }
+      const res = await fetchWithTimeout(
+        `${BACKEND_URL}${path}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store',
+        },
+        SERVER_FETCH_TIMEOUT_MS,
+      )
 
-  if (res.status === 204) return null
-  return res.json() as Promise<T>
+      if (res.status === 404) return null
+
+      if (res.status >= 500 && attempt < SERVER_FETCH_RETRIES) {
+        lastError = new Error(`Backend ${path} failed: ${res.status}`)
+        continue
+      }
+
+      if (!res.ok) {
+        let message = `Backend ${path} failed: ${res.status}`
+        try {
+          const body = await res.json()
+          if (body?.message) message = body.message
+        } catch {
+          // ignore parse error
+        }
+        throw new Error(message)
+      }
+
+      if (res.status === 204) return null
+      return res.json() as Promise<T>
+    } catch (error) {
+      // A 404-as-null is returned above, never thrown — anything caught here is
+      // a genuine fault. Retry network/timeout blips once.
+      lastError = error
+      if (attempt >= SERVER_FETCH_RETRIES || !isRetriableFetchError(error)) {
+        throw error
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(`Backend ${path} failed`)
 }
 
 // -------- Admin data access (server-side, cached) --------
