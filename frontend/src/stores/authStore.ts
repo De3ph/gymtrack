@@ -6,6 +6,12 @@ import { ROUTES } from '@/lib/routes';
 
 const SESSION_API = '/api/auth/session';
 
+// Single-flight refresh: concurrent 401s must share ONE in-flight refresh.
+// Without this, N parallel requests each POST /auth/refresh with the same
+// refresh token — wasteful at best, and with rotation the losers would
+// redeem an already-consumed token and log the user out.
+let refreshInFlight: Promise<boolean> | null = null;
+
 interface AuthState {
   user: User | null
   token: string | null
@@ -156,41 +162,57 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   refreshAccessToken: async (): Promise<boolean> => {
-    const refreshToken = tokenService.getRefreshToken()
-
-    if (!refreshToken) {
-      return false
+    // Already refreshing (e.g., three parallel queries hit 401 together)?
+    // Reuse the in-flight promise instead of firing a second POST /auth/refresh.
+    if (refreshInFlight) {
+      return refreshInFlight
     }
 
+    refreshInFlight = (async () => {
+      const refreshToken = tokenService.getRefreshToken()
+
+      if (!refreshToken) {
+        return false
+      }
+
+      try {
+        const response = await authApi.refreshToken(refreshToken)
+        const { accessToken, refreshToken: newRefreshToken } = response
+
+        // Handle refresh-token rotation: if the backend issues a new refresh
+        // token, use it; otherwise reuse the existing one.
+        const effectiveRefreshToken = newRefreshToken || refreshToken
+
+        // Update both in-memory tokens
+        tokenService.setTokens(accessToken, effectiveRefreshToken)
+
+        // Update the HttpOnly cookies with the refreshed tokens. The server
+        // derives userId/role from the backend, so they are not sent here.
+        await fetch(SESSION_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken,
+            refreshToken: effectiveRefreshToken,
+          }),
+        })
+
+        // Update the token in state
+        set({ token: accessToken })
+
+        return true
+      } catch (error) {
+        console.error('Token refresh failed:', error)
+        return false
+      }
+    })()
+
     try {
-      const response = await authApi.refreshToken(refreshToken)
-      const { accessToken, refreshToken: newRefreshToken } = response
-
-      // Handle refresh-token rotation: if the backend issues a new refresh
-      // token, use it; otherwise reuse the existing one.
-      const effectiveRefreshToken = newRefreshToken || refreshToken
-
-      // Update both in-memory tokens
-      tokenService.setTokens(accessToken, effectiveRefreshToken)
-
-      // Update the HttpOnly cookies with the refreshed tokens. The server
-      // derives userId/role from the backend, so they are not sent here.
-      await fetch(SESSION_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken,
-          refreshToken: effectiveRefreshToken,
-        }),
-      })
-
-      // Update the token in state
-      set({ token: accessToken })
-
-      return true
-    } catch (error) {
-      console.error('Token refresh failed:', error)
-      return false
+      return await refreshInFlight
+    } finally {
+      // Clear only this attempt so the next expiry starts a fresh one.
+      // Concurrent callers that awaited the same promise are unaffected.
+      refreshInFlight = null
     }
   },
 

@@ -37,9 +37,8 @@ Found in `src/lib/api/api-client.ts`, `src/app/api/auth/session/route.ts`, `src/
 - 7-day rolling session, no idle timeout or revocation — stolen cookie valid 7 days even after password change. Consider session versioning or shortening lifetime.
 - `updateSession` re-signs the JWT on **every** matched request. Throttle re-issue (e.g., only when >50% of life used).
 
-### 6. Token refresh has no deduplication
-Concurrent 401s can each trigger `authStore.refreshAccessToken()`.
-**Action:** single-flight refresh promise in the store.
+### 6. ✅ Token refresh has no deduplication — DONE
+Concurrent 401s could each trigger `authStore.refreshAccessToken()`. Now single-flight: module-level `refreshInFlight` promise in `authStore.ts` shared by all concurrent callers, cleared on settle so next expiry starts fresh. Tests: dedup (3 concurrent callers → 1 network refresh) + re-refresh after settle.
 
 ### 7. No automatic 401 → refresh → retry in `api-client.ts`
 Expired access tokens surface as errors until `handleAuthError` logs the user **out** via `window.location.href = ROUTES.LOGIN`.

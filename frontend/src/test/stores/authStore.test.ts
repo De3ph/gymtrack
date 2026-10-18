@@ -15,6 +15,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     authApi: {
       login: vi.fn(),
       logout: vi.fn().mockResolvedValue({ message: 'Logged out' }),
+      refreshToken: vi.fn(),
     },
     userApi: {
       getCurrentUser: vi.fn(),
@@ -221,6 +222,47 @@ describe('AuthStore', () => {
 
     const state = useAuthStore.getState()
     expect(state.user).toEqual(mockUser)
+  })
+
+  it('should deduplicate concurrent refresh calls into one network refresh', async () => {
+    tokenService.setTokens('expired-token', 'refresh-token')
+
+    let resolveRefresh: (value: { message: string; accessToken: string }) => void
+    vi.mocked(authApi.refreshToken).mockReturnValue(
+      new Promise((resolve) => { resolveRefresh = resolve }),
+    )
+
+    const { refreshAccessToken } = useAuthStore.getState()
+    const first = refreshAccessToken()
+    const second = refreshAccessToken()
+    const third = refreshAccessToken()
+
+    resolveRefresh!({ message: 'ok', accessToken: 'fresh-token' })
+
+    const results = await Promise.all([first, second, third])
+
+    // One network refresh shared by all three concurrent callers
+    expect(authApi.refreshToken).toHaveBeenCalledTimes(1)
+    expect(results).toEqual([true, true, true])
+    expect(tokenService.getAccessToken()).toBe('fresh-token')
+    expect(useAuthStore.getState().token).toBe('fresh-token')
+  })
+
+  it('should allow a fresh refresh after the previous one settles', async () => {
+    tokenService.setTokens('expired-token', 'refresh-token')
+
+    vi.mocked(authApi.refreshToken)
+      .mockResolvedValueOnce({ message: 'ok', accessToken: 'token-1' })
+      .mockResolvedValueOnce({ message: 'ok', accessToken: 'token-2' })
+
+    const { refreshAccessToken } = useAuthStore.getState()
+
+    expect(await refreshAccessToken()).toBe(true)
+    expect(await refreshAccessToken()).toBe(true)
+
+    // In-flight promise cleared on settle — second refresh not swallowed
+    expect(authApi.refreshToken).toHaveBeenCalledTimes(2)
+    expect(tokenService.getAccessToken()).toBe('token-2')
   })
 
   it('should handle auth error with 401 status', () => {
