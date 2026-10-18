@@ -12,9 +12,12 @@
 //
 //	go run cmd/create-admin/main.go -email admin@example.com -password 'secret'
 //
-// The command is idempotent. If the email already exists it is promoted to
-// admin, the password is reset, the account is reactivated and its
-// token_version is bumped so tokens issued before the promotion are rejected.
+// The command is idempotent and safe to run on every deploy. When the email
+// already exists the account is promoted to admin and reactivated; the password
+// is only reset when one is supplied, so a redeploy does not silently invalidate
+// the admin's password or their sessions. When a password is reset (or the role
+// actually changes) token_version is bumped, which invalidates tokens issued
+// before the promotion.
 package main
 
 import (
@@ -40,6 +43,11 @@ type options struct {
 	Username string
 	Password string
 	DSN      string
+
+	// passwordHash is the bcrypt digest of Password, or empty when no password
+	// was supplied. It is passed to SQL as a nullable parameter so a redeploy can
+	// promote an account without touching its stored password.
+	passwordHash *string
 }
 
 func main() {
@@ -61,6 +69,9 @@ func run() error {
 	if err := opts.validate(); err != nil {
 		return err
 	}
+	if err := opts.hashPassword(); err != nil {
+		return err
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), connectTimeout)
 	defer cancel()
@@ -74,6 +85,10 @@ func run() error {
 	userID, created, err := upsertAdmin(ctx, conn, opts)
 	if err != nil {
 		return err
+	}
+
+	if opts.Password == "" {
+		zap.L().Info("no admin password supplied; keeping the stored one")
 	}
 
 	action := "promoted"
@@ -131,12 +146,13 @@ func readSecret(path string) string {
 
 // validate rejects incomplete or unsafe input before any connection is opened,
 // so a misconfigured deployment fails fast without touching the database.
+//
+// A password is not required here: it is only needed to create a missing
+// account. upsertAdmin rejects it at that point, when it knows the account does
+// not exist yet.
 func (o options) validate() error {
 	if o.Email == "" {
 		return fmt.Errorf("admin email is required: pass -email or set ADMIN_EMAIL")
-	}
-	if o.Password == "" {
-		return fmt.Errorf("admin password is required: pass -password, set ADMIN_PASSWORD, or set ADMIN_PASSWORD_FILE")
 	}
 	if o.DSN == "" {
 		return fmt.Errorf("no DSN available: set POSTGRES_ADMIN_DSN or POSTGRES_DSN")
@@ -147,6 +163,22 @@ func (o options) validate() error {
 	if len(o.Username) > 30 {
 		return fmt.Errorf("username %q exceeds the 30 character limit of users.username", o.Username)
 	}
+	return nil
+}
+
+// hashPassword digests the supplied password once, up front, so the slow bcrypt
+// cost is not paid inside the database round trip. A nil result means "keep the
+// stored password".
+func (o *options) hashPassword() error {
+	if o.Password == "" {
+		return nil
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(o.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("hash password: %w", err)
+	}
+	digest := string(hash)
+	o.passwordHash = &digest
 	return nil
 }
 
@@ -165,32 +197,42 @@ func defaultUsername(email string) string {
 }
 
 // upsertAdmin inserts the admin when the email is unknown, otherwise promotes
-// the existing account. Returning created lets the caller report which path ran.
+// the existing account. The password is only applied when one was supplied,
+// which keeps a redeploy from resetting it. Returning created lets the caller
+// report which path ran.
 func upsertAdmin(ctx context.Context, conn *pgx.Conn, opts options) (userID int, created bool, err error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(opts.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return 0, false, fmt.Errorf("hash password: %w", err)
-	}
-
 	var existingID int
+	var existingRole, existingStatus string
+	var deleted bool
+
 	lookupErr := conn.QueryRow(ctx,
-		"SELECT user_id FROM users WHERE email = $1", opts.Email).Scan(&existingID)
+		`SELECT user_id, role, status, deleted_at IS NOT NULL
+		 FROM users WHERE email = $1`, opts.Email).
+		Scan(&existingID, &existingRole, &existingStatus, &deleted)
 
 	switch {
 	case lookupErr == nil:
 		// Existing account: force it into a usable admin state. token_version is
-		// bumped so tokens minted while the account was a trainer/athlete (or
-		// before a demotion) stop validating.
+		// bumped only when something actually changed, so a no-op redeploy does
+		// not log the admin out.
+		needsUpdate := existingRole != "admin" || existingStatus != "active" || deleted
+		if opts.Password != "" {
+			needsUpdate = true
+		}
+		if !needsUpdate {
+			return existingID, false, nil
+		}
+
 		if _, err := conn.Exec(ctx,
 			`UPDATE users
 			 SET role = 'admin',
-			     password_hash = $1,
 			     status = 'active',
 			     deleted_at = NULL,
+			     password_hash = COALESCE($1, password_hash),
 			     token_version = token_version + 1,
 			     updated_at = NOW()
 			 WHERE user_id = $2`,
-			string(hash), existingID); err != nil {
+			opts.passwordHash, existingID); err != nil {
 			return 0, false, fmt.Errorf("promote user: %w", err)
 		}
 		return existingID, false, nil
@@ -199,11 +241,15 @@ func upsertAdmin(ctx context.Context, conn *pgx.Conn, opts options) (userID int,
 		return 0, false, fmt.Errorf("lookup user: %w", lookupErr)
 	}
 
+	if opts.Password == "" {
+		return 0, false, fmt.Errorf("user %s does not exist and no password was supplied: pass -password or set ADMIN_PASSWORD", opts.Email)
+	}
+
 	if err := conn.QueryRow(ctx,
 		`INSERT INTO users (username, email, password_hash, role, profile)
 		 VALUES ($1, $2, $3, 'admin', '{}'::jsonb)
 		 RETURNING user_id`,
-		opts.Username, opts.Email, string(hash)).Scan(&userID); err != nil {
+		opts.Username, opts.Email, *opts.passwordHash).Scan(&userID); err != nil {
 		return 0, false, fmt.Errorf("create user: %w", err)
 	}
 	return userID, true, nil

@@ -297,7 +297,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
 
 ### CORS
-Backend allows: `localhost:3000`, `127.0.0.1:3000`, `localhost:3001`, `127.0.0.1:3001` with credentials.
+Backend allows: dev `localhost:3000`, `127.0.0.1:3000`, `localhost:3001`, `127.0.0.1:3001`; production falls back to the `FRONTEND_URL` origin when `CORS_ALLOWED_ORIGINS` is empty (with credentials).
 
 ## Development Commands
 
