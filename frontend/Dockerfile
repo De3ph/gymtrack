@@ -18,10 +18,26 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Public env vars are inlined at build time.
-# NEXT_PUBLIC_API_URL must point to the backend at build time for CSP and rewrites.
-# Defaults to http://backend:8080/api for compose internal DNS; override via build arg.
-ARG NEXT_PUBLIC_API_URL=http://backend:8080/api
+# NEXT_PUBLIC_API_URL is the browser-facing API base (includes /api). Default
+# is the relative "/api" — same-origin behind the compose reverse proxy (nginx
+# location /api/ → backend). An absolute value must be https:// in production;
+# src/lib/env.ts fails the build otherwise. Override via build arg.
+ARG NEXT_PUBLIC_API_URL=/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Public site origin (no trailing slash) for SEO absolutes — metadataBase,
+# canonical URLs, sitemap.xml, robots.txt (src/lib/env.ts). No default: the
+# build fails fast if compose/CI omits it instead of baking in localhost links.
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+# Optional Sentry client DSN (inlined into the client bundle at build time).
+ARG NEXT_PUBLIC_SENTRY_DSN=
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+# Server-only absolute backend URL for Node-side fetch (dal.ts, /api/auth/session)
+# — the browser-facing NEXT_PUBLIC_API_URL may be the relative "/api", which
+# Node fetch rejects. Read at build time too (prerender executes env.ts), hence
+# an ARG. Compose overrides at runtime via the environment block.
+ARG INTERNAL_API_URL=http://backend:8080/api
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
 ARG NODE_ENV=production
 ENV NODE_ENV=$NODE_ENV
 

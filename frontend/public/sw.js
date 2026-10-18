@@ -18,7 +18,7 @@
  * changes, triggering the browser's update flow. Never edit by hand.
  */
 
-const CACHE_VERSION = '0e043ac5ff63b1b2';
+const CACHE_VERSION = '90263a4d3629d523';
 const PRECACHE = `gymtrack-precache-${CACHE_VERSION}`;
 const RUNTIME = `gymtrack-runtime-${CACHE_VERSION}`;
 
@@ -80,8 +80,11 @@ self.addEventListener('fetch', (event) => {
 
   const { pathname } = url;
 
-  // Same-origin API routes (auth session) and the Sentry tunnel must always
-  // reach the network.
+  // Same-origin API routes — including GET /api/auth/session (SESSION_API,
+  // token recovery on every page load) — and the Sentry tunnel must always
+  // reach the network. A cached session response would replay a stale
+  // accessToken/refreshToken after login/logout; the route additionally sends
+  // Cache-Control: no-store. Never cache anything under /api/.
   if (pathname.startsWith('/api/') || pathname.startsWith('/monitoring')) return;
 
   // Page navigations: network-first, offline fallback. Never cached.

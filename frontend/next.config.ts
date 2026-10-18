@@ -11,12 +11,17 @@ const withBundleAnalyzer = createBundleAnalyzer({
 
 const isProduction = process.env.NODE_ENV === "production";
 
-// Origin of the Go backend, for the CSP connect-src directive.
-let apiOrigin = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+// Origin of the Go backend, for the CSP connect-src directive. Derived from
+// NEXT_PUBLIC_API_URL, so relocating the API to another host or CDN is an env
+// change, never a code change. A relative value ("/api" — same-origin behind
+// the reverse proxy) yields no origin here; `'self'` in connect-src already
+// covers it, and a raw path would be an invalid (ignored) CSP source.
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+let apiOrigin = "";
 try {
-  apiOrigin = new URL(apiOrigin).origin;
+  apiOrigin = new URL(rawApiUrl).origin;
 } catch {
-  // keep the raw value; the env module fails fast on a missing/invalid URL anyway
+  // relative URL — same-origin, 'self' suffices
 }
 
 const contentSecurityPolicy = [
@@ -35,7 +40,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   // Sentry envelopes are tunneled through the same-origin /monitoring route
   // (see tunnelRoute below); the ingest host is allowed as a fallback.
-  `connect-src 'self' ${apiOrigin} https://*.ingest.de.sentry.io`,
+  `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ""} https://*.ingest.de.sentry.io`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -65,10 +70,21 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   cacheComponents: true,
   async rewrites() {
+    const publicTarget = process.env.NEXT_PUBLIC_API_URL ?? "http://backend:8080/api";
+    // When the browser-facing API base is relative ("/api"), the reverse proxy
+    // (nginx `location /api/`) already routes those requests to the backend, so
+    // do NOT rewrite to the same relative path (would loop). But the frontend
+    // container is also reachable directly on its own port, where there is no
+    // proxy: fall back to the container-network backend URL so /api/* still
+    // resolves instead of 404-ing.
+    const target = /^https?:\/\//.test(publicTarget)
+      ? publicTarget
+      : (process.env.INTERNAL_API_URL || "http://backend:8080/api");
+    if (!/^https?:\/\//.test(target)) return [];
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL ?? "http://backend:8080/api"}/:path*`,
+        destination: `${target}/:path*`,
       },
     ];
   },
