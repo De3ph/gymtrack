@@ -38,7 +38,10 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./postgres/init-extensions.sql:/docker-entrypoint-initdb.d/init-extensions.sql:ro
     ports:
-      - "127.0.0.1:5432:5432"
+      # Host-side port only (debug access); every container reaches the DB as
+      # db:5432 over the gymtrack network. Default 5433 keeps the stack clear of
+      # a native PostgreSQL install already holding 5432 on the host.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-gymtrack}"]
       interval: 5s
@@ -160,7 +163,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        # Browser-facing API base; "/api" = same-origin behind the reverse proxy.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+        # Public origin for SEO absolutes; baked at build time (env.ts fails
+        # the production build if missing — required, no localhost default).
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
+        # Optional; empty disables client-side Sentry.
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
     image: gymtrack-frontend:latest
     container_name: gymtrack-frontend
     restart: unless-stopped
@@ -169,6 +178,12 @@ services:
       PORT: 3000
       HOSTNAME: 0.0.0.0
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      # Absolute backend URL for Node-side fetch (dal.ts, /api/auth/session);
+      # browser traffic uses NEXT_PUBLIC_API_URL (inlined at build).
+      INTERNAL_API_URL: http://backend:8080/api
+      # Also provided at runtime so server-side reads of the (normally
+      # build-time-inlined) value never fall back to localhost.
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
     depends_on:
       backend:
         condition: service_healthy
