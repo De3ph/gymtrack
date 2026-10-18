@@ -60,9 +60,50 @@ func TestLoadConfig_DevelopmentCORSDefaults(t *testing.T) {
 func TestLoadConfig_ProductionRequiresExplicitCORS(t *testing.T) {
 	setenv(t, "APP_ENV", "production")
 	setenv(t, "CORS_ALLOWED_ORIGINS", "")
+	setenv(t, "FRONTEND_URL", "")
 
 	if got := loadForTest(t).AllowedOrigins; len(got) != 0 {
 		t.Fatalf("AllowedOrigins = %v, want none in production", got)
+	}
+}
+
+// TestLoadConfig_ProductionCORSFallsBackToFrontendURL pins the production
+// fallback: when CORS_ALLOWED_ORIGINS is empty, the FRONTEND_URL origin is
+// allowed so a cross-origin deploy doesn't fail every preflight (/clients/*,
+// /workout-plans/*, ...). Path is stripped; CORS_ALLOWED_ORIGINS still wins.
+func TestLoadConfig_ProductionCORSFallsBackToFrontendURL(t *testing.T) {
+	setenv(t, "APP_ENV", "production")
+	setenv(t, "CORS_ALLOWED_ORIGINS", "")
+	setenv(t, "FRONTEND_URL", "https://app.example.com/athlete?x=1")
+
+	want := []string{"https://app.example.com"}
+	if got := loadForTest(t).AllowedOrigins; !reflect.DeepEqual(got, want) {
+		t.Fatalf("AllowedOrigins = %v, want %v", got, want)
+	}
+}
+
+// TestLoadConfig_ProductionCORSInvalidFrontendURL ensures a malformed
+// FRONTEND_URL does not silently widen (or crash) the allow-list — it is
+// treated as unset and cross-origin stays rejected.
+func TestLoadConfig_ProductionCORSInvalidFrontendURL(t *testing.T) {
+	setenv(t, "APP_ENV", "production")
+	setenv(t, "CORS_ALLOWED_ORIGINS", "")
+	setenv(t, "FRONTEND_URL", "not a url")
+
+	if got := loadForTest(t).AllowedOrigins; len(got) != 0 {
+		t.Fatalf("AllowedOrigins = %v, want none for invalid FRONTEND_URL", got)
+	}
+}
+
+// TestLoadConfig_ExplicitCORSWinsOverFrontendURL pins precedence.
+func TestLoadConfig_ExplicitCORSWinsOverFrontendURL(t *testing.T) {
+	setenv(t, "APP_ENV", "production")
+	setenv(t, "CORS_ALLOWED_ORIGINS", "https://admin.example.com")
+	setenv(t, "FRONTEND_URL", "https://app.example.com")
+
+	want := []string{"https://admin.example.com"}
+	if got := loadForTest(t).AllowedOrigins; !reflect.DeepEqual(got, want) {
+		t.Fatalf("AllowedOrigins = %v, want %v", got, want)
 	}
 }
 
@@ -73,6 +114,7 @@ func TestLoadConfig_ProductionCORSNotReopenedByGinMode(t *testing.T) {
 	setenv(t, "APP_ENV", "production")
 	setenv(t, "GIN_MODE", "debug")
 	setenv(t, "CORS_ALLOWED_ORIGINS", "")
+	setenv(t, "FRONTEND_URL", "")
 
 	cfg := loadForTest(t)
 	if cfg.GinMode != "debug" {

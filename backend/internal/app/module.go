@@ -322,12 +322,13 @@ var RepositoryModule = fx.Module("repositories",
 		corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 		corsConfig.AllowCredentials = true
 		if len(cfg.AllowedOrigins) == 0 {
-			// Production default: the browser talks to the backend through the
-			// same-origin reverse proxy, so no cross-origin access is needed.
+			// Production default: neither CORS_ALLOWED_ORIGINS nor FRONTEND_URL
+			// yielded an origin, so the browser talks to the backend through the
+			// same-origin reverse proxy and no cross-origin access is needed.
 			// gin-contrib/cors panics on an empty allow-list ("all origins
 			// disabled"), so reject every origin explicitly instead.
 			corsConfig.AllowOriginFunc = func(string) bool { return false }
-			zap.L().Info("CORS: no ALLOWED_ORIGINS configured; cross-origin browser requests are rejected (same-origin reverse proxy expected)")
+			zap.L().Info("CORS: no CORS_ALLOWED_ORIGINS/FRONTEND_URL configured; cross-origin browser requests are rejected (same-origin reverse proxy expected)")
 		} else {
 			corsConfig.AllowOrigins = cfg.AllowedOrigins
 		}

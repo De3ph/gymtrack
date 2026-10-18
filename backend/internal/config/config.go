@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -37,7 +38,9 @@ type Config struct {
 	// trusted. Empty disables proxy-header parsing, so ClientIP() returns the
 	// peer address (no client IP spoofing).
 	TrustedProxies []string
-	// AllowedOrigins is the CORS allow-list. Empty in production means no
+	// AllowedOrigins is the CORS allow-list. CORS_ALLOWED_ORIGINS wins when set;
+	// otherwise development falls back to the localhost dev-server origins and
+	// production to the FRONTEND_URL origin. Empty in both means no
 	// cross-origin browser access; same-origin traffic behind the reverse
 	// proxy is unaffected.
 	AllowedOrigins []string
@@ -96,13 +99,25 @@ func LoadConfig() *Config {
 	allowedOrigins := splitCSV(getEnv("CORS_ALLOWED_ORIGINS", ""))
 	// Keyed on APP_ENV, not gin mode: setting GIN_MODE=debug in production must
 	// not re-enable the localhost origins.
-	if len(allowedOrigins) == 0 && !isProduction {
-		// Local development only: the Next.js dev server runs on :3000, with
-		// :3001 used for a second instance. Production relies on the
-		// same-origin reverse proxy instead of CORS.
-		allowedOrigins = []string{
-			"http://localhost:3000", "http://127.0.0.1:3000",
-			"http://localhost:3001", "http://127.0.0.1:3001",
+	if len(allowedOrigins) == 0 {
+		if !isProduction {
+			// Local development only: the Next.js dev server runs on :3000, with
+			// :3001 used for a second instance. Production relies on the
+			// same-origin reverse proxy instead of CORS.
+			allowedOrigins = []string{
+				"http://localhost:3000", "http://127.0.0.1:3000",
+				"http://localhost:3001", "http://127.0.0.1:3001",
+			}
+		} else if origin := normalizeOrigin(getEnv("FRONTEND_URL", "")); origin != "" {
+			// Production fallback: a cross-origin deploy (browser calling the API
+			// host directly instead of through the reverse proxy) fails every
+			// preflighted request — /clients/*, /workout-plans/*, anything with
+			// an Authorization header — unless the frontend origin is allowed.
+			// FRONTEND_URL already names that origin, so reuse it rather than
+			// requiring a second variable. Same-origin reverse-proxy setups are
+			// unaffected (CORS never engages). CORS_ALLOWED_ORIGINS still wins
+			// when set; if both are empty, cross-origin access stays rejected.
+			allowedOrigins = []string{origin}
 		}
 	}
 
@@ -150,6 +165,21 @@ func splitCSV(value string) []string {
 		}
 	}
 	return out
+}
+
+// normalizeOrigin reduces a URL to its origin (scheme://host[:port]) for use
+// as a CORS allowed origin, returning "" for anything that is not a valid
+// http(s) URL — a malformed FRONTEND_URL must not silently widen the allow-list.
+func normalizeOrigin(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		return ""
+	}
+	return parsed.Scheme + "://" + parsed.Host
 }
 
 func getEnv(key string, defaultValue string) string {
