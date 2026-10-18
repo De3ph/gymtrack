@@ -4,7 +4,7 @@
 #   docker compose up -d --build
 #
 # Services:
-#   db            - custom PostgreSQL 16 image (pgaudit, pg_partman)
+#   db            - custom PostgreSQL 16 image (pgaudit)
 #   migrate       - one-shot DB migration runner
 #   backend       - Go/Gin API (port 8080, internal)
 #   frontend      - Next.js 16 standalone (port 3000, internal)
@@ -37,15 +37,12 @@ services:
       start_period: 10s
     command: >
       postgres
-      -c shared_preload_libraries=pg_stat_statements,pgaudit,pg_partman_bgw
+      -c shared_preload_libraries=pg_stat_statements,pgaudit
       -c pg_stat_statements.max=10000
       -c pg_stat_statements.track=all
       -c pgaudit.log=write,ddl,role
       -c pgaudit.log_parameter=on
       -c pgaudit.log_relation=on
-      -c pg_partman_bgw.interval=1h
-      -c pg_partman_bgw.role=${POSTGRES_USER:-postgres}
-      -c pg_partman_bgw.dbname=${POSTGRES_DB:-gymtrack}
     networks:
       - gymtrack
     deploy:

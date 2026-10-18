@@ -244,7 +244,7 @@ No generated Go client/server code found. Swagger generation command/config is n
 
 `docker-compose.yml` provisions local infrastructure:
 
-- `db`: custom PostgreSQL 16 image, port 5432, `pgdata`, first-init `postgres/init-extensions.sql`, pgAudit/pg_partman/pg_stat_statements preload.
+- `db`: custom PostgreSQL 16 image, port 5432, `pgdata`, first-init `postgres/init-extensions.sql`, pgAudit/pg_stat_statements preload.
 - `pgadmin`: port 5050, persistent `pgadmin_data`.
 - `prometheus`: port 9090, `./prometheus` config, 7-day retention, persistent data.
 - `grafana`: port 3001, provisioning from `./grafana/provisioning`, persistent data.

@@ -138,15 +138,6 @@ func Plan(o Options) ([]string, error) {
 		// run.
 		fmt.Sprintf("ALTER DEFAULT PRIVILEGES FOR ROLE %s IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO %s;", migrate, app),
 		fmt.Sprintf("ALTER DEFAULT PRIVILEGES FOR ROLE %s IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO %s;", migrate, app),
-
-		// pg_partman (optional) lives in its own schema; migrations that manage
-		// partitions need access to it.
-		fmt.Sprintf(`DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'partman') THEN
-    EXECUTE 'GRANT USAGE, CREATE ON SCHEMA partman TO %s';
-  END IF;
-END $$;`, migrate),
 	}
 
 	return statements, nil

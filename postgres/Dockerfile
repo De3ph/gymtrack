@@ -6,7 +6,6 @@
 #
 # Extensions added here:
 #   - pgaudit     : session/object audit logging (requires shared_preload_libraries)
-#   - pg_partman  : native partition management (bgw requires shared_preload_libraries)
 #
 # pg_stat_statements ships with postgresql-contrib and is already present in
 # the base image; it only needs to be preloaded and `CREATE EXTENSION`'d at
@@ -16,5 +15,4 @@ FROM postgres:16
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         postgresql-16-pgaudit \
-        postgresql-16-partman \
     && rm -rf /var/lib/apt/lists/*
