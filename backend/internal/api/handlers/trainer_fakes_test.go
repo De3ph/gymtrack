@@ -108,7 +108,10 @@ type fakeAvailabilityRepo struct {
 	listErr   error
 	upserted  []models.TrainerAvailability
 	deleted   []int
-	deleteErr error
+	// deletedTrainerIDs records the trainerID argument paired with each
+	// deleted slot, so ownership-threading can be asserted.
+	deletedTrainerIDs []int
+	deleteErr         error
 }
 
 func (f *fakeAvailabilityRepo) GetByTrainerID(ctx context.Context, trainerID int) ([]models.TrainerAvailability, error) {
@@ -137,6 +140,7 @@ func (f *fakeAvailabilityRepo) UpsertAvailability(ctx context.Context, slot *mod
 
 func (f *fakeAvailabilityRepo) DeleteAvailability(ctx context.Context, trainerID int, slotID int) error {
 	f.deleted = append(f.deleted, slotID)
+	f.deletedTrainerIDs = append(f.deletedTrainerIDs, trainerID)
 	return f.deleteErr
 }
 

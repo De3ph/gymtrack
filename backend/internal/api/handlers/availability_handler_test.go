@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/services"
 	"gymtrack-backend/internal/utils"
@@ -209,10 +210,40 @@ func TestAvailabilityHandler_DeleteSlot_InvalidID(t *testing.T) {
 	handler := newAvailabilityHandler(repo)
 
 	ctx, w := newTrainerCtx(http.MethodDelete, "/api/trainers/me/availability/abc", "")
+	ctx.Set("userID", "5")
+	ctx.Set("userRole", models.RoleTrainer)
 	ctx.Params = gin.Params{{Key: "slotId", Value: "abc"}}
 	handler.DeleteSlot(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Empty(t, repo.deleted)
+}
+
+func TestAvailabilityHandler_DeleteSlot_RequiresSession(t *testing.T) {
+	repo := &fakeAvailabilityRepo{}
+	handler := newAvailabilityHandler(repo)
+
+	ctx, w := newTrainerCtx(http.MethodDelete, "/api/trainers/me/availability/11", "")
+	ctx.Params = gin.Params{{Key: "slotId", Value: "11"}}
+	handler.DeleteSlot(ctx)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Empty(t, repo.deleted)
+}
+
+func TestAvailabilityHandler_DeleteSlot_RejectsNonTrainer(t *testing.T) {
+	// Regression test for the availability IDOR: athletes must not be able to
+	// delete any trainer's slots.
+	repo := &fakeAvailabilityRepo{}
+	handler := newAvailabilityHandler(repo)
+
+	ctx, w := newTrainerCtx(http.MethodDelete, "/api/trainers/me/availability/11", "")
+	ctx.Set("userID", "9")
+	ctx.Set("userRole", models.RoleAthlete)
+	ctx.Params = gin.Params{{Key: "slotId", Value: "11"}}
+	handler.DeleteSlot(ctx)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
 	assert.Empty(t, repo.deleted)
 }
 
@@ -221,12 +252,32 @@ func TestAvailabilityHandler_DeleteSlot_Success(t *testing.T) {
 	handler := newAvailabilityHandler(repo)
 
 	ctx, w := newTrainerCtx(http.MethodDelete, "/api/trainers/me/availability/11", "")
+	ctx.Set("userID", "5")
+	ctx.Set("userRole", models.RoleTrainer)
 	ctx.Params = gin.Params{{Key: "slotId", Value: "11"}}
 	handler.DeleteSlot(ctx)
 
 	require.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "slot deleted successfully", jsonField(t, w, "message"))
 	assert.Equal(t, []int{11}, repo.deleted)
+	// The caller's own ID must reach the repository, which scopes the DELETE
+	// with `AND trainer_id = $2`.
+	assert.Equal(t, []int{5}, repo.deletedTrainerIDs)
+}
+
+func TestAvailabilityHandler_DeleteSlot_OtherTrainersSlotIs404(t *testing.T) {
+	// The SQL predicate is `id = $1 AND trainer_id = $2`, so another trainer's
+	// slot is indistinguishable from a missing one: zero rows affected.
+	repo := &fakeAvailabilityRepo{deleteErr: domainerrors.ErrNotFound}
+	handler := newAvailabilityHandler(repo)
+
+	ctx, w := newTrainerCtx(http.MethodDelete, "/api/trainers/me/availability/11", "")
+	ctx.Set("userID", "5")
+	ctx.Set("userRole", models.RoleTrainer)
+	ctx.Params = gin.Params{{Key: "slotId", Value: "11"}}
+	handler.DeleteSlot(ctx)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 func TestAvailabilityHandler_DeleteSlot_RepositoryFailureIsGeneric500(t *testing.T) {
@@ -234,25 +285,11 @@ func TestAvailabilityHandler_DeleteSlot_RepositoryFailureIsGeneric500(t *testing
 	handler := newAvailabilityHandler(repo)
 
 	ctx, w := newTrainerCtx(http.MethodDelete, "/api/trainers/me/availability/11", "")
+	ctx.Set("userID", "5")
+	ctx.Set("userRole", models.RoleTrainer)
 	ctx.Params = gin.Params{{Key: "slotId", Value: "11"}}
 	handler.DeleteSlot(ctx)
 
 	require.Equal(t, http.StatusInternalServerError, w.Code)
 	assert.NotContains(t, responseError(t, w), "foreign key")
-}
-
-// DeleteSlot takes only a slot ID, so ownership cannot be checked at this layer.
-// Pinned so that adding an owner check shows up as a test change rather than a
-// silent behaviour change.
-func TestAvailabilityHandler_DeleteSlot_HasNoOwnershipCheck(t *testing.T) {
-	repo := &fakeAvailabilityRepo{}
-	handler := newAvailabilityHandler(repo)
-
-	ctx, w := newTrainerCtx(http.MethodDelete, "/api/trainers/me/availability/11", "")
-	ctx.Set("userID", "999")
-	ctx.Params = gin.Params{{Key: "slotId", Value: "11"}}
-	handler.DeleteSlot(ctx)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, []int{11}, repo.deleted)
 }
