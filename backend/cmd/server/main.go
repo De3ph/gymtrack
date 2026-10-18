@@ -12,10 +12,13 @@ import (
 // @title GymTrack API
 // @version 1.0
 // @description GymTrack backend API
-// @server http://localhost:8080/api Local development
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
+//
+// The OpenAPI server URL is not baked in here: it is applied at runtime from
+// SWAGGER_SERVER_URL (see routes.RegisterSwaggerRoutes). Empty keeps the spec
+// host-relative so the Scalar UI targets the origin it is served from.
 func main() {
 	logger.Init()
 	defer logger.Sync()

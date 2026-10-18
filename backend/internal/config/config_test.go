@@ -116,6 +116,48 @@ func TestLoadConfig_PortAndTrustedProxies(t *testing.T) {
 	}
 }
 
+// TestLoadConfig_SwaggerServerURL covers the runtime override that replaces the
+// hardcoded localhost server URL in the OpenAPI spec.
+func TestLoadConfig_SwaggerServerURL(t *testing.T) {
+	t.Run("default is empty (host-relative spec)", func(t *testing.T) {
+		t.Setenv("SWAGGER_SERVER_URL", "")
+		if got := loadForTest(t).SwaggerServerURL; got != "" {
+			t.Fatalf("SwaggerServerURL = %q, want empty", got)
+		}
+	})
+
+	t.Run("trimmed from env", func(t *testing.T) {
+		setenv(t, "SWAGGER_SERVER_URL", "  https://api.example.com/api  ")
+		if got := loadForTest(t).SwaggerServerURL; got != "https://api.example.com/api" {
+			t.Fatalf("SwaggerServerURL = %q, want https://api.example.com/api", got)
+		}
+	})
+}
+
+// TestLoadConfig_AuditLogRetentionDays pins the retention default, the explicit
+// 0 (disabled) override and the invalid-value fallback.
+func TestLoadConfig_AuditLogRetentionDays(t *testing.T) {
+	cases := []struct {
+		name  string
+		value string
+		want  int
+	}{
+		{"default", "", 365},
+		{"explicit", "30", 30},
+		{"disabled", "0", 0},
+		{"invalid falls back", "abc", 365},
+		{"negative falls back", "-1", 365},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			setenv(t, "AUDIT_LOG_RETENTION_DAYS", tc.value)
+			if got := loadForTest(t).AuditLogRetentionDays; got != tc.want {
+				t.Fatalf("AuditLogRetentionDays = %d, want %d", got, tc.want)
+			}
+		})
+	}
+}
+
 // TestValidatePort covers the startup validation: an unparsable or
 // out-of-range port must fail loudly instead of at ListenAndServe time.
 func TestValidatePort(t *testing.T) {

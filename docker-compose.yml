@@ -3,6 +3,16 @@
 #   cp .env.example .env   # fill in secrets
 #   docker compose up -d --build
 #
+# All credentials are interpolated from the (git-ignored) .env file: nothing
+# secret is hardcoded here, and the always-on secrets (DB roles, JWT/session,
+# Grafana) use ${VAR:?} so compose refuses to start when they are missing. The
+# optional pgadmin tools profile uses an empty default instead, because compose
+# interpolates every service regardless of profile — a required variable there
+# would block the default stack.
+#
+# `deploy.resources.limits` is honoured by Docker Compose v2 outside Swarm.
+# Verify the resolved config (and the limits) with:  docker compose config
+#
 # Services:
 #   db            - custom PostgreSQL 16 image (pgaudit)
 #   migrate       - one-shot DB migration runner
@@ -119,6 +129,10 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACES_SAMPLER_ARG:-0.1}
       PPROF_ENABLED: ${PPROF_ENABLED:-false}
+      # Public URL advertised by the OpenAPI spec (empty = host-relative).
+      SWAGGER_SERVER_URL: ${SWAGGER_SERVER_URL:-}
+      # user_audit_logs retention window in days; 0 disables the pruning job.
+      AUDIT_LOG_RETENTION_DAYS: ${AUDIT_LOG_RETENTION_DAYS:-365}
     depends_on:
       db:
         condition: service_healthy
@@ -266,7 +280,14 @@ services:
       - "127.0.0.1:5050:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      # No hardcoded password (the old "admin" default is gone). The empty
+      # default keeps `docker compose up` working when the tools profile is not
+      # used: compose interpolates every service, profiles or not, so a
+      # ${PGADMIN_PASSWORD:?} here would block the whole stack. pgadmin itself
+      # exits at first init when this is empty ("You need to define the
+      # PGADMIN_DEFAULT_EMAIL and PGADMIN_DEFAULT_PASSWORD ..."), so the profile
+      # still cannot come up with a known password.
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:

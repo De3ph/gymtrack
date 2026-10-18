@@ -16,6 +16,7 @@ import (
 	"gymtrack-backend/internal/infrastructure/email"
 	"gymtrack-backend/internal/infrastructure/persistence"
 	"gymtrack-backend/internal/infrastructure/persistence/postgres"
+	"gymtrack-backend/internal/infrastructure/retention"
 	"gymtrack-backend/internal/infrastructure/tracing"
 	"gymtrack-backend/internal/utils"
 
@@ -248,6 +249,24 @@ var RepositoryModule = fx.Module("repositories",
 			)
 			return reg
 		},
+
+		// Audit-log retention: prunes user_audit_logs so personal data does not
+		// live forever and the table does not grow without bound. Disabled by
+		// setting AUDIT_LOG_RETENTION_DAYS=0.
+		func(cfg *config.Config, pool *pgxpool.Pool, lc fx.Lifecycle) *retention.AuditLogRetention {
+			job := retention.NewAuditLogRetention(pool, cfg.AuditLogRetentionDays)
+			lc.Append(fx.Hook{
+				OnStart: func(context.Context) error {
+					job.Start()
+					return nil
+				},
+				OnStop: func(context.Context) error {
+					job.Stop()
+					return nil
+				},
+			})
+			return job
+		},
 	),
 
 	// Initialize OpenTelemetry tracer provider before the server starts
@@ -331,7 +350,7 @@ var RepositoryModule = fx.Module("repositories",
 		router.Use(metricsMw)
 		routes.RegisterMetricsRoutes(router, registry)
 
-		routes.RegisterSwaggerRoutes(router)
+		routes.RegisterSwaggerRoutes(router, cfg.SwaggerServerURL)
 
 		apiGroup := router.Group("/api")
 		routes.AuthRoutes(apiGroup, authHandler, pwResetHandler, authLimiter)
@@ -353,6 +372,10 @@ var RepositoryModule = fx.Module("repositories",
 
 		routes.RegisterWorkoutPlanRoutes(apiGroup, workoutPlanHandler, authMw)
 	}),
+	// Force construction of the audit-log retention job: nothing else depends on
+	// it, and fx only runs a provider when something requires it. Constructing it
+	// registers the lifecycle hook that starts/stops the pruning goroutine.
+	fx.Invoke(func(*retention.AuditLogRetention) {}),
 	fx.Invoke(StartServer),
 )
 

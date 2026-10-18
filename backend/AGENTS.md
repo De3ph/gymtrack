@@ -23,7 +23,7 @@
 - **DB**: `github.com/jackc/pgx/v5` (PostgreSQL)
 - **Auth**: `github.com/golang-jwt/jwt/v5` + `golang.org/x/crypto`
 - **DI**: `go.uber.org/fx` v1.24 (composition root in `internal/app/module.go`)
-- **Cache**: `github.com/patrickmn/go-cache` (in-memory adapters in `infrastructure/cache`)
+- **Cache**: `github.com/patrickmn/go-cache` (in-memory adapters in `infrastructure/cache`). Per-instance only, not shared across replicas — read `infrastructure/cache/doc.go` before scaling horizontally
 - **Metrics**: `github.com/prometheus/client_golang` (HTTP metrics middleware)
 - **Logging**: `go.uber.org/zap`
 - **Docs**: `github.com/swaggo/swag` + `gin-swagger` (Swagger UI at `/swagger/*`)
@@ -55,6 +55,7 @@ internal/
       postgres/            — PostgreSQL repository implementations
       repository.go        — RepositoryFactory creating all repositories
     cache/                 — In-memory cache adapters (gocache) + Prometheus metrics
+    retention/             — Periodic DB cleanup jobs (user_audit_logs pruning)
     log/                   — Zap logger setup
   testutils/               — Mock helpers (mocks.go, testutils.go)
   utils/                   — clock.go (Clock interface + RealClock for testable time)
@@ -90,6 +91,8 @@ Loaded from `.env` in the `backend/` dir (also tries `../.env` and `../../.env`)
 | `POSTGRES_ADMIN_DSN` | falls back to `POSTGRES_DSN` | Admin DSN for `cmd/db-roles` (superuser) |
 | `APP_DB_USER` / `APP_DB_PASSWORD` | `gymtrack_app` / — | Runtime role provisioned by `cmd/db-roles` |
 | `MIGRATE_DB_USER` / `MIGRATE_DB_PASSWORD` | `gymtrack_migrate` / — | Migration role (schema owner) |
+| `SWAGGER_SERVER_URL` | (empty) | Absolute server URL advertised by the OpenAPI spec, e.g. `https://api.example.com/api`. Empty = host-relative spec. Either way `basePath` is `/api` |
+| `AUDIT_LOG_RETENTION_DAYS` | `365` | Days `user_audit_logs` rows are kept; pruned once at startup then every 24h. `0` disables pruning |
 
 `JWT_SECRET` is required and validated at startup — server will crash with `log.Fatal` if missing or too short.
 

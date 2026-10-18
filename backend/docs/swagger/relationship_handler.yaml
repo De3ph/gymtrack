@@ -9,8 +9,10 @@ info:
     name: MIT
 
 servers:
-  - url: http://localhost:8080/api
-    description: Development server
+  # Host-relative by default; the served spec is overridden at runtime via
+  # SWAGGER_SERVER_URL.
+  - url: /api
+    description: Same-origin (behind the reverse proxy)
 
 paths:
   /relationships/invite:

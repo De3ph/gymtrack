@@ -41,6 +41,13 @@ type Config struct {
 	// cross-origin browser access; same-origin traffic behind the reverse
 	// proxy is unaffected.
 	AllowedOrigins []string
+	// SwaggerServerURL is the server URL advertised by the OpenAPI spec
+	// (SWAGGER_SERVER_URL), e.g. https://api.example.com/api. Empty keeps the
+	// spec host-relative so the Scalar UI targets the origin it is served from.
+	SwaggerServerURL string
+	// AuditLogRetentionDays is how long user_audit_logs rows are kept
+	// (AUDIT_LOG_RETENTION_DAYS, default 365). 0 disables the pruning job.
+	AuditLogRetentionDays int
 }
 
 // DefaultPostgresDSN returns the local development DSN used when
@@ -100,20 +107,22 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		JWTSecret:          jwtSecret,
-		PostgresDSN:        getEnv("POSTGRES_DSN", DefaultPostgresDSN()),
-		CacheEnabled:       getEnv("CACHE_ENABLED", "true") != "false",
-		ResendAPIKey:       getEnv("RESEND_API_KEY", ""),
-		EmailFrom:          getEnv("EMAIL_FROM", ""),
-		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
-		OTelEndpoint:       getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", ""),
-		TraceSamplingRatio: getEnvFloat("OTEL_TRACES_SAMPLER_ARG", 0.1),
-		PProfEnabled:       parseBool("PPROF_ENABLED"),
-		AppEnv:             appEnv,
-		GinMode:            ginMode,
-		Port:               port,
-		TrustedProxies:     splitCSV(getEnv("TRUSTED_PROXIES", "")),
-		AllowedOrigins:     allowedOrigins,
+		JWTSecret:             jwtSecret,
+		PostgresDSN:           getEnv("POSTGRES_DSN", DefaultPostgresDSN()),
+		CacheEnabled:          getEnv("CACHE_ENABLED", "true") != "false",
+		ResendAPIKey:          getEnv("RESEND_API_KEY", ""),
+		EmailFrom:             getEnv("EMAIL_FROM", ""),
+		FrontendURL:           getEnv("FRONTEND_URL", "http://localhost:3000"),
+		OTelEndpoint:          getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", ""),
+		TraceSamplingRatio:    getEnvFloat("OTEL_TRACES_SAMPLER_ARG", 0.1),
+		PProfEnabled:          parseBool("PPROF_ENABLED"),
+		AppEnv:                appEnv,
+		GinMode:               ginMode,
+		Port:                  port,
+		TrustedProxies:        splitCSV(getEnv("TRUSTED_PROXIES", "")),
+		AllowedOrigins:        allowedOrigins,
+		SwaggerServerURL:      strings.TrimSpace(getEnv("SWAGGER_SERVER_URL", "")),
+		AuditLogRetentionDays: getEnvInt("AUDIT_LOG_RETENTION_DAYS", 365),
 	}
 }
 
@@ -173,6 +182,21 @@ func getEnvFloat(key string, defaultValue float64) float64 {
 	}
 	parsed, err := strconv.ParseFloat(value, 64)
 	if err != nil {
+		return defaultValue
+	}
+	return parsed
+}
+
+// getEnvInt reads a non-negative int env var. Missing, unparsable or negative
+// values fall back to the default; an explicit 0 is honoured (used to disable
+// jobs such as audit-log retention).
+func getEnvInt(key string, defaultValue int) int {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return defaultValue
+	}
+	parsed, err := strconv.Atoi(strings.TrimSpace(value))
+	if err != nil || parsed < 0 {
 		return defaultValue
 	}
 	return parsed
