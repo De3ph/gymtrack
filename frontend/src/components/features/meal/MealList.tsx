@@ -46,8 +46,11 @@ interface MealListProps {
    * it fetches by itself.
    */
   totalCount?: number
-  /** Start every card except the newest one collapsed (trainer history view). */
-  collapseAllExceptFirst?: boolean
+  /**
+   * Start every card collapsed except the most recent one. On by default —
+   * pass `false` to show every card expanded.
+   */
+  collapseAllExceptNewest?: boolean
 }
 
 export function MealList({
@@ -57,7 +60,7 @@ export function MealList({
   page: pageProp,
   onPageChange,
   totalCount: totalCountProp,
-  collapseAllExceptFirst = false
+  collapseAllExceptNewest = true
 }: MealListProps) {
   const t = useTranslations("meal")
   const tPagination = useTranslations("meal.pagination")
@@ -117,8 +120,8 @@ export function MealList({
   const canPaginate = isSelfFetching || totalCountProp !== undefined
 
   const { collapsedIds, toggleCollapsed } = useCollapseSeed(
-    meals.map((m) => m.mealId),
-    collapseAllExceptFirst,
+    meals.map((m) => ({ id: m.mealId, date: m.date })),
+    collapseAllExceptNewest,
   )
 
   const filterBar = isSelfFetching ? (

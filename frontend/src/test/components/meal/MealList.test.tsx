@@ -25,6 +25,14 @@ const mockMeals: Meal[] = [
   },
 ]
 
+const olderMeal: Meal = {
+  ...mockMeals[0],
+  mealId: 2,
+  date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  mealType: 'dinner',
+  items: [{ food: 'Salmon', quantity: '200 g', calories: 400, macros: { protein: 40, carbs: 0, fats: 25 } }],
+}
+
 describe('MealList', () => {
   let queryClient: QueryClient
 
@@ -63,6 +71,26 @@ describe('MealList', () => {
     renderWithProvider(<MealList meals={[]} />)
 
     expect(screen.getByText(/no meals yet/i)).toBeInTheDocument()
+  })
+
+  it('collapses every card except the most recent one by default', () => {
+    renderWithProvider(<MealList meals={[mockMeals[0], olderMeal]} />)
+
+    // The newest card stays open, the older one starts collapsed.
+    expect(screen.getByText(/oatmeal/i)).toBeInTheDocument()
+    expect(screen.queryByText(/salmon/i)).not.toBeInTheDocument()
+
+    const collapsed = screen.getByRole('button', { name: /expand meal/i })
+    expect(collapsed).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('keeps every card expanded when collapsing is disabled', () => {
+    renderWithProvider(
+      <MealList meals={[mockMeals[0], olderMeal]} collapseAllExceptNewest={false} />,
+    )
+
+    expect(screen.getByText(/oatmeal/i)).toBeInTheDocument()
+    expect(screen.getByText(/salmon/i)).toBeInTheDocument()
   })
 
   it('shows loading state when fetching and no props', () => {

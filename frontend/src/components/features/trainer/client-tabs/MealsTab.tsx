@@ -86,7 +86,7 @@ export function MealsTab({
         totalCount={data.count}
         page={page}
         onPageChange={setPage}
-        collapseAllExceptFirst
+        collapseAllExceptNewest
       />
     );
   }

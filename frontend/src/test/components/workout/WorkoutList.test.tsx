@@ -34,6 +34,19 @@ const mockWorkouts: Workout[] = [
   },
 ]
 
+const olderWorkout: Workout = {
+  ...mockWorkouts[0],
+  workoutId: 2,
+  date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  exercises: [
+    {
+      exerciseId: 2,
+      name: 'Back Squat',
+      sets: [{ weight: 100, weightUnit: 'kg' as const, reps: 5, restTime: 90, completed: false }],
+    },
+  ],
+}
+
 describe('WorkoutList', () => {
   let queryClient: QueryClient
 
@@ -101,6 +114,26 @@ describe('WorkoutList', () => {
 
     await user.click(expandButton)
     expect(screen.getByText(/bench press/i)).toBeInTheDocument()
+  })
+
+  it('collapses every card except the most recent one by default', () => {
+    renderWithProvider(<WorkoutList workouts={[mockWorkouts[0], olderWorkout]} />)
+
+    // The newest card stays open, the older one starts collapsed.
+    expect(screen.getByText(/bench press/i)).toBeInTheDocument()
+    expect(screen.queryByText(/back squat/i)).not.toBeInTheDocument()
+
+    const collapsed = screen.getByRole('button', { name: /expand workout/i })
+    expect(collapsed).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('keeps every card expanded when collapsing is disabled', () => {
+    renderWithProvider(
+      <WorkoutList workouts={[mockWorkouts[0], olderWorkout]} collapseAllExceptNewest={false} />,
+    )
+
+    expect(screen.getByText(/bench press/i)).toBeInTheDocument()
+    expect(screen.getByText(/back squat/i)).toBeInTheDocument()
   })
 
   it('windows pagination instead of rendering a link per page', async () => {

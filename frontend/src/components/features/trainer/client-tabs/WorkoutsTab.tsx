@@ -88,7 +88,7 @@ export function WorkoutsTab({
         totalCount={data.count}
         page={page}
         onPageChange={setPage}
-        collapseAllExceptFirst
+        collapseAllExceptNewest
         showFilterBar={false}
       />
     );

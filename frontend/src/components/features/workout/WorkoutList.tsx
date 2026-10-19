@@ -44,8 +44,11 @@ interface WorkoutListProps {
    * it fetches by itself.
    */
   totalCount?: number;
-  /** Start every card except the newest one collapsed (trainer history view). */
-  collapseAllExceptFirst?: boolean;
+  /**
+   * Start every card collapsed except the most recent one. On by default —
+   * pass `false` to show every card expanded.
+   */
+  collapseAllExceptNewest?: boolean;
   /** Hide the built-in filter bar when the parent owns the filters. */
   showFilterBar?: boolean;
 }
@@ -57,7 +60,7 @@ export function WorkoutList({
   page: pageProp,
   onPageChange,
   totalCount: totalCountProp,
-  collapseAllExceptFirst = false,
+  collapseAllExceptNewest = true,
   showFilterBar = true,
 }: WorkoutListProps) {
   const t = useTranslations("workout.list");
@@ -117,8 +120,8 @@ export function WorkoutList({
   const canPaginate = isSelfFetching || totalCountProp !== undefined;
 
   const { collapsedIds, toggleCollapsed } = useCollapseSeed(
-    workouts.map((w) => w.workoutId),
-    collapseAllExceptFirst,
+    workouts.map((w) => ({ id: w.workoutId, date: w.date })),
+    collapseAllExceptNewest,
   );
 
   const filterBar = isSelfFetching && showFilterBar ? (

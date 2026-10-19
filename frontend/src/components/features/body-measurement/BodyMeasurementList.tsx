@@ -27,6 +27,7 @@ import {
 import { useTranslations } from "next-intl";
 import { BodyMeasurement } from "@/types";
 import { useMeasurementListStore } from "@/stores/measurement-list-store";
+import { useCollapseSeed } from "@/hooks/use-collapse-seed";
 import { BodyMeasurementFilterBar } from "./BodyMeasurementFilterBar";
 import { BodyMeasurementListItem } from "./BodyMeasurementListItem";
 import { EditBodyMeasurementDialog } from "./EditBodyMeasurementDialog";
@@ -57,6 +58,11 @@ interface BodyMeasurementListProps {
    * next page's newest row and hands it over.
    */
   previousOfLast?: BodyMeasurement;
+  /**
+   * Start every row collapsed except the most recent one. On by default —
+   * pass `false` to show every row expanded.
+   */
+  collapseAllExceptNewest?: boolean;
 }
 
 export function BodyMeasurementList({
@@ -68,7 +74,8 @@ export function BodyMeasurementList({
   page: pageProp,
   onPageChange,
   totalCount: totalCountProp,
-  previousOfLast
+  previousOfLast,
+  collapseAllExceptNewest = true
 }: BodyMeasurementListProps) {
   const t = useTranslations("body_measurement.list");
   const tPagination = useTranslations("body_measurement.pagination");
@@ -139,6 +146,14 @@ export function BodyMeasurementList({
     setDeleteOpen(true);
   };
 
+  const measurements = propMeasurements || data?.measurements || [];
+
+  // Every row starts collapsed except the most recent one.
+  const { collapsedIds, toggleCollapsed } = useCollapseSeed(
+    measurements.map((m) => ({ id: m.measurementId, date: m.date })),
+    collapseAllExceptNewest,
+  );
+
   if (isLoading && isSelfFetching) {
     return (
       <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
@@ -159,8 +174,6 @@ export function BodyMeasurementList({
       </div>
     );
   }
-
-  const measurements = propMeasurements || data?.measurements || [];
 
   const propTotal = propMeasurements ? propMeasurements.length : undefined;
   const totalCount = totalCountProp ?? propTotal ?? data?.count ?? 0;
@@ -208,6 +221,10 @@ export function BodyMeasurementList({
           readOnly={readOnly}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          isCollapsed={Boolean(collapsedIds[String(m.measurementId)])}
+          onToggle={() => {
+            if (m.measurementId != null) toggleCollapsed(m.measurementId);
+          }}
         />
       ))}
 
