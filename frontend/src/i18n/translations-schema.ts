@@ -652,8 +652,8 @@ const translationSchema = z.object({
     }),
     filter: z.object({
       label: z.string(),
-      start_date: z.string(),
-      end_date: z.string(),
+      date_range: z.string(),
+      date_range_placeholder: z.string(),
       clear: z.string(),
       apply: z.string(),
     }),
@@ -752,8 +752,8 @@ const translationSchema = z.object({
     }),
     filter: z.object({
       label: z.string(),
-      start_date: z.string(),
-      end_date: z.string(),
+      date_range: z.string(),
+      date_range_placeholder: z.string(),
       clear: z.string(),
       apply: z.string(),
     }),

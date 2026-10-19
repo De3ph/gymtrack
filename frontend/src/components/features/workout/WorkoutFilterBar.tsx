@@ -1,14 +1,14 @@
 "use client";
 
-import dayjs from "dayjs";
 import { Filter, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useTranslations } from "next-intl";
 import type { WorkoutFilter } from "./WorkoutList";
 import { useDeferredFilter } from "@/lib/hooks/use-deferred-filter";
+import { fromDateRange, toDateRange } from "@/lib/date-range";
 
 interface WorkoutFilterBarProps {
   filter: WorkoutFilter;
@@ -41,37 +41,20 @@ export function WorkoutFilterBar({
         </span>
       </div>
 
-      <Field className="flex-1 sm:max-w-[180px]">
-        <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          {t("start_date")}
+      <Field className="flex-1 sm:max-w-[280px]">
+        <FieldLabel
+          htmlFor="workout-date-range"
+          className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+        >
+          {t("date_range")}
         </FieldLabel>
-        <DatePicker
-          data-testid="workout-start-date"
-          value={pending.startDate ? new Date(pending.startDate) : undefined}
-          maxDate={pending.endDate ? new Date(pending.endDate) : undefined}
-          onChange={(d) =>
-            setPending({
-              ...pending,
-              startDate: d ? dayjs(d).startOf("day").toISOString() : undefined,
-            })
-          }
-          className="w-full"
-        />
-      </Field>
-
-      <Field className="flex-1 sm:max-w-[180px]">
-        <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          {t("end_date")}
-        </FieldLabel>
-        <DatePicker
-          data-testid="workout-end-date"
-          value={pending.endDate ? new Date(pending.endDate) : undefined}
-          minDate={pending.startDate ? new Date(pending.startDate) : undefined}
-          onChange={(d) =>
-            setPending({
-              ...pending,
-              endDate: d ? dayjs(d).endOf("day").toISOString() : undefined,
-            })
+        <DateRangePicker
+          id="workout-date-range"
+          data-testid="workout-date-range"
+          value={toDateRange(pending)}
+          placeholder={t("date_range_placeholder")}
+          onChange={(range) =>
+            setPending((prev) => ({ ...prev, ...fromDateRange(range) }))
           }
           className="w-full"
         />

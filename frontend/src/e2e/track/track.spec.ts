@@ -11,29 +11,41 @@ import {
 const nowIso = new Date().toISOString();
 
 /**
- * Pick a date using the DatePicker component:
+ * Pick a date range using the DateRangePicker component:
  * 1. Click the trigger by testid to open the popover
- * 2. Set month/year via the dropdowns (aria-labels "Month:" / "Year:")
+ * 2. Set month/year via the first caption's dropdowns (aria-labels "Month:" / "Year:")
  * 3. Click the target day button inside the popover content
+ * Repeat for the range end (navigating to the end month first).
  */
-async function pickDate(
+async function pickDateRange(
   page: Page,
   testId: string,
-  { year, month, day }: { year: number; month: number; day: number },
+  from: { year: number; month: number; day: number },
+  to: { year: number; month: number; day: number },
 ) {
   await page.getByTestId(testId).click();
 
   const popover = page.locator('[data-slot="popover-content"]');
   await popover.waitFor({ state: 'visible' });
 
-  const monthSelect = popover.locator('select').first();
-  const yearSelect = popover.locator('select').last();
+  // The picker renders two months, each with its own month/year dropdowns.
+  // The first caption drives the visible range.
+  const goToMonth = async (year: number, month: number) => {
+    const selects = popover.locator('select');
+    await selects.nth(1).selectOption(String(year));
+    await selects.nth(0).selectOption(String(month - 1));
+  };
 
-  await yearSelect.selectOption(String(year));
-  await monthSelect.selectOption(String(month - 1));
+  const clickDay = async (day: number) => {
+    const dayButton = popover.locator(`button`).filter({ hasText: new RegExp(`^${day}$`) }).first();
+    await dayButton.click();
+  };
 
-  const dayButton = popover.locator(`button`).filter({ hasText: new RegExp(`^${day}$`) }).first();
-  await dayButton.click();
+  await goToMonth(from.year, from.month);
+  await clickDay(from.day);
+
+  await goToMonth(to.year, to.month);
+  await clickDay(to.day);
 }
 
 const recentWorkout = {
@@ -116,8 +128,12 @@ test.describe("TRACK", () => {
       await mockWorkoutsApi(page, [recentWorkout]);
       await page.goto("/athlete/workouts");
       await page.getByRole("tab", { name: "History (List)" }).click();
-      await pickDate(page, "workout-start-date", { year: 2025, month: 1, day: 1 });
-      await pickDate(page, "workout-end-date", { year: 2025, month: 12, day: 31 });
+      await pickDateRange(
+        page,
+        "workout-date-range",
+        { year: 2025, month: 1, day: 1 },
+        { year: 2025, month: 12, day: 31 },
+      );
       await page.getByRole("button", { name: "Apply" }).click();
       await expect(page.getByText("Bench Press")).toBeVisible();
     });
@@ -209,8 +225,12 @@ test.describe("TRACK", () => {
       await mockMealsApi(page, [recentMeal]);
       await page.goto("/athlete/meals");
       await page.getByRole("tab", { name: "History (List)" }).click();
-      await pickDate(page, "meal-start-date", { year: 2025, month: 1, day: 1 });
-      await pickDate(page, "meal-end-date", { year: 2025, month: 12, day: 31 });
+      await pickDateRange(
+        page,
+        "meal-date-range",
+        { year: 2025, month: 1, day: 1 },
+        { year: 2025, month: 12, day: 31 },
+      );
       await page.getByRole("button", { name: "Apply" }).click();
       await expect(page.getByText("Oatmeal")).toBeVisible();
     });

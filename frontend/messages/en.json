@@ -658,8 +658,8 @@
     },
     "filter": {
       "label": "Filter",
-      "start_date": "Start date",
-      "end_date": "End date",
+      "date_range": "Date range",
+      "date_range_placeholder": "Pick a date range",
       "clear": "Clear",
       "apply": "Apply"
     },
@@ -758,8 +758,8 @@
     },
     "filter": {
       "label": "Filter",
-      "start_date": "Start date",
-      "end_date": "End date",
+      "date_range": "Date range",
+      "date_range_placeholder": "Pick a date range",
       "clear": "Clear",
       "apply": "Apply"
     },
