@@ -44,6 +44,15 @@ interface WorkoutExerciseCardProps {
    * (and focus) a newly added exercise.
    */
   containerRef?: (node: HTMLElement | null) => void;
+  /**
+   * Controlled open state for this card's exercise picker dialog. The form
+   * sets it right after adding an exercise so the picker opens automatically.
+   */
+  pickerOpen?: boolean;
+  /** Notified when the picker dialog requests to open/close. */
+  onPickerOpenChange?: (open: boolean) => void;
+  /** Notified when this card's exercise is removed from the list. */
+  onRemove?: () => void;
 }
 
 export function WorkoutExerciseCard({
@@ -54,6 +63,9 @@ export function WorkoutExerciseCard({
   isCollapsed,
   onToggle,
   containerRef,
+  pickerOpen,
+  onPickerOpenChange,
+  onRemove,
 }: WorkoutExerciseCardProps) {
   const t = useTranslations("workout.form");
 
@@ -93,7 +105,10 @@ export function WorkoutExerciseCard({
           type="button"
           variant="ghost"
           size="icon-sm"
-          onClick={() => field.removeValue(index)}
+          onClick={() => {
+            field.removeValue(index);
+            onRemove?.();
+          }}
           aria-label={t("exercise.sets.remove")}
           className="h-8 w-8 shrink-0 rounded-none text-muted-foreground hover:text-destructive"
         >
@@ -108,6 +123,8 @@ export function WorkoutExerciseCard({
             <Field>
               <ExerciseSelector
                 selectedExerciseId={subField.state.value as string | number}
+                open={pickerOpen}
+                onOpenChange={onPickerOpenChange}
                 onSelect={(selected) => {
                   field.setValue((prev) => {
                     const newExercises = [...prev];

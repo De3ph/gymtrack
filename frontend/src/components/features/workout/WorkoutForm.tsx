@@ -127,11 +127,18 @@ function ExerciseAutoScroll({
   pendingIndex,
   cardRefs,
   onDone,
+  focusEnabled = true,
 }: {
   /** Index to scroll to, or null when there's nothing pending. */
   pendingIndex: number | null;
   cardRefs: React.MutableRefObject<Array<HTMLElement | null>>;
   onDone: () => void;
+  /**
+   * When false, the card is only scrolled into view — the input is not
+   * focused. Used when the exercise picker dialog opens right after the row
+   * is added, so focus stays inside the dialog's search field.
+   */
+  focusEnabled?: boolean;
 }) {
   const onDoneRef = useRef(onDone);
   useEffect(() => {
@@ -152,6 +159,11 @@ function ExerciseAutoScroll({
 
       card.scrollIntoView({ behavior: "smooth", block: "center" });
 
+      if (!focusEnabled) {
+        onDoneRef.current();
+        return;
+      }
+
       const tryFocus = (attempt: number) => {
         const input = card.querySelector<HTMLInputElement>(
           "input:not([type='hidden'])",
@@ -171,7 +183,7 @@ function ExerciseAutoScroll({
 
       tryFocus(0);
     },
-    [cardRefs],
+    [cardRefs, focusEnabled],
   );
 
   useEffect(() => {
@@ -260,6 +272,8 @@ export function WorkoutForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.workouts.all });
       form.reset();
+      setPickerIndex(null);
+      setPickerOpen(false);
       if (onSuccess) onSuccess();
     },
     onError: (error) => {
@@ -283,6 +297,14 @@ export function WorkoutForm({
   const [pendingScrollIndex, setPendingScrollIndex] = useState<number | null>(
     null,
   );
+  /**
+   * Index of the exercise card whose picker dialog is open, plus the open
+   * flag. When "Add exercise" is clicked we push the new row and immediately
+   * open that row's exercise picker so the user can pick an exercise
+   * straight away.
+   */
+  const [pickerIndex, setPickerIndex] = useState<number | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Cached per index so React doesn't detach/reattach refs on every render.
   const setExerciseCardRef = useCallback((index: number) => {
@@ -335,7 +357,39 @@ export function WorkoutForm({
     setCollapsedMap({});
     setSelectedPlanId(String(plan.planId));
     setLoadedPlanName(plan.name);
+    setPickerIndex(null);
+    setPickerOpen(false);
   };
+
+  const handlePickerOpenChange = useCallback(
+    (index: number, open: boolean) => {
+      if (open) {
+        setPickerIndex(index);
+        setPickerOpen(true);
+      } else {
+        setPickerOpen(false);
+        setPickerIndex(null);
+      }
+    },
+    [],
+  );
+
+  /** Keeps the tracked picker index valid after an exercise is removed. */
+  const handleRemoveExercise = useCallback(
+    (index: number) => {
+      if (pickerIndex == null) return;
+      if (pickerIndex === index) {
+        // The open picker belonged to the removed row — close it.
+        setPickerOpen(false);
+        setPickerIndex(null);
+        return;
+      }
+      if (pickerIndex > index) {
+        setPickerIndex(pickerIndex - 1);
+      }
+    },
+    [pickerIndex],
+  );
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -450,6 +504,7 @@ export function WorkoutForm({
                 pendingIndex={pendingScrollIndex}
                 cardRefs={exerciseCardRefs}
                 onDone={() => setPendingScrollIndex(null)}
+                focusEnabled={!pickerOpen}
               />
               {field.state.value.map((exercise, index) => (
                 <WorkoutExerciseCard
@@ -465,15 +520,24 @@ export function WorkoutForm({
                   isCollapsed={!!collapsedMap[index]}
                   onToggle={() => toggleCollapsed(index)}
                   containerRef={setExerciseCardRef(index)}
+                  pickerOpen={pickerOpen && pickerIndex === index}
+                  onPickerOpenChange={(open) =>
+                    handlePickerOpenChange(index, open)
+                  }
+                  onRemove={() => handleRemoveExercise(index)}
                 />
               ))}
               <Button
                 type="button"
                 onClick={() => {
-                  setPendingScrollIndex(arrayField.state.value.length);
+                  const newIndex = arrayField.state.value.length;
+                  setPendingScrollIndex(newIndex);
                   arrayField.pushValue(
                     createDefaultExercise() as unknown as WorkoutExercise,
                   );
+                  // Auto-open the picker of the freshly added exercise.
+                  setPickerIndex(newIndex);
+                  setPickerOpen(true);
                 }}
                 variant="outline"
                 className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
@@ -494,6 +558,8 @@ export function WorkoutForm({
           variant="outline"
           onClick={() => {
             form.reset();
+            setPickerIndex(null);
+            setPickerOpen(false);
             onClear?.();
           }}
           className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.18em] md:w-auto"

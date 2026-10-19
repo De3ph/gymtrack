@@ -49,15 +49,36 @@ interface ExerciseSelectorProps {
   selectedExerciseId?: string | number;
   disabled?: boolean;
   placeholder?: string;
+  /**
+   * Controlled open state for the picker dialog. When provided, the parent
+   * drives visibility (e.g. to auto-open the picker right after an exercise
+   * row is added).
+   */
+  open?: boolean;
+  /** Called whenever the dialog open state changes (controlled mode). */
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function ExerciseSelector({
   onSelect,
   disabled = false,
+  open,
+  onOpenChange,
 }: ExerciseSelectorProps) {
   const t = useTranslations("exercise");
   const reducedMotion = useReducedMotion();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isDialogOpen = isControlled ? open : uncontrolledOpen;
+  const setIsDialogOpen = useCallback(
+    (next: boolean) => {
+      if (!isControlled) {
+        setUncontrolledOpen(next);
+      }
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange],
+  );
   const {
     searchQuery,
     selectedMuscleGroup,
@@ -111,7 +132,7 @@ export function ExerciseSelector({
       onSelect(exercise);
       setIsDialogOpen(false);
     },
-    [onSelect],
+    [onSelect, setIsDialogOpen],
   );
 
   const clearFilters = useCallback(() => {
