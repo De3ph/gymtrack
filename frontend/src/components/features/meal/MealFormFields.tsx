@@ -26,7 +26,6 @@ export function MealFormFields({ form, t, mealTypeItems }: MealFormFieldsProps) 
   return (
     <div className="flex flex-col gap-6 sm:flex-row sm:gap-8">
       <div className="flex flex-col space-y-2">
-        <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground" htmlFor="date">{t("form.date_time_label")}</FieldLabel>
         <div className="flex flex-wrap gap-4">
           <form.Field name="date">
             {(field: any) => (
@@ -60,7 +59,6 @@ export function MealFormFields({ form, t, mealTypeItems }: MealFormFieldsProps) 
         </div>
       </div>
       <div className="flex flex-col space-y-2">
-        <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.meal_type_label")}</FieldLabel>
         <form.Field name="mealType">
           {(field: any) => (
             <div className="space-y-2">

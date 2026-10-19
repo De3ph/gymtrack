@@ -20,7 +20,10 @@ import { DashboardEvent, DashboardEventList } from "./DashboardEventList";
 
 const CalendarGrid = dynamic(
   () => import("@/components/ui/calendar-grid").then((m) => m.CalendarGrid),
-  { ssr: false, loading: () => <Skeleton className="h-[350px] w-full rounded-none" /> },
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[350px] w-full rounded-none" />,
+  },
 );
 
 function getMonthRange(date: Date) {
@@ -36,7 +39,9 @@ export function CombinedTrainingCalendar() {
   const t = useTranslations("dashboard.calendar");
   const tEvent = useTranslations("dashboard.calendar.events");
   const tDate = useTranslations("common.date");
-  const [selectedDate, setSelectedDate] = React.useState<Date>(dayjs().toDate());
+  const [selectedDate, setSelectedDate] = React.useState<Date>(
+    dayjs().toDate(),
+  );
   const [viewMonth, setViewMonth] = React.useState<Date>(dayjs().toDate());
 
   const monthRange = React.useMemo(() => getMonthRange(viewMonth), [viewMonth]);
@@ -63,14 +68,27 @@ export function CombinedTrainingCalendar() {
     queryFn: () => mealApi.getAll(monthRange),
   });
 
-  const workouts = React.useMemo(() => workoutData?.workouts ?? [], [workoutData]);
+  const workouts = React.useMemo(
+    () => workoutData?.workouts ?? [],
+    [workoutData],
+  );
   const meals = React.useMemo(() => mealData?.meals ?? [], [mealData]);
-  const workoutDates = React.useMemo(() => workouts.map((w) => dayjs(w.date).toDate()), [workouts]);
-  const mealDates = React.useMemo(() => meals.map((m) => dayjs(m.date).toDate()), [meals]);
+  const workoutDates = React.useMemo(
+    () => workouts.map((w) => dayjs(w.date).toDate()),
+    [workouts],
+  );
+  const mealDates = React.useMemo(
+    () => meals.map((m) => dayjs(m.date).toDate()),
+    [meals],
+  );
 
   const markers = React.useMemo(
     () => [
-      { name: "workout", dates: workoutDates, className: markerStyles.workoutDot },
+      {
+        name: "workout",
+        dates: workoutDates,
+        className: markerStyles.workoutDot,
+      },
       { name: "meal", dates: mealDates, className: markerStyles.mealDot },
     ],
     [workoutDates, mealDates],
@@ -90,7 +108,10 @@ export function CombinedTrainingCalendar() {
     return [
       ...selectedWorkouts.map((workout) => workoutToEvent(workout, tEvent)),
       ...selectedMeals.map((meal) => mealToEvent(meal)),
-    ].sort((a, b) => dayjs(a.time, "HH:mm").valueOf() - dayjs(b.time, "HH:mm").valueOf());
+    ].sort(
+      (a, b) =>
+        dayjs(a.time, "HH:mm").valueOf() - dayjs(b.time, "HH:mm").valueOf(),
+    );
   }, [tEvent, workouts, meals, selectedDate]);
 
   const handleToday = React.useCallback(() => {
@@ -125,37 +146,37 @@ export function CombinedTrainingCalendar() {
 
   return (
     <div className="border border-border bg-card">
-      <header className="flex flex-col gap-4 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <div className="space-y-1">
-          <h2 className="font-sans text-base font-semibold leading-tight text-foreground">
-            {t("title")}
-          </h2>
-          <p className="font-sans text-sm leading-6 text-muted-foreground">{t("description")}</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleToday}
-          className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
-        >
-          {tDate("today")}
-        </Button>
-      </header>
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)] lg:divide-x lg:divide-border">
-        <div className="p-6">
-          <CalendarGrid
-            selected={selectedDate}
-            onSelect={(date) => date && setSelectedDate(date)}
-            month={viewMonth}
-            onMonthChange={setViewMonth}
-            markers={markers}
-            calendarClassName="border-0 bg-background"
-          />
+        <div>
+          <div className="p-6 flex flex-col gap-y-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToday}
+              className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
+            >
+              {tDate("today")}
+            </Button>
+            <CalendarGrid
+              selected={selectedDate}
+              onSelect={(date) => date && setSelectedDate(date)}
+              month={viewMonth}
+              onMonthChange={setViewMonth}
+              markers={markers}
+              calendarClassName="border-0 bg-background"
+            />
+          </div>
         </div>
         <div className="space-y-4 border-t border-border p-6 lg:border-t-0">
           <div className="flex flex-wrap gap-2">
-            <Legend icon={<CalendarDays className="size-5" aria-hidden="true" />} label={t("workout")} />
-            <Legend icon={<UtensilsCrossed className="size-5" aria-hidden="true" />} label={t("meal")} />
+            <Legend
+              icon={<CalendarDays className="size-5" aria-hidden="true" />}
+              label={t("workout")}
+            />
+            <Legend
+              icon={<UtensilsCrossed className="size-5" aria-hidden="true" />}
+              label={t("meal")}
+            />
           </div>
           <Separator />
           <div className="max-h-[500px] overflow-y-auto">
@@ -229,7 +250,10 @@ function EventsSkeleton() {
   );
 }
 
-function workoutToEvent(workout: Workout, tEvent: (key: string) => string): DashboardEvent {
+function workoutToEvent(
+  workout: Workout,
+  tEvent: (key: string) => string,
+): DashboardEvent {
   const firstExercise = workout.exercises[0];
 
   return {

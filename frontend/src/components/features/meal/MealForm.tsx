@@ -145,7 +145,7 @@ export function MealForm({ onSuccess, onClear }: MealFormProps) {
 
       <form.Field name="items" mode="array">
         {(field) => (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {field.state.value.map((_, index) => (
               <FoodItemCard
                 key={index}

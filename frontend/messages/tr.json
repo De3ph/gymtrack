@@ -546,8 +546,6 @@
       "activities": "Son Aktiviteler"
     },
     "calendar": {
-      "title": "Antrenman takvimi",
-      "description": "Antrenmanlar ve öğünler tek tarih görünümünde.",
       "loading": "Takvim yükleniyor...",
       "workout": "Antrenman",
       "meal": "Öğün",
@@ -578,14 +576,6 @@
     "title": "Antrenmanlar",
     "form": {
       "title": "Yeni Antrenman Kaydet",
-      "date": {
-        "label": "Tarih",
-        "placeholder": "Tarih seçin"
-      },
-      "time": {
-        "label": "Saat",
-        "placeholder": "Saat seçin"
-      },
       "exercise": {
         "name": {
           "label": "Egzersiz",
@@ -681,10 +671,8 @@
     "title": "Öğünler & Beslenme",
     "form": {
       "title": "Yeni Öğün Kaydet",
-      "date_time_label": "Tarih & Saat",
       "meal_type_label": "Öğün Türü",
       "meal_type_placeholder": "Öğün türü seçin",
-      "food_item_title": "Besin {index}",
       "food_name_label": "Besin Adı",
       "date": {
         "label": "Tarih",
@@ -1155,8 +1143,6 @@
       "trainer_connected": "Koç bağlı",
       "trainer_empty": "Henüz koç bağlı değil",
       "trainer_connected_description": "Koç profilini ve bağlamını aç.",
-      "quick_title": "Hızlı işlemler",
-      "quick_description": "Niyetten kanıta tek tıkla geç.",
       "log_workout": "Antrenman kaydet",
       "log_workout_description": "Set, tekrar ve yükü yakala.",
       "log_meal": "Öğün kaydet",
@@ -1168,43 +1154,27 @@
     },
     "workouts": {
       "title": "Antrenmanlar",
-      "description": "Antrenmanlarınızı kaydedin ve ilerlemenizi takip edin.",
       "log_workout": "Antrenman Kaydet",
       "view_history": "Geçmişi Gör",
       "no_workouts": "Henüz antrenman yok — ilk antrenmanını kaydet.",
       "log_tab": "Antrenman Kaydet",
       "list_tab": "Geçmiş (Liste)",
-      "calendar_tab": "Geçmiş (Takvim)",
-      "card_title": "Yeni Antrenman Kaydet",
-      "card_description": "Son antrenman detaylarınızı kaydedin."
+      "calendar_tab": "Geçmiş (Takvim)"
     },
     "meals": {
       "title": "Öğünler & Beslenme",
-      "description": "Hedeflerinize ulaşmak için beslenmenizi takip edin.",
       "log_meal": "Öğün Kaydet",
       "view_history": "Geçmişi Gör",
       "no_meals": "Henüz öğün yok — ilk öğününü kaydet.",
       "log_tab": "Öğün Kaydet",
       "list_tab": "Geçmiş (Liste)",
-      "calendar_tab": "Geçmiş (Takvim)",
-      "card_title": "Yeni Öğün Kaydet",
-      "card_description": "Ne yediğinizi kaydedin."
+      "calendar_tab": "Geçmiş (Takvim)"
     },
     "measurements": {
       "title": "Vücut Ölçümleri",
-      "description": "Kilonuzu ve vücut kompozisyonunuzu zaman içinde takip edin.",
       "submit": "Ölçümü Kaydet",
-      "date": {
-        "label": "Tarih"
-      },
-      "time": {
-        "label": "Saat"
-      },
       "weight": {
         "label": "Kilo"
-      },
-      "unit": {
-        "label": "Birim"
       },
       "body_fat": {
         "label": "Yağ Oranı %",
@@ -1236,8 +1206,6 @@
       "log_tab": "Ölçüm Kaydet",
       "list_tab": "Geçmiş",
       "charts_tab": "İlerleme Grafikleri",
-      "log_card_title": "Yeni Vücut Ölçümü",
-      "log_card_description": "Mevcut kilonuzu ve ölçtüğünüz vücut bölümlerini kaydedin.",
       "fetch_previous": "Öncekini Kullan",
       "no_previous_measurement": "Önceki ölçüm bulunamadı. Mevcut değerlerinizi girin.",
       "latest": {

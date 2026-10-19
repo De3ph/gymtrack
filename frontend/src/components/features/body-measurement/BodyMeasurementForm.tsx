@@ -215,8 +215,7 @@ export function BodyMeasurementForm({
   ) => {
     const raw = partInputs[key] ?? "";
     const num = parseFloat(raw);
-    const current: Record<string, { value: number }> =
-      field.state.value ?? {};
+    const current: Record<string, { value: number }> = field.state.value ?? {};
     if (raw.trim() === "" || !Number.isFinite(num) || num <= 0) {
       const next = { ...current };
       delete next[key];
@@ -263,7 +262,7 @@ export function BodyMeasurementForm({
                     {typeof err === "string"
                       ? err
                       : ((err as { message?: string })?.message ??
-                      "Invalid input")}
+                        "Invalid input")}
                   </li>
                 ))}
               </ul>
@@ -274,7 +273,6 @@ export function BodyMeasurementForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="flex flex-col space-y-2">
-          <FieldLabel htmlFor="measurement-date">{t("date.label")}</FieldLabel>
           <form.Field name="date">
             {(field) => (
               <>
@@ -294,7 +292,6 @@ export function BodyMeasurementForm({
           </form.Field>
         </div>
         <div className="flex flex-col space-y-2">
-          <FieldLabel htmlFor="measurement-time">{t("time.label")}</FieldLabel>
           <form.Field name="measurementTime">
             {(field) => (
               <>
@@ -311,6 +308,9 @@ export function BodyMeasurementForm({
             )}
           </form.Field>
         </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
         <div className="flex flex-col space-y-2">
           <FieldLabel htmlFor="measurement-weight">
             {t("weight.label")}
@@ -340,8 +340,11 @@ export function BodyMeasurementForm({
             )}
           </form.Field>
         </div>
+
         <div className="flex flex-col space-y-2">
-          <FieldLabel htmlFor="measurement-unit">{t("unit.label")}</FieldLabel>
+          <FieldLabel htmlFor="measurement-weight">
+            <span>&nbsp;&nbsp;</span>
+          </FieldLabel>
           <form.Field name="weightUnit">
             {(field) => (
               <Select
@@ -361,46 +364,46 @@ export function BodyMeasurementForm({
             )}
           </form.Field>
         </div>
-      </div>
 
-      <div className="flex flex-col space-y-2">
-        <FieldLabel htmlFor="measurement-bodyfat">
-          {t("body_fat.label")}{" "}
-          <span className="text-muted-foreground">
-            ({t("body_fat.optional")})
-          </span>
-        </FieldLabel>
-        <form.Field
-          name="bodyFatPct"
-          validators={{ onBlur: bodyMeasurementSchema.shape.bodyFatPct }}
-        >
-          {(field) => (
-            <>
-              <Input
-                value={field.state.value ?? ""}
-                onChange={(e) => {
-                  const clean = sanitizeNumericInput(e.target.value);
-                  if (clean === "") {
-                    field.handleChange(undefined);
-                  } else {
-                    const n = parseFloat(clean);
-                    field.handleChange(Number.isFinite(n) ? n : undefined);
-                  }
-                }}
-                onBlur={field.handleBlur}
-                type="number"
-                step="0.1"
-                min="0"
-                max="100"
-                id="measurement-bodyfat"
-                placeholder="%"
-                className="max-w-[180px]"
-                aria-invalid={!field.state.meta.isValid}
-              />
-              <FieldError errors={field.state.meta.errors} />
-            </>
-          )}
-        </form.Field>
+        <div className="flex flex-col space-y-2">
+          <FieldLabel htmlFor="measurement-bodyfat">
+            {t("body_fat.label")}{" "}
+            <span className="text-muted-foreground">
+              ({t("body_fat.optional")})
+            </span>
+          </FieldLabel>
+          <form.Field
+            name="bodyFatPct"
+            validators={{ onBlur: bodyMeasurementSchema.shape.bodyFatPct }}
+          >
+            {(field) => (
+              <>
+                <Input
+                  value={field.state.value ?? ""}
+                  onChange={(e) => {
+                    const clean = sanitizeNumericInput(e.target.value);
+                    if (clean === "") {
+                      field.handleChange(undefined);
+                    } else {
+                      const n = parseFloat(clean);
+                      field.handleChange(Number.isFinite(n) ? n : undefined);
+                    }
+                  }}
+                  onBlur={field.handleBlur}
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  id="measurement-bodyfat"
+                  placeholder="%"
+                  className="max-w-[180px]"
+                  aria-invalid={!field.state.meta.isValid}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </>
+            )}
+          </form.Field>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -464,9 +467,8 @@ export function BodyMeasurementForm({
                 }
                 // Paired part (e.g. bicepLeft) - render both left + right together
                 const pairKey = part.key;
-                const partnerKey = pairKey.replace(
-                  /Left|Right$/,
-                  (m) => (m === "Left" ? "Right" : "Left"),
+                const partnerKey = pairKey.replace(/Left|Right$/, (m) =>
+                  m === "Left" ? "Right" : "Left",
                 );
                 rendered.add(pairKey);
                 rendered.add(partnerKey);

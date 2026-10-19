@@ -109,7 +109,6 @@ export function WorkoutsClient({
         <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
           {t("title")}
         </h1>
-        <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       <Tabs
@@ -126,12 +125,6 @@ export function WorkoutsClient({
         <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
           <div className="max-w-2xl">
             <Card className="rounded-none border border-border shadow-none ring-0">
-              <CardHeader className="rounded-none border-b border-border">
-                <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-foreground">
-                  {t("card_title")}
-                </CardTitle>
-                <CardDescription>{t("card_description")}</CardDescription>
-              </CardHeader>
               <CardContent>
                 <WorkoutForm
                   key={planId || "default"}

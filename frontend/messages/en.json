@@ -546,8 +546,6 @@
       "activities": "Recent Activities"
     },
     "calendar": {
-      "title": "Training calendar",
-      "description": "Workouts and meals share one date view.",
       "loading": "Loading calendar...",
       "workout": "Workout",
       "meal": "Meal",
@@ -578,14 +576,6 @@
     "title": "Workouts",
     "form": {
       "title": "Log New Workout",
-      "date": {
-        "label": "Date",
-        "placeholder": "Select a date"
-      },
-      "time": {
-        "label": "Time",
-        "placeholder": "Select time"
-      },
       "exercise": {
         "name": {
           "label": "Exercise",
@@ -681,10 +671,8 @@
     "title": "Meals & Nutrition",
     "form": {
       "title": "Log New Meal",
-      "date_time_label": "Date & Time",
       "meal_type_label": "Meal Type",
       "meal_type_placeholder": "Select meal type",
-      "food_item_title": "Food Item {index}",
       "food_name_label": "Food Name",
       "date": {
         "label": "Date",
@@ -1155,8 +1143,6 @@
       "trainer_connected": "Trainer connected",
       "trainer_empty": "No trainer connected yet",
       "trainer_connected_description": "Open trainer profile and context.",
-      "quick_title": "Quick actions",
-      "quick_description": "Move from intention to proof with one tap.",
       "log_workout": "Log workout",
       "log_workout_description": "Capture sets, reps, and load.",
       "log_meal": "Log meal",
@@ -1168,43 +1154,27 @@
     },
     "workouts": {
       "title": "Workouts",
-      "description": "Log your training and track your progress.",
       "log_workout": "Log Workout",
       "view_history": "View History",
       "no_workouts": "No workouts yet — log first workout to see history here.",
       "log_tab": "Log Workout",
       "list_tab": "History (List)",
-      "calendar_tab": "History (Calendar)",
-      "card_title": "Log New Workout",
-      "card_description": "Record your latest session details."
+      "calendar_tab": "History (Calendar)"
     },
     "meals": {
       "title": "Meals & Nutrition",
-      "description": "Track your nutrition to reach your goals.",
       "log_meal": "Log Meal",
       "view_history": "View History",
       "no_meals": "No meals yet — log first meal to see history here.",
       "log_tab": "Log Meal",
       "list_tab": "History (List)",
-      "calendar_tab": "History (Calendar)",
-      "card_title": "Log New Meal",
-      "card_description": "Record what you ate."
+      "calendar_tab": "History (Calendar)"
     },
     "measurements": {
       "title": "Body Measurements",
-      "description": "Track your weight and body composition over time.",
       "submit": "Save Measurement",
-      "date": {
-        "label": "Date"
-      },
-      "time": {
-        "label": "Time"
-      },
       "weight": {
         "label": "Weight"
-      },
-      "unit": {
-        "label": "Unit"
       },
       "body_fat": {
         "label": "Body Fat %",
@@ -1236,8 +1206,6 @@
       "log_tab": "Log Measurement",
       "list_tab": "History",
       "charts_tab": "Progress Charts",
-      "log_card_title": "New Body Measurement",
-      "log_card_description": "Record your current weight and any body part measurements.",
       "fetch_previous": "Use Previous",
       "no_previous_measurement": "No previous measurement found. Enter your current values.",
       "latest": {

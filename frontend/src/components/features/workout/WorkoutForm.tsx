@@ -355,12 +355,6 @@ export function WorkoutForm({
       )}
 
       <Field>
-        <FieldLabel
-          htmlFor="date"
-          className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
-        >
-          {t("date.label")}
-        </FieldLabel>
         <div className="flex flex-wrap gap-3">
           <form.Field name="date">
             {(field) => (

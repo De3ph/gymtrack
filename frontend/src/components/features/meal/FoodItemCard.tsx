@@ -33,13 +33,8 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
       >
         <Trash2 className="size-5" aria-hidden="true" />
       </Button>
-      <CardHeader className="pb-2 px-6 pt-6 rounded-none">
-        <CardTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-medium">
-          {t("form.food_item_title", { index: index + 1 })}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4 px-6 pb-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-2 col-span-2">
+      <CardContent className="grid gap-8 px-6 pb-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-2 col-span-4">
           <FieldLabel htmlFor={`${testIdPrefix}-food`} className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.food_name_label")}</FieldLabel>
           <form.Field name={`items[${index}].food`}>
             {(subField: any) => (
@@ -59,7 +54,7 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
           </form.Field>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 col-span-2">
           <FieldLabel htmlFor={`${testIdPrefix}-quantity`} className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.quantity.label")}</FieldLabel>
           <form.Field name={`items[${index}].quantity`}>
             {(subField: any) => (
@@ -79,7 +74,7 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
           </form.Field>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 col-span-2">
           <FieldLabel htmlFor={`${testIdPrefix}-calories`} className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.calories.label")}</FieldLabel>
           <form.Field name={`items[${index}].calories`}>
             {(subField: any) => (
@@ -101,7 +96,7 @@ export function FoodItemCard({ form, index, onRemove, canRemove, t, testIdPrefix
         </div>
 
         <div className="space-y-2 col-span-full">
-          <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("form.macros.label")}</FieldLabel>
+          <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-4">{t("form.macros.label")}</FieldLabel>
           <div className="grid grid-cols-3 gap-2">
             <div>
               <FieldLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
