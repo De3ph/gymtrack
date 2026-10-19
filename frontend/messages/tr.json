@@ -822,8 +822,8 @@
     },
     "filter": {
       "label": "Filtrele",
-      "start_date": "Başlangıç tarihi",
-      "end_date": "Bitiş tarihi",
+      "date_range": "Tarih aralığı",
+      "date_range_placeholder": "Tarih aralığı seç",
       "clear": "Temizle",
       "apply": "Uygula"
     },
