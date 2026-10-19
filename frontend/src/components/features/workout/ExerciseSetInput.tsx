@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Weight, Repeat, Timer } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { ExerciseSet } from "@/types";
 
 import { Button } from "@/components/ui/button";
@@ -35,10 +35,8 @@ export function ExerciseSetInput({
     }));
   });
 
-  // Sync the external value into state, preserving ids by index so keys (and
-  // focus) stay stable. Adjusting state during render is React's documented
-  // alternative to a setState-in-effect:
-  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  // Sync external value, keeping ids stable so focus survives re-renders
+  // (adjusting state during render: react.dev/reference/react/useState#storing-information-from-previous-renders)
   const [syncedValue, setSyncedValue] = useState(value);
   if (value !== syncedValue) {
     setSyncedValue(value);
@@ -84,26 +82,27 @@ export function ExerciseSetInput({
   };
 
   const colLabel =
-    "flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground";
+    "font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground";
+  const weightUnit = setsWithIds[0]?.weightUnit ?? "kg";
 
   return (
     <div className={cn("border border-border", className)}>
       {setsWithIds.length > 0 && (
           <div className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 border-b border-border px-3 py-2 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]">
-            <span className={cn(colLabel, "justify-start")}>
-              {t("label")}
+            <span className={cn(colLabel, "text-left")}>{t("set")}</span>
+            <span className={cn(colLabel, "text-center")}>
+              {t("weight")} ({weightUnit})
             </span>
-            <span className={cn(colLabel, "justify-center")}>
-              <Weight className="size-4" aria-hidden="true" /> {t("weight")}
-            </span>
-            <span className={cn(colLabel, "justify-center")}>
-              <Repeat className="size-4" aria-hidden="true" /> {t("reps")}
-            </span>
-            <span className={cn(colLabel, "justify-center")}>
-              <Timer className="size-4" aria-hidden="true" /> {t("rest")}
-            </span>
+            <span className={cn(colLabel, "text-center")}>{t("reps")}</span>
+            <span className={cn(colLabel, "text-center")}>{t("rest")}</span>
             <span />
           </div>
+      )}
+
+      {setsWithIds.length === 0 && (
+        <div className="px-3 py-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {t("no_sets")}
+        </div>
       )}
 
       <ul className="divide-y divide-border">
@@ -130,7 +129,6 @@ export function ExerciseSetInput({
                 }
                 disabled={disabled}
                 className="no-spin h-8 w-full max-w-20 text-center font-mono tabular-nums"
-                placeholder="0"
                 data-testid="set-weight"
               />
             </div>
@@ -144,7 +142,6 @@ export function ExerciseSetInput({
                 }
                 disabled={disabled}
                 className="no-spin h-8 w-full max-w-20 text-center font-mono tabular-nums"
-                placeholder="0"
                 data-testid="set-reps"
               />
             </div>
@@ -163,7 +160,6 @@ export function ExerciseSetInput({
                 }
                 disabled={disabled}
                 className="no-spin h-8 w-full max-w-20 text-center font-mono tabular-nums"
-                placeholder="0"
                 data-testid="set-rest"
               />
             </div>
@@ -178,7 +174,7 @@ export function ExerciseSetInput({
                 aria-label={t("remove")}
                 data-testid="remove-set"
               >
-                <Trash2 className="size-5" aria-hidden="true" />
+                <Trash2 className="size-4" aria-hidden="true" />
               </Button>
             </div>
           </li>
@@ -194,7 +190,7 @@ export function ExerciseSetInput({
           disabled={disabled}
           className="w-full rounded-none border-0 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
         >
-          <Plus className="size-5" aria-hidden="true" /> {t("add")}
+          <Plus className="size-4" aria-hidden="true" /> {t("add")}
         </Button>
       </div>
     </div>

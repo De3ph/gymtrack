@@ -583,12 +583,13 @@
         },
         "sets": {
           "label": "Setler",
+          "set": "Set",
           "add": "Set Ekle",
           "remove": "Set Kaldır",
           "set_number": "Set {number}",
           "weight": "Ağırlık",
           "reps": "Tekrar",
-          "rest": "Dinlenme",
+          "rest": "Dinlenme (sn)",
           "seconds": "sn",
           "no_sets": "Henüz set yok",
           "weight_unit": "Birim"

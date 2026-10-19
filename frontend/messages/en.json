@@ -583,12 +583,13 @@
         },
         "sets": {
           "label": "Sets",
+          "set": "Set",
           "add": "Add Set",
           "remove": "Remove Set",
           "set_number": "Set {number}",
           "weight": "Weight",
           "reps": "Reps",
-          "rest": "Rest",
+          "rest": "Rest (sec)",
           "seconds": "sec",
           "no_sets": "No sets yet",
           "weight_unit": "Unit"

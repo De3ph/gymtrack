@@ -577,6 +577,7 @@ const translationSchema = z.object({
         }),
         sets: z.object({
           label: z.string(),
+          set: z.string(),
           add: z.string(),
           remove: z.string(),
           set_number: z.string(),
@@ -1481,10 +1482,6 @@ const translationSchema = z.object({
       no_instructions: z.string(),
       no_instructions_short: z.string(),
       instructions_title: z.string(),
-      details_title: z.string(),
-      detail_category: z.string(),
-      detail_muscle_group: z.string(),
-      detail_equipment: z.string(),
       unknown: z.string(),
     }),
   }),
