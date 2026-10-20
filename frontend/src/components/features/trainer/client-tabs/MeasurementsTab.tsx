@@ -22,12 +22,15 @@ import { clientHistoryKey, usePageResetOnChange } from "./client-list-state";
 interface MeasurementsTabProps {
   username: string;
   dateRange: { start: string; end: string };
+  /** Distinguishes "nothing logged" from "nothing matches the filters". */
+  isFiltered: boolean;
   onCountChange: (count: number | null) => void;
 }
 
 export function MeasurementsTab({
   username,
   dateRange,
+  isFiltered,
   onCountChange,
 }: MeasurementsTabProps) {
   const router = useRouter();
@@ -126,7 +129,9 @@ export function MeasurementsTab({
     );
   } else if (!data || data.measurements.length === 0) {
     listBody = (
-      <p className="text-center text-muted-foreground py-8">{t("no_measurements")}</p>
+      <p className="py-8 text-center text-muted-foreground">
+        {isFiltered ? t("no_measurements_filtered") : t("no_measurements")}
+      </p>
     );
   } else {
     listBody = (

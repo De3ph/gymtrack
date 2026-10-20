@@ -17,6 +17,8 @@ interface MealsTabProps {
   username: string;
   dateRange: { start: string; end: string };
   mealType: string;
+  /** Distinguishes "nothing logged" from "nothing matches the filters". */
+  isFiltered: boolean;
   onCountChange: (count: number | null) => void;
 }
 
@@ -24,6 +26,7 @@ export function MealsTab({
   username,
   dateRange,
   mealType,
+  isFiltered,
   onCountChange,
 }: MealsTabProps) {
   const t = useTranslations("trainer.client_detail.tabs");
@@ -78,7 +81,11 @@ export function MealsTab({
       />
     );
   } else if (!data || data.meals.length === 0) {
-    body = <p className="text-center text-muted-foreground py-8">{t("no_meals")}</p>;
+    body = (
+      <p className="py-8 text-center text-muted-foreground">
+        {isFiltered ? t("no_meals_filtered") : t("no_meals")}
+      </p>
+    );
   } else {
     body = (
       <MealList

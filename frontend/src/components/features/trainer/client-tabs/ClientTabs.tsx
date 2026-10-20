@@ -2,31 +2,32 @@
 
 import * as React from "react";
 import { Tabs, TabsPanel, TabsList, TabsTab } from "@/components/animate-ui/components/base/tabs";
-import { OverviewTab } from "./OverviewTab";
+import { ClientFilterBar } from "./ClientFilterBar";
 import { WorkoutsTab } from "./WorkoutsTab";
 import { MealsTab } from "./MealsTab";
 import { ProgressTab } from "./ProgressTab";
 import { MeasurementsTab } from "./MeasurementsTab";
 import { ClientPlansTab } from "@/components/features/workout-plan/ClientPlansTab";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import { WorkoutStats, MealStats } from "@/types";
+import {
+  hasActiveFilters,
+  isHistoryTab,
+  type ClientFilters,
+  type ClientTab,
+  type HistoryTab,
+} from "./client-filters";
 
 interface ClientTabsProps {
-  activeTab: string;
+  activeTab: ClientTab;
   onTabChange: (value: string) => void;
   username: string;
   workoutStats: WorkoutStats | null;
   mealStats: MealStats | null;
-  dateRange: { start: string; end: string };
-  exerciseType: string;
-  mealType: string;
-  onDateRangeChange: (range: { start: string; end: string }) => void;
-  onExerciseTypeChange: (type: string) => void;
-  onMealTypeChange: (type: string) => void;
-  onClearFilters: () => void;
+  filters: ClientFilters;
+  onFiltersChange: (filters: ClientFilters) => void;
 }
-
-type HistoryTab = "workouts" | "meals" | "measurements";
 
 type TabCounts = Record<HistoryTab, number | null>;
 
@@ -38,13 +39,8 @@ export function ClientTabs({
   username,
   workoutStats,
   mealStats,
-  dateRange,
-  exerciseType,
-  mealType,
-  onDateRangeChange,
-  onExerciseTypeChange,
-  onMealTypeChange,
-  onClearFilters,
+  filters,
+  onFiltersChange,
 }: ClientTabsProps) {
   const t = useTranslations("trainer.client_detail.tabs");
 
@@ -71,6 +67,10 @@ export function ClientTabs({
     [reportCount],
   );
 
+  // The history tabs only care about the two date bounds; the type filters are
+  // passed to the tab that consumes them.
+  const dateRange = { start: filters.start, end: filters.end };
+
   // Each history tab reports the server-side total for its own query. The
   // panels are kept mounted so the totals are known without opening a tab.
   // Until the first response lands the badge shows a dash, not "0", so it
@@ -80,10 +80,20 @@ export function ClientTabs({
     return `${text} (${count === null ? "—" : count})`;
   };
 
+  // The bar is hidden rather than unmounted on Progress/Plans so a draft that
+  // has not been applied yet survives the detour. It keeps asking for the last
+  // history tab's type filter while hidden.
+  const historyTab = isHistoryTab(activeTab) ? activeTab : null;
+  const [lastHistoryTab, setLastHistoryTab] = React.useState<HistoryTab>("workouts");
+  if (historyTab && historyTab !== lastHistoryTab) {
+    setLastHistoryTab(historyTab);
+  }
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
-      <TabsList className="mb-4 flex-wrap">
-        <TabsTab value="overview">{t("overview")}</TabsTab>
+      {/* The tab labels carry counts and never truncate, so the list wraps on
+          narrow screens instead of pushing the page sideways. */}
+      <TabsList className="mb-4 flex h-auto min-h-9 w-full flex-wrap">
         <TabsTab value="workouts">{label("workouts", t("workouts"))}</TabsTab>
         <TabsTab value="meals">{label("meals", t("meals"))}</TabsTab>
         <TabsTab value="measurements">{label("measurements", t("measurements"))}</TabsTab>
@@ -91,17 +101,16 @@ export function ClientTabs({
         <TabsTab value="plans">{t("plans")}</TabsTab>
       </TabsList>
 
-      <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="overview">
-        <OverviewTab
-          dateRange={dateRange}
-          exerciseType={exerciseType}
-          mealType={mealType}
-          onDateRangeChange={onDateRangeChange}
-          onExerciseTypeChange={onExerciseTypeChange}
-          onMealTypeChange={onMealTypeChange}
-          onClearFilters={onClearFilters}
+      {/* Filters shape the history tabs only, so the toolbar lives with them
+          instead of taking a tab of its own. It stays put while the trainer
+          moves between workouts, meals and measurements. */}
+      <div className={cn("mb-4", !historyTab && "hidden")}>
+        <ClientFilterBar
+          activeTab={historyTab ?? lastHistoryTab}
+          filters={filters}
+          onChange={onFiltersChange}
         />
-      </TabsPanel>
+      </div>
 
       <TabsPanel
         transition={{ duration: 0.15, ease: "easeInOut" }}
@@ -111,7 +120,8 @@ export function ClientTabs({
         <WorkoutsTab
           username={username}
           dateRange={dateRange}
-          exerciseType={exerciseType}
+          exerciseType={filters.exerciseType}
+          isFiltered={hasActiveFilters(filters, "workouts")}
           onCountChange={onWorkoutCount}
         />
       </TabsPanel>
@@ -124,7 +134,8 @@ export function ClientTabs({
         <MealsTab
           username={username}
           dateRange={dateRange}
-          mealType={mealType}
+          mealType={filters.mealType}
+          isFiltered={hasActiveFilters(filters, "meals")}
           onCountChange={onMealCount}
         />
       </TabsPanel>
@@ -137,6 +148,7 @@ export function ClientTabs({
         <MeasurementsTab
           username={username}
           dateRange={dateRange}
+          isFiltered={hasActiveFilters(filters, "measurements")}
           onCountChange={onMeasurementCount}
         />
       </TabsPanel>

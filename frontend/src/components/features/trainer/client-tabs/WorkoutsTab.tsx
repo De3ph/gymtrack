@@ -17,6 +17,8 @@ interface WorkoutsTabProps {
   username: string;
   dateRange: { start: string; end: string };
   exerciseType: string;
+  /** Distinguishes "nothing logged" from "nothing matches the filters". */
+  isFiltered: boolean;
   onCountChange: (count: number | null) => void;
 }
 
@@ -24,6 +26,7 @@ export function WorkoutsTab({
   username,
   dateRange,
   exerciseType,
+  isFiltered,
   onCountChange,
 }: WorkoutsTabProps) {
   const t = useTranslations("trainer.client_detail.tabs");
@@ -79,7 +82,9 @@ export function WorkoutsTab({
     );
   } else if (!data || data.workouts.length === 0) {
     body = (
-      <p className="text-center text-muted-foreground py-8">{t("no_workouts")}</p>
+      <p className="py-8 text-center text-muted-foreground">
+        {isFiltered ? t("no_workouts_filtered") : t("no_workouts")}
+      </p>
     );
   } else {
     body = (

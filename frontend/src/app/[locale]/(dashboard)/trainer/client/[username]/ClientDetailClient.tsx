@@ -14,21 +14,19 @@ import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ClientTabs } from "@/components/features/trainer/client-tabs/ClientTabs";
+import {
+  DEFAULT_CLIENT_TAB,
+  EMPTY_CLIENT_FILTERS,
+  isClientTab,
+  type ClientFilters,
+  type ClientTab,
+} from "@/components/features/trainer/client-tabs/client-filters";
 import { ClientOverview } from "@/components/features/trainer/ClientOverview";
 import { TerminateRelationshipDialog } from "@/components/features/trainer/TerminateRelationshipDialog";
 import { ArrowLeft, UserX } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
-
-const VALID_TABS = [
-  "overview",
-  "workouts",
-  "meals",
-  "measurements",
-  "progress",
-  "plans",
-];
 
 export default function ClientDetailClient() {
   const params = useParams();
@@ -39,17 +37,16 @@ export default function ClientDetailClient() {
   const username = params.username as string;
   const t = useTranslations("trainer.client_detail");
 
-  const [activeTab, setActiveTab] = useState<string>(() => {
+  const [activeTab, setActiveTab] = useState<ClientTab>(() => {
     const tabParam = searchParams.get("tab");
-    return VALID_TABS.includes(tabParam ?? "") ? (tabParam as string) : "overview";
+    // Old links could point at the removed "overview" tab; they fall back to
+    // the first history view instead of rendering an empty panel.
+    return isClientTab(tabParam) ? tabParam : DEFAULT_CLIENT_TAB;
   });
 
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
-    start: "",
-    end: "",
-  });
-  const [exerciseType, setExerciseType] = useState("");
-  const [mealType, setMealType] = useState("");
+  // The filter bar applies one filter set to all history tabs; the tab that is
+  // open decides which type filter is shown.
+  const [filters, setFilters] = useState<ClientFilters>(EMPTY_CLIENT_FILTERS);
 
   const { data, isLoading, error } = useQuery({
     // Only the header + stats live in this query, so the shared filters must
@@ -120,12 +117,12 @@ export default function ClientDetailClient() {
 
   const handleTabChange = useCallback(
     (value: string) => {
-      const next = VALID_TABS.includes(value) ? value : "overview";
+      const next = isClientTab(value) ? value : DEFAULT_CLIENT_TAB;
       setActiveTab(next);
       // Update the URL without triggering a Next.js navigation/re-render,
       // which was causing the tab animation to lag.
       const params = new URLSearchParams(window.location.search);
-      if (next === "overview") {
+      if (next === DEFAULT_CLIENT_TAB) {
         params.delete("tab");
       } else {
         params.set("tab", next);
@@ -135,12 +132,6 @@ export default function ClientDetailClient() {
     },
     [pathname],
   );
-
-  const clearFilters = () => {
-    setDateRange({ start: "", end: "" });
-    setExerciseType("");
-    setMealType("");
-  };
 
   useEffect(() => {
     if (user?.role !== "trainer") {
@@ -220,13 +211,8 @@ export default function ClientDetailClient() {
         username={username}
         workoutStats={workoutStats}
         mealStats={mealStats}
-        dateRange={dateRange}
-        exerciseType={exerciseType}
-        mealType={mealType}
-        onDateRangeChange={setDateRange}
-        onExerciseTypeChange={setExerciseType}
-        onMealTypeChange={setMealType}
-        onClearFilters={clearFilters}
+        filters={filters}
+        onFiltersChange={setFilters}
       />
     </div>
   );
