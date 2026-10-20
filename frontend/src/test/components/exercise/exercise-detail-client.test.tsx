@@ -80,6 +80,15 @@ describe('ExerciseDetailClient', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
+  // The category sits next to the name and the badges. It was dropped when the
+  // header was rebuilt around the add-to-plan action, which left the page
+  // without the one line that says what kind of movement the exercise is.
+  it('shows the category next to the exercise name', () => {
+    renderDetail()
+
+    expect(screen.getByText('strength')).toBeInTheDocument()
+  })
+
   it('offers the add-to-plan action to a trainer', () => {
     renderDetail({ role: 'trainer' })
 

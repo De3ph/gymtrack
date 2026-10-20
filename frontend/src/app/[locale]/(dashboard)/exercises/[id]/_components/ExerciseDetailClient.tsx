@@ -58,6 +58,9 @@ export function ExerciseDetailClient({ exercise, role }: ExerciseDetailClientPro
               {exercise.name}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                {exercise.category}
+              </p>
               {exercise.muscleGroup && (
                 <MuscleGroupBadge muscleGroup={exercise.muscleGroup} />
               )}
