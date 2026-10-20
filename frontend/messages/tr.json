@@ -249,7 +249,8 @@
       "pending_requests_unknown": "Bekleyen talepler kontrol edilemedi",
       "menu": "Menü",
       "toggle_menu": "Gezinme menüsünü aç/kapat",
-      "language": "Dil"
+      "language": "Dil",
+      "home": "Ana sayfa"
     },
     "theme": {
       "label": "Tema",
@@ -281,7 +282,13 @@
       "failed_load_trainer_profile": "Antrenör profili yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "failed_load_exercises": "Egzersiz kütüphanesi yüklenemedi. Bağlantını kontrol et ve tekrar dene.",
       "unexpected_error": "Beklenmeyen bir hata oluştu. Tekrar dene.",
-      "error_title": "Hata"
+      "error_title": "Hata",
+      "server_error_title": "Sunucu hatası",
+      "server_error_description": "İstek GymTrack sunucusunda başarısız oldu. İşlemi tekrar dene. Hata devam ederse bildirirken referans kodunu belirt.",
+      "not_found_title": "Sayfa bulunamadı",
+      "not_found_kicker": "Bulunamadı",
+      "not_found_description": "Bağlantı, var olmayan veya taşınmış bir sayfayı işaret ediyor. Bağlantıyı kontrol et ya da panele dön.",
+      "reference": "Referans"
     },
     "loading": "Yükleniyor...",
     "search": {

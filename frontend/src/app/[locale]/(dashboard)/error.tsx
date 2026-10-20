@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import * as Sentry from "@sentry/nextjs";
+import { StatusPage } from "@/components/features/StatusPage";
+import { ROUTES } from "@/lib/routes";
 
 export default function DashboardError({
   error,
@@ -15,24 +17,16 @@ export default function DashboardError({
 
   useEffect(() => {
     console.error(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-destructive">{t("errors.unexpected_error")}</p>
-        <h2 className="text-2xl font-semibold tracking-tight">{t("errors.generic")}</h2>
-        <p className="text-sm text-muted-foreground">{t("errors.server_error")}</p>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button onClick={reset} variant="default">
-          {t("actions.retry")}
-        </Button>
-        <Button onClick={() => window.history.back()} variant="outline">
-          {t("actions.back")}
-        </Button>
-      </div>
-    </div>
+    <StatusPage
+      variant="error"
+      digest={error.digest}
+      onRetry={reset}
+      backHref={ROUTES.DASHBOARD}
+      backLabel={t("navigation.dashboard")}
+    />
   );
 }

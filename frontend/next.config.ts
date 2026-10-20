@@ -116,6 +116,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     webpackMemoryOptimizations: true,
+    // The root layout lives in a top-level dynamic segment (app/[locale]),
+    // so unmatched URLs cannot compose a 404 page from a layout. This flag
+    // lets app/global-not-found.tsx answer them instead of Next's default.
+    globalNotFound: true,
     // withSentryConfig injects a custom webpack config, which turns OFF the
     // auto-enabled build worker (default: enabled only when webpack config is
     // not customized). Re-enable it to compile in a separate process with its

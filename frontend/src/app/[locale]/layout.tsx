@@ -6,6 +6,7 @@ import { Geist_Mono, Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { SITE_URL } from "@/lib/env";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
+import { ThemeBootScript } from "@/components/layout/theme-boot-script";
 import { Providers } from "./providers";
 import "../globals.css";
 
@@ -90,28 +91,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={cn(inter.variable, geistMono.variable)} suppressHydrationWarning>
       <head>
-        <template
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var key = "theme";
-                  var stored = localStorage.getItem(key) || "system";
-                  var theme = stored === "system"
-                    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-                    : stored;
-                  if (theme === "dark") {
-                    document.documentElement.classList.add("dark");
-                    document.documentElement.style.colorScheme = "dark";
-                  } else {
-                    document.documentElement.classList.remove("dark");
-                    document.documentElement.style.colorScheme = "light";
-                  }
-                } catch(e) {}
-              })();
-            `,
-          }}
-        />
+        <ThemeBootScript />
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <ServiceWorkerRegistrar />

@@ -249,7 +249,8 @@
       "pending_requests_unknown": "Pending requests could not be checked",
       "menu": "Menu",
       "toggle_menu": "Toggle navigation menu",
-      "language": "Language"
+      "language": "Language",
+      "home": "Home"
     },
     "theme": {
       "label": "Theme",
@@ -281,7 +282,13 @@
       "failed_load_trainer_profile": "Could not load trainer profile. Check connection and try again.",
       "failed_load_exercises": "Could not load the exercise library. Check connection and try again.",
       "unexpected_error": "Something unexpected happened. Try again.",
-      "error_title": "Error"
+      "error_title": "Error",
+      "server_error_title": "Server error",
+      "server_error_description": "The request failed on the GymTrack server. Retry the action. If it keeps failing, quote the reference code when you report it.",
+      "not_found_title": "Page not found",
+      "not_found_kicker": "Not found",
+      "not_found_description": "The link points to a page that does not exist or has moved. Check the link, or go back to the dashboard.",
+      "reference": "Reference"
     },
     "loading": "Loading...",
     "search": {
