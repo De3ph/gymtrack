@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { NoiseBackground } from "@/components/ui/noise-background";
 import { motion } from "motion/react";
@@ -61,12 +62,10 @@ export function HeroActions() {
         >
           <Link
             href={ROUTES.LOGIN}
-            className={buttonVariants({
-              variant: "outline",
-              size: "lg",
-              className:
-                "h-12 w-full rounded-none border-foreground bg-background! px-6 font-mono text-xs uppercase tracking-[0.18em] text-foreground hover:bg-foreground! hover:text-background dark:bg-background! sm:w-auto",
-            })}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "h-12 w-full rounded-none border-transparent bg-background px-6 font-mono text-xs uppercase tracking-[0.18em] text-foreground hover:bg-foreground hover:text-background dark:border-transparent dark:bg-background dark:hover:bg-foreground sm:w-auto",
+            )}
           >
             {t("login")}
           </Link>
