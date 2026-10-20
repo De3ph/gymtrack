@@ -17,6 +17,13 @@ const createWorkoutExerciseSchema = (t: ValidationTranslator) =>
     exerciseId: z.string().min(1, t("exercise_selection_required")),
     name: z.string().min(1, t("exercise_name_required")),
     notes: z.string().optional(),
+    /**
+     * UI-only stable row id, used to key the reorderable exercise list. Always
+     * supplied by the form. Never sent to the API — `formatExercisesForApi`
+     * rebuilds each exercise from explicit fields — it lives on the schema only
+     * so the form's value type stays assignable to it.
+     */
+    rowId: z.string(),
     sets: z
       .array(createExerciseSetSchema(t))
       .min(1, t("sets_min_one")),
