@@ -82,7 +82,7 @@ export function MealsTab({
     );
   } else if (!data || data.meals.length === 0) {
     body = (
-      <p className="py-8 text-center text-muted-foreground">
+      <p className="enter-rise py-8 text-center text-muted-foreground">
         {isFiltered ? t("no_meals_filtered") : t("no_meals")}
       </p>
     );

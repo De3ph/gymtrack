@@ -3,6 +3,7 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { mealApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
@@ -24,6 +25,7 @@ export function MealCalendar() {
   const tCard = useTranslations("meal.card")
   const { activeDate: selectedDate, setActiveDate: setSelectedDate } =
     useCalendarStore();
+  const reduce = useReducedMotion();
 
   const { data: mealsData, isLoading, error, refetch } = useQuery({
     queryKey: qk.meals.calendar,
@@ -114,6 +116,16 @@ export function MealCalendar() {
             </h3>
           </header>
           <div className="p-6">
+            {/* Switching days swaps the whole day panel, so it crossfades
+                instead of teleporting. Opacity only. */}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={selectedDate ? selectedDate.toISOString() : "no-date"}
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduce ? undefined : { opacity: 0 }}
+                transition={{ duration: 0.1, ease: "easeOut" }}
+              >
             {selectedDayMeals.length > 0 ? (
               <ul className="divide-y divide-border">
                 {selectedDayMeals.map((meal) => (
@@ -139,6 +151,8 @@ export function MealCalendar() {
             ) : (
               <p className="font-mono text-xs leading-6 text-muted-foreground">{t("no_meals")}</p>
             )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>

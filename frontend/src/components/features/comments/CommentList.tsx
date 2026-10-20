@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useCallback, memo } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { Comment } from "@/types";
 import dayjs from "dayjs";
@@ -79,6 +80,7 @@ const CommentNodeRow = memo(function CommentNodeRow({
   t: ReturnType<typeof useTranslations<"comment">>;
 }) {
   const isReply = depth > 0;
+  const reduce = useReducedMotion();
   return (
     <div className={isReply ? "ml-6 border-l border-border pl-4" : ""}>
       <CommentItem
@@ -89,33 +91,62 @@ const CommentNodeRow = memo(function CommentNodeRow({
         queryKey={queryKey}
         onReply={readOnly ? undefined : onStartReply}
       />
-      {replyingToId === node.comment.commentId && !readOnly && (
-        <div className="ml-6 mt-2 border-l border-border pl-4">
-          <CommentForm
-            targetType={targetType}
-            targetId={targetId}
-            parentCommentId={node.comment.commentId}
-            queryKey={queryKey}
-            placeholder={t("form.reply_placeholder")}
-            onCancel={onCancelReply}
-          />
-        </div>
-      )}
-      {node.children.map((child) => (
-        <CommentNodeRow
-          key={child.comment.commentId}
-          node={child}
-          targetType={targetType}
-          targetId={targetId}
-          queryKey={queryKey}
-          readOnly={readOnly}
-          replyingToId={replyingToId}
-          onStartReply={onStartReply}
-          onCancelReply={onCancelReply}
-          depth={depth + 1}
-          t={t}
-        />
-      ))}
+      <AnimatePresence initial={false}>
+        {replyingToId === node.comment.commentId && !readOnly && (
+          <motion.div
+            key="reply-form"
+            initial={
+              reduce ? { opacity: 0 } : { height: 0, opacity: 0 }
+            }
+            animate={reduce ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+            exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={
+              reduce
+                ? { duration: 0.15, ease: "easeOut" }
+                : { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
+            }
+            className="overflow-hidden"
+          >
+            <div className="ml-6 mt-2 border-l border-border pl-4">
+              <CommentForm
+                targetType={targetType}
+                targetId={targetId}
+                parentCommentId={node.comment.commentId}
+                queryKey={queryKey}
+                placeholder={t("form.reply_placeholder")}
+                onCancel={onCancelReply}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence initial={false}>
+        {node.children.map((child) => (
+          <motion.div
+            key={child.comment.commentId}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              reduce
+                ? { duration: 0.15, ease: "easeOut" }
+                : { duration: 0.2, ease: "easeOut" }
+            }
+          >
+            <CommentNodeRow
+              node={child}
+              targetType={targetType}
+              targetId={targetId}
+              queryKey={queryKey}
+              readOnly={readOnly}
+              replyingToId={replyingToId}
+              onStartReply={onStartReply}
+              onCancelReply={onCancelReply}
+              depth={depth + 1}
+              t={t}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 });
@@ -131,6 +162,7 @@ export function CommentList({
   onCancelReply,
 }: CommentListProps) {
   const t = useTranslations("comment");
+  const reduce = useReducedMotion();
   const tree = useMemo(() => buildTree(comments), [comments]);
 
   // Stabilise callbacks so memoised CommentNodeRow children don't re-render
@@ -160,22 +192,34 @@ export function CommentList({
 
   return (
     <div className="divide-y divide-border">
-      {tree.map((node) => (
-        <div key={node.comment.commentId} className="px-4 py-4 sm:px-6">
-          <CommentNodeRow
-            node={node}
-            targetType={targetType}
-            targetId={targetId}
-            queryKey={queryKey}
-            readOnly={readOnly}
-            replyingToId={replyingToId}
-            onStartReply={stableOnStartReply}
-            onCancelReply={stableOnCancelReply}
-            depth={0}
-            t={t}
-          />
-        </div>
-      ))}
+      <AnimatePresence initial={false}>
+        {tree.map((node) => (
+          <motion.div
+            key={node.comment.commentId}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              reduce
+                ? { duration: 0.15, ease: "easeOut" }
+                : { duration: 0.2, ease: "easeOut" }
+            }
+            className="px-4 py-4 sm:px-6"
+          >
+            <CommentNodeRow
+              node={node}
+              targetType={targetType}
+              targetId={targetId}
+              queryKey={queryKey}
+              readOnly={readOnly}
+              replyingToId={replyingToId}
+              onStartReply={stableOnStartReply}
+              onCancelReply={stableOnCancelReply}
+              depth={0}
+              t={t}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

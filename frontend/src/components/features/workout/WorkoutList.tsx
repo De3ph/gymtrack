@@ -158,7 +158,7 @@ export function WorkoutList({
     return (
       <div className="space-y-4">
         {filterBar}
-        <div className="flex flex-col items-center justify-center gap-3 border border-border px-4 py-16 text-center">
+        <div className="enter-rise flex flex-col items-center justify-center gap-3 border border-border px-4 py-16 text-center">
           <Dumbbell className="size-6 text-muted-foreground" aria-hidden="true" />
           <p className="max-w-sm text-sm text-muted-foreground">
             {t("no_workouts")}

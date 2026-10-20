@@ -3,6 +3,7 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import dayjs, { formatDate } from "@/lib/i18n/dayjs";
 import { useTranslations } from "next-intl";
 
@@ -32,6 +33,7 @@ export function WorkoutCalendar() {
   const t = useTranslations("workout.calendar");
   const tList = useTranslations("workout.list");
   const tDate = useTranslations("common.date");
+  const reduce = useReducedMotion();
 
   const { data: workoutsData, isLoading, error, refetch } = useQuery({
     queryKey: qk.workouts.calendar,
@@ -87,6 +89,16 @@ export function WorkoutCalendar() {
         </header>
 
         <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4">
+          {/* Switching days swaps the whole day panel, so it crossfades
+              instead of teleporting. Opacity only. */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={selectedDate ? selectedDate.toISOString() : "no-date"}
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={reduce ? undefined : { opacity: 0 }}
+              transition={{ duration: 0.1, ease: "easeOut" }}
+            >
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               <Spinner className="size-5" />
@@ -140,6 +152,8 @@ export function WorkoutCalendar() {
               {t("no_workouts")}
             </p>
           )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
       </section>

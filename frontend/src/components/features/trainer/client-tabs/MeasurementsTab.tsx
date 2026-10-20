@@ -129,7 +129,7 @@ export function MeasurementsTab({
     );
   } else if (!data || data.measurements.length === 0) {
     listBody = (
-      <p className="py-8 text-center text-muted-foreground">
+      <p className="enter-rise py-8 text-center text-muted-foreground">
         {isFiltered ? t("no_measurements_filtered") : t("no_measurements")}
       </p>
     );
