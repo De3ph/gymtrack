@@ -399,7 +399,8 @@
       "submitting": "Giriş yapılıyor...",
       "forgot_password": "Şifrenizi mi unuttunuz?",
       "no_account": "Hesabınız yok mu?",
-      "sign_up": "Kaydol"
+      "sign_up": "Kaydol",
+      "session_expired_notice": "Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın."
     },
     "register": {
       "title": "Hesabınızı Oluşturun",
@@ -513,6 +514,11 @@
     "logout": {
       "confirm": "Çıkış yapmak istediğinizden emin misiniz?",
       "button": "Çıkış Yap"
+    },
+    "session_expired": {
+      "title": "Oturumunuzun süresi doldu",
+      "description": "Oturumunuzun süresi doldu. Devam etmek için çıkış yapıp yeniden giriş yapın.",
+      "logout": "Çıkış Yap"
     },
     "restore_account": {
       "title": "Hesabı Geri Yükle",

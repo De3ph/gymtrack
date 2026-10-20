@@ -9,6 +9,7 @@ import { useLocale } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 import { initializeDayjsLocale } from "@/lib/i18n/dayjs";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SessionExpiredDialog } from "@/components/features/auth/session-expired-dialog";
 
 declare global {
   interface Window {
@@ -67,7 +68,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          {children}
+          {/* Mounted app-wide: the session can expire on any page. */}
+          <SessionExpiredDialog />
+        </TooltipProvider>
         <Toaster />
       </QueryClientProvider>
     </ThemeProvider>

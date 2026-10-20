@@ -180,7 +180,9 @@ export const verifySession = cache(async () => {
 
     // A dead refresh token means the session is genuinely over.
     if (!refreshed) {
-      redirect('/login')
+      // The reason travels with the redirect so the login page can explain
+      // why the user is back there instead of showing a bare login form.
+      redirect('/login?reason=session_expired')
     }
     accessToken = refreshed
   }

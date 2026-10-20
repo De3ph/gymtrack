@@ -399,7 +399,8 @@
       "submitting": "Logging in...",
       "forgot_password": "Forgot password?",
       "no_account": "Don't have an account?",
-      "sign_up": "Sign up"
+      "sign_up": "Sign up",
+      "session_expired_notice": "Your session expired. Please sign in again."
     },
     "register": {
       "title": "Create Your Account",
@@ -513,6 +514,11 @@
     "logout": {
       "confirm": "Are you sure you want to logout?",
       "button": "Logout"
+    },
+    "session_expired": {
+      "title": "Session expired",
+      "description": "Your session has expired. Please log out and sign in again to continue.",
+      "logout": "Logout"
     },
     "restore_account": {
       "title": "Restore Account",

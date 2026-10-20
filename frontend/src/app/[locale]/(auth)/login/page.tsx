@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
@@ -16,6 +17,32 @@ import { FieldInfo } from "@/components/ui/form-field";
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
 import { stagger, reveal } from "@/components/features/auth/auth-variants";
+
+/**
+ * Explains why the user landed on the login page when the server ended a
+ * dead session (see verifySession in lib/dal.ts).
+ *
+ * Isolated in its own component so `useSearchParams` stays behind a Suspense
+ * boundary, as Next.js requires for statically rendered routes.
+ */
+function SessionExpiredNotice() {
+  const searchParams = useSearchParams();
+  const t = useTranslations("auth.login");
+
+  if (searchParams.get("reason") !== "session_expired") {
+    return null;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
+    >
+      <p className="text-sm text-destructive">{t("session_expired_notice")}</p>
+    </motion.div>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -64,6 +91,10 @@ export default function LoginPage() {
           {t("title")}
         </h2>
       </motion.div>
+
+      <Suspense fallback={null}>
+        <SessionExpiredNotice />
+      </Suspense>
 
       {error && (
         <motion.div

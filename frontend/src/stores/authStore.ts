@@ -2,15 +2,11 @@ import { create } from 'zustand';
 import { User } from '@/types';
 import { authApi, userApi, toUser } from '@/lib/api';
 import { tokenService } from '@/lib/token-service';
+import { refreshTokens, onTokenRefreshed } from '@/lib/auth-refresh';
+import { clearSessionExpiryNotice } from '@/lib/session-expiry';
 import { ROUTES } from '@/lib/routes';
 
 const SESSION_API = '/api/auth/session';
-
-// Single-flight refresh: concurrent 401s must share ONE in-flight refresh.
-// Without this, N parallel requests each POST /auth/refresh with the same
-// refresh token — wasteful at best, and with rotation the losers would
-// redeem an already-consumed token and log the user out.
-let refreshInFlight: Promise<boolean> | null = null;
 
 interface AuthState {
   user: User | null
@@ -39,6 +35,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { accessToken, refreshToken, user } = response
 
       tokenService.setTokens(accessToken, refreshToken)
+
+      // A new session means a fresh expiry notice is allowed again.
+      clearSessionExpiryNotice()
 
       await fetch(SESSION_API, {
         method: 'POST',
@@ -123,6 +122,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       //    is recovered from its dedicated cookie via the GET handler.
       tokenService.setTokens(session.accessToken, session.refreshToken || '')
 
+      // A restored session means a fresh expiry notice is allowed again.
+      clearSessionExpiryNotice()
+
       // 3. Use the user the server layout already fetched, if present. This
       //    removes the second sequential round-trip (/users/me) from the
       //    critical path on every dashboard navigation.
@@ -162,58 +164,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   refreshAccessToken: async (): Promise<boolean> => {
-    // Already refreshing (e.g., three parallel queries hit 401 together)?
-    // Reuse the in-flight promise instead of firing a second POST /auth/refresh.
-    if (refreshInFlight) {
-      return refreshInFlight
+    // The refresh itself lives in lib/auth-refresh so the API client can
+    // reach it without importing the store (module cycle). It is
+    // single-flight: concurrent 401s share ONE network refresh.
+    const outcome = await refreshTokens();
+
+    if (outcome !== 'refreshed') {
+      return false;
     }
 
-    refreshInFlight = (async () => {
-      const refreshToken = tokenService.getRefreshToken()
+    // Update the token in state
+    set({ token: tokenService.getAccessToken() });
 
-      if (!refreshToken) {
-        return false
-      }
-
-      try {
-        const response = await authApi.refreshToken(refreshToken)
-        const { accessToken, refreshToken: newRefreshToken } = response
-
-        // Handle refresh-token rotation: if the backend issues a new refresh
-        // token, use it; otherwise reuse the existing one.
-        const effectiveRefreshToken = newRefreshToken || refreshToken
-
-        // Update both in-memory tokens
-        tokenService.setTokens(accessToken, effectiveRefreshToken)
-
-        // Update the HttpOnly cookies with the refreshed tokens. The server
-        // derives userId/role from the backend, so they are not sent here.
-        await fetch(SESSION_API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            accessToken,
-            refreshToken: effectiveRefreshToken,
-          }),
-        })
-
-        // Update the token in state
-        set({ token: accessToken })
-
-        return true
-      } catch (error) {
-        console.error('Token refresh failed:', error)
-        return false
-      }
-    })()
-
-    try {
-      return await refreshInFlight
-    } finally {
-      // Clear only this attempt so the next expiry starts a fresh one.
-      // Concurrent callers that awaited the same promise are unaffected.
-      refreshInFlight = null
-    }
+    return true;
   },
 
   handleAuthError: async (error: unknown) => {
@@ -262,3 +225,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: false })
   }
 }))
+
+// A refresh can also be triggered by the API client (it renews the token
+// when a request comes back 401). The store has to learn about those tokens
+// too, otherwise its copy goes stale. The listener keeps it in sync without
+// the store having to be imported by the API layer.
+onTokenRefreshed((accessToken) => {
+  useAuthStore.setState({ token: accessToken })
+})

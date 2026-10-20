@@ -227,9 +227,15 @@ describe('AuthStore', () => {
   it('should deduplicate concurrent refresh calls into one network refresh', async () => {
     tokenService.setTokens('expired-token', 'refresh-token')
 
-    let resolveRefresh: (value: { message: string; accessToken: string }) => void
-    vi.mocked(authApi.refreshToken).mockReturnValue(
-      new Promise((resolve) => { resolveRefresh = resolve }),
+    // The refresh lives in lib/auth-refresh and talks to the backend with a
+    // raw fetch, so the network call is observed through MSW.
+    let refreshCalls = 0
+    server.use(
+      http.post('/api/auth/refresh', async () => {
+        refreshCalls += 1
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        return HttpResponse.json({ message: 'ok', accessToken: 'fresh-token' })
+      })
     )
 
     const { refreshAccessToken } = useAuthStore.getState()
@@ -237,12 +243,10 @@ describe('AuthStore', () => {
     const second = refreshAccessToken()
     const third = refreshAccessToken()
 
-    resolveRefresh!({ message: 'ok', accessToken: 'fresh-token' })
-
     const results = await Promise.all([first, second, third])
 
     // One network refresh shared by all three concurrent callers
-    expect(authApi.refreshToken).toHaveBeenCalledTimes(1)
+    expect(refreshCalls).toBe(1)
     expect(results).toEqual([true, true, true])
     expect(tokenService.getAccessToken()).toBe('fresh-token')
     expect(useAuthStore.getState().token).toBe('fresh-token')
@@ -251,9 +255,13 @@ describe('AuthStore', () => {
   it('should allow a fresh refresh after the previous one settles', async () => {
     tokenService.setTokens('expired-token', 'refresh-token')
 
-    vi.mocked(authApi.refreshToken)
-      .mockResolvedValueOnce({ message: 'ok', accessToken: 'token-1' })
-      .mockResolvedValueOnce({ message: 'ok', accessToken: 'token-2' })
+    let refreshCalls = 0
+    server.use(
+      http.post('/api/auth/refresh', () => {
+        refreshCalls += 1
+        return HttpResponse.json({ message: 'ok', accessToken: `token-${refreshCalls}` })
+      })
+    )
 
     const { refreshAccessToken } = useAuthStore.getState()
 
@@ -261,8 +269,20 @@ describe('AuthStore', () => {
     expect(await refreshAccessToken()).toBe(true)
 
     // In-flight promise cleared on settle — second refresh not swallowed
-    expect(authApi.refreshToken).toHaveBeenCalledTimes(2)
+    expect(refreshCalls).toBe(2)
     expect(tokenService.getAccessToken()).toBe('token-2')
+  })
+
+  it('should report failure when the refresh token is rejected', async () => {
+    tokenService.setTokens('expired-token', 'refresh-token')
+
+    server.use(
+      http.post('/api/auth/refresh', () =>
+        HttpResponse.json({ error: 'Invalid refresh token' }, { status: 401 })
+      )
+    )
+
+    expect(await useAuthStore.getState().refreshAccessToken()).toBe(false)
   })
 
   it('should handle auth error with 401 status', () => {

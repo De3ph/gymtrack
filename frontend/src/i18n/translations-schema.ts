@@ -394,6 +394,7 @@ const translationSchema = z.object({
       forgot_password: z.string(),
       no_account: z.string(),
       sign_up: z.string(),
+      session_expired_notice: z.string(),
     }),
     register: z.object({
       title: z.string(),
@@ -507,6 +508,11 @@ const translationSchema = z.object({
     logout: z.object({
       confirm: z.string(),
       button: z.string(),
+    }),
+    session_expired: z.object({
+      title: z.string(),
+      description: z.string(),
+      logout: z.string(),
     }),
     restore_account: z.object({
       title: z.string(),

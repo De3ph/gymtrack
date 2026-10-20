@@ -10,6 +10,16 @@ vi.mock('@/i18n/navigation', () => ({
   useRouter: vi.fn(),
 }))
 
+// The page reads `?reason=session_expired` to explain why the user is back
+// on the login page, so next/navigation needs a search-params mock.
+const { mockSearchParams } = vi.hoisted(() => ({
+  mockSearchParams: new URLSearchParams(),
+}))
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => mockSearchParams,
+}))
+
 // Mock auth store
 const mockLogin = vi.fn()
 vi.mock('@/stores/authStore', () => ({
@@ -23,6 +33,7 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSearchParams.delete('reason')
       ; vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
   })
 
@@ -34,6 +45,20 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
     expect(screen.getByText(/don't have an account/i)).toBeInTheDocument()
     expect(screen.getByText(/sign up/i)).toBeInTheDocument()
+  })
+
+  it('explains an expired session when the server redirects with a reason', async () => {
+    mockSearchParams.set('reason', 'session_expired')
+
+    render(<LoginPage />)
+
+    expect(await screen.findByText(/session expired/i)).toBeInTheDocument()
+  })
+
+  it('shows no session notice without a reason', () => {
+    render(<LoginPage />)
+
+    expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument()
   })
 
   it('shows validation errors for empty fields', async () => {

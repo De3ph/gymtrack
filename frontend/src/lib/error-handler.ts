@@ -63,6 +63,13 @@ export class ApiErrorHandler {
    */
   static isAuthError(error: unknown): boolean {
     if (error instanceof Error) {
+      // ApiError carries the HTTP status, which is the only reliable signal:
+      // the backend's 401 message never contains the number "401".
+      const status = (error as Error & { status?: number }).status;
+      if (status === 401 || status === 403) {
+        return true;
+      }
+
       const message = error.message.toLowerCase();
       return (
         message.includes("401") ||
