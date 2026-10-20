@@ -612,7 +612,8 @@
           "label": "Rest (sec)",
           "placeholder": "e.g., 60"
         },
-        "fallback_name": "Exercise {number}"
+        "fallback_name": "Exercise {number}",
+        "reorder": "Reorder exercise"
       },
       "add_exercise": "Add Exercise",
       "plan": {
@@ -716,6 +717,8 @@
       },
       "add_item": "Add Item",
       "add_food_item": "Add Food Item",
+      "item": "Item {number}",
+      "reorder": "Reorder item",
       "submit": "Save Meal",
       "log_meal": "Log Meal",
       "submitting": "Saving...",
@@ -1077,6 +1080,7 @@
       "description_placeholder": "Brief description of the plan",
       "notes_placeholder": "Notes for this exercise",
       "fallback_exercise_name": "Exercise {index}",
+      "reorder": "Reorder exercise",
       "assign_plan_title": "Assign Plan",
       "no_active_clients": "No active clients available",
       "assign_button": "Assign",
@@ -1316,6 +1320,7 @@
       "exercise_name_placeholder": "Exercise name",
       "notes_placeholder": "Notes for this exercise",
       "fallback_exercise_name": "Exercise {index}",
+      "reorder": "Reorder exercise",
       "plan_update": "Update Plan",
       "plan_create": "Create Plan",
       "limit_reached": "You reached the maximum of 3 plans",

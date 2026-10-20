@@ -612,7 +612,8 @@
           "label": "Dinlenme (sn)",
           "placeholder": "örn., 60"
         },
-        "fallback_name": "Egzersiz {number}"
+        "fallback_name": "Egzersiz {number}",
+        "reorder": "Egzersizi yeniden sırala"
       },
       "add_exercise": "Egzersiz Ekle",
       "plan": {
@@ -716,6 +717,8 @@
       },
       "add_item": "Besin Ekle",
       "add_food_item": "Besin Ekle",
+      "item": "Besin {number}",
+      "reorder": "Besini yeniden sırala",
       "submit": "Öğünü Kaydet",
       "log_meal": "Öğün Kaydet",
       "submitting": "Kaydediliyor...",
@@ -1077,6 +1080,7 @@
       "description_placeholder": "Planın kısa açıklaması",
       "notes_placeholder": "Bu egzersiz için notlar",
       "fallback_exercise_name": "Egzersiz {index}",
+      "reorder": "Egzersizi yeniden sırala",
       "assign_plan_title": "Plan Ata",
       "no_active_clients": "Aktif danışan yok",
       "assign_button": "Ata",
@@ -1316,6 +1320,7 @@
       "exercise_name_placeholder": "Egzersiz adı",
       "notes_placeholder": "Bu egzersiz için notlar",
       "fallback_exercise_name": "Egzersiz {index}",
+      "reorder": "Egzersizi yeniden sırala",
       "plan_update": "Planı Güncelle",
       "plan_create": "Plan Oluştur",
       "limit_reached": "En fazla 3 plan oluşturabilirsiniz",

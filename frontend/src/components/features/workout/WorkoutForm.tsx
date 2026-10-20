@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ClipboardList, Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import { formatDate } from "@/lib/i18n/dayjs";
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
 import { Sortable, SortableItem } from "@/components/ui/sortable";
+import { ExerciseAutoScroll } from "@/components/features/exercise/ExerciseAutoScroll";
 import { workoutApi, workoutPlanApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { Workout, WorkoutExercise, ExerciseSet, WorkoutPlan } from "@/types";
@@ -134,95 +135,6 @@ const planExerciseToWorkoutExercise = (
     completed: false,
   })),
 });
-
-/**
- * Scrolls a newly added exercise into view and focuses its search input.
- *
- * Split out of `WorkoutForm` on purpose: `form.state` is a plain getter, not a
- * store subscription, so reading the exercise count in `WorkoutForm`'s body
- * would never re-render it and an effect there could never observe the array
- * growing. This component is rendered *inside* the `Field` render prop (a real
- * reactive boundary), so it re-renders whenever the array changes and the
- * effect fires on every add.
- */
-function ExerciseAutoScroll({
-  pendingIndex,
-  cardRefs,
-  onDone,
-  focusEnabled = true,
-}: {
-  /** Index to scroll to, or null when there's nothing pending. */
-  pendingIndex: number | null;
-  cardRefs: React.MutableRefObject<Array<HTMLElement | null>>;
-  onDone: () => void;
-  /**
-   * When false, the card is only scrolled into view — the input is not
-   * focused. Used when the exercise picker dialog opens right after the row
-   * is added, so focus stays inside the dialog's search field.
-   */
-  focusEnabled?: boolean;
-}) {
-  const onDoneRef = useRef(onDone);
-  useEffect(() => {
-    onDoneRef.current = onDone;
-  });
-
-  /**
-   * The search input lives inside a client-only dynamic import, so it may not
-   * be mounted yet on the first attempt — hence the short retry loop.
-   */
-  const focusExerciseCard = useCallback(
-    (index: number) => {
-      const card = cardRefs.current[index];
-      if (!card) {
-        onDoneRef.current();
-        return;
-      }
-
-      card.scrollIntoView({ behavior: "smooth", block: "center" });
-
-      if (!focusEnabled) {
-        onDoneRef.current();
-        return;
-      }
-
-      const tryFocus = (attempt: number) => {
-        const input = card.querySelector<HTMLInputElement>(
-          "input:not([type='hidden'])",
-        );
-        if (input) {
-          input.focus({ preventScroll: true });
-          onDoneRef.current();
-          return;
-        }
-        if (attempt < 10) {
-          requestAnimationFrame(() => tryFocus(attempt + 1));
-        } else {
-          // Give up on the input but still treat the card as handled.
-          onDoneRef.current();
-        }
-      };
-
-      tryFocus(0);
-    },
-    [cardRefs, focusEnabled],
-  );
-
-  useEffect(() => {
-    if (pendingIndex == null) return;
-
-    const card = cardRefs.current[pendingIndex];
-    if (!card) {
-      // Ref not attached yet — retry on the next frame.
-      const raf = requestAnimationFrame(() => focusExerciseCard(pendingIndex));
-      return () => cancelAnimationFrame(raf);
-    }
-
-    focusExerciseCard(pendingIndex);
-  }, [pendingIndex, cardRefs, focusExerciseCard]);
-
-  return null;
-}
 
 export function WorkoutForm({
   onSuccess,
@@ -592,9 +504,13 @@ export function WorkoutForm({
           const exercises = field.state.value as unknown as FormExercise[];
           return (
             <div className="space-y-4">
+              {/*
+                Inside the field render prop on purpose: this is the reactive
+                boundary that re-runs whenever the exercise array grows.
+              */}
               <ExerciseAutoScroll
-                pendingIndex={pendingScrollIndex}
-                cardRefs={exerciseCardRefs}
+                pendingId={pendingScrollIndex}
+                resolveCard={(index) => exerciseCardRefs.current[index]}
                 onDone={() => setPendingScrollIndex(null)}
                 focusEnabled={!pickerOpen}
               />

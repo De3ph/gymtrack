@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { memo, type ReactElement, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, GripVertical, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -8,20 +7,12 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { FieldInfo } from "@/components/ui/form-field";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { SortableItemHandle } from "@/components/ui/sortable";
 
+import { ExercisePickerField } from "@/components/features/exercise/ExercisePickerField";
 import { ExerciseSetInput } from "./ExerciseSetInput";
 import type { ExerciseSet, WorkoutExercise } from "@/types";
-
-const ExerciseSelector = dynamic(
-  () =>
-    import("@/components/features/exercise/ExerciseSelector").then(
-      (m) => m.ExerciseSelector,
-    ),
-  { ssr: false, loading: () => <Skeleton className="h-9 w-28" /> },
-);
 
 /**
  * A row as the card sees it: the API shape plus the form's stable row id.
@@ -159,8 +150,9 @@ export const WorkoutExerciseCard = memo(function WorkoutExerciseCard({
         <form.Field name={`exercises[${index}].exerciseId`}>
           {(subField) => (
             <Field>
-              <ExerciseSelector
+              <ExercisePickerField
                 selectedExerciseId={subField.state.value as string | number}
+                selectedName={exercise.name}
                 open={pickerOpen}
                 onOpenChange={(open) => onPickerOpenChange?.(rowId, open)}
                 onSelect={(selected) =>

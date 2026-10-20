@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo, useDeferredValue } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
-import { Search, Dumbbell, SearchX } from "lucide-react";
+import { Search, Dumbbell, SearchX, Check } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { exerciseApi } from "@/lib/api";
@@ -46,9 +46,11 @@ import { STALE_TIMES } from "@/lib/api/api-constants";
 
 interface ExerciseSelectorProps {
   onSelect: (exercise: ExerciseLibrary) => void;
+  /** Currently picked exercise, marked in the result list. */
   selectedExerciseId?: string | number;
+  /** Current exercise name, shown on the trigger once one is picked. */
+  selectedName?: string;
   disabled?: boolean;
-  placeholder?: string;
   /**
    * Controlled open state for the picker dialog. When provided, the parent
    * drives visibility (e.g. to auto-open the picker right after an exercise
@@ -61,6 +63,8 @@ interface ExerciseSelectorProps {
 
 export function ExerciseSelector({
   onSelect,
+  selectedExerciseId,
+  selectedName,
   disabled = false,
   open,
   onOpenChange,
@@ -163,6 +167,12 @@ export function ExerciseSelector({
 
   const itemVariants = reducedMotion ? exerciseRevealReduced : exerciseReveal;
 
+  // Rows hold ids as strings while the API returns numbers; compare as text.
+  const selectedId =
+    selectedExerciseId != null && selectedExerciseId !== ""
+      ? String(selectedExerciseId)
+      : null;
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger
@@ -172,13 +182,20 @@ export function ExerciseSelector({
             variant="default"
             size="sm"
             disabled={disabled}
-            className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em] shadow-none"
+            className={cn(
+              "max-w-56 rounded-none font-mono shadow-none",
+              selectedName
+                ? "text-xs tracking-normal"
+                : "text-[10px] uppercase tracking-[0.18em]",
+            )}
           >
             <Dumbbell
-              className="size-5 transition-transform duration-200 ease-out motion-safe:group-hover/button:-rotate-6"
+              className="size-5 shrink-0 transition-transform duration-200 ease-out motion-safe:group-hover/button:-rotate-6"
               aria-hidden="true"
             />
-            {t("selector.pick_exercise")}
+            <span className="truncate">
+              {selectedName || t("selector.pick_exercise")}
+            </span>
           </Button>
         }
       />
@@ -264,63 +281,77 @@ export function ExerciseSelector({
                     animate="visible"
                   >
                     <ItemGroup className="gap-2 border border-border">
-                      {exercises.map((exercise) => (
-                        <motion.div
-                          key={exercise.exerciseId}
-                          variants={itemVariants}
-                        >
-                          <Item
-                            variant="outline"
-                            size="sm"
-                            render={
-                              <button
-                                type="button"
-                                onClick={() => handleSelect(exercise)}
-                                className={cn(
-                                  "gap-2 *:rounded-none border-x-0 border-b-2 border-border text-left transition-[background-color,transform] duration-150 ease-out hover:bg-muted/50 motion-safe:active:scale-[0.99]",
-                                )}
-                              />
-                            }
+                      {exercises.map((exercise) => {
+                        const isSelected =
+                          selectedId !== null &&
+                          selectedId === String(exercise.exerciseId);
+                        return (
+                          <motion.div
+                            key={exercise.exerciseId}
+                            variants={itemVariants}
                           >
-                            <ItemMedia
-                              variant="icon"
-                              className="rounded-none bg-transparent"
+                            <Item
+                              variant="outline"
+                              size="sm"
+                              render={
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelect(exercise)}
+                                  aria-current={isSelected || undefined}
+                                  className={cn(
+                                    "gap-2 *:rounded-none border-x-0 border-b-2 border-border text-left transition-[background-color,transform] duration-150 ease-out hover:bg-muted/50 motion-safe:active:scale-[0.99]",
+                                    isSelected && "bg-muted/40",
+                                  )}
+                                />
+                              }
                             >
-                              <Dumbbell
-                                className="size-5 text-muted-foreground transition-colors duration-150 ease-out group-hover/item:text-foreground"
-                                aria-hidden="true"
-                              />
-                            </ItemMedia>
-                            <ItemContent>
-                              <ItemTitle className="text-sm font-semibold text-foreground">
-                                {exercise.name}
-                              </ItemTitle>
-                              <ItemDescription className="line-clamp-2 text-xs text-muted-foreground">
-                                {exercise.instructions}
-                              </ItemDescription>
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {exercise.muscleGroup && (
-                                  <MuscleGroupBadge
-                                    muscleGroup={exercise.muscleGroup}
-                                    variant="small"
+                              <ItemMedia
+                                variant="icon"
+                                className="rounded-none bg-transparent"
+                              >
+                                <Dumbbell
+                                  className="size-5 text-muted-foreground transition-colors duration-150 ease-out group-hover/item:text-foreground"
+                                  aria-hidden="true"
+                                />
+                              </ItemMedia>
+                              <ItemContent>
+                                <ItemTitle className="text-sm font-semibold text-foreground">
+                                  {exercise.name}
+                                </ItemTitle>
+                                <ItemDescription className="line-clamp-2 text-xs text-muted-foreground">
+                                  {exercise.instructions}
+                                </ItemDescription>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {exercise.muscleGroup && (
+                                    <MuscleGroupBadge
+                                      muscleGroup={exercise.muscleGroup}
+                                      variant="small"
+                                    />
+                                  )}
+                                  {exercise.equipment && (
+                                    <EquipmentBadge
+                                      equipment={exercise.equipment}
+                                      variant="small"
+                                    />
+                                  )}
+                                </div>
+                              </ItemContent>
+                              <ItemActions>
+                                {isSelected ? (
+                                  <Check
+                                    className="size-5 text-foreground"
+                                    aria-hidden="true"
                                   />
+                                ) : (
+                                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-transform duration-200 ease-out group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5">
+                                    →
+                                  </span>
                                 )}
-                                {exercise.equipment && (
-                                  <EquipmentBadge
-                                    equipment={exercise.equipment}
-                                    variant="small"
-                                  />
-                                )}
-                              </div>
-                            </ItemContent>
-                            <ItemActions>
-                              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-transform duration-200 ease-out group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5">
-                                →
-                              </span>
-                            </ItemActions>
-                          </Item>
-                        </motion.div>
-                      ))}
+                              </ItemActions>
+                            </Item>
+                          </motion.div>
+                        );
+                      })}
                     </ItemGroup>
                   </motion.div>
                 )}

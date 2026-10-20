@@ -106,7 +106,12 @@ describe('WorkoutForm — add exercise opens the picker', () => {
     const removeButtons = screen.getAllByRole('button', { name: /remove set/i })
     await user.click(removeButtons[0])
 
-    const pickButtons = screen.getAllByRole('button', { name: /pick exercise/i })
+    // The sortable row wrapper is itself exposed as a button (dnd-kit's
+    // attributes), and its accessible name includes its contents — so scope
+    // the count to the actual picker triggers.
+    const pickButtons = screen
+      .getAllByRole('button', { name: /pick exercise/i })
+      .filter((button) => button.getAttribute('data-slot') === 'dialog-trigger')
     expect(pickButtons.length).toBe(1)
 
     // Clicking the remaining row's trigger must open the picker for that row.
