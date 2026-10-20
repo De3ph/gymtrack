@@ -1484,6 +1484,22 @@ const translationSchema = z.object({
       instructions_title: z.string(),
       unknown: z.string(),
     }),
+    add_to_plan: z.object({
+      button: z.string(),
+      title: z.string(),
+      description_plan: z.string(),
+      description_sets: z.string(),
+      plan_label: z.string(),
+      plan_exercises_count: z.string(),
+      already_in_plan: z.string(),
+      no_plans: z.string(),
+      create_plan: z.string(),
+      add: z.string(),
+      adding: z.string(),
+      added_title: z.string(),
+      added_description: z.string(),
+      error_title: z.string(),
+    }),
   }),
   review: z.object({
     create: z.object({

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import {
+  getCurrentUser,
   getEquipmentCached,
   getExerciseByIdCached,
   getMuscleGroupsCached,
@@ -75,9 +76,15 @@ async function ExerciseDetailContent({
     (item) => item.id === exercise.equipmentId,
   );
 
+  // The role decides whether the "add to plan" action is offered: only
+  // trainers and athletes own workout plans. getCurrentUser is request-cached,
+  // so this reuses the profile the dashboard layout already fetched.
+  const currentUser = await getCurrentUser();
+
   return (
     <ExerciseDetailClient
       exercise={{ ...exercise, muscleGroup, equipment: equipmentItem }}
+      role={currentUser.role}
     />
   );
 }

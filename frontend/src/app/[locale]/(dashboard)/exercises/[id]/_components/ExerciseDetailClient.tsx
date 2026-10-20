@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Dumbbell, Layers, ListOrdered, Video } from "lucide-react";
-import type { ExerciseLibrary } from "@/types";
+import { ArrowLeft, ListOrdered, Video } from "lucide-react";
+import type { ExerciseLibrary, UserRole } from "@/types";
 import { ROUTES } from "@/lib/routes";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -10,20 +10,21 @@ import { cn } from "@/lib/utils";
 import { MuscleGroupBadge } from "@/components/features/exercise/MuscleGroupBadge";
 import { EquipmentBadge } from "@/components/features/exercise/EquipmentBadge";
 import { ExerciseMediaPanel } from "@/components/features/exercise/ExerciseMediaPanel";
-import { useExerciseLookupLabels } from "@/components/features/exercise/exercise-labels";
 import {
   ExerciseInstructions,
   ExerciseSectionHeader,
 } from "@/components/features/exercise/ExerciseInstructions";
+import { AddExerciseToPlanButton } from "@/components/features/workout-plan/AddExerciseToPlanButton";
 
 interface ExerciseDetailClientProps {
   exercise: ExerciseLibrary;
+  /** Role of the signed-in user, used to gate the "add to plan" action. */
+  role: UserRole;
 }
 
-export function ExerciseDetailClient({ exercise }: ExerciseDetailClientProps) {
+export function ExerciseDetailClient({ exercise, role }: ExerciseDetailClientProps) {
   const t = useTranslations("exercise.library");
   const tCommon = useTranslations("common.actions");
-  const { muscleGroupLabel, equipmentLabel } = useExerciseLookupLabels();
 
   return (
     <div className="container mx-auto py-6">
@@ -51,15 +52,21 @@ export function ExerciseDetailClient({ exercise }: ExerciseDetailClientProps) {
           edge, where a wide viewport left them visually detached from the
           exercise they describe. */}
       <header className="mt-6 space-y-3">
-        <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
-          {exercise.name}
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {exercise.category}
-          </p>
-          {exercise.muscleGroup && <MuscleGroupBadge muscleGroup={exercise.muscleGroup} />}
-          {exercise.equipment && <EquipmentBadge equipment={exercise.equipment} />}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-3">
+            <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+              {exercise.name}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              {exercise.muscleGroup && (
+                <MuscleGroupBadge muscleGroup={exercise.muscleGroup} />
+              )}
+              {exercise.equipment && (
+                <EquipmentBadge equipment={exercise.equipment} />
+              )}
+            </div>
+          </div>
+          <AddExerciseToPlanButton exercise={exercise} role={role} />
         </div>
       </header>
 
@@ -69,7 +76,9 @@ export function ExerciseDetailClient({ exercise }: ExerciseDetailClientProps) {
             separate "Demonstration — a demonstration is available above" block
             in the other column, which described the image instead of showing it. */}
         <section className="space-y-4">
-          <ExerciseSectionHeader icon={Video}>{t("media_title")}</ExerciseSectionHeader>
+          <ExerciseSectionHeader icon={Video}>
+            {t("media_title")}
+          </ExerciseSectionHeader>
           <ExerciseMediaPanel exercise={exercise} size="detail" />
         </section>
 
@@ -79,35 +88,6 @@ export function ExerciseDetailClient({ exercise }: ExerciseDetailClientProps) {
               {t("instructions_title")}
             </ExerciseSectionHeader>
             <ExerciseInstructions instructions={exercise.instructions} />
-          </section>
-
-          <section className="space-y-4">
-            <ExerciseSectionHeader icon={Layers}>{t("details_title")}</ExerciseSectionHeader>
-            <dl className="divide-y divide-border border border-border">
-              <div className="flex items-center justify-between gap-4 px-4 py-3">
-                <dt className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  <Dumbbell className="size-4" aria-hidden="true" />
-                  {t("detail_category")}
-                </dt>
-                <dd className="text-sm capitalize text-foreground">{exercise.category}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4 px-4 py-3">
-                <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {t("detail_muscle_group")}
-                </dt>
-                <dd className="text-sm text-foreground">
-                  {muscleGroupLabel(exercise.muscleGroup)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4 px-4 py-3">
-                <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {t("detail_equipment")}
-                </dt>
-                <dd className="text-sm text-foreground">
-                  {equipmentLabel(exercise.equipment)}
-                </dd>
-              </div>
-            </dl>
           </section>
         </div>
       </div>

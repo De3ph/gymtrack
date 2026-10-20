@@ -1488,11 +1488,23 @@
       "no_instructions": "No instructions have been written for this exercise yet.",
       "no_instructions_short": "No instructions yet.",
       "instructions_title": "Instructions",
-      "details_title": "Details",
-      "detail_category": "Category",
-      "detail_muscle_group": "Muscle Group",
-      "detail_equipment": "Equipment",
       "unknown": "Unknown"
+    },
+    "add_to_plan": {
+      "button": "Add to plan",
+      "title": "Add {name} to a plan",
+      "description_plan": "Choose the workout plan this exercise belongs to.",
+      "description_sets": "Set the weight, reps and rest time for each set.",
+      "plan_label": "Workout plan",
+      "plan_exercises_count": "{count, plural, =0 {No exercises} =1 {1 exercise} other {# exercises}}",
+      "already_in_plan": "Already added",
+      "no_plans": "You have no workout plans yet.",
+      "create_plan": "Create a plan",
+      "add": "Add to plan",
+      "adding": "Adding...",
+      "added_title": "Added to plan",
+      "added_description": "{name} was added to {plan}.",
+      "error_title": "Could not add the exercise"
     }
   },
   "review": {

@@ -1488,11 +1488,23 @@
       "no_instructions": "Bu egzersiz için henüz talimat yazılmadı.",
       "no_instructions_short": "Henüz talimat yok.",
       "instructions_title": "Talimatlar",
-      "details_title": "Detaylar",
-      "detail_category": "Kategori",
-      "detail_muscle_group": "Kas Grubu",
-      "detail_equipment": "Ekipman",
       "unknown": "Bilinmiyor"
+    },
+    "add_to_plan": {
+      "button": "Plana ekle",
+      "title": "{name} egzersizini plana ekle",
+      "description_plan": "Bu egzersizin ait olacağı antrenman planını seç.",
+      "description_sets": "Her set için ağırlık, tekrar ve dinlenme süresini belirle.",
+      "plan_label": "Antrenman planı",
+      "plan_exercises_count": "{count, plural, =0 {Egzersiz yok} =1 {1 egzersiz} other {# egzersiz}}",
+      "already_in_plan": "Zaten ekli",
+      "no_plans": "Henüz antrenman planın yok.",
+      "create_plan": "Plan oluştur",
+      "add": "Plana ekle",
+      "adding": "Ekleniyor...",
+      "added_title": "Plana eklendi",
+      "added_description": "{name}, {plan} planına eklendi.",
+      "error_title": "Egzersiz eklenemedi"
     }
   },
   "review": {

@@ -321,7 +321,8 @@ export interface ExerciseSearchParams {
 // --- Workout plan types (not yet in swagger) ---
 
 export interface WorkoutPlanSet {
-  setId?: number;
+  /** The backend identifies a set by a string, not by a number. */
+  setId?: string;
   weight: number;
   weightUnit: WeightUnit;
   reps: number;
