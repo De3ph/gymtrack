@@ -112,12 +112,14 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
     <>
       <div className="flex gap-2">
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogTrigger >
-            <Button variant="outline" size="sm" className="rounded-none">
-              <Edit className="w-4 h-4 mr-1" aria-hidden="true" />
-              {tCommon('actions.edit')}
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button variant="outline" size="sm" className="rounded-none">
+                <Edit className="w-4 h-4 mr-1" aria-hidden="true" />
+                {tCommon('actions.edit')}
+              </Button>
+            }
+          />
           <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
             <DialogHeader>
               <DialogTitle>{tEdit('title')}</DialogTitle>
@@ -173,12 +175,14 @@ export function ReviewActions({ review, currentUserId, onReviewUpdated }: Review
         </Dialog>
 
         <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <DialogTrigger >
-            <Button variant="destructive" size="sm" className="rounded-none">
-              <Trash2 className="w-4 h-4 mr-1" aria-hidden="true" />
-              {tCommon('actions.delete')}
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button variant="destructive" size="sm" className="rounded-none">
+                <Trash2 className="w-4 h-4 mr-1" aria-hidden="true" />
+                {tCommon('actions.delete')}
+              </Button>
+            }
+          />
           <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
             <DialogHeader>
               <DialogTitle>{tDelete('title')}</DialogTitle>

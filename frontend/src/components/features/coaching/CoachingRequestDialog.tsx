@@ -15,7 +15,7 @@ interface CoachingRequestDialogProps {
   trainerId: string | number
   trainerName: string
   onRequestSent?: () => void
-  children: React.ReactNode
+  children: React.ReactElement
 }
 
 export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, children }: CoachingRequestDialogProps) {
@@ -56,9 +56,7 @@ export function CoachingRequestDialog({ trainerId, trainerName, onRequestSent, c
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger render={children} />
       <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
         <DialogHeader>
           <DialogTitle>{t('title', { trainerName })}</DialogTitle>

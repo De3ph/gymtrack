@@ -20,7 +20,7 @@ interface CreateReviewDialogProps {
   trainerId: string
   trainerName: string
   onReviewCreated?: () => void
-  children: React.ReactNode
+  children: React.ReactElement
 }
 
 export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, children }: CreateReviewDialogProps) {
@@ -84,9 +84,7 @@ export function CreateReviewDialog({ trainerId, trainerName, onReviewCreated, ch
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger >
-        {children}
-      </DialogTrigger>
+      <DialogTrigger render={children} />
       <DialogContent className={cn("sm:max-w-md rounded-none border border-border shadow-none")}>
         <DialogHeader>
           <DialogTitle>{t('title', { trainerName })}</DialogTitle>
