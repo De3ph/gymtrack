@@ -4,7 +4,6 @@ const translationSchema = z.object({
   home: z.object({
     title: z.string(),
     eyebrow: z.string(),
-    eyebrow_badge: z.string(),
     description: z.string(),
     hero: z.object({
       title: z.string(),

@@ -40,14 +40,6 @@ const LandingProof = dynamic(
   { ssr: false, loading: () => null }
 );
 
-const sections = [
-  { index: "01", id: "hero" },
-  { index: "02", id: "console" },
-  { index: "03", id: "features" },
-  { index: "04", id: "roles" },
-  { index: "05", id: "proof" },
-] as const;
-
 /**
  * Inverted (dark) section surface. Scoped token overrides keep shadcn
  * utilities (bg-foreground, text-background, bg-muted, bg-primary, …)
@@ -85,46 +77,7 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
   return (
     <div className="relative min-h-screen overflow-x-clip bg-background text-foreground">
       <div className="mx-auto max-w-[88rem] px-6 sm:px-8 lg:px-12">
-        <div className="grid grid-cols-[auto_1fr] gap-x-8 lg:grid-cols-[6rem_1fr]">
-          <aside
-            aria-hidden="true"
-            className="relative z-10 hidden border-r border-border text-white mix-blend-difference [--foreground:#fafaf9] [--muted-foreground:#a8a29e] lg:block"
-          >
-            <motion.div
-              className="sticky top-0 flex h-screen flex-col justify-between py-8 font-mono text-[10px] uppercase tracking-[0.18em]"
-              variants={textStaggerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.span variants={textVariants} className="-rotate-90 origin-top-left translate-x-6 translate-y-6">
-                GymTrack / 2026
-              </motion.span>
-              <ul className="space-y-2">
-                {sections.map((section, i) => (
-                  <motion.li
-                    key={section.id}
-                    variants={textVariants}
-                    transition={{ delay: 0.08 + i * 0.04 }}
-                  >
-                    <a
-                      href={`#${section.id}`}
-                      className="block transition-colors hover:text-foreground"
-                    >
-                      §{section.index}
-                    </a>
-                  </motion.li>
-                ))}
-              </ul>
-              <motion.span
-                variants={textVariants}
-                transition={{ delay: 0.32 }}
-                className="-rotate-90 origin-bottom-left translate-x-6 -translate-y-6"
-              >
-                Built for measurable progress
-              </motion.span>
-            </motion.div>
-          </aside>
-
+        <div>
           <motion.main
             className="flex flex-col"
             variants={mainVariants}
@@ -157,7 +110,7 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
             >
               <div
                 aria-hidden="true"
-                className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#0c0a09] lg:-translate-x-[calc(50%_+_4rem)]"
+                className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#0c0a09]"
               >
                 <Image
                   src="/images/hero-training.jpg"
