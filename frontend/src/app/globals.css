@@ -331,6 +331,37 @@
   }
 }
 
+/* Accordion panel: height carries the open/close, opacity bridges the answer
+   text so it does not un-clip at full strength. Reduced motion keeps the
+   gentle opacity fade and drops the height movement. The two properties need
+   different durations, so the shorthand is written here rather than through
+   arbitrary utilities (Tailwind parses transition-[...] as transition-property
+   and drops the durations). */
+.accordion-panel {
+  height: var(--accordion-panel-height);
+  transition:
+    height 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 160ms ease-out;
+}
+
+.accordion-panel[data-starting-style],
+.accordion-panel[data-ending-style] {
+  opacity: 0;
+}
+
+/* On close Base UI keeps the measured height until the exit finishes, so the
+   collapsed height is declared here. Without it the answer fades out in place
+   and the panel disappears instead of collapsing. */
+.accordion-panel[data-ending-style] {
+  height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accordion-panel {
+    transition: opacity 160ms ease-out;
+  }
+}
+
 @keyframes auth-grain {
   0%, 100% { transform: translate(0, 0); }
   10% { transform: translate(-5%, -5%); }
