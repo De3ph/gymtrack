@@ -83,28 +83,30 @@ export function GlowHoverCard({
     <div className={cn("h-max w-full", className)}>
       <div
         ref={cardRef}
-        className="spotlight-card group bg-border relative overflow-hidden rounded-xl p-px transition-all duration-300 ease-in-out"
+        onClick={interactive ? onClick : undefined}
+        onKeyDown={
+          interactive
+            ? (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onClick?.();
+                }
+              }
+            : undefined
+        }
+        role={interactive ? "button" : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        className={cn(
+          "spotlight-card group bg-border relative overflow-hidden rounded-xl p-px transition-all duration-300 ease-in-out",
+          interactive &&
+            "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        )}
       >
         <Card
           className={cn(
             "group-hover:bg-card/90 max-w-80 ring-0 transition-all duration-300 ease-in-out group-hover:backdrop-blur-[20px]",
-            interactive &&
-              "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
             cardClassName,
           )}
-          onClick={onClick}
-          onKeyDown={
-            interactive
-              ? (event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onClick?.();
-                  }
-                }
-              : undefined
-          }
-          role={interactive ? "button" : undefined}
-          tabIndex={interactive ? 0 : undefined}
         >
           <CardContent>
             <CardTitle className="flex items-center gap-3 text-lg font-semibold">
@@ -120,8 +122,8 @@ export function GlowHoverCard({
             </CardTitle>
           </CardContent>
         </Card>
-        <div className="blob absolute top-0 left-0 size-20 rounded-full bg-sky-600/60 opacity-0 blur-2xl transition-all duration-300 ease-in-out dark:bg-sky-400/60" />
-        <div className="fake-blob absolute top-0 left-0 size-20 rounded-full" />
+        <div className="blob pointer-events-none absolute top-0 left-0 size-20 rounded-full bg-sky-600/60 opacity-0 blur-2xl transition-all duration-300 ease-in-out dark:bg-sky-400/60" />
+        <div className="fake-blob pointer-events-none absolute top-0 left-0 size-20 rounded-full" />
       </div>
     </div>
   );

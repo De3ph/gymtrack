@@ -116,6 +116,36 @@ describe("GlowHoverCard", () => {
     expect(blob!.style.opacity).toBe("0");
   });
 
+  it("keeps the decorative blob layers non-interactive", () => {
+    const { container } = render(<GlowHoverCard title="Clickable" onClick={vi.fn()} />);
+
+    const blob = container.querySelector<HTMLElement>(".blob");
+    const fakeBlob = container.querySelector<HTMLElement>(".fake-blob");
+
+    // The blob follows the cursor and is painted above the card. Without
+    // `pointer-events-none` it swallows every click aimed at the card.
+    expect(blob).toHaveClass("pointer-events-none");
+    expect(fakeBlob).toHaveClass("pointer-events-none");
+  });
+
+  it("clicks through the decorative blob layer", () => {
+    const onClick = vi.fn();
+    const { container } = render(
+      <GlowHoverCard title="Clickable" onClick={onClick} />,
+    );
+
+    const blob = container.querySelector<HTMLElement>(".blob")!;
+    const card = container.querySelector<HTMLElement>(".spotlight-card")!;
+
+    // Moving the pointer over the card makes the blob track the cursor.
+    fireEvent.mouseMove(card, { clientX: 120, clientY: 60 });
+    expect(blob.style.opacity).toBe("1");
+
+    // A click that lands on the blob must still reach the card.
+    fireEvent.click(blob);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
   it("removes its listeners on unmount", () => {
     const removeEventListener = vi.spyOn(HTMLElement.prototype, "removeEventListener");
 
