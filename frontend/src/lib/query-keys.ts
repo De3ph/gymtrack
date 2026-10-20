@@ -170,6 +170,7 @@ export const qk = {
     all: ["coaching-requests"] as const,
     requests: (userType: "trainer" | "athlete") =>
       ["coaching-requests", userType] as const,
+    pending: ["coaching-requests", "pending"] as const,
   },
 
   comments: {

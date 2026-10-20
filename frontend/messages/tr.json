@@ -304,6 +304,9 @@
       "athlete": "Sporcu",
       "workout_plans": "Antrenman Planları",
       "exercises": "Egzersizler",
+      "requests": "Talepler",
+      "pending_requests": "{count, plural, one {# bekleyen koçluk talebi} other {# bekleyen koçluk talebi}}",
+      "pending_requests_unknown": "Bekleyen talepler kontrol edilemedi",
       "menu": "Menü",
       "toggle_menu": "Gezinme menüsünü aç/kapat",
       "language": "Dil"

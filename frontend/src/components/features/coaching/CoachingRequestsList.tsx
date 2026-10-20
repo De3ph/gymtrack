@@ -31,7 +31,11 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   const { mutate: acceptMutate, isPending: acceptPending } = useMutation({
     mutationFn: (requestId: number) => coachingRequestApi.acceptRequest(requestId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.coaching.requests(userType) });
+      // `all` also refreshes the sidebar pending badge, which is keyed
+      // separately from this list.
+      queryClient.invalidateQueries({ queryKey: qk.coaching.all });
+      // Accepting creates a relationship, so the trainer's roster is stale.
+      queryClient.invalidateQueries({ queryKey: qk.clients.all });
     },
     onError: (err: unknown) => {
       // handle error via toast or console; keeping simple
@@ -42,7 +46,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
   const { mutate: rejectMutate, isPending: rejectPending } = useMutation({
     mutationFn: (requestId: number) => coachingRequestApi.rejectRequest(requestId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.coaching.requests(userType) });
+      queryClient.invalidateQueries({ queryKey: qk.coaching.all });
     },
     onError: (err: unknown) => {
       console.error(err);

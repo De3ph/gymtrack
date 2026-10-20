@@ -3,6 +3,7 @@
 import {
   ClipboardList,
   Dumbbell,
+  Inbox,
   LayoutDashboard,
   Library,
   Ruler,
@@ -67,6 +68,12 @@ export function useNavItems(userRole?: string): NavItem[] {
           activeMatch: "endsWith",
         },
         {
+          href: ROUTES.ATHLETE_REQUESTS,
+          label: tNav("requests"),
+          icon: Inbox,
+          activeMatch: "endsWith",
+        },
+        {
           href: ROUTES.ATHLETE_WORKOUT_PLANS,
           label: tNav("workout_plans"),
           icon: ClipboardList,
@@ -86,6 +93,12 @@ export function useNavItems(userRole?: string): NavItem[] {
           href: ROUTES.TRAINER_CLIENTS,
           label: tTrainer("clients.title"),
           icon: Users,
+          activeMatch: "endsWith",
+        },
+        {
+          href: ROUTES.TRAINER_REQUESTS,
+          label: tNav("requests"),
+          icon: Inbox,
           activeMatch: "endsWith",
         },
         {

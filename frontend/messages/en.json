@@ -304,6 +304,9 @@
       "athlete": "Athlete",
       "workout_plans": "Workout Plans",
       "exercises": "Exercises",
+      "requests": "Requests",
+      "pending_requests": "{count, plural, one {# pending coaching request} other {# pending coaching requests}}",
+      "pending_requests_unknown": "Pending requests could not be checked",
       "menu": "Menu",
       "toggle_menu": "Toggle navigation menu",
       "language": "Language"

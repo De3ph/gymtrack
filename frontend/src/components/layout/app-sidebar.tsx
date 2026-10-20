@@ -13,6 +13,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
@@ -24,12 +25,44 @@ import { useNavItems, isNavItemActive } from "./nav-items";
 import { SIDEBAR_ITEM_SPACING } from "./dashboard-styles";
 import { ThemeToggle } from "./theme-toggle";
 import { LocaleToggle } from "./locale-toggle";
+import { usePendingCoachingRequestsCount } from "@/hooks/use-pending-coaching-requests";
 import { ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
   userRole?: string;
   userName?: string;
   onLogout: () => void;
+}
+
+/**
+ * Count pill (or failure marker) for a nav row.
+ *
+ * Decorative: the count/failure is folded into the link's accessible name, so
+ * this stays `aria-hidden`.
+ */
+function NavBadge({ count, failed }: { count: number; failed: boolean }) {
+  if (count > 0) {
+    return (
+      <SidebarMenuBadge
+        aria-hidden="true"
+        className="rounded-full bg-primary px-1.5 text-primary-foreground"
+      >
+        {count > 99 ? "99+" : count}
+      </SidebarMenuBadge>
+    );
+  }
+
+  if (!failed) return null;
+
+  return (
+    <SidebarMenuBadge
+      aria-hidden="true"
+      className="rounded-full bg-muted px-1.5 text-muted-foreground"
+    >
+      !
+    </SidebarMenuBadge>
+  );
 }
 
 /** Initials for the avatar fallback, e.g. "Ada Lovelace" -> "AL". */
@@ -48,6 +81,9 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
   const tNav = useTranslations("common.navigation");
   const pathname = usePathname();
   const items = useNavItems(userRole);
+  const pendingRequests = usePendingCoachingRequestsCount(
+    userRole === "trainer"
+  );
   const { isMobile, setOpenMobile } = useSidebar();
 
   const profileHref =
@@ -95,24 +131,49 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
             {items.map((item) => {
               const isActive = isNavItemActive(pathname, item);
               const Icon = item.icon;
+              // Only the trainer's Requests row carries a live count.
+              const isRequestsItem = item.href === ROUTES.TRAINER_REQUESTS;
+              const badgeCount = isRequestsItem ? pendingRequests.count : 0;
+              const badgeFailed = isRequestsItem && pendingRequests.isError;
+              // The pill is decorative, so the count (or the failure) lives in
+              // the link's accessible name instead of adding an extra child.
+              const accessibleLabel =
+                badgeCount > 0
+                  ? `${item.label}, ${tNav("pending_requests", {
+                      count: badgeCount,
+                    })}`
+                  : badgeFailed
+                    ? `${item.label}, ${tNav("pending_requests_unknown")}`
+                    : undefined;
 
               return (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     isActive={isActive}
-                    tooltip={item.label}
-                    className={SIDEBAR_ITEM_SPACING}
+                    // Collapsed to icons the badge is hidden, so fold the count
+                    // into the tooltip to keep the signal reachable.
+                    tooltip={
+                      badgeCount > 0
+                        ? `${item.label} (${badgeCount})`
+                        : item.label
+                    }
+                    className={cn(
+                      SIDEBAR_ITEM_SPACING,
+                      (badgeCount > 0 || badgeFailed) && "pr-10"
+                    )}
                     aria-current={isActive ? "page" : undefined}
                     render={
                       <Link
                         href={item.href}
                         onClick={closeMobileOnNavigate}
+                        aria-label={accessibleLabel}
                       />
                     }
                   >
                     <Icon aria-hidden="true" />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
+                  <NavBadge count={badgeCount} failed={badgeFailed} />
                 </SidebarMenuItem>
               );
             })}
