@@ -122,7 +122,7 @@ export function GlowHoverCard({
             </CardTitle>
           </CardContent>
         </Card>
-        <div className="blob pointer-events-none absolute top-0 left-0 size-20 rounded-full bg-sky-600/60 opacity-0 blur-2xl transition-all duration-300 ease-in-out dark:bg-sky-400/60" />
+        <div className="blob pointer-events-none absolute top-0 left-0 size-20 rounded-full bg-red-800/60 opacity-0 blur-2xl transition-all duration-300 ease-in-out dark:bg-red-400/60" />
         <div className="fake-blob pointer-events-none absolute top-0 left-0 size-20 rounded-full" />
       </div>
     </div>

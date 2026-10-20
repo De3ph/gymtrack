@@ -556,8 +556,6 @@
     },
     "calendar": {
       "loading": "Takvim yükleniyor...",
-      "workout": "Antrenman",
-      "meal": "Öğün",
       "events": {
         "workout": "Antrenman",
         "exercises": "hareket",
@@ -847,7 +845,6 @@
     "title": "Antrenör",
     "dashboard": {
       "title": "Danışan odası, sakin.",
-      "eyebrow": "Antrenör komuta merkezi",
       "description": "Güne ilgi bekleyen sporcularla başla, sonra davet, plan ve danışan incelemelerine dağınıklık olmadan geç.",
       "clients": "Danışanlarım",
       "recent_activity": "Son Aktiviteler",
@@ -1152,7 +1149,6 @@
     "title": "Sporcu",
     "dashboard": {
       "title": "Bugün net, ilerleme görünür.",
-      "eyebrow": "Sporcu komuta merkezi",
       "description": "Hafta sinyalini gör, antrenman ve öğünleri tek takvimde tut, aktif koçun varsa bağlantını koru.",
       "workouts": "Antrenmanlarım",
       "meals": "Öğünlerim",
@@ -1164,11 +1160,8 @@
       "trainer_empty": "Henüz koç bağlı değil",
       "trainer_connected_description": "Koç profilini ve bağlamını aç.",
       "log_workout": "Antrenman kaydet",
-      "log_workout_description": "Set, tekrar ve yükü yakala.",
       "log_meal": "Öğün kaydet",
-      "log_meal_description": "Yiyecek ve makroları takip et.",
       "calendar": "Takvimi aç",
-      "calendar_description": "Tarihe göre antrenman ve öğünleri incele.",
       "find_trainer": "Antrenör bul",
       "find_trainer_description": "Koçlara göz at ve istek gönder."
     },
@@ -1489,10 +1482,6 @@
     "library": {
       "title": "Egzersiz Kütüphanesi",
       "subtitle": "Katalogdaki tüm egzersizleri gösterim videosu ve adım adım talimatlarla incele.",
-      "filter_search": "Ara",
-      "filter_category": "Kategori",
-      "filter_muscle_group": "Kas Grubu",
-      "filter_equipment": "Ekipman",
       "search_placeholder": "Ada veya talimata göre ara...",
       "all_categories": "Tüm Kategoriler",
       "all_muscle_groups": "Tüm Kas Grupları",

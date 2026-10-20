@@ -40,9 +40,12 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-center font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
-        {formatDate(date, "dddd, MMMM D, YYYY")}
-      </p>
+      <div>
+        <p className="text-center font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
+          {formatDate(date, "dddd, MMMM D, YYYY")}
+        </p>
+      </div>
+
       <ul className="border border-border divide-y divide-border">
         {events.map((event) => (
           <DashboardEventItem key={`${event.kind}-${event.id}`} event={event} />

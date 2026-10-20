@@ -140,9 +140,6 @@ export function ExerciseLibraryFilters({
     <div className={cn("space-y-4 border border-border px-4 py-4", className)}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
         <div className="flex-1 space-y-1.5">
-          <label htmlFor="exercise-library-search" className={LABEL_CLASS}>
-            {t("filter_search")}
-          </label>
           <div className="relative">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
@@ -162,7 +159,7 @@ export function ExerciseLibraryFilters({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <FilterSelect
             id="exercise-library-category"
-            label={t("filter_category")}
+            label={""}
             items={categoryItems}
             value={value.category ?? ALL}
             onValueChange={(next) =>
@@ -175,7 +172,7 @@ export function ExerciseLibraryFilters({
 
           <FilterSelect
             id="exercise-library-muscle-group"
-            label={t("filter_muscle_group")}
+            label={""}
             items={muscleGroupItems}
             value={value.muscleGroupId ? String(value.muscleGroupId) : ALL}
             onValueChange={(next) =>
@@ -188,7 +185,7 @@ export function ExerciseLibraryFilters({
 
           <FilterSelect
             id="exercise-library-equipment"
-            label={t("filter_equipment")}
+            label={""}
             items={equipmentItems}
             value={value.equipmentId ? String(value.equipmentId) : ALL}
             onValueChange={(next) =>

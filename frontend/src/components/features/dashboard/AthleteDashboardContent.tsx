@@ -77,7 +77,6 @@ export function AthleteDashboardContent() {
 
   return (
     <DashboardShell
-      eyebrow={tAthlete("eyebrow")}
       title={tAthlete("title")}
       description={tAthlete("description")}
     >

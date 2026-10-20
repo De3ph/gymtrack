@@ -838,7 +838,6 @@ const translationSchema = z.object({
     title: z.string(),
     dashboard: z.object({
       title: z.string(),
-      eyebrow: z.string(),
       description: z.string(),
       clients: z.string(),
       recent_activity: z.string(),
@@ -1143,7 +1142,6 @@ const translationSchema = z.object({
     title: z.string(),
     dashboard: z.object({
       title: z.string(),
-      eyebrow: z.string(),
       description: z.string(),
       workouts: z.string(),
       meals: z.string(),
@@ -1155,11 +1153,8 @@ const translationSchema = z.object({
       trainer_empty: z.string(),
       trainer_connected_description: z.string(),
       log_workout: z.string(),
-      log_workout_description: z.string(),
       log_meal: z.string(),
-      log_meal_description: z.string(),
       calendar: z.string(),
-      calendar_description: z.string(),
       find_trainer: z.string(),
       find_trainer_description: z.string(),
     }),

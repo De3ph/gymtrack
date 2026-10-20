@@ -556,8 +556,6 @@
     },
     "calendar": {
       "loading": "Loading calendar...",
-      "workout": "Workout",
-      "meal": "Meal",
       "events": {
         "workout": "Workout",
         "exercises": "exercises",
@@ -847,7 +845,6 @@
     "title": "Trainer",
     "dashboard": {
       "title": "Client room, calm.",
-      "eyebrow": "Trainer command center",
       "description": "Start each day with the athletes who need attention, then move into invites, plans, and client reviews without clutter.",
       "clients": "My Clients",
       "recent_activity": "Recent Activity",
@@ -1152,7 +1149,6 @@
     "title": "Athlete",
     "dashboard": {
       "title": "Your training day, clear.",
-      "eyebrow": "Athlete command center",
       "description": "See the week signal, keep workouts and meals on one calendar, and stay connected to your coach when guidance is active.",
       "workouts": "My Workouts",
       "meals": "My Meals",
@@ -1164,11 +1160,8 @@
       "trainer_empty": "No trainer connected yet",
       "trainer_connected_description": "Open trainer profile and context.",
       "log_workout": "Log workout",
-      "log_workout_description": "Capture sets, reps, and load.",
       "log_meal": "Log meal",
-      "log_meal_description": "Track food and macros.",
       "calendar": "Open calendar",
-      "calendar_description": "Review workouts and meals by date.",
       "find_trainer": "Find trainer",
       "find_trainer_description": "Browse coaches and send a request."
     },
@@ -1489,10 +1482,6 @@
     "library": {
       "title": "Exercise Library",
       "subtitle": "Browse every exercise in the catalog with demonstration media and step-by-step instructions.",
-      "filter_search": "Search",
-      "filter_category": "Category",
-      "filter_muscle_group": "Muscle Group",
-      "filter_equipment": "Equipment",
       "search_placeholder": "Search by name or instructions...",
       "all_categories": "All Categories",
       "all_muscle_groups": "All Muscle Groups",

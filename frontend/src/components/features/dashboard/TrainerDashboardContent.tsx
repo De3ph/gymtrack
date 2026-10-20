@@ -84,7 +84,6 @@ export function TrainerDashboardContent() {
   };
 
   const shellProps = {
-    eyebrow: tTrainer("eyebrow"),
     title: tTrainer("title"),
     description: tTrainer("description"),
   } as const;

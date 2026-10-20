@@ -108,18 +108,6 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
 
       {latest && (
         <Card className="rounded-none border border-border shadow-none ring-0">
-          <CardHeader className="rounded-none border-b border-border pb-3">
-            <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              {t("latest.title")}
-            </CardTitle>
-            <CardDescription className="font-mono text-xs">
-              {new Date(latest.date).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </CardDescription>
-          </CardHeader>
           <CardContent className="flex flex-wrap gap-16">
             <div className="flex flex-col justify-between">
               <div>{t("latest.title")}</div>

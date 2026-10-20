@@ -7,13 +7,12 @@ import { ReactNode } from "react";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 interface DashboardShellProps {
-  eyebrow: string;
   title: string;
   description: string;
   children: ReactNode;
 }
 
-export function DashboardShell({ eyebrow, title, description, children }: DashboardShellProps) {
+export function DashboardShell({ title, description, children }: DashboardShellProps) {
   return (
     <motion.div
       className="space-y-8"
@@ -26,9 +25,6 @@ export function DashboardShell({ eyebrow, title, description, children }: Dashbo
         className="border border-border bg-card px-6 py-6 sm:px-8 sm:py-8"
       >
         <div className="max-w-3xl space-y-4">
-          <span className="inline-flex items-center border border-border bg-background px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {eyebrow}
-          </span>
           <h1 className="font-mono text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-5xl">
             {title}
           </h1>

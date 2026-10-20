@@ -16,9 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
