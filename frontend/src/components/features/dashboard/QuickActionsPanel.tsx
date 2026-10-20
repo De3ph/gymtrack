@@ -1,6 +1,7 @@
 "use client";
 
 import { GlowHoverCard } from "@/components/shadcn-studio/card/glow-hover-card";
+import { BentoGrid } from "@/components/ui/bento-grid";
 import { ROUTES } from "@/lib/routes";
 import { CalendarDays, Dumbbell, UtensilsCrossed } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -12,7 +13,11 @@ export function QuickActionsPanel() {
 
   return (
     <div className="border border-border bg-card">
-      <div className="grid grid-cols-2 gap-3 p-4 sm:px-8">
+      <BentoGrid
+        columns={2}
+        density="compact"
+        className="grid-cols-2 auto-rows-auto p-4 sm:px-8"
+      >
         <GlowHoverCard
           title={tAthlete("log_workout")}
           icon={<Dumbbell className="size-4" aria-hidden="true" />}
@@ -31,7 +36,7 @@ export function QuickActionsPanel() {
           cardClassName="w-full max-w-none"
           onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
         />
-      </div>
+      </BentoGrid>
     </div>
   );
 }
