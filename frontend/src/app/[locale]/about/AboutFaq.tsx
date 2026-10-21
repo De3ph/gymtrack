@@ -21,11 +21,11 @@ export function AboutFaq({ items }: { items: AboutFaqItem[] }) {
           value={`faq-${index}`}
           className="border-b border-border"
         >
-          <AccordionTrigger className="py-5 text-[15px] sm:py-6 sm:text-base">
+          <AccordionTrigger className="py-5 text-heading-lg sm:py-6">
             {item.question}
           </AccordionTrigger>
           <AccordionContent>
-            <p className="max-w-[62ch] pb-6 text-[15px] leading-7 text-muted-foreground">
+            <p className="max-w-[62ch] pb-6 text-body text-muted-foreground">
               {item.answer}
             </p>
           </AccordionContent>

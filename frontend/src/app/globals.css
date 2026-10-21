@@ -115,6 +115,88 @@
     --radius-3xl: calc(var(--radius) + 12px);
     --radius-4xl: calc(var(--radius) + 16px);
     --font-heading: var(--font-sans);
+
+    /* ── Type scale ──
+       One display tier, three heading tiers, a quiet text tier.
+       Each --text-<name> token carries size, line-height, weight and
+       letter-spacing, so a component cannot get its leading wrong.
+       See .agents/skills/typography-audit/SKILL.md for the contract. */
+    --text-heading-xl: 32px;
+    --text-heading-xl--line-height: 1.2;
+    --text-heading-xl--letter-spacing: 0em;
+    --text-heading-xl--font-weight: 500;
+
+    /* Display tier — hero / campaign lockup only, one per viewport.
+       Size steps mirror the editorial scale, weight stays at 500. */
+    --text-display-sm: 36px;
+    --text-display-sm--line-height: 1.1;
+    --text-display-sm--letter-spacing: 0em;
+    --text-display-sm--font-weight: 500;
+
+    --text-display: 48px;
+    --text-display--line-height: 1.05;
+    --text-display--letter-spacing: 0em;
+    --text-display--font-weight: 500;
+
+    --text-display-lg: 60px;
+    --text-display-lg--line-height: 1.02;
+    --text-display-lg--letter-spacing: 0em;
+    --text-display-lg--font-weight: 500;
+
+    --text-display-xl: 96px;
+    --text-display-xl--line-height: 0.9;
+    --text-display-xl--letter-spacing: 0em;
+    --text-display-xl--font-weight: 500;
+
+    --text-heading-lg: 24px;
+    --text-heading-lg--line-height: 1.2;
+    --text-heading-lg--letter-spacing: 0em;
+    --text-heading-lg--font-weight: 500;
+
+    --text-heading-md: 16px;
+    --text-heading-md--line-height: 1.75;
+    --text-heading-md--letter-spacing: 0em;
+    --text-heading-md--font-weight: 500;
+
+    --text-body: 16px;
+    --text-body--line-height: 1.5;
+    --text-body--letter-spacing: 0em;
+    --text-body--font-weight: 400;
+
+    --text-body-strong: 16px;
+    --text-body-strong--line-height: 1.5;
+    --text-body-strong--letter-spacing: 0em;
+    --text-body-strong--font-weight: 500;
+
+    --text-button-md: 16px;
+    --text-button-md--line-height: 1.5;
+    --text-button-md--letter-spacing: 0em;
+    --text-button-md--font-weight: 500;
+
+    --text-button-sm: 14px;
+    --text-button-sm--line-height: 1.5;
+    --text-button-sm--letter-spacing: 0em;
+    --text-button-sm--font-weight: 500;
+
+    --text-caption: 14px;
+    --text-caption--line-height: 1.5;
+    --text-caption--letter-spacing: 0em;
+    --text-caption--font-weight: 500;
+
+    --text-caption-sm: 12px;
+    --text-caption-sm--line-height: 1.5;
+    --text-caption-sm--letter-spacing: 0em;
+    --text-caption-sm--font-weight: 500;
+
+    --text-utility: 9px;
+    --text-utility--line-height: 1.75;
+    --text-utility--letter-spacing: 0em;
+    --text-utility--font-weight: 500;
+
+    --text-link: 16px;
+    --text-link--line-height: 1.75;
+    --text-link--letter-spacing: 0em;
+    --text-link--font-weight: 500;
 }
 
 :root {
