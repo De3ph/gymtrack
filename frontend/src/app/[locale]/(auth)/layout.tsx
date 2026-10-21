@@ -15,7 +15,7 @@ export default function AuthLayout({
       <div className="relative flex w-full flex-col items-center justify-center overflow-auto bg-background px-6 py-12 lg:px-16">
         <div className="absolute left-0 top-0 h-1 w-full bg-primary lg:left-0 lg:top-0 lg:h-full lg:w-1" />
         <div className="w-full max-w-2xl">{children}</div>
-        <p className="mt-12 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground/40">
+        <p className="mt-12 text-center font-mono text-caption-sm text-muted-foreground/40">
           GymTrack
         </p>
       </div>

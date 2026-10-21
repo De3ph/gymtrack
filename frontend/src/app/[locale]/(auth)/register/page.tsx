@@ -22,6 +22,13 @@ import {
   type IntRange,
 } from "@/lib/validations/profile"
 
+// Type-scale utilities for the shared primitives. The Label/Input primitives
+// ship `text-sm font-semibold leading-none`, which is off-scale; passing the
+// token here lets twMerge drop those classes at the call site instead of
+// editing the primitive for every consumer.
+const labelClass = "text-caption-sm font-medium leading-normal"
+const inputClass = "text-body-strong md:text-body-strong"
+
 export default function RegisterPage() {
   const router = useRouter()
   const { login } = useAuthStore()
@@ -121,17 +128,17 @@ export default function RegisterPage() {
 
   return (
     <div className='rounded-none border border-border p-6 sm:p-8'>
-      <p className='font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+      <p className='font-mono text-caption-sm text-muted-foreground'>
         Account
       </p>
-      <h2 className='mb-6 mt-2 font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground'>
+      <h1 className='mb-6 mt-2 font-mono text-heading-xl text-foreground'>
         {t("title")}
-      </h2>
+      </h1>
 
       {error && (
         <div
           role='alert'
-          className='mb-4 rounded-none border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive'
+          className='mb-4 rounded-none border border-destructive/20 bg-destructive/5 p-3 text-caption text-destructive'
         >
           {error}
         </div>
@@ -160,8 +167,9 @@ export default function RegisterPage() {
         >
           {(field) => (
             <Field>
-              <FieldLabel htmlFor='username'>{t("username.label")}</FieldLabel>
+              <FieldLabel className={labelClass} htmlFor='username'>{t("username.label")}</FieldLabel>
               <Input
+                className={inputClass}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -191,8 +199,9 @@ export default function RegisterPage() {
         >
           {(field) => (
             <Field>
-              <FieldLabel htmlFor='email'>{t("email.label")}</FieldLabel>
+              <FieldLabel className={labelClass} htmlFor='email'>{t("email.label")}</FieldLabel>
               <Input
+                className={inputClass}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -222,8 +231,9 @@ export default function RegisterPage() {
         >
           {(field) => (
             <Field>
-              <FieldLabel htmlFor='password'>{t("password.label")}</FieldLabel>
+              <FieldLabel className={labelClass} htmlFor='password'>{t("password.label")}</FieldLabel>
               <Input
+                className={inputClass}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -254,10 +264,11 @@ export default function RegisterPage() {
         >
           {(field) => (
             <Field>
-              <FieldLabel htmlFor='confirmPassword'>
+              <FieldLabel className={labelClass} htmlFor='confirmPassword'>
                 {t("confirm_password.label")}
               </FieldLabel>
               <Input
+                className={inputClass}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -274,7 +285,7 @@ export default function RegisterPage() {
         <form.Field name='role'>
           {(field) => (
             <Field>
-              <FieldLabel>{t("role.label")}</FieldLabel>
+              <FieldLabel className={labelClass}>{t("role.label")}</FieldLabel>
               <div className='flex gap-6'>
                 <label className='flex cursor-pointer items-center gap-2'>
                   <input
@@ -284,7 +295,7 @@ export default function RegisterPage() {
                     onChange={() => field.handleChange("athlete")}
                     className='accent-primary'
                   />
-                  <span className='text-sm text-foreground'>
+                  <span className='text-body text-foreground'>
                     {t("role.athlete")}
                   </span>
                 </label>
@@ -296,7 +307,7 @@ export default function RegisterPage() {
                     onChange={() => field.handleChange("trainer")}
                     className='accent-primary'
                   />
-                  <span className='text-sm text-foreground'>
+                  <span className='text-body text-foreground'>
                     {t("role.trainer")}
                   </span>
                 </label>
@@ -318,8 +329,9 @@ export default function RegisterPage() {
         >
           {(field) => (
             <Field>
-              <FieldLabel htmlFor='name'>{t("name.label")}</FieldLabel>
+              <FieldLabel className={labelClass} htmlFor='name'>{t("name.label")}</FieldLabel>
               <Input
+                className={inputClass}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -342,10 +354,11 @@ export default function RegisterPage() {
                     <form.Field name='age' validators={intRule(PROFILE_RANGES.age)}>
                       {(field) => (
                         <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
-                          <FieldLabel htmlFor='age'>
+                          <FieldLabel className={labelClass} htmlFor='age'>
                             {t("age.label")}
                           </FieldLabel>
                           <Input
+                            className={inputClass}
                             value={field.state.value}
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
@@ -365,10 +378,11 @@ export default function RegisterPage() {
                     <form.Field name='weight' validators={intRule(PROFILE_RANGES.weight)}>
                       {(field) => (
                         <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
-                          <FieldLabel htmlFor='weight'>
+                          <FieldLabel className={labelClass} htmlFor='weight'>
                             {t("weight.label")}
                           </FieldLabel>
                           <Input
+                            className={inputClass}
                             value={field.state.value}
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
@@ -390,10 +404,11 @@ export default function RegisterPage() {
                   <form.Field name='height' validators={intRule(PROFILE_RANGES.height)}>
                     {(field) => (
                       <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
-                        <FieldLabel htmlFor='height'>
+                        <FieldLabel className={labelClass} htmlFor='height'>
                           {t("height.label")}
                         </FieldLabel>
                         <Input
+                          className={inputClass}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -414,10 +429,11 @@ export default function RegisterPage() {
                   <form.Field name='fitnessGoals'>
                     {(field) => (
                       <Field>
-                        <FieldLabel htmlFor='fitnessGoals'>
+                        <FieldLabel className={labelClass} htmlFor='fitnessGoals'>
                           {t("fitness_goals.label")}
                         </FieldLabel>
                         <Textarea
+                          className={inputClass}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -436,10 +452,11 @@ export default function RegisterPage() {
                   <form.Field name='certifications'>
                     {(field) => (
                       <Field>
-                        <FieldLabel htmlFor='certifications'>
+                        <FieldLabel className={labelClass} htmlFor='certifications'>
                           {t("certifications.label")}
                         </FieldLabel>
                         <Input
+                          className={inputClass}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -454,10 +471,11 @@ export default function RegisterPage() {
                   <form.Field name='specializations'>
                     {(field) => (
                       <Field>
-                        <FieldLabel htmlFor='specializations'>
+                        <FieldLabel className={labelClass} htmlFor='specializations'>
                           {t("specializations.label")}
                         </FieldLabel>
                         <Input
+                          className={inputClass}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -476,7 +494,7 @@ export default function RegisterPage() {
         <Button
           type='submit'
           disabled={isLoading}
-          className='w-full rounded-none px-4 py-2 font-mono text-xs uppercase tracking-[0.18em]'
+          className='w-full rounded-none px-4 py-2 font-mono text-button-sm font-medium'
         >
           {isLoading ? (
             <>
@@ -487,11 +505,11 @@ export default function RegisterPage() {
           )}
         </Button>
 
-        <p className='mt-4 text-center text-sm text-muted-foreground'>
+        <p className='mt-4 text-center text-caption-sm text-muted-foreground'>
           {t("has_account")}{" "}
           <a
             href={ROUTES.LOGIN}
-            className='font-mono text-xs font-medium uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary'
+            className='font-mono text-caption-sm text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary'
           >
             {t("sign_in")}
           </a>

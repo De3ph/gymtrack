@@ -39,7 +39,7 @@ function SessionExpiredNotice() {
       animate={{ opacity: 1, x: 0 }}
       className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
     >
-      <p className="text-sm text-destructive">{t("session_expired_notice")}</p>
+      <p className="text-caption text-destructive">{t("session_expired_notice")}</p>
     </motion.div>
   );
 }
@@ -84,12 +84,12 @@ export default function LoginPage() {
       <motion.div variants={reveal} className="mb-8 h-1 w-12 bg-primary" />
 
       <motion.div variants={reveal} className="mb-10">
-        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+        <p className="font-mono text-caption-sm text-muted-foreground">
           Account
         </p>
-        <h2 className="mt-2 font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
+        <h1 className="mt-2 font-mono text-heading-xl text-foreground">
           {t("title")}
-        </h2>
+        </h1>
       </motion.div>
 
       <Suspense fallback={null}>
@@ -102,7 +102,7 @@ export default function LoginPage() {
           animate={{ opacity: 1, x: 0 }}
           className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
         >
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-caption text-destructive">{error}</p>
         </motion.div>
       )}
 
@@ -139,7 +139,7 @@ export default function LoginPage() {
               <Field>
                 <FieldLabel
                   htmlFor="identifier"
-                  className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground"
+                  className="mb-2 font-mono text-caption-sm font-medium leading-normal text-muted-foreground"
                 >
                   {t("email.label")}
                 </FieldLabel>
@@ -157,7 +157,7 @@ export default function LoginPage() {
                   id="identifier"
                   
                   placeholder={t("email.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-semibold text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-body-strong md:text-body-strong text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
                   aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
@@ -185,7 +185,7 @@ export default function LoginPage() {
               <Field>
                 <FieldLabel
                   htmlFor="password"
-                  className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground"
+                  className="mb-2 font-mono text-caption-sm font-medium leading-normal text-muted-foreground"
                 >
                   {t("password.label")}
                 </FieldLabel>
@@ -200,7 +200,7 @@ export default function LoginPage() {
                   id="password"
                   
                   placeholder={t("password.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-semibold text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-body-strong md:text-body-strong text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
                   aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
@@ -212,7 +212,7 @@ export default function LoginPage() {
         <motion.div variants={reveal} className="pt-1 text-right">
           <a
             href={ROUTES.FORGOT_PASSWORD}
-            className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
+            className="font-mono text-caption-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             {t("forgot_password")}
           </a>
@@ -222,7 +222,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-none px-8 py-4 font-mono text-xs uppercase tracking-[0.18em]"
+            className="w-full rounded-none px-8 py-4 font-mono text-button-sm font-medium"
           >
             <span className="flex items-center justify-center gap-3">
               {isLoading ? (
@@ -246,11 +246,11 @@ export default function LoginPage() {
         className="mt-12 flex items-center gap-2"
       >
         <Separator className="flex-1" />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-caption-sm text-muted-foreground">
           {t("no_account")}{" "}
           <a
             href={ROUTES.REGISTER}
-            className="font-mono text-xs font-medium uppercase tracking-[0.1em] text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary"
+            className="font-mono text-caption-sm text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary"
           >
             {t("sign_up")}
           </a>
