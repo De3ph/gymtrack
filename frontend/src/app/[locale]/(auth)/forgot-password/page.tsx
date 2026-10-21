@@ -19,6 +19,7 @@ import { useReducedMotion } from "@/components/features/landing/useReducedMotion
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth.forgot_password");
+  const tAuth = useTranslations("auth");
   const reducedMotion = useReducedMotion();
   const [submittedEmail, setSubmittedEmail] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -74,7 +75,7 @@ export default function ForgotPasswordPage() {
 
         <motion.div variants={reveal} className="mb-10">
           <p className="font-mono text-xs font-medium text-muted-foreground">
-            Account
+            {tAuth("account")}
           </p>
           <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
             {t("success.title")}
@@ -152,7 +153,7 @@ export default function ForgotPasswordPage() {
 
       <motion.div variants={reveal} className="mb-10">
         <p className="font-mono text-xs font-medium text-muted-foreground">
-          Account
+          {tAuth("account")}
         </p>
         <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
           {t("title")}

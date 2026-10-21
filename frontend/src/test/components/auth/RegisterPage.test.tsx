@@ -46,8 +46,11 @@ describe('RegisterPage', () => {
 
   const username = () => screen.getByLabelText(/username/i)
   const email = () => screen.getByRole('textbox', { name: /email/i })
-  const password = () => screen.getByLabelText(/^password/i)
-  const confirmPassword = () => screen.getByLabelText(/confirm password/i)
+  // `selector: 'input'` keeps these queries off the show/hide toggle buttons,
+  // whose accessible names also contain "password".
+  const password = () => screen.getByLabelText(/^password/i, { selector: 'input' })
+  const confirmPassword = () =>
+    screen.getByLabelText(/confirm password/i, { selector: 'input' })
   const name = () => screen.getByLabelText(/full name/i)
   const submit = () => screen.getByRole('button', { name: /create account/i })
 

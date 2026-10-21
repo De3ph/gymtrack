@@ -41,7 +41,7 @@ describe('LoginPage', () => {
     render(<LoginPage />)
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/password/i, { selector: 'input' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
     expect(screen.getByText(/don't have an account/i)).toBeInTheDocument()
     expect(screen.getByText(/sign up/i)).toBeInTheDocument()
@@ -96,7 +96,7 @@ describe('LoginPage', () => {
     render(<LoginPage />)
 
     const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
+    const passwordInput = screen.getByLabelText(/password/i, { selector: 'input' })
     const submitButton = screen.getByRole('button', { name: /login/i })
 
     await user.type(emailInput, 'test@example.com')
@@ -116,7 +116,7 @@ describe('LoginPage', () => {
     render(<LoginPage />)
 
     const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
+    const passwordInput = screen.getByLabelText(/password/i, { selector: 'input' })
     const submitButton = screen.getByRole('button', { name: /login/i })
 
     await user.type(emailInput, 'test@example.com')
@@ -135,7 +135,7 @@ describe('LoginPage', () => {
     render(<LoginPage />)
 
     const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
+    const passwordInput = screen.getByLabelText(/password/i, { selector: 'input' })
     const submitButton = screen.getByRole('button', { name: /login/i })
 
     await user.type(emailInput, 'test@example.com')
@@ -156,7 +156,7 @@ describe('LoginPage', () => {
     render(<LoginPage />)
 
     const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
+    const passwordInput = screen.getByLabelText(/password/i, { selector: 'input' })
     const submitButton = screen.getByRole('button', { name: /login/i })
 
     await user.type(emailInput, 'test@example.com')

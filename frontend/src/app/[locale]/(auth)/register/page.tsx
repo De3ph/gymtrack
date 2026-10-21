@@ -16,25 +16,95 @@ import { Field, FieldLabel, fieldErrorId } from "@/components/ui/field"
 import { FieldInfo } from "@/components/ui/form-field"
 import { useTranslations } from "next-intl"
 import {
+  Award,
+  ArrowRight,
+  Cake,
+  Dumbbell,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Ruler,
+  Scale,
+  Target,
+  User,
+  UserRound,
+  type LucideIcon
+} from "lucide-react"
+import {
   checkOptionalInt,
   parseOptionalInt,
   PROFILE_RANGES,
   type IntRange,
 } from "@/lib/validations/profile"
+import { cn } from "@/lib/utils"
 
 // Type-scale utilities for the shared primitives. The Label/Input primitives
 // ship `text-sm font-semibold leading-none`, which is off-scale; passing the
 // token here lets twMerge drop those classes at the call site instead of
 // editing the primitive for every consumer.
-const labelClass = "text-xs font-medium leading-normal"
-const inputClass = "text-base font-medium"
+const labelClass =
+  "mb-2 font-mono text-xs font-medium leading-normal text-muted-foreground"
+
+// Auth field identity, shared with the login page: an underline-only field
+// with a leading glyph and a focus-driven color shift on that glyph.
+const fieldClass =
+  "block w-full border-0 border-b border-border bg-transparent py-3 pl-10 pr-0 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+const fieldIconClass =
+  "pointer-events-none absolute left-0 top-1/2 size-5 -translate-y-1/2 text-muted-foreground transition-colors duration-200 group-focus-within:text-primary"
+const toggleClass =
+  "absolute right-0 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+
+type IconInputProps = React.ComponentProps<typeof Input> & {
+  icon: LucideIcon
+  trailing?: React.ReactNode
+}
+
+function IconInput({ icon: Icon, trailing, className, ...props }: IconInputProps) {
+  return (
+    <div className="group relative">
+      <Icon className={fieldIconClass} aria-hidden="true" />
+      <Input
+        className={cn(fieldClass, trailing ? "pr-11" : null, className)}
+        {...props}
+      />
+      {trailing}
+    </div>
+  )
+}
+
+type IconTextareaProps = React.ComponentProps<typeof Textarea> & {
+  icon: LucideIcon
+}
+
+function IconTextarea({ icon: Icon, className, ...props }: IconTextareaProps) {
+  return (
+    <div className="group relative">
+      <Icon
+        className="pointer-events-none absolute left-0 top-2.5 size-5 text-muted-foreground transition-colors duration-200 group-focus-within:text-primary"
+        aria-hidden="true"
+      />
+      <Textarea
+        className={cn(
+          "block w-full resize-none border-0 border-b border-border bg-transparent py-3 pl-10 pr-0 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive",
+          className
+        )}
+        {...props}
+      />
+    </div>
+  )
+}
+
 
 export default function RegisterPage() {
   const router = useRouter()
   const { login } = useAuthStore()
   const [error, setError] = useState<string>("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const t = useTranslations("auth.register")
+  const tAuth = useTranslations("auth")
   // Same bounds and message as the profile form (models.UserProfile stores
   // these as int), so both live in the shared namespace.
   const tCommon = useTranslations("common")
@@ -127,20 +197,23 @@ export default function RegisterPage() {
   }, [form])
 
   return (
-    <div className='rounded-none border border-border p-6 sm:p-8'>
-      <p className='font-mono text-xs font-medium text-muted-foreground'>
-        Account
-      </p>
-      <h1 className='mb-6 mt-2 font-mono text-3xl font-medium text-foreground'>
-        {t("title")}
-      </h1>
+    <div className='w-full'>
+      <div className='mb-8 h-1 w-12 bg-primary' />
+      <div className='mb-10'>
+        <p className='font-mono text-xs font-medium text-muted-foreground'>
+          {tAuth("account")}
+        </p>
+        <h1 className='mt-2 font-mono text-3xl font-medium text-foreground'>
+          {t("title")}
+        </h1>
+      </div>
 
       {error && (
         <div
           role='alert'
-          className='mb-4 rounded-none border border-destructive/20 bg-destructive/5 p-3 text-sm font-medium text-destructive'
+          className='mb-8 border-l border-destructive bg-destructive/5 px-4 py-3'
         >
-          {error}
+          <p className='text-sm font-medium text-destructive'>{error}</p>
         </div>
       )}
 
@@ -168,8 +241,8 @@ export default function RegisterPage() {
           {(field) => (
             <Field>
               <FieldLabel className={labelClass} htmlFor='username'>{t("username.label")}</FieldLabel>
-              <Input
-                className={inputClass}
+              <IconInput
+                icon={User}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -200,8 +273,8 @@ export default function RegisterPage() {
           {(field) => (
             <Field>
               <FieldLabel className={labelClass} htmlFor='email'>{t("email.label")}</FieldLabel>
-              <Input
-                className={inputClass}
+              <IconInput
+                icon={Mail}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -232,15 +305,31 @@ export default function RegisterPage() {
           {(field) => (
             <Field>
               <FieldLabel className={labelClass} htmlFor='password'>{t("password.label")}</FieldLabel>
-              <Input
-                className={inputClass}
+              <IconInput
+                icon={Lock}
+                type={showPassword ? "text" : "password"}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                type='password'
                 id='password'
                 placeholder={t("password.placeholder")}
                 aria-describedby={fieldErrorId(field.name)}
+                trailing={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className={toggleClass}
+                    aria-label={showPassword ? t("password.hide") : t("password.show")}
+                    aria-pressed={showPassword}
+                    aria-controls="password"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-5" aria-hidden="true" />
+                    ) : (
+                      <Eye className="size-5" aria-hidden="true" />
+                    )}
+                  </button>
+                }
               />
               <FieldInfo field={field} />
             </Field>
@@ -267,15 +356,35 @@ export default function RegisterPage() {
               <FieldLabel className={labelClass} htmlFor='confirmPassword'>
                 {t("confirm_password.label")}
               </FieldLabel>
-              <Input
-                className={inputClass}
+              <IconInput
+                icon={Lock}
+                type={showConfirmPassword ? "text" : "password"}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                type='password'
                 id='confirmPassword'
                 placeholder={t("confirm_password.placeholder")}
                 aria-describedby={fieldErrorId(field.name)}
+                trailing={
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className={toggleClass}
+                    aria-label={
+                      showConfirmPassword
+                        ? t("confirm_password.hide")
+                        : t("confirm_password.show")
+                    }
+                    aria-pressed={showConfirmPassword}
+                    aria-controls="confirmPassword"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="size-5" aria-hidden="true" />
+                    ) : (
+                      <Eye className="size-5" aria-hidden="true" />
+                    )}
+                  </button>
+                }
               />
               <FieldInfo field={field} />
             </Field>
@@ -330,8 +439,8 @@ export default function RegisterPage() {
           {(field) => (
             <Field>
               <FieldLabel className={labelClass} htmlFor='name'>{t("name.label")}</FieldLabel>
-              <Input
-                className={inputClass}
+              <IconInput
+                icon={UserRound}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -357,8 +466,8 @@ export default function RegisterPage() {
                           <FieldLabel className={labelClass} htmlFor='age'>
                             {t("age.label")}
                           </FieldLabel>
-                          <Input
-                            className={inputClass}
+                          <IconInput
+                            icon={Cake}
                             value={field.state.value}
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
@@ -381,8 +490,8 @@ export default function RegisterPage() {
                           <FieldLabel className={labelClass} htmlFor='weight'>
                             {t("weight.label")}
                           </FieldLabel>
-                          <Input
-                            className={inputClass}
+                          <IconInput
+                            icon={Scale}
                             value={field.state.value}
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
@@ -407,8 +516,8 @@ export default function RegisterPage() {
                         <FieldLabel className={labelClass} htmlFor='height'>
                           {t("height.label")}
                         </FieldLabel>
-                        <Input
-                          className={inputClass}
+                        <IconInput
+                          icon={Ruler}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -432,8 +541,8 @@ export default function RegisterPage() {
                         <FieldLabel className={labelClass} htmlFor='fitnessGoals'>
                           {t("fitness_goals.label")}
                         </FieldLabel>
-                        <Textarea
-                          className={inputClass}
+                        <IconTextarea
+                          icon={Target}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -455,8 +564,8 @@ export default function RegisterPage() {
                         <FieldLabel className={labelClass} htmlFor='certifications'>
                           {t("certifications.label")}
                         </FieldLabel>
-                        <Input
-                          className={inputClass}
+                        <IconInput
+                          icon={Award}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -474,8 +583,8 @@ export default function RegisterPage() {
                         <FieldLabel className={labelClass} htmlFor='specializations'>
                           {t("specializations.label")}
                         </FieldLabel>
-                        <Input
-                          className={inputClass}
+                        <IconInput
+                          icon={Dumbbell}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -494,15 +603,20 @@ export default function RegisterPage() {
         <Button
           type='submit'
           disabled={isLoading}
-          className='w-full rounded-none px-4 py-2 font-mono text-sm font-medium'
+          className='w-full rounded-none px-8 py-4 font-mono text-sm font-medium'
         >
-          {isLoading ? (
-            <>
-              <Spinner /> {t("submitting")}
-            </>
-          ) : (
-            t("submit")
-          )}
+          <span className='flex items-center justify-center gap-3'>
+            {isLoading ? (
+              <>
+                <Spinner className='size-5' /> {t("submitting")}
+              </>
+            ) : (
+              <>
+                {t("submit")}
+                <ArrowRight className='size-5' aria-hidden='true' />
+              </>
+            )}
+          </span>
         </Button>
 
         <p className='mt-4 text-center text-xs font-medium text-muted-foreground'>

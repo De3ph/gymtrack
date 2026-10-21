@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, User } from "lucide-react";
 import { motion } from "motion/react";
 import { type LoginFormData } from "@/lib/validations/auth";
 import { useAuthStore } from "@/stores/authStore";
@@ -48,9 +48,11 @@ export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuthStore();
   const t = useTranslations("auth.login");
+  const tAuth = useTranslations("auth");
   const tCommon = useTranslations("common");
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -85,7 +87,7 @@ export default function LoginPage() {
 
       <motion.div variants={reveal} className="mb-10">
         <p className="font-mono text-xs font-medium text-muted-foreground">
-          Account
+          {tAuth("account")}
         </p>
         <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
           {t("title")}
@@ -143,23 +145,29 @@ export default function LoginPage() {
                 >
                   {t("email.label")}
                 </FieldLabel>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    // Editing after a failed attempt should clear the stale
-                    // banner; otherwise "Invalid credentials" sits on screen
-                    // while the user is actively correcting the field.
-                    if (error) setError("");
-                  }}
-                  onBlur={field.handleBlur}
-                  type="text"
-                  id="identifier"
-                  
-                  placeholder={t("email.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
-                  aria-describedby={fieldErrorId(field.name)}
-                />
+                <div className="group relative">
+                  <User
+                    className="pointer-events-none absolute left-0 top-1/2 size-5 -translate-y-1/2 text-muted-foreground transition-colors duration-200 group-focus-within:text-primary"
+                    aria-hidden="true"
+                  />
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                      // Editing after a failed attempt should clear the stale
+                      // banner; otherwise "Invalid credentials" sits on screen
+                      // while the user is actively correcting the field.
+                      if (error) setError("");
+                    }}
+                    onBlur={field.handleBlur}
+                    type="text"
+                    id="identifier"
+
+                    placeholder={t("email.placeholder")}
+                    className="block w-full border-0 border-b border-border bg-transparent py-3 pl-10 pr-0 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                    aria-describedby={fieldErrorId(field.name)}
+                  />
+                </div>
                 <FieldInfo field={field} />
               </Field>
             )}
@@ -189,20 +197,40 @@ export default function LoginPage() {
                 >
                   {t("password.label")}
                 </FieldLabel>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    if (error) setError("");
-                  }}
-                  onBlur={field.handleBlur}
-                  type="password"
-                  id="password"
-                  
-                  placeholder={t("password.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
-                  aria-describedby={fieldErrorId(field.name)}
-                />
+                <div className="group relative">
+                  <Lock
+                    className="pointer-events-none absolute left-0 top-1/2 size-5 -translate-y-1/2 text-muted-foreground transition-colors duration-200 group-focus-within:text-primary"
+                    aria-hidden="true"
+                  />
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                      if (error) setError("");
+                    }}
+                    onBlur={field.handleBlur}
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+
+                    placeholder={t("password.placeholder")}
+                    className="block w-full border-0 border-b border-border bg-transparent py-3 pl-10 pr-11 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                    aria-describedby={fieldErrorId(field.name)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-0 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    aria-label={showPassword ? t("password.hide") : t("password.show")}
+                    aria-pressed={showPassword}
+                    aria-controls="password"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-5" aria-hidden="true" />
+                    ) : (
+                      <Eye className="size-5" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
                 <FieldInfo field={field} />
               </Field>
             )}
