@@ -15,9 +15,12 @@ const localeLabels: Record<string, string> = {
 
 type LocaleToggleProps = {
   /**
-   * `"button"` is the compact square trigger used by the auth and landing
-   * headers. `"sidebar"` renders a full-width labelled row for the dashboard
-   * rail. See {@link ThemeToggleProps.variant}.
+   * `"button"` is the compact trigger used by the auth and landing headers. It
+   * carries a globe icon *and* the locale code, so it sizes to its content
+   * instead of using the square `icon` button size — a fixed 36px box cannot
+   * hold both without spilling the label outside the hover surface.
+   * `"sidebar"` renders a full-width labelled row for the dashboard rail.
+   * See {@link ThemeToggleProps.variant}.
    */
   variant?: "button" | "sidebar";
 };
@@ -54,13 +57,12 @@ export function LocaleToggle({ variant = "button" }: LocaleToggleProps) {
   return (
     <Button
       variant="ghost"
-      size="icon"
       onClick={handleToggle}
       title={`Switch to ${nextLocale === "en" ? "English" : "Turkish"}`}
-      className="gap-1 font-medium!"
+      className="font-medium!"
     >
       <Globe className="size-5" aria-hidden="true" />
-      <span className="text-xs font-medium">{localeLabels[locale]}</span>
+      <span className="text-sm font-medium">{localeLabels[locale]}</span>
       <span className="sr-only">Toggle language</span>
     </Button>
   );

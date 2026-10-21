@@ -30,10 +30,10 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
   const tTheme = useTranslations("common.theme");
 
   const sun = (
-    <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" aria-hidden="true" />
+    <Sun className="size-5 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" aria-hidden="true" />
   );
   const moon = (
-    <Moon className="h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" aria-hidden="true" />
+    <Moon className="size-5 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" aria-hidden="true" />
   );
 
   const menu = (
@@ -51,9 +51,9 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
   );
 
   if (variant === "sidebar") {
-    // The Moon is stacked over the Sun via `absolute` in the button variant,
-    // which needs a positioned parent. The sidebar row is a flex box, so the
-    // icons swap in flow instead.
+    // The Sun and Moon are stacked layers inside a positioned 20px box in the
+    // button variant, so they have to be `absolute`. The sidebar row is a flex
+    // box of its own and swaps them with `dark:hidden` instead.
     return (
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -86,8 +86,19 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
             title={tTheme("toggle")}
             className="font-medium!"
           >
-            {sun}
-            {moon}
+            {/* The two icons are stacked, not laid out side by side: in flow
+                they are two 20px flex items with `flex-shrink: 0`, which
+                overflow the 36px square and push the visible sun icon outside
+                the button (and outside its hover surface). Absolute layers
+                over a 20px box keep the swap and the scale transition. */}
+            <span className="relative flex size-5 shrink-0 items-center justify-center">
+              <span className="absolute inset-0 flex items-center justify-center">
+                {sun}
+              </span>
+              <span className="absolute inset-0 flex items-center justify-center">
+                {moon}
+              </span>
+            </span>
             <span className="sr-only">{tTheme("toggle")}</span>
           </Button>
         }
