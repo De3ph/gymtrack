@@ -15,9 +15,10 @@ import {
 import { useTranslations } from "next-intl";
 import { Zap } from "lucide-react";
 import Image from "next/image";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 const LandingConsole = dynamic(
   () => import("@/components/features/landing/LandingConsole").then((m) => m.LandingConsole),
@@ -69,122 +70,126 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
   const textStaggerVariants = reducedMotion ? reducedMotionVariants : textStagger;
 
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-background text-foreground">
-      <div className="mx-auto max-w-[88rem] px-6 sm:px-8 lg:px-12">
-        <div>
-          <motion.main
-            className="flex flex-col"
-            variants={mainVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <div className="py-6 sm:py-8">
-              <LandingHeader />
-            </div>
-
-            {authError && (
-              <Alert
-                variant="destructive"
-                className="mb-6 border-destructive/40 bg-destructive/5"
-                aria-live="polite"
-              >
-                <Zap className="size-5" />
-                <AlertTitle>{t("auth_required.title")}</AlertTitle>
-                <AlertDescription>
-                  {t("auth_required.description")}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <motion.section
-              id="hero"
-              className={`relative border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
-              aria-labelledby="hero-heading"
-              variants={sectionVariants}
+    // MotionProvider: the landing page animates with the lazy `m` build,
+    // which needs a LazyMotion ancestor to pick up its features.
+    <MotionProvider>
+      <div className="relative min-h-screen overflow-x-clip bg-background text-foreground">
+        <div className="mx-auto max-w-[88rem] px-6 sm:px-8 lg:px-12">
+          <div>
+            <m.main
+              className="flex flex-col"
+              variants={mainVariants}
+              initial="hidden"
+              animate="visible"
             >
-              <div
-                aria-hidden="true"
-                className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-background"
-              >
-                <Image
-                  src="/images/hero-training.jpg"
-                  alt=""
-                  fill
-                  priority
-                  fetchPriority="high"
-                  className="object-cover brightness-50 contrast-125 grayscale"
-                  sizes="100vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/75" />
+              <div className="py-6 sm:py-8">
+                <LandingHeader />
               </div>
-              <LandingHero />
-            </motion.section>
 
-            <motion.section
-              id="console"
-              className="border-t border-border bg-stone-100 py-16 sm:py-24 lg:py-32 dark:bg-stone-950"
-              aria-labelledby="console-heading"
-              variants={sectionVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-80px" }}
-            >
-              <Suspense fallback={null}>
-                <LandingConsole />
-              </Suspense>
-            </motion.section>
+              {authError && (
+                <Alert
+                  variant="destructive"
+                  className="mb-6 border-destructive/40 bg-destructive/5"
+                  aria-live="polite"
+                >
+                  <Zap className="size-5" />
+                  <AlertTitle>{t("auth_required.title")}</AlertTitle>
+                  <AlertDescription>
+                    {t("auth_required.description")}
+                  </AlertDescription>
+                </Alert>
+              )}
 
-            <motion.section
-              id="features"
-              className={`border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
-              aria-labelledby="features-heading"
-              variants={sectionVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-80px" }}
-            >
-              <FullBleedBackdrop />
-              <Suspense fallback={null}>
-                <LandingFeatureGrid />
-              </Suspense>
-            </motion.section>
+              <m.section
+                id="hero"
+                className={`relative border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
+                aria-labelledby="hero-heading"
+                variants={sectionVariants}
+              >
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-background"
+                >
+                  <Image
+                    src="/images/hero-training.jpg"
+                    alt=""
+                    fill
+                    priority
+                    fetchPriority="high"
+                    className="object-cover brightness-50 contrast-125 grayscale"
+                    sizes="100vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/75" />
+                </div>
+                <LandingHero />
+              </m.section>
 
-            <motion.section
-              id="roles"
-              className="border-t border-border py-16 sm:py-24 lg:py-32"
-              aria-labelledby="roles-heading"
-              variants={sectionVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-80px" }}
-            >
-              <Suspense fallback={null}>
-                <LandingRolePaths />
-              </Suspense>
-            </motion.section>
+              <m.section
+                id="console"
+                className="border-t border-border bg-stone-100 py-16 sm:py-24 lg:py-32 dark:bg-stone-950"
+                aria-labelledby="console-heading"
+                variants={sectionVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-80px" }}
+              >
+                <Suspense fallback={null}>
+                  <LandingConsole />
+                </Suspense>
+              </m.section>
 
-            <motion.footer
-              variants={textVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className={`border-t border-border py-8 text-sm font-medium text-muted-foreground ${invertedSection}`}
-            >
-              <FullBleedBackdrop />
-              <motion.div
-                variants={textStaggerVariants}
+              <m.section
+                id="features"
+                className={`relative border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
+                aria-labelledby="features-heading"
+                variants={sectionVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-80px" }}
+              >
+                <FullBleedBackdrop />
+                <Suspense fallback={null}>
+                  <LandingFeatureGrid />
+                </Suspense>
+              </m.section>
+
+              <m.section
+                id="roles"
+                className="border-t border-border py-16 sm:py-24 lg:py-32"
+                aria-labelledby="roles-heading"
+                variants={sectionVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-80px" }}
+              >
+                <Suspense fallback={null}>
+                  <LandingRolePaths />
+                </Suspense>
+              </m.section>
+
+              <m.footer
+                variants={textVariants}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="flex flex-wrap items-center justify-between gap-4"
+                className={`relative border-t border-border py-8 text-sm font-medium text-muted-foreground ${invertedSection}`}
               >
-                <motion.span variants={textVariants}>© GymTrack</motion.span>
-                <motion.span variants={textVariants}>EN / TR</motion.span>
-              </motion.div>
-            </motion.footer>
-          </motion.main>
+                <FullBleedBackdrop />
+                <m.div
+                  variants={textStaggerVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  className="flex flex-wrap items-center justify-between gap-4"
+                >
+                  <m.span variants={textVariants}>© GymTrack</m.span>
+                  <m.span variants={textVariants}>EN / TR</m.span>
+                </m.div>
+              </m.footer>
+            </m.main>
+          </div>
         </div>
       </div>
-    </div>
+    </MotionProvider>
   );
 }
