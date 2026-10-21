@@ -37,15 +37,13 @@ export function HeroActions() {
         >
           <Link
             href={ROUTES.REGISTER}
-            className={buttonVariants({
-              variant: "default",
-              size: "lg",
-              className:
-                "h-12 w-full rounded-none border-foreground bg-foreground px-6 font-mono text-xs uppercase tracking-[0.18em] text-background hover:bg-background hover:text-foreground sm:w-auto",
-            })}
+            className={cn(
+              buttonVariants({ variant: "default", size: "lg" }),
+              "h-12 w-full rounded-none border-foreground bg-foreground px-6 text-3xl font-medium text-background hover:bg-background hover:text-foreground sm:w-auto",
+            )}
           >
             {t("sign_up")}
-            <ArrowRight className="size-5" aria-hidden="true" />
+            <ArrowRight className="size-7" aria-hidden="true" />
           </Link>
         </NoiseBackground>
       </motion.div>
@@ -64,7 +62,7 @@ export function HeroActions() {
             href={ROUTES.LOGIN}
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
-              "h-12 w-full rounded-none border-transparent bg-background px-6 font-mono text-xs uppercase tracking-[0.18em] text-foreground hover:bg-foreground hover:text-background dark:border-transparent dark:bg-background dark:hover:bg-foreground sm:w-auto",
+              "h-12 w-full rounded-none border-transparent bg-background px-6 text-3xl font-medium text-foreground hover:bg-foreground hover:text-background dark:border-transparent dark:bg-background dark:hover:bg-foreground sm:w-auto",
             )}
           >
             {t("login")}

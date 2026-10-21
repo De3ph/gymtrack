@@ -11,7 +11,7 @@ export function HeroDescription() {
   return (
     <motion.p
       variants={revealVariants}
-      className="mt-8 max-w-2xl text-pretty text-base font-semibold leading-7 text-muted-foreground sm:text-lg sm:leading-8"
+      className="mt-8 max-w-xl text-pretty text-2xl text-foreground/90"
     >
       {t("hero.description")}
     </motion.p>

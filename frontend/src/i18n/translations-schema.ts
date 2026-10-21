@@ -3,7 +3,6 @@ import { z } from "zod";
 const translationSchema = z.object({
   home: z.object({
     title: z.string(),
-    eyebrow: z.string(),
     description: z.string(),
     hero: z.object({
       title: z.string(),
@@ -26,7 +25,6 @@ const translationSchema = z.object({
       }),
     }),
     console: z.object({
-      kicker: z.string(),
       title: z.string(),
       weekly_load: z.string(),
       growth: z.string(),
@@ -94,29 +92,19 @@ const translationSchema = z.object({
       }),
     }),
     role_paths: z.object({
-      sr_only_label: z.string(),
+      heading: z.string(),
       athlete: z.object({
-        kicker: z.string(),
         title: z.string(),
         description: z.string(),
         bullets: z.array(z.string()),
         cta: z.string(),
       }),
       trainer: z.object({
-        kicker: z.string(),
         title: z.string(),
         description: z.string(),
         bullets: z.array(z.string()),
         cta: z.string(),
       }),
-    }),
-    proof: z.object({
-      kicker: z.string(),
-      title: z.string(),
-      description: z.string(),
-      reps_logged: z.string(),
-      avg_streak: z.string(),
-      trainer_loop: z.string(),
     }),
     about: z.string(),
   }).passthrough(),
@@ -311,6 +299,18 @@ const translationSchema = z.object({
     }),
   }),
   auth: z.object({
+    account: z.string(),
+    brand: z.object({
+      eyebrow: z.string(),
+      statement: z.string(),
+      note: z.string(),
+      tracks: z.object({
+        workouts: z.string(),
+        nutrition: z.string(),
+        measurements: z.string(),
+        coaching: z.string(),
+      }),
+    }),
     login: z.object({
       title: z.string(),
       email: z.object({

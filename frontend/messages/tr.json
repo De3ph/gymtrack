@@ -1,7 +1,6 @@
 {
   "home": {
     "title": "GymTrack",
-    "eyebrow": "Akıllı antrenman sistemi",
     "description": "Antrenörleri ve sporcuları tek çatı altında buluşturan fitness takip platformu. Antrenmanını kaydet, beslenmeni izle, hedeflerine birlikte ulaş.",
     "hero": {
       "title": "Daha akıllı çalış. Daha net koçluk al. Birlikte ilerleyin.",
@@ -24,7 +23,6 @@
       }
     },
     "console": {
-      "kicker": "Canlı sinyal",
       "title": "Haftan hareket halinde",
       "weekly_load": "Haftalık yük",
       "growth": "+%{value}"
@@ -92,9 +90,7 @@
       }
     },
     "role_paths": {
-      "sr_only_label": "İki taraf, tek döngü",
       "athlete": {
-        "kicker": "Sporcu yolu",
         "title": "İlerlemeni kanıtla.",
         "description": "Her seti, öğünü, ölçümü ve planı tek yerde tut — ilerleme tahmin değil, gözle görülür veri olsun.",
         "bullets": [
@@ -105,7 +101,6 @@
         "cta": "Sporcu olarak katıl"
       },
       "trainer": {
-        "kicker": "Antrenör yolu",
         "title": "Danışanlarını karmaşa olmadan yönet.",
         "description": "İlişkileri, istekleri, planları ve danışan ilerlemesini tek bir çalışma alanından yönet.",
         "bullets": [
@@ -114,15 +109,8 @@
           "Danışanların antrenmanını, beslenmesini ve gelişimini incele."
         ],
         "cta": "Antrenör olarak katıl"
-      }
-    },
-    "proof": {
-      "kicker": "İlerleme sistemi",
-      "title": "Plandan sonuca, tek bakışta.",
-      "description": "GymTrack antrenman ilişkisini şeffaf tutar: ne planlandı, ne yapıldı, ne değişti ve sırada ne var — hepsi görünür.",
-      "reps_logged": "Kaydedilen tekrar",
-      "avg_streak": "ort. seri",
-      "trainer_loop": "Koçluk döngüsü"
+      },
+      "heading": "İki taraf, tek döngü"
     },
     "about": "Hakkımızda"
   },
@@ -327,6 +315,18 @@
     }
   },
   "auth": {
+    "account": "Hesap",
+    "brand": {
+      "eyebrow": "Akıllı antrenman sistemi",
+      "statement": "Her set, her öğün, her ölçüm ve her koçluk görüşmesi tek bir platformda.",
+      "note": "Sporcular ve onlara rehberlik eden antrenörler için.",
+      "tracks": {
+        "workouts": "Antrenman kaydı",
+        "nutrition": "Beslenme",
+        "measurements": "Ölçümler",
+        "coaching": "Koçluk döngüsü"
+      }
+    },
     "login": {
       "title": "Hesabınıza Giriş Yapın",
       "email": {
@@ -340,6 +340,8 @@
       "password": {
         "label": "Şifre",
         "placeholder": "••••••••",
+        "show": "Şifreyi göster",
+        "hide": "Şifreyi gizle",
         "error": {
           "required": "Şifre zorunludur",
           "min_length": "Şifre en az 8 karakter olmalıdır"
@@ -372,6 +374,8 @@
       "password": {
         "label": "Şifre",
         "placeholder": "En az 8 karakter",
+        "show": "Şifreyi göster",
+        "hide": "Şifreyi gizle",
         "error": {
           "required": "Şifre zorunludur",
           "min_length": "Şifre en az 8 karakter olmalıdır"
@@ -380,6 +384,8 @@
       "confirm_password": {
         "label": "Şifreyi Onayla",
         "placeholder": "Şifreyi tekrar girin",
+        "show": "Şifre onayını göster",
+        "hide": "Şifre onayını gizle",
         "error": {
           "required": "Lütfen şifrenizi onaylayın",
           "mismatch": "Şifreler eşleşmiyor"

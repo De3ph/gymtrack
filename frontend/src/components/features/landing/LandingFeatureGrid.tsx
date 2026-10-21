@@ -20,19 +20,19 @@ export function LandingFeatureGrid() {
         role="region"
         aria-labelledby="features-heading"
       >
-        <header className="flex items-center justify-between border-b border-border px-8 py-6">
+        <header className="flex items-center justify-between border-b border-border px-8 py-8">
           <div>
             <h2
               id="features-heading"
-              className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+              className="text-4xl font-medium text-foreground"
             >
               {t("features.what_you_log")}
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-3 max-w-xl text-pretty text-2xl text-muted-foreground">
               {t("features.header_description")}
             </p>
           </div>
-          <span className="hidden font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:block">
+          <span className="hidden text-sm font-medium text-muted-foreground sm:block">
             {landingFeatures.length} {t("features.domains_label")}
           </span>
         </header>

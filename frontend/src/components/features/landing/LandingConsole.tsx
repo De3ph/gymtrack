@@ -1,4 +1,4 @@
-import { Apple, Dumbbell, Radio, Ruler, TrendingUp, Users } from "lucide-react";
+import { Apple, Dumbbell, Ruler, TrendingUp, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { AnimatedProgress } from "@/components/animated/animated-progress";
@@ -54,20 +54,16 @@ export function LandingConsole() {
       >
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border px-6 py-5 sm:px-8 sm:py-6">
           <div>
-            <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <Radio className="size-4 shrink-0" aria-hidden="true" />
-              <span>{t("console.kicker")}</span>
-            </p>
             <h2
               id="console-heading"
-              className="mt-2 font-mono text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl"
+              className="mt-0 text-4xl font-medium text-foreground"
             >
               {t("console.title")}
             </h2>
           </div>
           <Badge
             variant="default"
-            className="h-auto gap-0.5 rounded-lg border border-foreground bg-foreground px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-background"
+            className="h-auto gap-0.5 rounded-lg border border-foreground bg-foreground px-3 py-1.5 text-base font-medium tabular-nums text-background"
           >
             <span>+</span>
             <span>
@@ -82,7 +78,11 @@ export function LandingConsole() {
           </Badge>
         </header>
 
-        <BentoGrid columns={4} density="compact" className="p-3 sm:p-4">
+        <BentoGrid
+          columns={4}
+          density="compact"
+          className="gap-5 p-3 sm:gap-6 sm:p-4 [&_[data-slot=bento-item][data-tone=surface]]:ring-border"
+        >
           {consoleStats.map((stat) => (
             <BentoItem key={stat.titleKey} tone="surface">
               <BentoItemMeta>{t(stat.titleKey)}</BentoItemMeta>
@@ -109,7 +109,7 @@ export function LandingConsole() {
                 {t("console.weekly_load")}
               </BentoItemMeta>
             </BentoItemHeader>
-            <p className="mt-4 font-heading text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
+            <p className="mt-5 text-5xl font-medium tabular-nums">
               78%
             </p>
             <AnimatedProgress
@@ -139,22 +139,22 @@ export function LandingConsole() {
                 </BentoItemMeta>
                 <Badge
                   variant="outline"
-                  className="rounded-lg border-border bg-background px-2 py-0 font-mono text-[10px] uppercase tracking-wider"
+                  className="rounded-lg border-border bg-background px-2 py-0 text-sm font-medium"
                 >
                   {t("features.workouts.example.badge")}
                 </Badge>
               </div>
-              <p className="mt-4 font-semibold text-foreground">
+              <p className="mt-4 text-2xl font-medium text-foreground">
                 {t("features.workouts.example.title")}
               </p>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <p className="mt-1 text-sm font-medium tabular-nums text-muted-foreground">
                 {t("features.workouts.example.subtitle")}
               </p>
               <ul className="mt-4 space-y-1.5 border-l border-border pl-3">
-                <li className="text-xs text-muted-foreground">
+                <li className="text-sm font-medium text-muted-foreground">
                   {t("features.workouts.example.extra1")}
                 </li>
-                <li className="text-xs text-muted-foreground">
+                <li className="text-sm font-medium text-muted-foreground">
                   {t("features.workouts.example.extra2")}
                 </li>
               </ul>
@@ -169,7 +169,7 @@ export function LandingConsole() {
               <BentoItemMeta>{t("features.nutrition.metric")}</BentoItemMeta>
             </BentoItemHeader>
             <BentoItemTitle>{t("features.nutrition.title")}</BentoItemTitle>
-            <BentoItemDescription className="mt-auto font-mono text-xs">
+            <BentoItemDescription className="mt-auto text-sm font-medium">
               {t("features.nutrition.example.subtitle")}
             </BentoItemDescription>
           </BentoItem>
@@ -182,7 +182,7 @@ export function LandingConsole() {
               <BentoItemMeta>{t("features.measurements.metric")}</BentoItemMeta>
             </BentoItemHeader>
             <BentoItemTitle>{t("features.measurements.title")}</BentoItemTitle>
-            <BentoItemDescription className="mt-auto font-mono text-xs">
+            <BentoItemDescription className="mt-auto text-sm font-medium">
               {t("features.measurements.example.subtitle")}
             </BentoItemDescription>
           </BentoItem>

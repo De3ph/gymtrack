@@ -11,23 +11,20 @@ export function LandingHeader() {
     <header className="flex items-center justify-between gap-4">
       <Link
         href={ROUTES.HOME}
-        className="group flex items-center gap-3 font-mono text-xs uppercase tracking-[0.18em]"
+        className="group flex items-center gap-3"
       >
         <span className="flex size-9 items-center justify-center border border-foreground bg-foreground text-background transition group-hover:bg-background group-hover:text-foreground">
           GT
         </span>
-        <span className="hidden flex-col leading-tight sm:flex">
-          <span className="font-semibold text-foreground">{t("title")}</span>
-          <span className="text-[10px] text-muted-foreground">
-            {t("eyebrow")}
-          </span>
+        <span className="hidden flex-col sm:flex">
+          <span className="text-2xl font-medium text-foreground">{t("title")}</span>
         </span>
       </Link>
 
       <div className="flex items-center gap-1">
         <Link
           href={ROUTES.ABOUT}
-          className="hidden h-9 items-center px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:inline-flex"
+          className="hidden h-9 items-center px-3 text-base font-medium text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:inline-flex"
         >
           {t("about")}
         </Link>

@@ -39,11 +39,11 @@ export function HeroMetrics() {
           variants={revealVariants}
           className="flex flex-col gap-2 px-4 py-5 sm:px-6 sm:py-6"
         >
-          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <metric.Icon className="size-4 shrink-0" aria-hidden="true" />
             <dt>{metric.label}</dt>
           </div>
-          <dd className="font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <dd className="text-4xl font-medium tabular-nums text-foreground sm:text-5xl">
             {metric.value}
           </dd>
         </motion.div>

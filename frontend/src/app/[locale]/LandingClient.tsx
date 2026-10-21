@@ -4,7 +4,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FullBleedBackdrop } from "@/components/features/landing/FullBleedBackdrop";
 import { LandingHeader } from "@/components/features/landing/LandingHeader";
 import { LandingHero } from "@/components/features/landing/landing-hero";
-import { SectionRail } from "@/components/features/landing/SectionRail";
 import { useReducedMotion } from "@/components/features/landing/useReducedMotion";
 import {
   landingStagger,
@@ -32,11 +31,6 @@ const LandingFeatureGrid = dynamic(
 
 const LandingRolePaths = dynamic(
   () => import("@/components/features/landing/LandingRolePaths").then((m) => m.LandingRolePaths),
-  { ssr: false, loading: () => null }
-);
-
-const LandingProof = dynamic(
-  () => import("@/components/features/landing/LandingProof").then((m) => m.LandingProof),
   { ssr: false, loading: () => null }
 );
 
@@ -121,22 +115,20 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
                   className="object-cover brightness-50 contrast-125 grayscale"
                   sizes="100vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/70" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/75" />
               </div>
-              <SectionRail index="01" label="Mission control" />
               <LandingHero />
             </motion.section>
 
             <motion.section
               id="console"
-              className="border-t border-border py-16 sm:py-24 lg:py-32"
+              className="border-t border-border bg-stone-100 py-16 sm:py-24 lg:py-32 dark:bg-stone-950"
               aria-labelledby="console-heading"
               variants={sectionVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
             >
-              <SectionRail index="02" label="Live signal" />
               <Suspense fallback={null}>
                 <LandingConsole />
               </Suspense>
@@ -152,7 +144,6 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
               viewport={{ once: true, margin: "-80px" }}
             >
               <FullBleedBackdrop />
-              <SectionRail index="03" label="What you log" />
               <Suspense fallback={null}>
                 <LandingFeatureGrid />
               </Suspense>
@@ -167,25 +158,8 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
             >
-              <SectionRail index="04" label="Two sides, one loop" />
               <Suspense fallback={null}>
                 <LandingRolePaths />
-              </Suspense>
-            </motion.section>
-
-            <motion.section
-              id="proof"
-              className={`border-t border-border py-16 sm:py-24 lg:py-32 ${invertedSection}`}
-              aria-labelledby="proof-heading"
-              variants={sectionVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-80px" }}
-            >
-              <FullBleedBackdrop />
-              <SectionRail index="05" label="Outcome" />
-              <Suspense fallback={null}>
-                <LandingProof />
               </Suspense>
             </motion.section>
 
@@ -194,7 +168,7 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className={`border-t border-border py-8 text-xs font-medium text-muted-foreground ${invertedSection}`}
+              className={`border-t border-border py-8 text-sm font-medium text-muted-foreground ${invertedSection}`}
             >
               <FullBleedBackdrop />
               <motion.div

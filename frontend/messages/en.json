@@ -1,7 +1,6 @@
 {
   "home": {
     "title": "GymTrack",
-    "eyebrow": "Training intelligence",
     "description": "The ultimate fitness tracking platform connecting trainers and athletes. Track workouts, monitor nutrition, and achieve your fitness goals together.",
     "hero": {
       "title": "Train smarter. Coach clearer. Progress together.",
@@ -24,7 +23,6 @@
       }
     },
     "console": {
-      "kicker": "Live signal",
       "title": "Your week in motion",
       "weekly_load": "Weekly load",
       "growth": "+{value}%"
@@ -92,9 +90,7 @@
       }
     },
     "role_paths": {
-      "sr_only_label": "Two sides, one loop",
       "athlete": {
-        "kicker": "Athlete path",
         "title": "Build a body of evidence.",
         "description": "Keep every rep, meal, measurement, and plan in one place so progress stops being a guess.",
         "bullets": [
@@ -105,7 +101,6 @@
         "cta": "Join as athlete"
       },
       "trainer": {
-        "kicker": "Trainer path",
         "title": "Run clients without the chaos.",
         "description": "Manage relationships, requests, plans, and client progress from one focused workspace.",
         "bullets": [
@@ -114,15 +109,8 @@
           "Review client workouts, meals, measurements, and charts."
         ],
         "cta": "Join as trainer"
-      }
-    },
-    "proof": {
-      "kicker": "Progress system",
-      "title": "One loop from intention to proof.",
-      "description": "GymTrack keeps the full training relationship visible: what was planned, what was done, what changed, and what happens next.",
-      "reps_logged": "Reps logged",
-      "avg_streak": "Avg. streak",
-      "trainer_loop": "Trainer loop"
+      },
+      "heading": "Two sides, one loop"
     },
     "about": "About"
   },
@@ -327,6 +315,18 @@
     }
   },
   "auth": {
+    "account": "Account",
+    "brand": {
+      "eyebrow": "Training intelligence",
+      "statement": "Every rep, every meal, every measurement, and every coaching call in one platform.",
+      "note": "Built for athletes and the trainers who guide them.",
+      "tracks": {
+        "workouts": "Workout log",
+        "nutrition": "Nutrition",
+        "measurements": "Measurements",
+        "coaching": "Coaching loop"
+      }
+    },
     "login": {
       "title": "Login to Your Account",
       "email": {
@@ -340,6 +340,8 @@
       "password": {
         "label": "Password",
         "placeholder": "••••••••",
+        "show": "Show password",
+        "hide": "Hide password",
         "error": {
           "required": "Password is required",
           "min_length": "Password must be at least 8 characters"
@@ -372,6 +374,8 @@
       "password": {
         "label": "Password",
         "placeholder": "At least 8 characters",
+        "show": "Show password",
+        "hide": "Hide password",
         "error": {
           "required": "Password is required",
           "min_length": "Password must be at least 8 characters"
@@ -380,6 +384,8 @@
       "confirm_password": {
         "label": "Confirm Password",
         "placeholder": "Repeat password",
+        "show": "Show password confirmation",
+        "hide": "Hide password confirmation",
         "error": {
           "required": "Please confirm your password",
           "mismatch": "Passwords do not match"

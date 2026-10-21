@@ -27,21 +27,21 @@ export function LandingFeatureExample({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <span className="text-sm font-medium text-muted-foreground">
             {example.label}
           </span>
         </div>
         <Badge
           variant="outline"
-          className="rounded-none border-border bg-background px-2 py-0 font-mono text-[10px] uppercase tracking-wider"
+          className="rounded-none border-border bg-background px-2 py-0 text-sm font-medium"
         >
           {example.badge}
         </Badge>
       </div>
 
       <div className="mt-4 space-y-1">
-        <p className="font-semibold text-foreground">{example.title}</p>
-        <p className="font-mono text-xs text-muted-foreground">
+        <p className="text-2xl font-medium text-foreground">{example.title}</p>
+        <p className="text-sm font-medium tabular-nums text-muted-foreground">
           {example.subtitle}
         </p>
       </div>
@@ -50,7 +50,7 @@ export function LandingFeatureExample({
         {example.extras.map((extra, i) => (
           <div key={`${extra}-${i}`} className="flex items-center gap-2">
             <span className="size-1 rounded-full bg-muted-foreground/40" />
-            <span className="text-xs text-muted-foreground">{extra}</span>
+            <span className="text-sm font-medium text-muted-foreground">{extra}</span>
           </div>
         ))}
       </div>

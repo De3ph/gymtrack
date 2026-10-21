@@ -40,15 +40,15 @@ export function LandingFeatureItem({ feature }: LandingFeatureItemProps) {
             <Icon className="size-5 text-foreground" aria-hidden="true" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 className="text-3xl font-medium text-foreground">
               {t(feature.titleKey)}
             </h3>
-            <p className="mt-3 leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-pretty text-2xl text-muted-foreground">
               {t(feature.descriptionKey)}
             </p>
             <div className="mt-6 flex items-center gap-2 text-muted-foreground">
               <StatIcon className="size-4" aria-hidden="true" />
-              <span className="text-xs">{t(feature.statKey)}</span>
+              <span className="text-sm font-medium">{t(feature.statKey)}</span>
             </div>
           </div>
         </div>

@@ -217,7 +217,7 @@ function BentoItemMeta({ className, ...props }: React.ComponentProps<"span">) {
     <span
       data-slot="bento-item-meta"
       className={cn(
-        "font-mono text-[10px] uppercase tracking-[0.18em]",
+        "text-sm font-medium",
         mutedTextStyles,
         className,
       )}
@@ -239,7 +239,7 @@ function BentoItemTitle({
     <Comp
       data-slot="bento-item-title"
       className={cn(
-        "mt-3 font-heading text-lg font-semibold tracking-tight text-balance first:mt-0 sm:text-xl",
+        "mt-3 text-2xl font-medium text-balance first:mt-0",
         className,
       )}
       {...props}
@@ -252,7 +252,7 @@ function BentoItemDescription({ className, ...props }: React.ComponentProps<"p">
     <p
       data-slot="bento-item-description"
       className={cn(
-        "mt-2 max-w-[52ch] text-sm leading-relaxed text-pretty first:mt-0",
+        "mt-2 max-w-[52ch] text-base text-pretty first:mt-0",
         mutedTextStyles,
         className,
       )}
@@ -280,12 +280,12 @@ function BentoItemMetric({
       className={cn("mt-4 flex flex-col gap-1 first:mt-0", className)}
       {...props}
     >
-      <span className="font-heading text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
+      <span className="text-5xl font-medium tabular-nums">
         {value}
       </span>
-      <span className={cn("text-xs", mutedTextStyles)}>{label}</span>
+      <span className={cn("text-sm font-medium", mutedTextStyles)}>{label}</span>
       {hint ? (
-        <span className={cn("text-xs opacity-80", mutedTextStyles)}>{hint}</span>
+        <span className={cn("text-sm font-medium opacity-80", mutedTextStyles)}>{hint}</span>
       ) : null}
     </div>
   )
