@@ -125,11 +125,11 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup className="py-1">
+        <SidebarGroup className="py-4">
           <SidebarGroupLabel className="text-base! font-medium!">
             {tNav("menu")}
           </SidebarGroupLabel>
-          <SidebarMenu>
+          <SidebarMenu className="space-y-1">
             {items.map((item) => {
               const isActive = isNavItemActive(pathname, item);
               const Icon = item.icon;
