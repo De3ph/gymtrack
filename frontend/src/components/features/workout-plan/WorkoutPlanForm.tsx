@@ -330,7 +330,7 @@ export function WorkoutPlanForm({
           type="button"
           variant="outline"
           onClick={addExercise}
-          className="w-full border-dashed py-6 bg-black text-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+          className="w-full border-dashed py-6 bg-background text-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
         >
           <Plus className="mr-2 size-5" /> {t("add_exercise")}
         </Button>
