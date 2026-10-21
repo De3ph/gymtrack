@@ -22,18 +22,15 @@ interface ExerciseDetailClientProps {
   role: UserRole;
 }
 
-export function ExerciseDetailClient({ exercise, role }: ExerciseDetailClientProps) {
+export function ExerciseDetailClient({
+  exercise,
+  role,
+}: ExerciseDetailClientProps) {
   const t = useTranslations("exercise.library");
   const tCommon = useTranslations("common.actions");
 
   return (
     <div className="container mx-auto py-6">
-      {/* Back is navigation, so it stays a real <a>: middle-click, open in new
-          tab, and "copy link address" all work, which a router.push button
-          would break. `buttonVariants` supplies the button styling without
-          wrapping the anchor in Base UI's Button, whose nativeButton prop
-          defaults to true and warns when the rendered element is not a
-          <button>. */}
       <Link
         href={ROUTES.EXERCISES}
         className={cn(
@@ -44,13 +41,6 @@ export function ExerciseDetailClient({ exercise, role }: ExerciseDetailClientPro
         <ArrowLeft className="size-5" aria-hidden="true" />
         {tCommon("back")}
       </Link>
-
-      {/* The title sits above the two columns rather than inside the left one.
-          Previously it lived in a card under the image, which put the page's
-          subject below the fold of its own hero and left the left column short.
-          Badges stay grouped with the title instead of being pushed to the far
-          edge, where a wide viewport left them visually detached from the
-          exercise they describe. */}
       <header className="mt-6 space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-3">
@@ -58,9 +48,6 @@ export function ExerciseDetailClient({ exercise, role }: ExerciseDetailClientPro
               {exercise.name}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                {exercise.category}
-              </p>
               {exercise.muscleGroup && (
                 <MuscleGroupBadge muscleGroup={exercise.muscleGroup} />
               )}
@@ -74,10 +61,6 @@ export function ExerciseDetailClient({ exercise, role }: ExerciseDetailClientPro
       </header>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        {/* The demonstration is the page's hero, so it is a labelled section in
-            its own right. It previously rendered as an unlabelled image with a
-            separate "Demonstration — a demonstration is available above" block
-            in the other column, which described the image instead of showing it. */}
         <section className="space-y-4">
           <ExerciseSectionHeader icon={Video}>
             {t("media_title")}

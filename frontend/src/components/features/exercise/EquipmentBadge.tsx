@@ -25,7 +25,7 @@ export function EquipmentBadge({
     <Badge
       variant="outline"
       className={cn(
-        "h-auto rounded-none border-border bg-transparent px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground",
+        "h-auto rounded-none border-border bg-transparent px-2 py-1 font-mono text-balance uppercase tracking-[0.18em] text-muted-foreground",
         variant === "small" && "px-1.5 py-0.5 text-[9px]",
         className,
       )}
