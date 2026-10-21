@@ -36,17 +36,51 @@ interface AppSidebarProps {
 }
 
 /**
+ * Selected row: the app's single accent fill (`--sidebar-primary`, orange),
+ * the same hue the primary buttons use, so "where am I" matches "what can I
+ * press". The shadcn base paints active rows with `--sidebar-accent`
+ * (stone-100), which is near-invisible against the stone-50 rail.
+ *
+ * The hover/active repeats keep the fill stable: the base `hover:bg-sidebar-accent`
+ * would otherwise repaint an active row on mouse-down.
+ */
+const ACTIVE_NAV_ROW = [
+  "data-active:bg-sidebar-primary",
+  "data-active:text-sidebar-primary-foreground",
+  "data-active:font-semibold!",
+  "data-active:hover:bg-sidebar-primary",
+  "data-active:hover:text-sidebar-primary-foreground",
+  "data-active:active:bg-sidebar-primary",
+];
+
+/**
  * Count pill (or failure marker) for a nav row.
  *
  * Decorative: the count/failure is folded into the link's accessible name, so
  * this stays `aria-hidden`.
+ *
+ * On the selected row the pill inverts (accent fill behind it), so it needs its
+ * own colors: foreground-on-primary on the primary fill.
  */
-function NavBadge({ count, failed }: { count: number; failed: boolean }) {
+function NavBadge({
+  count,
+  failed,
+  active,
+}: {
+  count: number;
+  failed: boolean;
+  active: boolean;
+}) {
   if (count > 0) {
     return (
       <SidebarMenuBadge
         aria-hidden="true"
-        className="rounded-full bg-primary px-1.5 text-xs! font-medium! text-primary-foreground"
+        className={cn(
+          "rounded-full px-1.5 text-xs! font-medium!",
+          active
+            ? "bg-sidebar-primary-foreground text-sidebar-primary!"
+            : "bg-primary text-primary-foreground!"
+        )}
       >
         {count > 99 ? "99+" : count}
       </SidebarMenuBadge>
@@ -58,7 +92,12 @@ function NavBadge({ count, failed }: { count: number; failed: boolean }) {
   return (
     <SidebarMenuBadge
       aria-hidden="true"
-      className="rounded-full bg-muted px-1.5 text-xs! font-medium! text-muted-foreground"
+      className={cn(
+        "rounded-full px-1.5 text-xs! font-medium!",
+        active
+          ? "bg-sidebar-primary-foreground text-sidebar-primary!"
+          : "bg-muted text-muted-foreground!"
+      )}
     >
       !
     </SidebarMenuBadge>
@@ -162,6 +201,7 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
                     className={cn(
                       SIDEBAR_ITEM_SPACING,
                       "text-base! font-medium!",
+                      isActive && ACTIVE_NAV_ROW,
                       (badgeCount > 0 || badgeFailed) && "pr-10"
                     )}
                     aria-current={isActive ? "page" : undefined}
@@ -176,7 +216,11 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
                     <Icon aria-hidden="true" />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
-                  <NavBadge count={badgeCount} failed={badgeFailed} />
+                  <NavBadge
+                    count={badgeCount}
+                    failed={badgeFailed}
+                    active={isActive}
+                  />
                 </SidebarMenuItem>
               );
             })}
