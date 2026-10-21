@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { Geist_Mono, Inter } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { Barlow, Barlow_Condensed } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { SITE_URL } from "@/lib/env";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
@@ -10,15 +10,19 @@ import { ThemeBootScript } from "@/components/layout/theme-boot-script";
 import { Providers } from "./providers";
 import "../globals.css";
 
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
-  display: "swap",
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin", "latin-ext"], // latin-ext Türkçe karakterler için gerekli
+  // 500 is the display tier weight (see globals.css --font-display).
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-barlow-condensed",
 });
-const geistMono = Geist_Mono({
+
+const barlow = Barlow({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-geist-mono",
-  display: "swap",
+  // 600 is loaded so the app's remaining font-semibold uses render as a real
+  // face instead of a synthesized faux bold.
+  weight: ["400", "500", "600"],
+  variable: "--font-body",
 });
 
 const SITE_TITLE = "GymTrack - Fitness Tracking for Trainers & Athletes";
@@ -89,7 +93,11 @@ export default async function LocaleLayout({
   const { locale } = await params;
 
   return (
-    <html lang={locale} className={cn(inter.variable, geistMono.variable)} suppressHydrationWarning>
+    <html
+      lang={locale}
+      className={cn(barlowCondensed.variable, barlow.variable)}
+      suppressHydrationWarning
+    >
       <head>
         <ThemeBootScript />
       </head>

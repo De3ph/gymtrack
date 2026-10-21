@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist_Mono, Inter } from "next/font/google";
+import { Barlow, Barlow_Condensed } from "next/font/google";
 import { StatusScreen } from "@/components/features/StatusScreen";
 import { ThemeBootScript } from "@/components/layout/theme-boot-script";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,15 +13,15 @@ import "./globals.css";
  * the i18n provider lives in the layout, which is not rendered here.
  */
 
-const inter = Inter({
+const barlowCondensed = Barlow_Condensed({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
-  display: "swap",
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-barlow-condensed",
 });
-const geistMono = Geist_Mono({
+const barlow = Barlow({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-geist-mono",
-  display: "swap",
+  weight: ["400", "500", "600"],
+  variable: "--font-body",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function GlobalNotFound() {
   return (
-    <html lang="en" className={cn(inter.variable, geistMono.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn(barlow.variable, barlowCondensed.variable)} suppressHydrationWarning>
       <head>
         <ThemeBootScript />
       </head>
