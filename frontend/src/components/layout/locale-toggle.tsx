@@ -6,6 +6,7 @@ import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { SIDEBAR_ITEM_SPACING } from "./dashboard-styles";
+import { cn } from "@/lib/utils";
 
 const localeLabels: Record<string, string> = {
   en: "EN",
@@ -36,7 +37,7 @@ export function LocaleToggle({ variant = "button" }: LocaleToggleProps) {
     return (
       <SidebarMenuButton
         tooltip={tNav("language")}
-        className={SIDEBAR_ITEM_SPACING}
+        className={cn(SIDEBAR_ITEM_SPACING, "text-base! font-medium!")}
         onClick={handleToggle}
         aria-label={`${tNav("language")}: ${localeLabels[locale]} → ${localeLabels[nextLocale]}`}
       >
@@ -56,10 +57,10 @@ export function LocaleToggle({ variant = "button" }: LocaleToggleProps) {
       size="icon"
       onClick={handleToggle}
       title={`Switch to ${nextLocale === "en" ? "English" : "Turkish"}`}
-      className="gap-1"
+      className="gap-1 font-medium!"
     >
       <Globe className="size-5" aria-hidden="true" />
-      <span className="text-xs font-[500]">{localeLabels[locale]}</span>
+      <span className="text-xs font-medium">{localeLabels[locale]}</span>
       <span className="sr-only">Toggle language</span>
     </Button>
   );

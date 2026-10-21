@@ -7,6 +7,7 @@ import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { SIDEBAR_ITEM_SPACING } from "./dashboard-styles";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,13 +38,13 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
 
   const menu = (
     <DropdownMenuContent align="end">
-      <DropdownMenuItem onClick={() => setTheme("light")}>
+      <DropdownMenuItem className="text-sm! font-medium!" onClick={() => setTheme("light")}>
         {tTheme("light")}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setTheme("dark")}>
+      <DropdownMenuItem className="text-sm! font-medium!" onClick={() => setTheme("dark")}>
         {tTheme("dark")}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setTheme("system")}>
+      <DropdownMenuItem className="text-sm! font-medium!" onClick={() => setTheme("system")}>
         {tTheme("system")}
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -57,7 +58,10 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <SidebarMenuButton tooltip={tTheme("label")} className={SIDEBAR_ITEM_SPACING} />
+            <SidebarMenuButton
+              tooltip={tTheme("label")}
+              className={cn(SIDEBAR_ITEM_SPACING, "text-base! font-medium!")}
+            />
           }
         >
           <span className="relative flex size-5 shrink-0 items-center justify-center">
@@ -80,6 +84,7 @@ export function ThemeToggle({ variant = "button" }: ThemeToggleProps) {
             size="icon"
             aria-label={tTheme("toggle")}
             title={tTheme("toggle")}
+            className="font-medium!"
           >
             {sun}
             {moon}

@@ -26,7 +26,7 @@ export async function generateMetadata({
 }
 
 const ctaClass =
-  "inline-flex h-11 items-center justify-center px-6 text-button-md transition-[color,background-color,border-color,transform] duration-150 ease-out active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex h-11 items-center justify-center px-6 text-base font-medium transition-[color,background-color,border-color,transform] duration-150 ease-out active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export default async function AboutPage({
   params,
@@ -73,19 +73,19 @@ export default async function AboutPage({
           >
             <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-12">
               <div className="lg:col-span-7">
-                <p className="text-caption text-muted-foreground">
+                <p className="text-sm font-medium text-muted-foreground">
                   {t("hero.kicker")}
                 </p>
                 <h1
                   id="about-title"
-                  className="enter-rise mt-6 max-w-[16ch] text-display text-balance sm:text-display-lg"
+                  className="enter-rise mt-6 max-w-[16ch] text-5xl text-balance sm:text-6xl font-medium"
                 >
                   {t("hero.title")}
                 </h1>
               </div>
 
               <div className="lg:col-span-4 lg:col-start-9">
-                <p className="enter-rise max-w-[46ch] text-pretty text-body text-muted-foreground [animation-delay:70ms]">
+                <p className="enter-rise max-w-[46ch] text-pretty text-base text-muted-foreground [animation-delay:70ms]">
                   {t("hero.lead")}
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -112,16 +112,16 @@ export default async function AboutPage({
           >
             <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-12">
               <div className="lg:col-span-4">
-                <p className="text-caption text-muted-foreground">
+                <p className="text-sm font-medium text-muted-foreground">
                   {t("product.label")}
                 </p>
                 <h2
                   id="about-product"
-                  className="mt-4 max-w-[18ch] text-display-sm text-balance"
+                  className="mt-4 max-w-[18ch] text-4xl font-medium text-balance"
                 >
                   {t("product.title")}
                 </h2>
-                <p className="mt-4 max-w-[42ch] text-body text-muted-foreground">
+                <p className="mt-4 max-w-[42ch] text-base text-muted-foreground">
                   {t("product.lead")}
                 </p>
               </div>
@@ -133,8 +133,8 @@ export default async function AboutPage({
                       key={item.title}
                       className="grid grid-cols-1 gap-x-8 gap-y-1 border-b border-border py-5 sm:grid-cols-[11rem_1fr]"
                     >
-                      <dt className="text-body-strong">{item.title}</dt>
-                      <dd className="max-w-[52ch] text-body text-muted-foreground">
+                      <dt className="text-base font-medium">{item.title}</dt>
+                      <dd className="max-w-[52ch] text-base text-muted-foreground">
                         {item.body}
                       </dd>
                     </div>
@@ -150,15 +150,15 @@ export default async function AboutPage({
           >
             <h2
               id="about-roles"
-              className="max-w-[24ch] text-display-sm text-balance"
+              className="max-w-[24ch] text-4xl font-medium text-balance"
             >
               {t("roles.title")}
             </h2>
 
             <div className="mt-10 grid grid-cols-1 gap-y-10 lg:grid-cols-2 lg:gap-x-16">
               <div>
-                <h3 className="text-heading-lg">{t("roles.athlete_title")}</h3>
-                <p className="mt-2 max-w-[48ch] text-body text-muted-foreground">
+                <h3 className="text-2xl font-medium">{t("roles.athlete_title")}</h3>
+                <p className="mt-2 max-w-[48ch] text-base text-muted-foreground">
                   {t("roles.athlete_body")}
                 </p>
                 <ul className="mt-5 space-y-2">
@@ -166,7 +166,7 @@ export default async function AboutPage({
                     (item) => (
                       <li
                         key={item}
-                        className="flex gap-3 text-body text-muted-foreground"
+                        className="flex gap-3 text-base text-muted-foreground"
                       >
                         <span
                           aria-hidden
@@ -180,8 +180,8 @@ export default async function AboutPage({
               </div>
 
               <div className="lg:border-l lg:border-border lg:pl-16">
-                <h3 className="text-heading-lg">{t("roles.trainer_title")}</h3>
-                <p className="mt-2 max-w-[48ch] text-body text-muted-foreground">
+                <h3 className="text-2xl font-medium">{t("roles.trainer_title")}</h3>
+                <p className="mt-2 max-w-[48ch] text-base text-muted-foreground">
                   {t("roles.trainer_body")}
                 </p>
                 <ul className="mt-5 space-y-2">
@@ -189,7 +189,7 @@ export default async function AboutPage({
                     (item) => (
                       <li
                         key={item}
-                        className="flex gap-3 text-body text-muted-foreground"
+                        className="flex gap-3 text-base text-muted-foreground"
                       >
                         <span
                           aria-hidden
@@ -210,19 +210,19 @@ export default async function AboutPage({
           >
             <h2
               id="about-method"
-              className="max-w-[24ch] text-display-sm text-balance"
+              className="max-w-[24ch] text-4xl font-medium text-balance"
             >
               {t("method.title")}
             </h2>
-            <p className="mt-4 max-w-[52ch] text-body text-muted-foreground">
+            <p className="mt-4 max-w-[52ch] text-base text-muted-foreground">
               {t("method.lead")}
             </p>
 
             <ol className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
               {method.map((step) => (
                 <li key={step.title} className="border-t border-border pt-5">
-                  <h3 className="text-heading-lg">{step.title}</h3>
-                  <p className="mt-2 max-w-[38ch] text-body text-muted-foreground">
+                  <h3 className="text-2xl font-medium">{step.title}</h3>
+                  <p className="mt-2 max-w-[38ch] text-base text-muted-foreground">
                     {step.body}
                   </p>
                 </li>
@@ -236,12 +236,12 @@ export default async function AboutPage({
           >
             <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-12">
               <div className="lg:col-span-4">
-                <p className="text-caption text-muted-foreground">
+                <p className="text-sm font-medium text-muted-foreground">
                   {t("faq.label")}
                 </p>
                 <h2
                   id="about-faq"
-                  className="mt-4 max-w-[16ch] text-display-sm text-balance"
+                  className="mt-4 max-w-[16ch] text-4xl font-medium text-balance"
                 >
                   {t("faq.title")}
                 </h2>
@@ -261,11 +261,11 @@ export default async function AboutPage({
               <div className="lg:col-span-7">
                 <h2
                   id="about-cta"
-                  className="max-w-[20ch] text-display-sm text-balance"
+                  className="max-w-[20ch] text-4xl font-medium text-balance"
                 >
                   {t("cta.title")}
                 </h2>
-                <p className="mt-4 max-w-[52ch] text-body text-muted-foreground">
+                <p className="mt-4 max-w-[52ch] text-base text-muted-foreground">
                   {t("cta.body")}
                 </p>
               </div>
@@ -287,7 +287,7 @@ export default async function AboutPage({
           </section>
         </main>
 
-        <footer className="border-t border-border py-8 text-caption text-muted-foreground">
+        <footer className="border-t border-border py-8 text-sm font-medium text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <span>{t("footer.copy")}</span>
             <Link

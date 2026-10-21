@@ -70,7 +70,7 @@ export function DashboardClientShell({
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-base">Loading...</div>
       </div>
     );
   }
@@ -81,14 +81,14 @@ export function DashboardClientShell({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-md rounded-xl bg-popover p-6 shadow-lg ring-1 ring-foreground/10">
             <div className="mb-4 flex flex-col gap-2">
-              <h2 className="font-heading text-lg font-semibold">
+              <h2 className="text-base font-medium font-heading">
                 Session Required
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 You need to be logged in to access this page.
               </p>
             </div>
-            <p className="mb-4 text-sm text-muted-foreground">
+            <p className="mb-4 text-base text-muted-foreground">
               Redirecting to login in {countdown} second
               {countdown !== 1 ? "s" : ""}...
             </p>

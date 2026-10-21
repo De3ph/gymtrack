@@ -9,5 +9,7 @@
 export const SIDEBAR_ITEM_SPACING = "h-10 px-3";
 
 export const linkStyles = {
-  brand: 'text-xl font-medium tracking-[-0.04em] text-foreground hover:text-foreground/80 transition-colors duration-200',
+  // Wordmark: `heading-lg` tier (24px/500/1.2, zero tracking). The old
+  // `text-xl` + `tracking-[-0.04em]` was off-scale on both size and tracking.
+  brand: 'text-2xl font-medium text-foreground hover:text-foreground/80 transition-colors duration-200',
 } as const;

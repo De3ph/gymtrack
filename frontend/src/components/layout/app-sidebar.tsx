@@ -46,7 +46,7 @@ function NavBadge({ count, failed }: { count: number; failed: boolean }) {
     return (
       <SidebarMenuBadge
         aria-hidden="true"
-        className="rounded-full bg-primary px-1.5 text-primary-foreground"
+        className="rounded-full bg-primary px-1.5 text-xs! font-medium! text-primary-foreground"
       >
         {count > 99 ? "99+" : count}
       </SidebarMenuBadge>
@@ -58,7 +58,7 @@ function NavBadge({ count, failed }: { count: number; failed: boolean }) {
   return (
     <SidebarMenuBadge
       aria-hidden="true"
-      className="rounded-full bg-muted px-1.5 text-muted-foreground"
+      className="rounded-full bg-muted px-1.5 text-xs! font-medium! text-muted-foreground"
     >
       !
     </SidebarMenuBadge>
@@ -114,7 +114,7 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
               {/* The rail collapses to icons, so the wordmark hides on collapse
                   and the aria-label above carries the accessible name. */}
               <span
-                className="truncate text-xl font-medium tracking-[-0.04em] group-data-[collapsible=icon]:hidden"
+                className="truncate text-2xl font-medium group-data-[collapsible=icon]:hidden"
                 aria-hidden="true"
               >
                 GymTrack
@@ -126,7 +126,9 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
 
       <SidebarContent>
         <SidebarGroup className="py-1">
-          <SidebarGroupLabel>{tNav("menu")}</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-base! font-medium!">
+            {tNav("menu")}
+          </SidebarGroupLabel>
           <SidebarMenu>
             {items.map((item) => {
               const isActive = isNavItemActive(pathname, item);
@@ -159,6 +161,7 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
                     }
                     className={cn(
                       SIDEBAR_ITEM_SPACING,
+                      "text-base! font-medium!",
                       (badgeCount > 0 || badgeFailed) && "pr-10"
                     )}
                     aria-current={isActive ? "page" : undefined}
@@ -199,7 +202,7 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={tNav("profile")}
-              className={SIDEBAR_ITEM_SPACING}
+              className={cn(SIDEBAR_ITEM_SPACING, "text-base! font-medium!")}
               render={
                 <Link href={profileHref} onClick={closeMobileOnNavigate} />
               }
@@ -208,7 +211,7 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
                   signed-in user when it collapses. */}
               {userName ? (
                 <Avatar className="size-5 shrink-0">
-                  <AvatarFallback className="text-[10px] font-medium">
+                  <AvatarFallback className="text-xs! font-medium!">
                     {getInitials(userName)}
                   </AvatarFallback>
                 </Avatar>
@@ -222,7 +225,7 @@ export function AppSidebar({ userRole, userName, onLogout }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={tNav("logout")}
-              className={SIDEBAR_ITEM_SPACING}
+              className={cn(SIDEBAR_ITEM_SPACING, "text-base! font-medium!")}
               onClick={onLogout}
             >
               <LogOut aria-hidden="true" />

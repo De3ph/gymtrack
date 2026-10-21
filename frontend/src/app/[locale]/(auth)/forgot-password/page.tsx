@@ -73,10 +73,10 @@ export default function ForgotPasswordPage() {
         <motion.div variants={reveal} className="mb-8 h-1 w-12 bg-primary" />
 
         <motion.div variants={reveal} className="mb-10">
-          <p className="font-mono text-caption-sm text-muted-foreground">
+          <p className="font-mono text-xs font-medium text-muted-foreground">
             Account
           </p>
-          <h1 className="mt-2 font-mono text-heading-xl text-foreground">
+          <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
             {t("success.title")}
           </h1>
         </motion.div>
@@ -87,28 +87,28 @@ export default function ForgotPasswordPage() {
             animate={{ opacity: 1, x: 0 }}
             className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
           >
-            <p className="text-caption text-destructive">{error}</p>
+            <p className="text-sm font-medium text-destructive">{error}</p>
           </motion.div>
         )}
 
         <motion.div variants={reveal} className="space-y-3">
-          <p className="text-body text-foreground">
+          <p className="text-base text-foreground">
             {t("success.subtitle", { email: submittedEmail })}
           </p>
-          <p className="font-mono text-caption text-foreground">
+          <p className="font-mono text-sm font-medium text-foreground">
             {submittedEmail}
           </p>
         </motion.div>
 
         <motion.div variants={reveal} className="mt-12 flex items-center gap-3">
-          <span className="font-mono text-caption-sm text-muted-foreground">
+          <span className="font-mono text-xs font-medium text-muted-foreground">
             {t("success.didnt_get_it")}
           </span>
           <button
             type="button"
             onClick={handleResend}
             disabled={isResending}
-            className="group inline-flex items-center gap-1.5 font-mono text-caption-sm text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="group inline-flex items-center gap-1.5 font-mono text-xs font-medium text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isResending ? (
               <>
@@ -130,7 +130,7 @@ export default function ForgotPasswordPage() {
         <motion.div variants={reveal} className="mt-16">
           <a
             href={ROUTES.LOGIN}
-            className="inline-flex items-center gap-2 font-mono text-caption-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-3.5" aria-hidden="true" />
             {t("back_to_login")}
@@ -151,13 +151,13 @@ export default function ForgotPasswordPage() {
       <motion.div variants={reveal} className="mb-8 h-1 w-12 bg-primary" />
 
       <motion.div variants={reveal} className="mb-10">
-        <p className="font-mono text-caption-sm text-muted-foreground">
+        <p className="font-mono text-xs font-medium text-muted-foreground">
           Account
         </p>
-        <h1 className="mt-2 font-mono text-heading-xl text-foreground">
+        <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
           {t("title")}
         </h1>
-        <p className="mt-4 max-w-md text-body text-muted-foreground">
+        <p className="mt-4 max-w-md text-base text-muted-foreground">
           {t("subtitle")}
         </p>
       </motion.div>
@@ -168,7 +168,7 @@ export default function ForgotPasswordPage() {
           animate={{ opacity: 1, x: 0 }}
           className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
         >
-          <p className="text-caption text-destructive">{error}</p>
+          <p className="text-sm font-medium text-destructive">{error}</p>
         </motion.div>
       )}
 
@@ -199,7 +199,7 @@ export default function ForgotPasswordPage() {
               <Field>
                 <FieldLabel
                   htmlFor="email"
-                  className="mb-2 font-mono text-caption-sm font-medium leading-normal text-muted-foreground"
+                  className="mb-2 font-mono text-xs font-medium leading-normal text-muted-foreground"
                 >
                   {t("email.label")}
                 </FieldLabel>
@@ -211,7 +211,7 @@ export default function ForgotPasswordPage() {
                   id="email"
                   autoComplete="email"
                   placeholder={t("email.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-body-strong md:text-body-strong text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
                   aria-describedby={fieldErrorId(field.name)}
                 />
                 <FieldInfo field={field} />
@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-none px-8 py-4 font-mono text-button-sm font-medium"
+            className="w-full rounded-none px-8 py-4 font-mono text-sm font-medium"
           >
             <span className="flex items-center justify-center gap-3">
               {isLoading ? (
@@ -249,21 +249,21 @@ export default function ForgotPasswordPage() {
       >
         <motion.span
           aria-hidden="true"
-          className="font-mono text-caption-sm text-muted-foreground/60"
+          className="font-mono text-xs font-medium text-muted-foreground/60"
           animate={reducedMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         >
           &gt;
         </motion.span>
-        <p className="font-mono text-caption-sm text-muted-foreground/60">
+        <p className="font-mono text-xs font-medium text-muted-foreground/60">
           {t("hints.check_spam")}
         </p>
         <span className="text-muted-foreground/30" aria-hidden="true">·</span>
-        <p className="font-mono text-caption-sm text-muted-foreground/60">
+        <p className="font-mono text-xs font-medium text-muted-foreground/60">
           {t("hints.expires_in")}
         </p>
         <span className="text-muted-foreground/30" aria-hidden="true">·</span>
-        <p className="font-mono text-caption-sm text-muted-foreground/60">
+        <p className="font-mono text-xs font-medium text-muted-foreground/60">
           {t("hints.didnt_get")}
         </p>
       </motion.div>
@@ -271,7 +271,7 @@ export default function ForgotPasswordPage() {
       <motion.div variants={reveal} className="mt-8">
         <a
           href={ROUTES.LOGIN}
-          className="inline-flex items-center gap-2 font-mono text-caption-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" aria-hidden="true" />
           {t("back_to_login")}

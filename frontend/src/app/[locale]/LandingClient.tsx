@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FullBleedBackdrop } from "@/components/features/landing/FullBleedBackdrop";
@@ -91,7 +91,7 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
             {authError && (
               <Alert
                 variant="destructive"
-                className="mb-6 border-destructive/40 bg-destructive/5 font-mono text-xs"
+                className="mb-6 border-destructive/40 bg-destructive/5"
                 aria-live="polite"
               >
                 <Zap className="size-5" />
@@ -194,7 +194,7 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className={`border-t border-border py-8 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground ${invertedSection}`}
+              className={`border-t border-border py-8 text-xs font-medium text-muted-foreground ${invertedSection}`}
             >
               <FullBleedBackdrop />
               <motion.div

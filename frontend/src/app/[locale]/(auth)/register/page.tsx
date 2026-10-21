@@ -26,8 +26,8 @@ import {
 // ship `text-sm font-semibold leading-none`, which is off-scale; passing the
 // token here lets twMerge drop those classes at the call site instead of
 // editing the primitive for every consumer.
-const labelClass = "text-caption-sm font-medium leading-normal"
-const inputClass = "text-body-strong md:text-body-strong"
+const labelClass = "text-xs font-medium leading-normal"
+const inputClass = "text-base font-medium"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -128,17 +128,17 @@ export default function RegisterPage() {
 
   return (
     <div className='rounded-none border border-border p-6 sm:p-8'>
-      <p className='font-mono text-caption-sm text-muted-foreground'>
+      <p className='font-mono text-xs font-medium text-muted-foreground'>
         Account
       </p>
-      <h1 className='mb-6 mt-2 font-mono text-heading-xl text-foreground'>
+      <h1 className='mb-6 mt-2 font-mono text-3xl font-medium text-foreground'>
         {t("title")}
       </h1>
 
       {error && (
         <div
           role='alert'
-          className='mb-4 rounded-none border border-destructive/20 bg-destructive/5 p-3 text-caption text-destructive'
+          className='mb-4 rounded-none border border-destructive/20 bg-destructive/5 p-3 text-sm font-medium text-destructive'
         >
           {error}
         </div>
@@ -295,7 +295,7 @@ export default function RegisterPage() {
                     onChange={() => field.handleChange("athlete")}
                     className='accent-primary'
                   />
-                  <span className='text-body text-foreground'>
+                  <span className='text-base text-foreground'>
                     {t("role.athlete")}
                   </span>
                 </label>
@@ -307,7 +307,7 @@ export default function RegisterPage() {
                     onChange={() => field.handleChange("trainer")}
                     className='accent-primary'
                   />
-                  <span className='text-body text-foreground'>
+                  <span className='text-base text-foreground'>
                     {t("role.trainer")}
                   </span>
                 </label>
@@ -494,7 +494,7 @@ export default function RegisterPage() {
         <Button
           type='submit'
           disabled={isLoading}
-          className='w-full rounded-none px-4 py-2 font-mono text-button-sm font-medium'
+          className='w-full rounded-none px-4 py-2 font-mono text-sm font-medium'
         >
           {isLoading ? (
             <>
@@ -505,11 +505,11 @@ export default function RegisterPage() {
           )}
         </Button>
 
-        <p className='mt-4 text-center text-caption-sm text-muted-foreground'>
+        <p className='mt-4 text-center text-xs font-medium text-muted-foreground'>
           {t("has_account")}{" "}
           <a
             href={ROUTES.LOGIN}
-            className='font-mono text-caption-sm text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary'
+            className='font-mono text-xs font-medium text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary'
           >
             {t("sign_in")}
           </a>

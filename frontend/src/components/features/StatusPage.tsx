@@ -57,7 +57,7 @@ export function StatusPage({
           {isError && onRetry ? (
             <Button
               onClick={onRetry}
-              className="rounded-none font-mono text-xs uppercase tracking-[0.18em]"
+              className="rounded-none text-sm font-medium"
             >
               <RotateCcw className="size-3.5" aria-hidden="true" />
               {tActions("retry")}
@@ -68,7 +68,7 @@ export function StatusPage({
             className={buttonVariants({
               variant: isError ? "outline" : "default",
               className:
-                "rounded-none font-mono text-xs uppercase tracking-[0.18em]",
+                "rounded-none text-sm font-medium",
             })}
           >
             {backLabel ?? (isError ? tActions("back") : tNavigation("home"))}
