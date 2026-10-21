@@ -509,6 +509,8 @@
     },
     "calendar": {
       "loading": "Takvim yükleniyor...",
+      "workout": "Antrenman",
+      "meal": "Öğün",
       "events": {
         "workout": "Antrenman",
         "exercises": "hareket",
@@ -1435,6 +1437,10 @@
     "library": {
       "title": "Egzersiz Kütüphanesi",
       "subtitle": "Katalogdaki tüm egzersizleri gösterim videosu ve adım adım talimatlarla incele.",
+      "filter_search": "Ara",
+      "filter_category": "Kategori",
+      "filter_muscle_group": "Kas Grubu",
+      "filter_equipment": "Ekipman",
       "search_placeholder": "Ada veya talimata göre ara...",
       "all_categories": "Tüm Kategoriler",
       "all_muscle_groups": "Tüm Kas Grupları",

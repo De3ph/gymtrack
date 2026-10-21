@@ -27,6 +27,7 @@ import { staggerContainer } from "@/lib/animations";
 import { STALE_TIMES } from "@/lib/api/api-constants";
 
 export default function TrainerClientsPage() {
+  const tCommonLoading = useTranslations("common");
   const router = useRouter();
   const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,7 +72,7 @@ export default function TrainerClientsPage() {
       <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           <Spinner className="size-5" />
-          <span>Loading</span>
+          <span>{tCommonLoading("loading")}</span>
         </div>
       </div>
     );
@@ -82,10 +83,10 @@ export default function TrainerClientsPage() {
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            My Clients
+            {t("title")}
           </h1>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Manage your athlete relationships and view their progress
+            {t("description")}
           </p>
         </div>
         <Button
@@ -93,7 +94,7 @@ export default function TrainerClientsPage() {
           className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
         >
           <UserPlus className="size-5" aria-hidden="true" />
-          Invite Athlete
+          {t("invite_athlete")}
         </Button>
       </div>
 
@@ -166,11 +167,11 @@ export default function TrainerClientsPage() {
         <Empty className="rounded-none border border-border">
           <EmptyHeader>
             <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em]">
-              No Results Found
+              {t("no_results_title")}
             </EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <EmptyDescription>No clients match your search.</EmptyDescription>
+            <EmptyDescription>{t("no_results_description")}</EmptyDescription>
           </EmptyContent>
         </Empty>
       )}
