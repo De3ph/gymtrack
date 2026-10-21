@@ -35,13 +35,13 @@ const LandingRolePaths = dynamic(
 );
 
 /**
- * Inverted (dark) section surface. Scoped token overrides keep shadcn
- * utilities (bg-foreground, text-background, bg-muted, bg-primary, …)
- * readable on top of the dark band in both themes. Pair with
- * <FullBleedBackdrop /> to paint the band edge-to-edge.
+ * Inverted (dark) section surface. `.surface-inverted` re-points the
+ * semantic tokens at the dark end of the palette, so the shadcn utilities
+ * (bg-foreground, text-background, bg-muted, bg-primary, …) stay readable
+ * on top of the dark band in both themes — and follow the palette when it
+ * changes. Pair with <FullBleedBackdrop /> to paint the band edge-to-edge.
  */
-const invertedSection =
-  "relative isolate text-[#fafaf9] [--accent:#2dd4bf] [--accent-foreground:#0c0a09] [--background:#0c0a09] [--border:#ffffff40] [--card:#1c1917] [--card-foreground:#fafaf9] [--destructive:#f87171] [--destructive-foreground:#0c0a09] [--foreground:#fafaf9] [--input:#292524] [--muted:#292524] [--muted-foreground:#a8a29e] [--popover:#1c1917] [--popover-foreground:#fafaf9] [--primary:#ef4444] [--primary-foreground:#fafaf9] [--ring:#ef4444] [--secondary:#292524] [--secondary-foreground:#fafaf9]";
+const invertedSection = "surface-inverted isolate text-foreground";
 
 export function LandingClient({ authError = false }: { authError?: boolean }) {
   const t = useTranslations("dashboard");
@@ -104,7 +104,7 @@ export function LandingClient({ authError = false }: { authError?: boolean }) {
             >
               <div
                 aria-hidden="true"
-                className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#0c0a09]"
+                className="absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-background"
               >
                 <Image
                   src="/images/hero-training.jpg"

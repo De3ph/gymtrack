@@ -85,8 +85,8 @@ describe('CalendarGrid', () => {
       )
 
       expect(dayCell(container, '2025-10-20')).toHaveClass('text-primary')
-      expect(dayCell(container, '2025-10-20')).not.toHaveClass('text-emerald-600')
-      expect(dayCell(container, '2025-10-21')).toHaveClass('text-emerald-600')
+      expect(dayCell(container, '2025-10-20')).not.toHaveClass('text-teal-600')
+      expect(dayCell(container, '2025-10-21')).toHaveClass('text-teal-600')
       expect(dayCell(container, '2025-10-21')).not.toHaveClass('text-primary')
     })
 
@@ -144,7 +144,8 @@ describe('CalendarGrid', () => {
 
       expect(container.querySelector('[data-selected-single="true"]')).toHaveAttribute(
         'data-day',
-        '15/10/2025',
+        // Calendar pins the react-day-picker locale (en via the next-intl mock).
+        new Date(2025, 9, 15).toLocaleDateString('en'),
       )
     })
   })

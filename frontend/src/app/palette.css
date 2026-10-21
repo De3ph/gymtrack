@@ -1,0 +1,260 @@
+/* ============================================================================
+   GymTrack Palette — the single source of truth for color
+   ----------------------------------------------------------------------------
+   Nothing else in the app may hardcode a color value. Everything consumes
+   these custom properties.
+
+   Layout:
+     1. Primitives — raw ramps (stone / red / teal / amber), 11 steps each.
+     2. Semantics  — the shadcn contract (primary, accent, card, ...).
+     3. Scopes    — surface variants that re-point the semantic contract at a
+                    different set of primitives.
+
+   Swapping the palette = editing this file only. The `@theme inline` bridge
+   in globals.css maps these variables onto Tailwind utilities, and the
+   shadcn primitives only ever reference the semantic layer, so no component
+   has to change.
+
+   The hex in each comment is the color the browser actually renders.
+   `pnpm check:tokens -- --print-primitives` regenerates them — the previous
+   revision carried Tailwind v3 hexes that never matched these OKLCH values.
+
+   After any change run `pnpm check:tokens` — it re-validates every
+   foreground/background pair against WCAG and fails the build on a
+   regression. See docs/palette.md for the full contract.
+   ========================================================================= */
+
+:root {
+    /* ── Primitives — LIGHT (OKLCH, sRGB hex in comment) ── */
+    /* Stone — warm neutral, hue ~56 */
+    --stone-50: oklch(0.985 0.001 56.3);    /* #fbfaf9 */
+    --stone-100: oklch(0.97 0.001 106.4);   /* #f5f5f4 */
+    --stone-200: oklch(0.923 0.003 48.7);   /* #e7e5e4 */
+    --stone-300: oklch(0.869 0.005 56.3);   /* #d6d3d1 */
+    --stone-400: oklch(0.709 0.01 56.3);    /* #a6a09b */
+    --stone-500: oklch(0.553 0.013 58.1);   /* #79716b */
+    --stone-600: oklch(0.444 0.011 73.6);   /* #57534d */
+    --stone-700: oklch(0.374 0.01 67.6);    /* #44403b */
+    --stone-800: oklch(0.268 0.007 34.3);   /* #292524 */
+    --stone-900: oklch(0.216 0.006 56);     /* #1c1917 */
+    --stone-950: oklch(0.147 0.004 49.3);   /* #0c0a09 */
+
+    /* Red — primary / destructive, hue ~25, vivid peak at 500-600 */
+    --red-50: oklch(0.971 0.013 17.4);      /* #fef2f2 */
+    --red-100: oklch(0.936 0.032 17.7);     /* #ffe2e2 */
+    --red-200: oklch(0.885 0.062 18.3);     /* #ffc9c9 */
+    --red-300: oklch(0.808 0.114 19.6);     /* #ffa2a2 */
+    --red-400: oklch(0.704 0.191 22.2);     /* #ff6467 */
+    --red-500: oklch(0.637 0.237 25.3);     /* #fb2c36 */
+    --red-600: oklch(0.577 0.245 27.3);     /* #e7000b — the light-theme primary */
+    --red-700: oklch(0.505 0.213 27.5);     /* #c10007 */
+    --red-800: oklch(0.444 0.177 26.9);     /* #9f0712 */
+    --red-900: oklch(0.396 0.141 25.7);     /* #82181a */
+    --red-950: oklch(0.258 0.092 26);       /* #460809 */
+
+    /* Teal — accent, hue ~175-180 */
+    --teal-50: oklch(0.984 0.014 180.7);    /* #f0fdfa */
+    --teal-100: oklch(0.953 0.051 180.8);   /* #cbfbf1 */
+    --teal-200: oklch(0.91 0.096 180.4);    /* #96f7e4 */
+    --teal-300: oklch(0.855 0.138 181.1);   /* #46ecd5 */
+    --teal-400: oklch(0.777 0.152 181.9);   /* #00d5be */
+    --teal-500: oklch(0.704 0.14 182.5);    /* #00bba7 — brand accent */
+    --teal-600: oklch(0.6 0.118 184.7);     /* #009689 */
+    --teal-700: oklch(0.511 0.096 186.4);   /* #00786f */
+    --teal-800: oklch(0.437 0.078 188.2);   /* #005f5a */
+    --teal-900: oklch(0.386 0.063 188.2);   /* #0b4f4a */
+    --teal-950: oklch(0.277 0.046 192.5);   /* #022f2e */
+
+    /* Amber — warning / fats, hue ~75 */
+    --amber-50: oklch(0.987 0.022 95.3);    /* #fffbeb */
+    --amber-100: oklch(0.962 0.059 95.6);   /* #fef3c6 */
+    --amber-200: oklch(0.924 0.12 95.7);    /* #fee685 */
+    --amber-300: oklch(0.879 0.169 91.6);   /* #ffd230 */
+    --amber-400: oklch(0.828 0.189 84.4);   /* #ffb900 */
+    --amber-500: oklch(0.769 0.188 70.1);   /* #fe9a00 */
+    --amber-600: oklch(0.666 0.179 58.3);   /* #e17100 */
+    --amber-700: oklch(0.555 0.163 48.9);   /* #bb4d00 */
+    --amber-800: oklch(0.473 0.137 46.2);   /* #973c00 */
+    --amber-900: oklch(0.414 0.112 45.9);   /* #7b3306 */
+    --amber-950: oklch(0.279 0.077 45.6);   /* #461901 */
+
+    /* ── Semantics — LIGHT ── */
+    --background: var(--stone-50);
+    --foreground: var(--stone-900);
+    --card: #ffffff;
+    --card-foreground: var(--stone-900);
+    --popover: #ffffff;
+    --popover-foreground: var(--stone-900);
+
+    /* Primary: one filled action per view. Use --red-600. Hover via 700. */
+    --primary: var(--red-600);
+    --primary-foreground: #ffffff; /* 4.91:1 on red-600 — PASS AA */
+
+    --secondary: var(--stone-100);
+    --secondary-foreground: var(--stone-900);
+
+    --muted: var(--stone-200);
+    /* stone-600, not stone-500: 4.5:1 is measured against --muted, which is
+       where the muted text actually sits (avatar fallback, sidebar badge,
+       inactive tab). stone-500 only reached 3.83:1 there. */
+    --muted-foreground: var(--stone-600); /* 6.08:1 on stone-200 — PASS AA */
+
+    /* Accent = interactive secondary / highlights. Foreground MUST be dark — white fails 2.49:1 */
+    --accent: var(--teal-500);
+    --accent-foreground: var(--stone-950); /* 8.00:1 on teal-500 — PASS AA */
+
+    --destructive: var(--red-600);
+    --destructive-foreground: #ffffff;
+
+    --border: var(--stone-200);
+    --input: var(--stone-200);
+    --ring: var(--red-600);
+
+    /* Charts — each maps to a primitive so they stay in system. */
+    --chart-1: var(--red-600);      /* primary red  — volume / weight */
+    --chart-2: var(--teal-600);     /* teal          — nutrition */
+    --chart-3: var(--amber-500);    /* amber        — meal types / warning */
+    --chart-4: var(--stone-900);    /* neutral dark — 4th series */
+    --chart-5: var(--stone-500);    /* neutral mid  — 5th series */
+
+    /* Sidebar — same neutrals, primary stays red */
+    --sidebar: var(--stone-50);
+    --sidebar-foreground: var(--stone-900);
+    --sidebar-primary: var(--red-600);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: var(--stone-100);
+    --sidebar-accent-foreground: var(--stone-900);
+    --sidebar-border: var(--stone-200);
+    --sidebar-ring: var(--red-600);
+
+    /* Status — for future use, already in ramps */
+    --success: var(--teal-700);
+    --success-foreground: #ffffff;
+    --warning: var(--amber-500);
+    --warning-foreground: var(--stone-950);
+    --info: var(--teal-700);
+    --info-foreground: #ffffff;
+
+    /* ── Avatar swatches ──
+       Decorative identity color for a person's initials, picked by hashing
+       the display name. Ten entries so two people rarely collide. They are
+       declared here rather than in the component so a palette swap retunes
+       them along with everything else.
+
+       Each swatch carries its own foreground: the set spans near-white
+       (amber) to mid-dark (violet), so no single label color works across
+       all ten. The off-ramp hues are Tailwind's defaults, copied verbatim so
+       the rendered colors do not change. */
+    --avatar-1: var(--red-500);
+    --avatar-1-foreground: var(--stone-950);
+    --avatar-2: oklch(0.705 0.213 47.604);
+    --avatar-2-foreground: var(--stone-950);
+    --avatar-3: var(--amber-500);
+    --avatar-3-foreground: var(--stone-950);
+    --avatar-4: oklch(0.696 0.17 162.48);
+    --avatar-4-foreground: var(--stone-950);
+    --avatar-5: var(--teal-500);
+    --avatar-5-foreground: var(--stone-950);
+    --avatar-6: oklch(0.715 0.143 215.221);
+    --avatar-6-foreground: var(--stone-950);
+    --avatar-7: oklch(0.623 0.214 259.815);
+    --avatar-7-foreground: var(--stone-950);
+    --avatar-8: oklch(0.606 0.25 292.717);
+    --avatar-8-foreground: var(--stone-950);
+    --avatar-9: oklch(0.627 0.265 303.9);
+    --avatar-9-foreground: var(--stone-950);
+    --avatar-10: oklch(0.656 0.241 354.308);
+    --avatar-10-foreground: var(--stone-950);
+}
+
+.dark {
+    /* Primitives are same — semantics flip. Do NOT just reverse; widen dark end & desaturate mid */
+    --background: var(--stone-950);
+    --foreground: var(--stone-200);
+    --card: var(--stone-900);
+    --card-foreground: var(--stone-200);
+    --popover: var(--stone-900);
+    --popover-foreground: var(--stone-200);
+
+    /* Lighten primary in dark so the fill stays vivid against the dark end.
+       The label is stone-950, not white: white on red-500 only reached
+       3.82:1, below the 4.5:1 that a 14px button label needs. */
+    --primary: var(--red-500);
+    --primary-foreground: var(--stone-950); /* 5.17:1 on red-500 — PASS AA */
+
+    --secondary: var(--stone-800);
+    --secondary-foreground: var(--stone-200);
+
+    /* stone-800, not stone-700: stone-400 text on stone-700 was 3.97:1.
+       Darkening the surface keeps the text hierarchy intact. */
+    --muted: var(--stone-800);
+    --muted-foreground: var(--stone-400); /* 5.87:1 on stone-800 — PASS AA */
+
+    /* Teal 400 is lighter, pairs with dark fg 10.43:1 */
+    --accent: var(--teal-400);
+    --accent-foreground: var(--stone-950);
+
+    --destructive: var(--red-400); /* lighter red for dark bg */
+    --destructive-foreground: var(--stone-950);
+
+    --border: var(--stone-800);
+    --input: var(--stone-800);
+    --ring: var(--red-500);
+
+    --chart-1: var(--red-400);
+    --chart-2: var(--teal-400);
+    --chart-3: var(--amber-400);
+    --chart-4: var(--stone-200);
+    --chart-5: var(--stone-400);
+
+    --sidebar: var(--stone-900);
+    --sidebar-foreground: var(--stone-200);
+    --sidebar-primary: var(--red-500);
+    --sidebar-primary-foreground: var(--stone-950);
+    --sidebar-accent: var(--stone-800);
+    --sidebar-accent-foreground: var(--stone-200);
+    --sidebar-border: var(--stone-800);
+    --sidebar-ring: var(--red-500);
+
+    --success: var(--teal-400);
+    --success-foreground: var(--stone-950);
+    --warning: var(--amber-400);
+    --warning-foreground: var(--stone-950);
+    --info: var(--teal-400);
+    --info-foreground: var(--stone-950);
+}
+
+/* ---------------------------------------------------------------------------
+   Inverted surface — the dark band on the landing page.
+   Re-points the semantic contract at the dark end of the ramps so the
+   shadcn utilities (bg-foreground, text-background, bg-muted, bg-primary, …)
+   stay readable on the band in both themes. Pair with <FullBleedBackdrop />
+   to paint the band edge-to-edge.
+
+   Defined after :root and .dark so it wins on specificity ties, and because
+   it is a direct declaration on the element it beats the inherited value
+   from <html class="dark"> regardless of theme.
+   --------------------------------------------------------------------------- */
+.surface-inverted {
+    --background: var(--stone-950);
+    --foreground: var(--stone-50);
+    --card: var(--stone-900);
+    --card-foreground: var(--stone-50);
+    --popover: var(--stone-900);
+    --popover-foreground: var(--stone-50);
+    --primary: var(--red-500);
+    --primary-foreground: var(--stone-950); /* 5.17:1 on red-500 — PASS AA */
+    --secondary: var(--stone-800);
+    --secondary-foreground: var(--stone-50);
+    --muted: var(--stone-800);
+    --muted-foreground: var(--stone-400);
+    --accent: var(--teal-400);
+    --accent-foreground: var(--stone-950);
+    --destructive: var(--red-400);
+    --destructive-foreground: var(--stone-950);
+    /* A translucent white hairline — palette-independent, reads as a rule
+       on the photo/gradient underneath. */
+    --border: #ffffff40;
+    --input: var(--stone-800);
+    --ring: var(--red-500);
+}

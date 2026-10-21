@@ -13,6 +13,9 @@
 | `pnpm test:e2e` | Playwright (tests in `src/e2e/`) |
 | `pnpm test:e2e:ui` | Playwright UI mode |
 | `pnpm validate:i18n` | Run `scripts/validate-translations.ts` to check i18n coverage |
+| `pnpm check:tokens` | Contrast + palette-mirror validation (`scripts/check-tokens.ts`) |
+| `pnpm check:colors` | Fail on hardcoded / off-ramp colors in `src/` (`scripts/check-raw-colors.ts`) |
+| `pnpm check:design` | Both of the above |
 | `pnpm test -- src/test/some.test.ts` | Single Vitest file |
 
 ## Package manager
@@ -43,6 +46,7 @@
 ## UI & styling
 
 - **Tailwind CSS v4** with CSS-based configuration in `src/app/globals.css`. Use `@tailwindcss/postcss` (v4 PostCSS plugin).
+- **Design tokens**: all color lives in `src/app/palette.css` (primitives + semantics + `.surface-inverted`). `globals.css` only holds the `@theme inline` bridge. Never hardcode a color — `pnpm check:colors` fails the build on a hex, an `rgb()`/`oklch()` call, or an off-ramp utility like `bg-emerald-500`. `pnpm check:tokens` asserts every foreground/background pair against WCAG AA. Both run under `pnpm check:design`. Contract and swap procedure: `docs/palette.md`.
 - **shadcn/ui** with `base-vega` style, `lucide` icons. Config in `components.json` — aliases: `@/components/ui`, `@/lib/utils`, `@/hooks`.
 - **Component structure**: `src/components/ui/` (38 shadcn primitives), `src/components/features/` (14 domain modules: athlete, trainer, workout, meal, comments, etc.).
 - **Animation**: `tw-animate-css` + `motion` (framer-motion successor) via the `motion` npm package.

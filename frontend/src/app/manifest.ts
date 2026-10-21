@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import palette from "@/lib/palette.json";
 
 // Served at /manifest.webmanifest (Next.js metadata file convention).
 // Lives at the app root so it is locale-agnostic.
@@ -12,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#0c0a09",
-    theme_color: "#0c0a09",
+    background_color: palette.manifest.backgroundColor,
+    theme_color: palette.manifest.themeColor,
     categories: ["health", "fitness", "lifestyle"],
     icons: [
       {

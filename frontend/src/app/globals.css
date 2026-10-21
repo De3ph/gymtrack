@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./palette.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,8 +9,14 @@
    GymTrack Color System — v2
    Primitives: stone / red / teal / amber — OKLCH ramps
    Semantics: background, foreground, primary, accent, destructive …
-   Every step has a role. Hold hue, step in perceived lightness.
-   See docs/palette.md for roles.
+
+   The values live in palette.css. This block is only the bridge that
+   turns them into Tailwind utilities. `inline` matters: it keeps the
+   var() reference instead of copying the value, so a scope that
+   re-points --primary (see .surface-inverted) re-points bg-primary
+   too.
+
+   See docs/palette.md for roles and the swap procedure.
    ────────────────────────────────────────────────────────────── */
 
 @theme inline {
@@ -102,6 +109,35 @@
     --color-popover: var(--popover);
     --color-card-foreground: var(--card-foreground);
     --color-card: var(--card);
+    /* Status tokens — wired so a palette can use them without touching
+       the utility layer. */
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    /* Avatar swatches — a fixed set of ten, each with its own label colour. */
+    --color-avatar-1: var(--avatar-1);
+    --color-avatar-1-foreground: var(--avatar-1-foreground);
+    --color-avatar-2: var(--avatar-2);
+    --color-avatar-2-foreground: var(--avatar-2-foreground);
+    --color-avatar-3: var(--avatar-3);
+    --color-avatar-3-foreground: var(--avatar-3-foreground);
+    --color-avatar-4: var(--avatar-4);
+    --color-avatar-4-foreground: var(--avatar-4-foreground);
+    --color-avatar-5: var(--avatar-5);
+    --color-avatar-5-foreground: var(--avatar-5-foreground);
+    --color-avatar-6: var(--avatar-6);
+    --color-avatar-6-foreground: var(--avatar-6-foreground);
+    --color-avatar-7: var(--avatar-7);
+    --color-avatar-7-foreground: var(--avatar-7-foreground);
+    --color-avatar-8: var(--avatar-8);
+    --color-avatar-8-foreground: var(--avatar-8-foreground);
+    --color-avatar-9: var(--avatar-9);
+    --color-avatar-9-foreground: var(--avatar-9-foreground);
+    --color-avatar-10: var(--avatar-10);
+    --color-avatar-10-foreground: var(--avatar-10-foreground);
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
@@ -117,166 +153,6 @@
 
 :root {
     --radius: 0.45rem;
-
-    /* ── Primitives — LIGHT (OKLCH, sRGB hex in comment) ── */
-    /* Stone — warm neutral, hue ~56 */
-    --stone-50: oklch(0.985 0.001 56.3);   /* #fafaf9 */
-    --stone-100: oklch(0.97 0.001 106.4);  /* #f5f5f4 */
-    --stone-200: oklch(0.923 0.003 48.7);  /* #e7e5e4 */
-    --stone-300: oklch(0.869 0.005 56.3);  /* #d6d3d1 */
-    --stone-400: oklch(0.709 0.01 56.3);   /* #a8a29e */
-    --stone-500: oklch(0.553 0.013 58.1);  /* #78716c */
-    --stone-600: oklch(0.444 0.011 73.6);  /* #57534e */
-    --stone-700: oklch(0.374 0.01 67.6);   /* #44403c */
-    --stone-800: oklch(0.268 0.007 34.3);  /* #292524 */
-    --stone-900: oklch(0.216 0.006 56);    /* #1c1917 */
-    --stone-950: oklch(0.147 0.004 49.3);  /* #0c0a09 */
-
-    /* Red — primary / destructive, hue ~25, vivid peak at 500-600 */
-    --red-50: oklch(0.971 0.013 17.4);     /* #fef2f2 */
-    --red-100: oklch(0.936 0.032 17.7);    /* #fee2e2 */
-    --red-200: oklch(0.885 0.062 18.3);    /* #fecaca */
-    --red-300: oklch(0.808 0.114 19.6);    /* #fca5a5 */
-    --red-400: oklch(0.704 0.191 22.2);    /* #f87171 */
-    --red-500: oklch(0.637 0.237 25.3);    /* #ef4444 */
-    --red-600: oklch(0.577 0.245 27.3);    /* #dc2626 — closest to brand #d93535 */
-    --red-700: oklch(0.505 0.213 27.5);    /* #b91c1c */
-    --red-800: oklch(0.444 0.177 26.9);    /* #991b1b */
-    --red-900: oklch(0.396 0.141 25.7);    /* #7f1d1d */
-    --red-950: oklch(0.258 0.092 26);      /* #450a0a */
-
-    /* Teal — accent, hue ~175-180 */
-    --teal-50: oklch(0.984 0.014 180.7);   /* #f0fdfa */
-    --teal-100: oklch(0.953 0.051 180.8);  /* #ccfbf1 */
-    --teal-200: oklch(0.91 0.096 180.4);   /* #99f6e4 */
-    --teal-300: oklch(0.855 0.138 181.1);  /* #5eead4 */
-    --teal-400: oklch(0.777 0.152 181.9);  /* #2dd4bf */
-    --teal-500: oklch(0.704 0.14 182.5);   /* #14b8a6 — brand accent */
-    --teal-600: oklch(0.6 0.118 184.7);    /* #0d9488 */
-    --teal-700: oklch(0.511 0.096 186.4);  /* #0f766e */
-    --teal-800: oklch(0.437 0.078 188.2);  /* #115e59 */
-    --teal-900: oklch(0.386 0.063 188.2);  /* #134e4a */
-    --teal-950: oklch(0.277 0.046 192.5);  /* #042f2e */
-
-    /* Amber — warning / fats, hue ~75 */
-    --amber-50: oklch(0.987 0.022 95.3);   /* #fffbeb */
-    --amber-100: oklch(0.962 0.059 95.6);  /* #fef3c7 */
-    --amber-200: oklch(0.924 0.12 95.7);   /* #fde68a */
-    --amber-300: oklch(0.879 0.169 91.6);  /* #fcd34d */
-    --amber-400: oklch(0.828 0.189 84.4);  /* #fbbf24 */
-    --amber-500: oklch(0.769 0.188 70.1);  /* #f59e0b */
-    --amber-600: oklch(0.666 0.179 58.3);  /* #d97706 */
-    --amber-700: oklch(0.555 0.163 48.9);  /* #b45309 */
-    --amber-800: oklch(0.473 0.137 46.2);  /* #92400e */
-    --amber-900: oklch(0.414 0.112 45.9);  /* #78350f */
-    --amber-950: oklch(0.279 0.077 45.6);  /* #451a03 */
-
-    /* ── Semantic — LIGHT ── */
-    --background: var(--stone-50);
-    --foreground: var(--stone-900);
-    --card: #ffffff;
-    --card-foreground: var(--stone-900);
-    --popover: #ffffff;
-    --popover-foreground: var(--stone-900);
-
-    /* Primary: one filled action per view. Use --red-600. Hover via 700. */
-    --primary: var(--red-600);
-    --primary-foreground: #ffffff; /* 4.66:1 on red-600 — PASS AA (checked) */
-
-    --secondary: var(--stone-100);
-    --secondary-foreground: var(--stone-900);
-
-    --muted: var(--stone-200);
-    --muted-foreground: var(--stone-500); /* 4.8:1 on white, 4.59 on stone-50 — PASS */
-
-    /* Accent = interactive secondary / highlights. Foreground MUST be dark — white fails 2.49:1 */
-    --accent: var(--teal-500);
-    --accent-foreground: var(--stone-950); /* 10.6:1 on teal-500 — PASS */
-
-    --destructive: var(--red-600);
-    --destructive-foreground: #ffffff;
-
-    --border: var(--stone-200);
-    --input: var(--stone-200);
-    --ring: var(--red-600);
-
-    /* Charts — each maps to a primitive so they stay in system. */
-    --chart-1: var(--red-600);      /* primary red  — volume / weight */
-    --chart-2: var(--teal-600);     /* teal          — nutrition */
-    --chart-3: var(--amber-500);    /* amber        — meal types / warning */
-    --chart-4: var(--stone-900);    /* neutral dark — 4th series */
-    --chart-5: var(--stone-500);    /* neutral mid  — 5th series */
-
-    /* Sidebar — same neutrals, primary stays red */
-    --sidebar: var(--stone-50);
-    --sidebar-foreground: var(--stone-900);
-    --sidebar-primary: var(--red-600);
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: var(--stone-100);
-    --sidebar-accent-foreground: var(--stone-900);
-    --sidebar-border: var(--stone-200);
-    --sidebar-ring: var(--red-600);
-
-    /* Status — for future use, already in ramps */
-    --success: var(--teal-600);
-    --success-foreground: #ffffff;
-    --warning: var(--amber-500);
-    --warning-foreground: var(--stone-950);
-    --info: var(--teal-600);
-    --info-foreground: #ffffff;
-}
-
-.dark {
-    /* Primitives are same — semantics flip. Do NOT just reverse; widen dark end & desaturate mid */
-    --background: var(--stone-950);
-    --foreground: var(--stone-200);
-    --card: var(--stone-900);
-    --card-foreground: var(--stone-200);
-    --popover: var(--stone-900);
-    --popover-foreground: var(--stone-200);
-
-    /* Lighten primary in dark so white text keeps 3.76:1 (large) and ring stays visible */
-    --primary: var(--red-500);
-    --primary-foreground: #ffffff;
-
-    --secondary: var(--stone-800);
-    --secondary-foreground: var(--stone-200);
-
-    --muted: var(--stone-700);
-    --muted-foreground: var(--stone-400); /* 7.83:1 on stone-950 — PASS */
-
-    /* Teal 400 is lighter, pairs with dark fg 10.6:1 */
-    --accent: var(--teal-400);
-    --accent-foreground: var(--stone-950);
-
-    --destructive: var(--red-400); /* lighter red for dark bg */
-    --destructive-foreground: var(--stone-950);
-
-    --border: var(--stone-800);
-    --input: var(--stone-800);
-    --ring: var(--red-500);
-
-    --chart-1: var(--red-400);
-    --chart-2: var(--teal-400);
-    --chart-3: var(--amber-400);
-    --chart-4: var(--stone-200);
-    --chart-5: var(--stone-400);
-
-    --sidebar: var(--stone-900);
-    --sidebar-foreground: var(--stone-200);
-    --sidebar-primary: var(--red-500);
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: var(--stone-800);
-    --sidebar-accent-foreground: var(--stone-200);
-    --sidebar-border: var(--stone-800);
-    --sidebar-ring: var(--red-500);
-
-    --success: var(--teal-400);
-    --success-foreground: var(--stone-950);
-    --warning: var(--amber-400);
-    --warning-foreground: var(--stone-950);
-    --info: var(--teal-400);
-    --info-foreground: var(--stone-950);
 }
 
 @layer base {

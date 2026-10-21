@@ -14,15 +14,21 @@
  *   src/app/apple-icon.png              - apple-touch-icon via Next file convention
  */
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Brand colors (keep in sync with src/app/globals.css). */
-const BACKGROUND = '#0c0a09';
-const GLYPH = '#ef4444';
+/**
+ * Brand colors. Read from src/lib/palette.json, the machine-readable mirror
+ * of the palette — the same values the app renders (src/app/palette.css) and
+ * the manifest use. `pnpm check:tokens` keeps the mirror in sync, so a
+ * palette change surfaces here instead of silently drifting.
+ */
+const palette = JSON.parse(await readFile(join(root, 'src', 'lib', 'palette.json'), 'utf8'));
+const BACKGROUND = palette.pwaIcon.background;
+const GLYPH = palette.pwaIcon.glyph;
 
 /**
  * Dumbbell glyph drawn in a 512x512 coordinate space, centered.

@@ -30,7 +30,7 @@ If you're tempted to add any of these, you are about to produce AI-default desig
 
 ## 3. Tokens
 
-All tokens are defined in `src/app/globals.css` as CSS variables. Tailwind v4 exposes them through `@theme inline`. **Never hardcode hex values in components.**
+All color tokens are defined in `src/app/palette.css` as CSS variables; `src/app/globals.css` only bridges them onto Tailwind via `@theme inline`. **Never hardcode hex values in components** — `pnpm check:colors` fails the build if you do.
 
 ### 3.1 Color
 
@@ -40,13 +40,16 @@ All tokens are defined in `src/app/globals.css` as CSS variables. Tailwind v4 ex
 | `foreground` | `stone-900` | `stone-200` | Primary text + filled-button bg |
 | `card` | `#ffffff` | `stone-900` | Panel surface (use sparingly; see §6.2) |
 | `primary` | `red-600` | `red-500` | One filled action per view |
+| `primary-foreground` | `#ffffff` | `stone-950` | Label on the filled action |
 | `accent` | `teal-500` | `teal-400` | Active / connected states only |
 | `destructive` | `red-600` | `red-400` | Errors, destructive actions |
 | `border` | `stone-200` | `stone-800` | Hairlines, dividers |
-| `muted` | `stone-200` | `stone-700` | Hover, disabled, secondary surfaces |
-| `muted-foreground` | `stone-500` | `stone-400` | Labels, kickers, secondary text |
+| `muted` | `stone-200` | `stone-800` | Hover, disabled, secondary surfaces |
+| `muted-foreground` | `stone-600` | `stone-400` | Labels, kickers, secondary text |
 
-**Primitives** (stone / red / teal / amber) are OKLCH ramps defined in `:root` and aliased in `@theme inline`. Use the semantic tokens in components. Use primitives only when no semantic fits and you've documented why.
+**Primitives** (stone / red / teal / amber) are OKLCH ramps defined in `:root` of `palette.css` and aliased in `@theme inline`. Use the semantic tokens in components. Use primitives only when no semantic fits and you've documented why.
+
+**Scopes**: a class that redeclares the semantic variables re-points them for a subtree. `.surface-inverted` (the landing dark band) is the only one today.
 
 **Signal economy**: the red `primary` and the teal `accent` are signal colors. Use one per section, in one place. If a section already uses `primary` for a button, it does not also use it for an icon. If `accent` is on a "connected" badge, it doesn't also color the heading.
 
@@ -293,7 +296,7 @@ Empty states invite action, not reflection.
 These are non-negotiable. They ship in every PR.
 
 - **Keyboard**: every interactive element is reachable via Tab, has a visible `focus-visible` ring, and Esc closes any open dialog/menu.
-- **Color contrast**: text on background meets WCAG AA. The palette is already audited for this — see `globals.css` comments. Don't introduce a new color without checking.
+- **Color contrast**: text on background meets WCAG AA. The palette is checked, not assumed — `pnpm check:tokens` resolves every token pair and fails on a violation. Don't introduce a new color without running it.
 - **Reduced motion**: if the user prefers reduced motion, no animation runs. Wrap any motion in a check.
 - **Icon-only buttons**: have `aria-label`. Decorative icons are `aria-hidden="true"`.
 - **Form fields**: every input has a visible label (not just a placeholder). Errors are announced via `aria-describedby` and `aria-invalid`.
@@ -325,7 +328,8 @@ These are non-negotiable. They ship in every PR.
 Before requesting review on a UI change, verify:
 
 - [ ] No new shadows, no new large radii, no `font-black`.
-- [ ] Color is from semantic tokens, not hex values.
+- [ ] Color is from semantic tokens, not hex values (`pnpm check:colors` enforces this).
+- [ ] `pnpm check:tokens` passes — no contrast regression.
 - [ ] Section rhythm matches `py-16 sm:py-24 lg:py-32` and `border-t border-border`.
 - [ ] Body copy is sentence case; labels are uppercase mono.
 - [ ] Buttons say what they do. Errors say what to fix.
@@ -580,8 +584,9 @@ That's the whole pattern. It recurs across `LandingConsole`, `LandingFeatureGrid
 
 ## 12. Reference
 
-- **Color palette roles**: `src/app/globals.css` (`@theme inline`, `:root`, `.dark`).
-- **Tailwind v4 config**: `src/app/globals.css` (CSS-first config, no `tailwind.config.js`).
+- **Color palette roles**: `src/app/palette.css` (`:root` primitives + light semantics, `.dark`, `.surface-inverted`).
+- **Tailwind v4 config**: `src/app/globals.css` (CSS-first config, no `tailwind.config.js`) — the `@theme inline` bridge only.
+- **Token contract + how to swap the palette**: `docs/palette.md`. Checks: `pnpm check:design`.
 - **shadcn primitives catalog**: `src/components/ui/` — 38 components. See §5.1 for the default-as-is list, §5.2 for the override list, §10 for the patterns.
 - **Motion variants**: `src/components/features/landing/landing-variants.ts` — replicate the pattern per feature.
 - **Existing reference surfaces** (the system in action):

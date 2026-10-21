@@ -18,7 +18,7 @@
  * changes, triggering the browser's update flow. Never edit by hand.
  */
 
-const CACHE_VERSION = '90263a4d3629d523';
+const CACHE_VERSION = 'f2bca0676b0165a6';
 const PRECACHE = `gymtrack-precache-${CACHE_VERSION}`;
 const RUNTIME = `gymtrack-runtime-${CACHE_VERSION}`;
 

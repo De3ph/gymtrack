@@ -61,19 +61,25 @@ function getInitials(name?: string): string {
     .slice(0, 2);
 }
 
+/**
+ * Avatar swatch for a person's initials, chosen by hashing the display name.
+ * The swatch and its label colour both come from the palette (see
+ * --avatar-1..10 in src/app/palette.css), so the set is retuned by a palette
+ * swap and every combination is contrast-checked.
+ */
 function getAvatarColor(name?: string): string {
-  if (!name) return "bg-muted";
+  if (!name) return "bg-muted text-muted-foreground";
   const colors = [
-    "bg-red-500",
-    "bg-orange-500",
-    "bg-amber-500",
-    "bg-emerald-500",
-    "bg-teal-500",
-    "bg-cyan-500",
-    "bg-blue-500",
-    "bg-violet-500",
-    "bg-purple-500",
-    "bg-pink-500",
+    "bg-avatar-1 text-avatar-1-foreground",
+    "bg-avatar-2 text-avatar-2-foreground",
+    "bg-avatar-3 text-avatar-3-foreground",
+    "bg-avatar-4 text-avatar-4-foreground",
+    "bg-avatar-5 text-avatar-5-foreground",
+    "bg-avatar-6 text-avatar-6-foreground",
+    "bg-avatar-7 text-avatar-7-foreground",
+    "bg-avatar-8 text-avatar-8-foreground",
+    "bg-avatar-9 text-avatar-9-foreground",
+    "bg-avatar-10 text-avatar-10-foreground",
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -142,7 +148,7 @@ function ProfileView({
       <div className="flex items-start gap-4">
         <Avatar size="lg">
           <AvatarFallback
-            className={`${avatarColor} text-base font-semibold text-white`}
+            className={`${avatarColor} text-base font-semibold`}
           >
             {initials}
           </AvatarFallback>
@@ -338,7 +344,7 @@ function ProfileEdit({
       <div className="flex items-start gap-4">
         <Avatar size="lg">
           <AvatarFallback
-            className={`${avatarColor} text-base font-semibold text-white`}
+            className={`${avatarColor} text-base font-semibold`}
           >
             {initials}
           </AvatarFallback>
@@ -626,7 +632,7 @@ export function ProfileClient() {
           <div
             role="status"
             aria-live="polite"
-            className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-3 text-sm text-emerald-600 dark:text-emerald-400"
+            className="flex items-center gap-2 rounded-md bg-success/10 p-3 text-sm text-success"
           >
             <CheckCircle2 className="size-5 shrink-0" />
             {successMessage}

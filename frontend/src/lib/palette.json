@@ -1,0 +1,15 @@
+{
+  "$comment": "Machine-readable mirror of the palette for the few places CSS cannot reach: the viewport themeColor meta tag, the web app manifest, and the PWA icon generator. The values are validated against src/app/palette.css by `pnpm check:tokens` — change the CSS and the checker tells you what to update here.",
+  "themeColor": {
+    "light": "#fbfaf9",
+    "dark": "#0c0a09"
+  },
+  "manifest": {
+    "backgroundColor": "#0c0a09",
+    "themeColor": "#0c0a09"
+  },
+  "pwaIcon": {
+    "background": "#0c0a09",
+    "glyph": "#fb2c36"
+  }
+}

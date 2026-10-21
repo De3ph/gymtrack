@@ -5,6 +5,7 @@ import { getMessages } from "next-intl/server";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { SITE_URL } from "@/lib/env";
+import palette from "@/lib/palette.json";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import { ThemeBootScript } from "@/components/layout/theme-boot-script";
 import { Providers } from "./providers";
@@ -74,8 +75,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
+    { media: "(prefers-color-scheme: light)", color: palette.themeColor.light },
+    { media: "(prefers-color-scheme: dark)", color: palette.themeColor.dark },
   ],
 };
 

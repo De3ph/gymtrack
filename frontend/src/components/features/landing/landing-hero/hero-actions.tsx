@@ -29,9 +29,9 @@ export function HeroActions() {
           padding="p-px"
           radius="rounded-none"
           gradientColors={[
-            "rgb(239 68 68)",
-            "rgb(245 158 11)",
-            "rgb(20 184 166)",
+            "var(--red-500)",
+            "var(--amber-500)",
+            "var(--teal-500)",
           ]}
           containerClassName="w-full sm:w-fit"
         >
@@ -52,9 +52,9 @@ export function HeroActions() {
           padding="p-px"
           radius="rounded-none"
           gradientColors={[
-            "rgb(239 68 68)",
-            "rgb(245 158 11)",
-            "rgb(20 184 166)",
+            "var(--red-500)",
+            "var(--amber-500)",
+            "var(--teal-500)",
           ]}
           containerClassName="w-full sm:w-fit"
         >

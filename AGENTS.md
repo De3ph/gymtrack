@@ -349,3 +349,5 @@ cd backend && swag init -g cmd/server/main.go -o docs/
 - `frontend/src/lib/token-service.ts` — JWT token management (in-memory)
 - `frontend/src/stores/authStore.ts` — Zustand auth state
 - `frontend/src/lib/api/api-client.ts` — Centralized API request wrapper
+- `frontend/src/app/palette.css` — Design token source of truth (primitives + semantic scopes)
+- `frontend/docs/palette.md` — Token contract + how to swap the palette

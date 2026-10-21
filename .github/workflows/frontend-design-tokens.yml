@@ -1,0 +1,54 @@
+name: Frontend design tokens
+
+# Gate for the design token system.
+#
+#   check:tokens — parses src/app/palette.css, resolves every var() chain,
+#                  converts OKLCH to sRGB and asserts every foreground/background
+#                  pair against WCAG 2.2 AA. Also checks that the
+#                  machine-readable mirror (src/lib/palette.json) still agrees
+#                  with the CSS.
+#
+#   check:colors — fails on a literal colour or an off-ramp Tailwind utility
+#                  anywhere in src/, so the palette cannot be bypassed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-design-tokens.yml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-design-tokens.yml'
+
+jobs:
+  design-tokens:
+    name: Design tokens (contrast + colour hygiene)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check token contrast
+        run: pnpm check:tokens
+
+      - name: Check for hardcoded colours
+        run: pnpm check:colors
