@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X as XIcon } from "lucide-react";
 import type { Equipment, MuscleGroup } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useExerciseLookupLabels } from "./exercise-labels";
-
-const ALL = "all";
 
 export interface ExerciseLibraryFilterState {
   query: string;
@@ -101,31 +99,24 @@ export function ExerciseLibraryFilters({
   // without this the trigger has nothing to resolve and falls back to printing
   // the raw value — "3" instead of "Shoulders".
   const categoryItems = useMemo<SelectItemOption[]>(
-    () => [
-      { value: ALL, label: t("all_categories") },
-      ...categories.map((category) => ({ value: category, label: category })),
-    ],
-    [categories, t],
+    () => categories.map((category) => ({ value: category, label: category })),
+    [categories],
   );
 
   const muscleGroupItems = useMemo<SelectItemOption[]>(
-    () => [
-      { value: ALL, label: t("all_muscle_groups") },
-      ...muscleGroups
+    () =>
+      muscleGroups
         .map((group) => toOption(group, muscleGroupLabel(group)))
         .filter((option): option is SelectItemOption => option !== null),
-    ],
-    [muscleGroups, muscleGroupLabel, t],
+    [muscleGroups, muscleGroupLabel],
   );
 
   const equipmentItems = useMemo<SelectItemOption[]>(
-    () => [
-      { value: ALL, label: t("all_equipment") },
-      ...equipment
+    () =>
+      equipment
         .map((item) => toOption(item, equipmentLabel(item)))
         .filter((option): option is SelectItemOption => option !== null),
-    ],
-    [equipment, equipmentLabel, t],
+    [equipment, equipmentLabel],
   );
 
   const resultLabel = useMemo(
@@ -151,6 +142,7 @@ export function ExerciseLibraryFilters({
               value={value.query}
               onChange={(event) => onChange({ ...value, query: event.target.value })}
               placeholder={t("search_placeholder")}
+              aria-label={t("filter_search")}
               className="rounded-none pl-10"
             />
           </div>
@@ -159,41 +151,50 @@ export function ExerciseLibraryFilters({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <FilterSelect
             id="exercise-library-category"
-            label={""}
+            label={t("filter_category")}
+            placeholder={t("all_categories")}
             items={categoryItems}
-            value={value.category ?? ALL}
+            value={value.category ?? null}
             onValueChange={(next) =>
               onChange({
                 ...value,
-                category: !next || next === ALL ? undefined : next,
+                category: next ?? undefined,
               })
             }
+            onClear={() => onChange({ ...value, category: undefined })}
+            clearLabel={t("clear_select")}
           />
 
           <FilterSelect
             id="exercise-library-muscle-group"
-            label={""}
+            label={t("filter_muscle_group")}
+            placeholder={t("all_muscle_groups")}
             items={muscleGroupItems}
-            value={value.muscleGroupId ? String(value.muscleGroupId) : ALL}
+            value={value.muscleGroupId ? String(value.muscleGroupId) : null}
             onValueChange={(next) =>
               onChange({
                 ...value,
-                muscleGroupId: !next || next === ALL ? undefined : Number(next),
+                muscleGroupId: next === null ? undefined : Number(next),
               })
             }
+            onClear={() => onChange({ ...value, muscleGroupId: undefined })}
+            clearLabel={t("clear_select")}
           />
 
           <FilterSelect
             id="exercise-library-equipment"
-            label={""}
+            label={t("filter_equipment")}
+            placeholder={t("all_equipment")}
             items={equipmentItems}
-            value={value.equipmentId ? String(value.equipmentId) : ALL}
+            value={value.equipmentId ? String(value.equipmentId) : null}
             onValueChange={(next) =>
               onChange({
                 ...value,
-                equipmentId: !next || next === ALL ? undefined : Number(next),
+                equipmentId: next === null ? undefined : Number(next),
               })
             }
+            onClear={() => onChange({ ...value, equipmentId: undefined })}
+            clearLabel={t("clear_select")}
           />
         </div>
       </div>
@@ -219,7 +220,7 @@ export function ExerciseLibraryFilters({
             onClick={clearAll}
             className="rounded-none border-border font-mono text-[11px] uppercase tracking-[0.18em] text-foreground hover:bg-muted"
           >
-            <X className="size-4" aria-hidden="true" />
+            <XIcon className="size-4" aria-hidden="true" />
             {t("clear_filters")}
           </Button>
         )}
@@ -243,41 +244,88 @@ export function ExerciseLibraryFilters({
 function FilterSelect({
   id,
   label,
+  placeholder,
   items,
   value,
   onValueChange,
+  onClear,
+  clearLabel,
 }: {
   id: string;
   label: string;
+  /** Shown when no value is selected (the cleared state). */
+  placeholder: string;
   items: SelectItemOption[];
-  value: string;
+  // Base UI supports a `null` value natively; `null` regresses the trigger to
+  // its placeholder rendering.
+  value: string | null;
   // Base UI's signature is `(value: string | null, eventDetails) => void`; the
   // null case is a real possibility (dismissal), so callers narrow it rather
   // than assuming a string.
   onValueChange: (value: string | null) => void;
+  /** Presenting this makes the select clearable. */
+  onClear: () => void;
+  /** Accessible name of the clear button. */
+  clearLabel: string;
 }) {
   const labelId = `${id}-label`;
 
   return (
-    <div className="space-y-1.5">
+    <div
+      className="relative space-y-1.5"
+      // Focus rests on the trigger while the popup is closed; the open popup
+      // lives in a portal, so Backspace/Delete there never bubbles through
+      // this wrapper. Typed-search typing is unaffected.
+      onKeyDown={(event) => {
+        if (
+          value !== null &&
+          (event.key === "Delete" || event.key === "Backspace")
+        ) {
+          event.preventDefault();
+          onClear();
+        }
+      }}
+    >
       <span id={labelId} className={LABEL_CLASS}>
         {label}
       </span>
-      <Select items={items} value={value} onValueChange={onValueChange}>
-        <SelectTrigger
-          aria-labelledby={labelId}
-          className="w-full rounded-none shadow-none"
+      <div className="relative">
+        <Select
+          items={items}
+          value={value}
+          onValueChange={onValueChange}
         >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent className="rounded-none border border-border shadow-none ring-0">
-          {items.map((item) => (
-            <SelectItem key={item.value} value={item.value} className={ITEM_CLASS}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <SelectTrigger
+            aria-labelledby={labelId}
+            className="w-full rounded-none shadow-none"
+          >
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent className="rounded-none border border-border shadow-none ring-0">
+            {items.map((item) => (
+              <SelectItem key={item.value} value={item.value} className={ITEM_CLASS}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {
+          // A sibling of the trigger, inside a Select-only wrapper: pointer
+          // events on it must never reach the Select and toggle the popup,
+          // and `top-1/2` must center on the trigger, not label + trigger.
+          value !== null && (
+            <button
+              type="button"
+              aria-label={clearLabel}
+              title={clearLabel}
+              onClick={onClear}
+              className="absolute right-[30px] top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            >
+              <XIcon className="size-4" aria-hidden="true" />
+            </button>
+          )
+        }
+      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
-import { useTranslations } from "next-intl";
 import type { ExerciseLibrary } from "@/types";
 import { DYNAMIC_ROUTES } from "@/lib/routes";
 import { Link } from "@/i18n/navigation";
@@ -27,8 +26,6 @@ export function ExerciseLibraryCard({
   exercise,
   className,
 }: ExerciseLibraryCardProps) {
-  const t = useTranslations("exercise.library");
-
   return (
     <Link
       href={DYNAMIC_ROUTES.EXERCISE_DETAIL(exercise.exerciseId)}
@@ -47,19 +44,10 @@ export function ExerciseLibraryCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 px-4 py-4">
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold leading-tight text-foreground">
-            {exercise.name}
-          </h3>
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {exercise.category}
-          </p>
-        </div>
-
-        <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
-          {exercise.instructions || t("no_instructions_short")}
-        </p>
+      <div className="flex flex-1 flex-col gap-2 px-4 py-4">
+        <h3 className="text-lg font-semibold leading-tight text-foreground">
+          {exercise.name}
+        </h3>
 
         {(exercise.muscleGroup || exercise.equipment) && (
           <div className="mt-auto flex flex-wrap gap-1.5 pt-1">

@@ -1446,6 +1446,7 @@
       "all_muscle_groups": "All Muscle Groups",
       "all_equipment": "All Equipment",
       "clear_filters": "Clear Filters",
+      "clear_select": "Clear selection",
       "results_total": "{count} exercises",
       "results_filtered": "{count} of {total} exercises",
       "no_results_hint": "No exercise matches these filters. Try widening the search.",

@@ -1446,6 +1446,7 @@
       "all_muscle_groups": "Tüm Kas Grupları",
       "all_equipment": "Tüm Ekipmanlar",
       "clear_filters": "Filtreleri Temizle",
+      "clear_select": "Seçimi temizle",
       "results_total": "{count} egzersiz",
       "results_filtered": "{total} egzersizden {count} tanesi",
       "no_results_hint": "Bu filtrelere uyan egzersiz yok. Aramayı genişletmeyi dene.",

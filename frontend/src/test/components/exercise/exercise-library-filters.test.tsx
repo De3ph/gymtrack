@@ -95,7 +95,8 @@ describe('ExerciseLibraryFilters', () => {
     it('names every filter control on screen', () => {
       renderFilters({ query: '' })
 
-      expect(screen.getByText('Search')).toBeInTheDocument()
+      // The search field has no visible label; its accessible name is enough.
+      expect(screen.getByRole('searchbox', { name: 'Search' })).toBeInTheDocument()
       expect(screen.getByText('Category')).toBeInTheDocument()
       expect(screen.getByText('Muscle Group')).toBeInTheDocument()
       expect(screen.getByText('Equipment')).toBeInTheDocument()
@@ -135,14 +136,17 @@ describe('ExerciseLibraryFilters', () => {
     ] as const
 
     it.each(cases)(
-      '$label sits in the same container as its own trigger',
+      '$label shares a container with its own trigger',
       ({ label, trigger }) => {
         renderFilters({ query: '' })
 
         const labelEl = screen.getByText(label)
         const triggerEl = screen.getByRole('combobox', { name: trigger })
 
-        expect(labelEl.parentElement).toBe(triggerEl.parentElement)
+        // The label and trigger are deliberate siblings inside the select's
+        // cell wrapper; the trigger additionally sits in a position:relative
+        // box so the clear button can overlay it.
+        expect(labelEl.parentElement).toContainElement(triggerEl)
       },
     )
 
@@ -221,6 +225,37 @@ describe('ExerciseLibraryFilters', () => {
       screen.getByRole('button', { name: /clear filters/i }).click()
 
       expect(onChange).toHaveBeenCalledWith({ query: '' })
+    })
+  })
+
+  describe('per-filter clear button', () => {
+    it('is absent for a filter with no selection', () => {
+      renderFilters({ query: '' })
+
+      expect(
+        screen.queryByRole('button', { name: 'Clear selection' }),
+      ).toBeNull()
+    })
+
+    it('clears only its own filter', () => {
+      const onChange = vi.fn()
+      renderFilters(
+        { query: '', muscleGroupId: 3, equipmentId: 4 },
+        { onChange },
+      )
+
+      const clearButtons = screen.getAllByRole('button', {
+        name: 'Clear selection',
+      })
+      expect(clearButtons).toHaveLength(2)
+
+      clearButtons[0].click()
+
+      expect(onChange).toHaveBeenCalledWith({
+        query: '',
+        muscleGroupId: undefined,
+        equipmentId: 4,
+      })
     })
   })
 
