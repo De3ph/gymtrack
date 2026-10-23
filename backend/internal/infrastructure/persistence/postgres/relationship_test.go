@@ -91,6 +91,40 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 	})
 
+	t.Run("ReconnectAfterTermination", func(t *testing.T) {
+		reconnectAthlete := createTestUser(t, "rel_reconnect", "rel_reconnect@test.com", models.RoleAthlete)
+
+		first := &models.Relationship{
+			TrainerID: trainer.UserID, AthleteID: reconnectAthlete.UserID,
+			Status: models.RelationshipStatusActive,
+		}
+		require.NoError(t, repo.Create(ctx, first))
+
+		first.Terminate()
+		require.NoError(t, repo.Update(ctx, first))
+
+		_, err := repo.GetByTrainerAndAthlete(ctx, trainer.UserID, reconnectAthlete.UserID)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "a terminated row must not block the pair")
+
+		second := &models.Relationship{
+			TrainerID: trainer.UserID, AthleteID: reconnectAthlete.UserID,
+			Status: models.RelationshipStatusActive,
+		}
+		require.NoError(t, repo.Create(ctx, second), "the same pair must be re-invitable")
+		assert.NotEqual(t, first.RelationshipID, second.RelationshipID, "reconnect must append history, not reuse it")
+
+		open, err := repo.GetByTrainerAndAthlete(ctx, trainer.UserID, reconnectAthlete.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, second.RelationshipID, open.RelationshipID)
+
+		duplicateOpen := &models.Relationship{
+			TrainerID: trainer.UserID, AthleteID: reconnectAthlete.UserID,
+			Status: models.RelationshipStatusPending,
+		}
+		err = repo.Create(ctx, duplicateOpen)
+		assert.ErrorIs(t, err, domainerrors.ErrConflict, "a pair may only have one open relationship")
+	})
+
 	t.Run("GetActiveByTrainerID", func(t *testing.T) {
 		rels, err := repo.GetActiveByTrainerID(ctx, trainer.UserID)
 		require.NoError(t, err)

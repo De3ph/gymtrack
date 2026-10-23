@@ -61,23 +61,37 @@ func TestRelationshipService_Activate_CreatesActiveRelationshipAndAssignsTrainer
 	assert.Equal(t, trainerID, users.user.Profile.TrainerAssignment)
 }
 
-func TestRelationshipService_Activate_ReusesTerminatedRow(t *testing.T) {
-	relationship := &models.Relationship{
-		RelationshipID: 5,
-		TrainerID:      2,
-		AthleteID:      7,
-		Status:         models.RelationshipStatusTerminated,
-	}
-	rels := &stubRelationshipRepo{byPair: relationship}
+func TestRelationshipService_Activate_CreatesNewRowAfterTermination(t *testing.T) {
+	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: 7, Role: models.RoleAthlete}}
 	svc := NewRelationshipService(rels, users, nil)
 
-	reactivated, err := svc.Activate(context.Background(), 2, 7)
+	relationship, err := svc.Activate(context.Background(), 2, 7)
 
 	require.NoError(t, err)
-	assert.Same(t, relationship, reactivated)
-	assert.Equal(t, models.RelationshipStatusActive, reactivated.Status)
-	assert.Empty(t, rels.createdTrainers, "reconnecting must update the existing row")
+	assert.Equal(t, []int{2}, rels.createdTrainers, "a terminated pair must be re-invitable as a new row")
+	assert.Empty(t, rels.updated, "history must not be reopened")
+	assert.Equal(t, models.RelationshipStatusActive, relationship.Status)
+	assert.Equal(t, 2, users.user.Profile.TrainerAssignment)
+}
+
+func TestRelationshipService_Activate_PromotesPendingRow(t *testing.T) {
+	pending := &models.Relationship{
+		RelationshipID: 5,
+		TrainerID:      2,
+		AthleteID:      7,
+		Status:         models.RelationshipStatusPending,
+	}
+	rels := &stubRelationshipRepo{byPair: pending}
+	users := &stubUserRepo{user: &models.User{UserID: 7, Role: models.RoleAthlete}}
+	svc := NewRelationshipService(rels, users, nil)
+
+	activated, err := svc.Activate(context.Background(), 2, 7)
+
+	require.NoError(t, err)
+	assert.Same(t, pending, activated)
+	assert.Equal(t, models.RelationshipStatusActive, activated.Status)
+	assert.Empty(t, rels.createdTrainers, "an open pending row must be promoted, not duplicated")
 	assert.Len(t, rels.updated, 1)
 	assert.Equal(t, 2, users.user.Profile.TrainerAssignment)
 }

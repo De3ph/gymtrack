@@ -631,14 +631,25 @@ func TestE2E_Relationship_Terminate(t *testing.T) {
 	w = env.DoAuthRequest(http.MethodDelete, "/api/relationships/"+itoa(relID), nil, trainerToken)
 	RequireJSONMessage(t, w, http.StatusOK, "Relationship terminated successfully")
 
-	// Reconnecting the same pair must reuse the terminated row, because the
-	// schema keeps one row per (trainer, athlete).
+	// Reconnecting the same pair after termination is a normal flow: the old row
+	// stays as history and a new active relationship is created. The partial
+	// unique index only reserves *open* pairs.
 	reconnectedID := establishRelationshipByInvitation(t, env, trainerToken, athToken)
-	if reconnectedID != relID {
-		t.Fatalf("reconnect created relationship %d, want existing row %d", reconnectedID, relID)
+	if reconnectedID == relID {
+		t.Fatalf("reconnect reused terminated relationship %d, want a new row", relID)
 	}
 	if got := athleteTrainerAssignment(t, env, athToken); got != trainerID {
 		t.Fatalf("profile.trainerAssignment = %d after reconnect, want %d", got, trainerID)
+	}
+
+	// The terminated row is still readable and still terminated.
+	var oldStatus string
+	if err := env.DB.QueryRow(context.Background(),
+		`SELECT status FROM relationships WHERE id = $1`, relID).Scan(&oldStatus); err != nil {
+		t.Fatalf("failed to load terminated relationship: %v", err)
+	}
+	if oldStatus != "terminated" {
+		t.Fatalf("old relationship status = %q, want terminated", oldStatus)
 	}
 }
 
@@ -701,9 +712,10 @@ func TestE2E_Relationship_Unauthenticated(t *testing.T) {
 // always empty in production; a direct SQL insert is the only way to keep the
 // query branch alive.
 //
-// The seeded pending row uses a *second* trainer because relationships carry
-// UNIQUE(trainer_id, athlete_id): a pending row for the same pair would make
-// the subsequent accept fail on the unique constraint (finding R3).
+// The seeded pending row uses a *second* trainer because the partial unique
+// index on open pairs still reserves (trainer_id, athlete_id) while the
+// relationship is pending or active: a pending row for the same pair would make
+// the subsequent accept fail on the constraint (finding R3).
 func TestE2E_Relationship_MyTrainer_PendingInvitations(t *testing.T) {
 	env := SetupTestEnv(t)
 	_, trainerEmail, trainerID := env.RegisterUser(t, "pendtr", "pendtr@e2e.test", "Password123!", "trainer")

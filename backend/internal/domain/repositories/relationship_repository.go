@@ -13,6 +13,8 @@ type RelationshipRepository interface {
 	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error)
 	GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error)
 	GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error)
+	// GetByTrainerAndAthlete returns the pair's current open relationship
+	// (pending or active), or ErrNotFound when the pair has only history.
 	GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.Relationship, error)
 	GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error)
 	HasActiveRelationship(ctx context.Context, trainerID int, athleteID int) (bool, error)

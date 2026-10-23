@@ -87,8 +87,16 @@ func (r *PostgresRelationshipRepository) GetByTrainerID(ctx context.Context, tra
 	return rels, nil
 }
 
+// GetByTrainerAndAthlete returns the pair's open (pending or active)
+// relationship. Terminated rows are history and must not be surfaced here, or
+// reconnecting would reactivate a stale row instead of starting a new one.
 func (r *PostgresRelationshipRepository) GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.Relationship, error) {
-	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE trainer_id = $1 AND athlete_id = $2`
+	query := `
+		SELECT id, trainer_id, athlete_id, status, created_at, updated_at
+		FROM relationships
+		WHERE trainer_id = $1 AND athlete_id = $2 AND status IN ('pending', 'active')
+		ORDER BY created_at DESC
+		LIMIT 1`
 
 	rel := &models.Relationship{}
 	err := r.pool.QueryRow(ctx, query, trainerID, athleteID).Scan(

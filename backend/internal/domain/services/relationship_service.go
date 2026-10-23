@@ -165,7 +165,7 @@ func (s *RelationshipService) Activate(ctx context.Context, trainerID, athleteID
 	now := s.clock.Now()
 	existing, err := s.relationshipRepo.GetByTrainerAndAthlete(ctx, trainerID, athleteID)
 	if err == nil {
-		return s.reactivate(ctx, existing, now)
+		return s.activatePending(ctx, existing, now)
 	}
 	if !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
@@ -195,10 +195,11 @@ func (s *RelationshipService) Activate(ctx context.Context, trainerID, athleteID
 	return relationship, nil
 }
 
-// reactivate reuses the existing row for a trainer-athlete pair. The schema
-// keeps one row per pair, so reconnecting after termination must update that row
-// instead of inserting a duplicate.
-func (s *RelationshipService) reactivate(ctx context.Context, relationship *models.Relationship, now time.Time) (*models.Relationship, error) {
+// activatePending promotes the pair's open pending row instead of inserting a
+// second one, which the partial unique index on open pairs would reject.
+// Terminated rows are history: GetByTrainerAndAthlete never returns them, so a
+// reconnect after termination creates a new relationship row.
+func (s *RelationshipService) activatePending(ctx context.Context, relationship *models.Relationship, now time.Time) (*models.Relationship, error) {
 	if relationship.IsActive() {
 		return nil, ErrAlreadyHasActiveTrainer
 	}
@@ -210,7 +211,7 @@ func (s *RelationshipService) reactivate(ctx context.Context, relationship *mode
 		if errors.Is(err, domainerrors.ErrConflict) {
 			return nil, ErrAlreadyHasActiveTrainer
 		}
-		return nil, fmt.Errorf("failed to reactivate relationship: %w", err)
+		return nil, fmt.Errorf("failed to activate relationship: %w", err)
 	}
 
 	if err := s.setTrainerAssignment(ctx, relationship.AthleteID, relationship.TrainerID); err != nil {
