@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "accessibility": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accessibility/SKILL.md",
+      "computedHash": "88c64dead9bb55925c7b983f5fd95cfecf30bd8c076fd384cdb17019d1becd87"
+    },
     "agent-device": {
       "source": "callstack/agent-device",
       "sourceType": "github",
@@ -61,6 +67,12 @@
       "skillPath": "skills/sre/SKILL.md",
       "computedHash": "df5d136ba0f19ac9b5b69964ec26092ef90564045308396a8aa0bb43d7f6e0d2"
     },
+    "best-practices": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/best-practices/SKILL.md",
+      "computedHash": "fc34a8d4aea22d0158e0560457c82432e9d2d0ac74cf3e9aaccb599905f3f711"
+    },
     "better-auth-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
@@ -102,6 +114,12 @@
       "sourceType": "github",
       "skillPath": "skills/controlling-costs/SKILL.md",
       "computedHash": "7a6d24cae6d99c6cc9b3659b89307a1b90bff8bfb636519e1728e3c44e640245"
+    },
+    "core-web-vitals": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/core-web-vitals/SKILL.md",
+      "computedHash": "ceaa3e9c9dfa6209ffe923714c0a093b950d0922213d0cf375c27f3d602cc857"
     },
     "create-auth": {
       "source": "better-auth/skills",
@@ -367,6 +385,12 @@
       "skillPath": "plugins/ui-design/skills/interaction-design/SKILL.md",
       "computedHash": "d2e2127b91c76b2ed6706ce78bfc7eddcb6b340333f94d3d53d9f65e3253dea2"
     },
+    "performance": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/performance/SKILL.md",
+      "computedHash": "25074989a0bbf636fd92e9079270b262a1c63422ed72a854494a8241dea0fcc5"
+    },
     "prototype": {
       "source": "emilkowalski/skills",
       "sourceType": "github",
@@ -474,6 +498,12 @@
       "skillPath": "skills/sentry-workflow/SKILL.md",
       "computedHash": "e2a137568d77d8cb6cb1e0d2c3a57cc2c2e68888da27cb88e2b67e597ea36cf6"
     },
+    "seo": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/seo/SKILL.md",
+      "computedHash": "aa081d7ee9f44d1b09ac521051630adac2fca0e595e3d0d0ec881d0b2644676f"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",
@@ -514,6 +544,12 @@
       "sourceType": "github",
       "skillPath": "skills/react-native-skills/SKILL.md",
       "computedHash": "41d24eafa7c3d82e270439808f7cfbc4d51aeb2d14f2809a2267c16275784d06"
+    },
+    "web-quality-audit": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-quality-audit/SKILL.md",
+      "computedHash": "10c0b018ce77d2c6dd17aecf1ab58a64abb2beee945354d83c4ba8883527120a"
     },
     "writing-evals": {
       "source": "axiomhq/skills",
