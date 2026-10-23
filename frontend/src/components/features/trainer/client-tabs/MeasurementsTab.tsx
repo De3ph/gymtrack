@@ -5,19 +5,17 @@ import { useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Tabs, TabsPanel, TabsList, TabsTab } from "@/components/animate-ui/components/base/tabs";
-import { BodyMeasurementList } from "@/components/features/body-measurement/BodyMeasurementList";
+import { MeasurementsDataTable } from "./MeasurementsDataTable";
 import { BodyMeasurementCharts } from "@/components/features/body-measurement/BodyMeasurementCharts";
 import { DataError } from "@/components/features/DataError";
 import { Spinner } from "@/components/ui/spinner";
 import { trainerClientApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { STALE_TIMES } from "@/lib/api/api-constants";
 import { PAGINATION } from "@/lib/constants";
 import { useTranslations } from "next-intl";
-import type { BodyMeasurement } from "@/types";
 import { toClientDateRange } from "./client-date-range";
-import { clientHistoryKey, usePageResetOnChange } from "./client-list-state";
+import { clientHistoryKey } from "./client-list-state";
 
 interface MeasurementsTabProps {
   username: string;
@@ -40,62 +38,34 @@ export function MeasurementsTab({
   const activeSubtab = subtabParam === "charts" ? "charts" : "list";
   const t = useTranslations("trainer.client_detail.tabs");
 
-  const [page, setPage] = usePageResetOnChange(
-    clientHistoryKey(username, dateRange),
-  );
-
-  const pageSize = PAGINATION.BODY_MEASUREMENT_PAGE_SIZE;
   const range = toClientDateRange(dateRange);
+
+  // Fetch all matching measurements at once so the table can paginate/sort
+  // client-side, matching the pattern used by the workouts table.
+  const rowBudget = PAGINATION.CLIENT_MEASUREMENTS_ROW_BUDGET;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: qk.measurements.clientList(username, {
-      page,
-      pageSize,
+      page: 1,
+      pageSize: rowBudget,
       startDate: range.startDate,
       endDate: range.endDate,
     }),
     queryFn: () =>
       trainerClientApi.getClientMeasurements(username, {
-        limit: pageSize,
-        offset: (page - 1) * pageSize,
+        limit: rowBudget,
+        offset: 0,
         startDate: range.startDate,
         endDate: range.endDate,
       }),
-    // Keep the current page on screen while the next one loads.
     placeholderData: keepPreviousData,
   });
 
   const total = data?.count ?? null;
-  const pageCount = data?.measurements.length ?? 0;
 
   React.useEffect(() => {
     onCountChange(total);
   }, [total, onCountChange]);
-
-  // Each item shows a delta against the row before it. A page slice breaks
-  // that chain at the last row, so fetch the next page's newest row and hand
-  // it over as its comparison point.
-  const needsBoundary = pageCount === pageSize;
-  const { data: nextPage } = useQuery({
-    queryKey: qk.measurements.clientList(username, {
-      page: page + 1,
-      pageSize: 1,
-      startDate: range.startDate,
-      endDate: range.endDate,
-    }),
-    queryFn: () =>
-      trainerClientApi.getClientMeasurements(username, {
-        limit: 1,
-        offset: page * pageSize,
-        startDate: range.startDate,
-        endDate: range.endDate,
-      }),
-    enabled: needsBoundary,
-    staleTime: STALE_TIMES.FIVE_MINUTES,
-  });
-
-  const previousOfLast: BodyMeasurement | undefined =
-    needsBoundary && nextPage?.measurements[0] ? nextPage.measurements[0] : undefined;
 
   const handleSubtabChange = useCallback(
     (value: string) => {
@@ -135,13 +105,9 @@ export function MeasurementsTab({
     );
   } else {
     listBody = (
-      <BodyMeasurementList
+      <MeasurementsDataTable
         measurements={data.measurements}
-        readOnly={true}
-        totalCount={data.count}
-        page={page}
-        onPageChange={setPage}
-        previousOfLast={previousOfLast}
+        resetKey={clientHistoryKey(username, dateRange)}
       />
     );
   }

@@ -693,6 +693,7 @@
       "title": "Meal History",
       "loading": "Loading meals...",
       "no_meals": "No meals yet — log first meal to see history here.",
+      "no_items": "No items logged",
       "view_details": "View Details"
     },
     "summary": {
@@ -908,6 +909,7 @@
     "list": {
       "loading": "Loading body measurements...",
       "no_measurements": "No measurements yet — save first measurement to see trends.",
+      "no_details": "No part measurements or notes recorded",
       "weight": "{value} {unit}",
       "body_fat": "Body fat: {value}%",
       "vs_previous": "vs previous",
@@ -1064,7 +1066,75 @@
         "no_measurements": "No body measurements recorded",
         "no_measurements_filtered": "No body measurements match the current filters",
         "loading": "Loading",
-        "plans": "Plans"
+        "plans": "Plans",
+        "workouts_table": {
+          "columns": {
+            "date": "Date",
+            "exercises": "Exercises",
+            "sets": "Sets",
+            "reps": "Reps",
+            "plan": "Plan"
+          },
+          "filters": {
+            "search_placeholder": "Search exercises…",
+            "plan": "Plan",
+            "all_plans": "All workouts",
+            "from_plan": "From plan",
+            "adhoc": "Ad-hoc",
+            "clear": "Clear filters"
+          },
+          "pagination": {
+            "page_size": "Rows per page",
+            "rows_of": "{shown} of {total} rows",
+            "first": "First page",
+            "previous": "Previous page",
+            "next": "Next page",
+            "last": "Last page"
+          },
+          "plan_badge": "Plan #{id}",
+          "exercise_count": "{count, plural, =1 {1 exercise} other {# exercises}}",
+          "empty_filtered": "No workouts match the current filters"
+        },
+        "meals_table": {
+          "columns": {
+            "date": "Date",
+            "type": "Type",
+            "items": "Items",
+            "calories": "Calories"
+          },
+          "types": {
+            "breakfast": "Breakfast",
+            "lunch": "Lunch",
+            "dinner": "Dinner",
+            "snack": "Snack"
+          },
+          "filters": {
+            "search_placeholder": "Search items…",
+            "type": "Type",
+            "all_types": "All meals",
+            "clear": "Clear filters"
+          },
+          "pagination": {
+            "page_size": "Rows per page",
+            "rows_of": "{shown} of {total} rows",
+            "first": "First page",
+            "previous": "Previous page",
+            "next": "Next page",
+            "last": "Last page"
+          },
+          "item_count": "{count, plural, =1 {1 item} other {# items}}",
+          "empty_filtered": "No meals match the current filters"
+        },
+        "measurements_table": {
+          "columns": {
+            "date": "Date",
+            "weight": "Weight",
+            "body_fat": "Body Fat",
+            "parts": "Parts"
+          },
+          "parts_count": "{count, plural, =1 {1 part} other {# parts}}",
+          "empty": "No body measurements"
+        }
       },
       "terminate_dialog": {
         "title": "End Relationship",

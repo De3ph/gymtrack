@@ -42,8 +42,29 @@ export const PAGINATION = {
    * use this, otherwise the seeded cache serves a truncated response as
    * if it were the complete list.
    */
-  ADMIN_USERS_PAGE_SIZE: 500
-} as const;
+  ADMIN_USERS_PAGE_SIZE: 500,
+  /**
+   * Default page size for the trainer client data tables (workouts, meals,
+   * measurements).
+   */
+  CLIENT_TABLE_PAGE_SIZE: 7,
+  /**
+   * Row budget for fetching client workouts at once so the data table can
+   * paginate/sort/filter on the client side. Sized for ~6 months of history
+   * (3 workouts/week) so memory stays low while covering most coaching spans.
+   */
+  CLIENT_WORKOUTS_ROW_BUDGET: 182,
+  /**
+   * Row budget for fetching client meals at once for the same client-side
+   * table pattern. Sized for ~6 months at 4 meals/day.
+   */
+  CLIENT_MEALS_ROW_BUDGET: 720,
+  /**
+   * Row budget for fetching client body measurements at once. Sized for a
+   * full year of daily logs.
+   */
+  CLIENT_MEASUREMENTS_ROW_BUDGET: 365,
+};
 
 export const BODY_PARTS = [
   { key: "chest", labelKey: "chest" },

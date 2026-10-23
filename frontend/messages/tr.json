@@ -693,6 +693,7 @@
       "title": "Öğün Geçmişi",
       "loading": "Öğünler yükleniyor...",
       "no_meals": "Henüz öğün yok — ilk öğününü kaydet, geçmiş burada görünsün.",
+      "no_items": "Öğün içeriği girilmedi",
       "view_details": "Detayları Gör"
     },
     "summary": {
@@ -908,6 +909,7 @@
     "list": {
       "loading": "Vücut ölçümleri yükleniyor...",
       "no_measurements": "Henüz ölçüm yok — ilk ölçümünü kaydet, trend burada görünsün.",
+      "no_details": "Kaydedilmiş vücut parçası ölçümü veya not yok",
       "weight": "{value} {unit}",
       "body_fat": "Yağ oranı: {value}%",
       "vs_previous": "önceki ölçüme göre",
@@ -1064,7 +1066,75 @@
         "no_measurements": "Vücut ölçümü kaydedilmemiş",
         "no_measurements_filtered": "Mevcut filtrelerle eşleşen vücut ölçümü yok",
         "loading": "Yükleniyor",
-        "plans": "Planlar"
+        "plans": "Planlar",
+        "workouts_table": {
+          "columns": {
+            "date": "Tarih",
+            "exercises": "Egzersizler",
+            "sets": "Setler",
+            "reps": "Tekrarlar",
+            "plan": "Plan"
+          },
+          "filters": {
+            "search_placeholder": "Egzersiz ara…",
+            "plan": "Plan",
+            "all_plans": "Tüm antrenmanlar",
+            "from_plan": "Plandan",
+            "adhoc": "Serbest",
+            "clear": "Filtreleri temizle"
+          },
+          "pagination": {
+            "page_size": "Sayfa başına satır",
+            "rows_of": "{total} satırdan {shown} tanesi",
+            "first": "İlk sayfa",
+            "previous": "Önceki sayfa",
+            "next": "Sonraki sayfa",
+            "last": "Son sayfa"
+          },
+          "plan_badge": "Plan #{id}",
+          "exercise_count": "{count} egzersiz",
+          "empty_filtered": "Mevcut filtrelerle eşleşen antrenman yok"
+        },
+        "meals_table": {
+          "columns": {
+            "date": "Tarih",
+            "type": "Tür",
+            "items": "İçerikler",
+            "calories": "Kalori"
+          },
+          "types": {
+            "breakfast": "Kahvaltı",
+            "lunch": "Öğle Yemeği",
+            "dinner": "Akşam Yemeği",
+            "snack": "Atıştırmalık"
+          },
+          "filters": {
+            "search_placeholder": "İçerik ara…",
+            "type": "Tür",
+            "all_types": "Tüm öğünler",
+            "clear": "Filtreleri temizle"
+          },
+          "pagination": {
+            "page_size": "Sayfa başına satır",
+            "rows_of": "{total} satırdan {shown} tanesi",
+            "first": "İlk sayfa",
+            "previous": "Önceki sayfa",
+            "next": "Sonraki sayfa",
+            "last": "Son sayfa"
+          },
+          "item_count": "{count} içerik",
+          "empty_filtered": "Mevcut filtrelerle eşleşen öğün yok"
+        },
+        "measurements_table": {
+          "columns": {
+            "date": "Tarih",
+            "weight": "Kilo",
+            "body_fat": "Vücut Yağı",
+            "parts": "Bölgeler"
+          },
+          "parts_count": "{count} bölge",
+          "empty": "Vücut ölçümü yok"
+        }
       },
       "terminate_dialog": {
         "title": "İlişkiyi Sonlandır",

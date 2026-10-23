@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { WorkoutList } from "@/components/features/workout/WorkoutList";
 import { DataError } from "@/components/features/DataError";
 import { Spinner } from "@/components/ui/spinner";
 import { trainerClientApi } from "@/lib/api";
@@ -11,7 +10,8 @@ import { ApiErrorHandler } from "@/lib/error-handler";
 import { PAGINATION } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 import { toClientDateRange } from "./client-date-range";
-import { clientHistoryKey, usePageResetOnChange } from "./client-list-state";
+import { clientHistoryKey } from "./client-list-state";
+import { WorkoutsDataTable } from "./WorkoutsDataTable";
 
 interface WorkoutsTabProps {
   username: string;
@@ -31,30 +31,26 @@ export function WorkoutsTab({
 }: WorkoutsTabProps) {
   const t = useTranslations("trainer.client_detail.tabs");
 
-  const [page, setPage] = usePageResetOnChange(
-    clientHistoryKey(username, dateRange, exerciseType),
-  );
-
-  const pageSize = PAGINATION.WORKOUT_PAGE_SIZE;
   const range = toClientDateRange(dateRange);
+
+  // Fetch all matching workouts at once so the table can paginate/sort/filter
+  // correctly client-side (fixes the parent-bar exerciseType page-only bug).
+  const rowBudget = PAGINATION.CLIENT_WORKOUTS_ROW_BUDGET;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: qk.workouts.clientList(username, {
-      page,
-      pageSize,
+      page: 1,
+      pageSize: rowBudget,
       startDate: range.startDate,
       endDate: range.endDate,
-      exerciseType: exerciseType || undefined,
     }),
     queryFn: () =>
       trainerClientApi.getClientWorkouts(username, {
-        limit: pageSize,
-        offset: (page - 1) * pageSize,
+        limit: rowBudget,
+        offset: 0,
         startDate: range.startDate,
         endDate: range.endDate,
-        ...(exerciseType && { exerciseType }),
       }),
-    // Keep the current page on screen while the next one loads.
     placeholderData: keepPreviousData,
   });
 
@@ -82,19 +78,16 @@ export function WorkoutsTab({
     );
   } else if (!data || data.workouts.length === 0) {
     body = (
-      <p className="enter-rise py-8 text-center text-muted-foreground">
+      <p className="py-8 text-center text-muted-foreground">
         {isFiltered ? t("no_workouts_filtered") : t("no_workouts")}
       </p>
     );
   } else {
     body = (
-      <WorkoutList
+      <WorkoutsDataTable
         workouts={data.workouts}
-        totalCount={data.count}
-        page={page}
-        onPageChange={setPage}
-        collapseAllExceptNewest
-        showFilterBar={false}
+        exerciseType={exerciseType || undefined}
+        resetKey={clientHistoryKey(username, dateRange, exerciseType)}
       />
     );
   }
