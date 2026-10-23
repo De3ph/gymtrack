@@ -53,6 +53,47 @@ if (typeof Element !== 'undefined') {
   Element.prototype.releasePointerCapture ??= function releasePointerCapture() {}
 }
 
+// jsdom has no IntersectionObserver, which Motion needs for `whileInView` /
+// `inView`. Without it, rendering a viewport-triggered component throws
+// "IntersectionObserver is not defined" while the observer is set up.
+// Every observed element is reported as fully in view, so viewport-triggered
+// content resolves to its "visible" variant.
+if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+  class MockIntersectionObserver implements IntersectionObserver {
+    readonly root: Element | Document | null = null
+    readonly rootMargin: string = ''
+    readonly thresholds: ReadonlyArray<number> = [0]
+
+    constructor(private callback: IntersectionObserverCallback) {}
+
+    observe(target: Element): void {
+      this.callback(
+        [
+          {
+            isIntersecting: true,
+            intersectionRatio: 1,
+            target,
+            boundingClientRect: target.getBoundingClientRect(),
+            intersectionRect: target.getBoundingClientRect(),
+            rootBounds: null,
+            time: 0,
+          } as IntersectionObserverEntry,
+        ],
+        this as unknown as IntersectionObserver,
+      )
+    }
+
+    unobserve(): void {}
+    disconnect(): void {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return []
+    }
+  }
+
+  window.IntersectionObserver =
+    MockIntersectionObserver as unknown as typeof IntersectionObserver
+}
+
 // Setup MSW server
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 
