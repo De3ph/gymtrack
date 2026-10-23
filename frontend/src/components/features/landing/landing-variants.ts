@@ -5,6 +5,28 @@ export const reducedMotionVariants: Variants = {
   visible: { opacity: 1 },
 };
 
+/**
+ * Reveal props for a section whose content is mounted lazily.
+ *
+ * The landing sections are `next/dynamic` with `ssr: false`, so their content
+ * can mount at any point in the page's life. A parent that owns `whileInView`
+ * with `viewport.once` latches its trigger the first time it scrolls into
+ * view, and a child that mounts *after* that latch never receives the
+ * "visible" variant - it sits at `hidden` (opacity 0) for good, leaving the
+ * section rendered but empty.
+ *
+ * Putting the trigger on the element that actually mounts removes the
+ * dependency on chunk timing: the content reveals itself the first time it
+ * scrolls into view, and `once` keeps it revealed from then on. The parent
+ * `<m.section>` keeps its own reveal, so the band and its content still fade
+ * in together.
+ */
+export const revealOnView = {
+  initial: "hidden",
+  whileInView: "visible",
+  viewport: { once: true, margin: "-80px" },
+} as const;
+
 export const landingStagger: Variants = {
   hidden: { opacity: 0 },
   visible: {
