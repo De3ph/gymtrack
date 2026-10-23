@@ -39,7 +39,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *models.Us
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING user_id`
 
-	err = r.pool.QueryRow(ctx, query,
+	err = querierFor(ctx, r.pool).QueryRow(ctx, query,
 		user.Username,
 		user.Email,
 		user.PasswordHash,
@@ -66,7 +66,7 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 	user := &models.User{}
 	var profileRaw []byte
 
-	err := r.pool.QueryRow(ctx, query, email).Scan(
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query, email).Scan(
 		&user.UserID,
 		&user.Username,
 		&user.Email,
@@ -103,7 +103,7 @@ func (r *PostgresUserRepository) GetUserByUsername(ctx context.Context, username
 	user := &models.User{}
 	var profileRaw []byte
 
-	err := r.pool.QueryRow(ctx, query, username).Scan(
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query, username).Scan(
 		&user.UserID,
 		&user.Username,
 		&user.Email,
@@ -140,7 +140,7 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 	user := &models.User{}
 	var profileRaw []byte
 
-	err := r.pool.QueryRow(ctx, query, userID).Scan(
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query, userID).Scan(
 		&user.UserID,
 		&user.Username,
 		&user.Email,
@@ -179,7 +179,7 @@ func (r *PostgresUserRepository) GetUsersByIDs(ctx context.Context, userIDs []in
 		FROM users
 		WHERE user_id = ANY($1)`
 
-	rows, err := r.pool.Query(ctx, query, userIDs)
+	rows, err := querierFor(ctx, r.pool).Query(ctx, query, userIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users by IDs: %w", err)
 	}
@@ -221,7 +221,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.Use
 		FROM users
 		ORDER BY created_at DESC`
 
-	rows, err := r.pool.Query(ctx, query)
+	rows, err := querierFor(ctx, r.pool).Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all users: %w", err)
 	}
@@ -280,7 +280,7 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 		SET username = $1, email = $2, password_hash = $3, role = $4, status = $5, profile = $6, updated_at = $7
 		WHERE user_id = $8`
 
-	tag, err := r.pool.Exec(ctx, query,
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query,
 		user.Username,
 		user.Email,
 		user.PasswordHash,
@@ -301,6 +301,59 @@ func (r *PostgresUserRepository) UpdateUser(ctx context.Context, user *models.Us
 	return nil
 }
 
+func (r *PostgresUserRepository) SetTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	// jsonb_set touches only the projection key. Writing the whole row from a
+	// copy read earlier would clobber columns another transaction changed in
+	// between (password_hash, role, status), and READ COMMITTED does not stop
+	// that lost update.
+	query := `
+		UPDATE users
+		SET profile = jsonb_set(profile, '{trainerAssignment}', to_jsonb($2::int), true),
+		    updated_at = $3
+		WHERE user_id = $1`
+
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query, athleteID, trainerID, time.Now())
+	if err != nil {
+		return mapWriteError(err, "failed to set trainer assignment")
+	}
+	if tag.RowsAffected() == 0 {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *PostgresUserRepository) ClearTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	// The guard is part of the write: re-terminating an old relationship must
+	// not clear a newer trainer's assignment, and checking that in Go against a
+	// possibly cached row would decide on stale data.
+	query := `
+		UPDATE users
+		SET profile = jsonb_set(profile, '{trainerAssignment}', '0'::jsonb, true),
+		    updated_at = $3
+		WHERE user_id = $1 AND profile->>'trainerAssignment' = $2::text`
+
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query, athleteID, trainerID, time.Now())
+	if err != nil {
+		return mapWriteError(err, "failed to clear trainer assignment")
+	}
+	if tag.RowsAffected() > 0 {
+		return nil
+	}
+
+	// Zero rows is the normal outcome when the projection already points
+	// somewhere else. Only a missing user is an error, so distinguish the two.
+	var exists bool
+	if err := querierFor(ctx, r.pool).QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM users WHERE user_id = $1)`, athleteID,
+	).Scan(&exists); err != nil {
+		return fmt.Errorf("failed to check user after clearing trainer assignment: %w", err)
+	}
+	if !exists {
+		return domainerrors.ErrNotFound
+	}
+	return nil
+}
+
 func (r *PostgresUserRepository) GetAllUsersFiltered(ctx context.Context, role, search string, limit, offset int) ([]*models.User, error) {
 	query := `
 		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at
@@ -310,7 +363,7 @@ func (r *PostgresUserRepository) GetAllUsersFiltered(ctx context.Context, role, 
 		ORDER BY created_at DESC
 		LIMIT $3 OFFSET $4`
 
-	rows, err := r.pool.Query(ctx, query, role, search, limit, offset)
+	rows, err := querierFor(ctx, r.pool).Query(ctx, query, role, search, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query filtered users: %w", err)
 	}
@@ -327,7 +380,7 @@ func (r *PostgresUserRepository) CountUsers(ctx context.Context, role, search st
 		  AND ($2 = '' OR username ILIKE '%' || $2 || '%' OR email ILIKE '%' || $2 || '%')`
 
 	var count int
-	err := r.pool.QueryRow(ctx, query, role, search).Scan(&count)
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query, role, search).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count users: %w", err)
 	}
@@ -382,7 +435,7 @@ func (r *PostgresUserRepository) BumpTokenVersion(ctx context.Context, userID in
 		RETURNING token_version`
 
 	var newVersion int
-	err := r.pool.QueryRow(ctx, query, userID).Scan(&newVersion)
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query, userID).Scan(&newVersion)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return 0, domainerrors.ErrNotFound
@@ -394,7 +447,7 @@ func (r *PostgresUserRepository) BumpTokenVersion(ctx context.Context, userID in
 
 func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, userID int) error {
 	query := `UPDATE users SET status = 'deleted', deleted_at = NOW(), updated_at = NOW() WHERE user_id = $1`
-	tag, err := r.pool.Exec(ctx, query, userID)
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("failed to soft-delete user: %w", err)
 	}
@@ -406,7 +459,7 @@ func (r *PostgresUserRepository) SoftDeleteUser(ctx context.Context, userID int)
 
 func (r *PostgresUserRepository) RestoreUser(ctx context.Context, userID int) error {
 	query := `UPDATE users SET status = 'active', deleted_at = NULL, updated_at = NOW() WHERE user_id = $1`
-	tag, err := r.pool.Exec(ctx, query, userID)
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("failed to restore user: %w", err)
 	}
@@ -418,7 +471,7 @@ func (r *PostgresUserRepository) RestoreUser(ctx context.Context, userID int) er
 
 func (r *PostgresUserRepository) GetUsersReadyForHardDelete(ctx context.Context, before time.Time) ([]int, error) {
 	query := `SELECT user_id FROM users WHERE deleted_at < $1 ORDER BY deleted_at`
-	rows, err := r.pool.Query(ctx, query, before)
+	rows, err := querierFor(ctx, r.pool).Query(ctx, query, before)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users for hard delete: %w", err)
 	}
@@ -439,7 +492,7 @@ func (r *PostgresUserRepository) GetUsersReadyForHardDelete(ctx context.Context,
 
 func (r *PostgresUserRepository) HardDeleteUser(ctx context.Context, userID int) error {
 	query := `DELETE FROM users WHERE user_id = $1`
-	tag, err := r.pool.Exec(ctx, query, userID)
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("failed to hard-delete user: %w", err)
 	}

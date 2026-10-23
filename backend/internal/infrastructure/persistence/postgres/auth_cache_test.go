@@ -64,6 +64,12 @@ func (c *countingUserRepo) GetUsersReadyForHardDelete(ctx context.Context, befor
 func (c *countingUserRepo) HardDeleteUser(ctx context.Context, userID int) error {
 	return c.inner.HardDeleteUser(ctx, userID)
 }
+func (c *countingUserRepo) SetTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	return c.inner.SetTrainerAssignment(ctx, athleteID, trainerID)
+}
+func (c *countingUserRepo) ClearTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	return c.inner.ClearTrainerAssignment(ctx, athleteID, trainerID)
+}
 
 func TestCachedUserRepository_AuthCacheHit(t *testing.T) {
 	pool, cleanup := testutils.SetupTestPostgresDB(t)

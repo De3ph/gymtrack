@@ -46,6 +46,10 @@ func (r *CachedUserRepository) CreateUser(ctx context.Context, user *models.User
 }
 
 func (r *CachedUserRepository) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
+	if isWithinTransaction(ctx) {
+		return r.inner.GetUserByID(ctx, userID)
+	}
+
 	key := "user:id:" + strconv.Itoa(userID)
 
 	val, err, _ := r.sf.Do(key, func() (interface{}, error) {
@@ -68,6 +72,10 @@ func (r *CachedUserRepository) GetUserByID(ctx context.Context, userID int) (*mo
 }
 
 func (r *CachedUserRepository) GetUsersByIDs(ctx context.Context, userIDs []int) (map[int]*models.User, error) {
+	if isWithinTransaction(ctx) {
+		return r.inner.GetUsersByIDs(ctx, userIDs)
+	}
+
 	users, err := r.inner.GetUsersByIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
@@ -79,6 +87,10 @@ func (r *CachedUserRepository) GetUsersByIDs(ctx context.Context, userIDs []int)
 }
 
 func (r *CachedUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	if isWithinTransaction(ctx) {
+		return r.inner.GetUserByEmail(ctx, email)
+	}
+
 	key := "user:email:" + strings.ToLower(email)
 
 	val, err, _ := r.sf.Do(key, func() (interface{}, error) {
@@ -101,6 +113,10 @@ func (r *CachedUserRepository) GetUserByEmail(ctx context.Context, email string)
 }
 
 func (r *CachedUserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	if isWithinTransaction(ctx) {
+		return r.inner.GetUserByUsername(ctx, username)
+	}
+
 	key := "user:username:" + strings.ToLower(username)
 
 	val, err, _ := r.sf.Do(key, func() (interface{}, error) {
@@ -131,13 +147,45 @@ func (r *CachedUserRepository) UpdateUser(ctx context.Context, user *models.User
 	if err != nil {
 		return err
 	}
-	r.cache.Invalidate("user:id:" + strconv.Itoa(user.UserID))
-	r.cache.Invalidate("user:email:" + strings.ToLower(user.Email))
-	r.cache.Invalidate("user:username:" + strings.ToLower(user.Username))
-	// UpdateUser can change any column of the users row, including the profile
-	// the trainer catalog renders, so the trainer namespaces must go too.
-	r.bus.notify(user.UserID)
+	// Invalidation is deferred until the surrounding transaction commits:
+	// dropping a key mid-transaction would let another reader repopulate it
+	// from the pre-commit state and serve that for the whole TTL.
+	afterTransaction(ctx, func() {
+		r.cache.Invalidate("user:id:" + strconv.Itoa(user.UserID))
+		r.cache.Invalidate("user:email:" + strings.ToLower(user.Email))
+		r.cache.Invalidate("user:username:" + strings.ToLower(user.Username))
+		// UpdateUser can change any column of the users row, including the
+		// profile the trainer catalog renders, so the trainer namespaces must
+		// go too.
+		r.bus.notify(user.UserID)
+	})
 	return nil
+}
+
+func (r *CachedUserRepository) SetTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	if err := r.inner.SetTrainerAssignment(ctx, athleteID, trainerID); err != nil {
+		return err
+	}
+	r.invalidateUserProfile(ctx, athleteID)
+	return nil
+}
+
+func (r *CachedUserRepository) ClearTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	if err := r.inner.ClearTrainerAssignment(ctx, athleteID, trainerID); err != nil {
+		return err
+	}
+	r.invalidateUserProfile(ctx, athleteID)
+	return nil
+}
+
+// invalidateUserProfile drops the cached row after a targeted profile write.
+// Email and username keys are left alone for the same reason as UpdateUser: a
+// profile edit does not change the credentials those keys exist to serve.
+func (r *CachedUserRepository) invalidateUserProfile(ctx context.Context, userID int) {
+	afterTransaction(ctx, func() {
+		r.cache.Invalidate("user:id:" + strconv.Itoa(userID))
+		r.bus.notify(userID)
+	})
 }
 
 func (r *CachedUserRepository) GetAllUsersFiltered(ctx context.Context, role string, search string, limit, offset int) ([]*models.User, error) {

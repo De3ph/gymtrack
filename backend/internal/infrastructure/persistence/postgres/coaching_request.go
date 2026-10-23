@@ -34,7 +34,7 @@ func (r *PostgresCoachingRequestRepository) Create(ctx context.Context, req *mod
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id`
 
-	err := r.pool.QueryRow(ctx, query,
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query,
 		req.AthleteID, req.TrainerID, req.Message, string(req.Status), req.CreatedAt, req.UpdatedAt,
 	).Scan(&req.RequestID)
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *PostgresCoachingRequestRepository) GetByID(ctx context.Context, request
 	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE id = $1`
 
 	req := &models.CoachingRequest{}
-	err := r.pool.QueryRow(ctx, query, requestID).Scan(
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query, requestID).Scan(
 		&req.RequestID, &req.AthleteID, &req.TrainerID, &req.Message, &req.Status, &req.CreatedAt, &req.UpdatedAt,
 	)
 	if err != nil {
@@ -66,7 +66,7 @@ func (r *PostgresCoachingRequestRepository) GetByID(ctx context.Context, request
 func (r *PostgresCoachingRequestRepository) GetByAthleteID(ctx context.Context, athleteID int) ([]*models.CoachingRequest, error) {
 	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE athlete_id = $1 ORDER BY created_at DESC`
 
-	rows, err := r.pool.Query(ctx, query, athleteID)
+	rows, err := querierFor(ctx, r.pool).Query(ctx, query, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query coaching requests by athlete: %w", err)
 	}
@@ -78,7 +78,7 @@ func (r *PostgresCoachingRequestRepository) GetByAthleteID(ctx context.Context, 
 func (r *PostgresCoachingRequestRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
 	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE trainer_id = $1 ORDER BY created_at DESC`
 
-	rows, err := r.pool.Query(ctx, query, trainerID)
+	rows, err := querierFor(ctx, r.pool).Query(ctx, query, trainerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query coaching requests by trainer: %w", err)
 	}
@@ -90,7 +90,7 @@ func (r *PostgresCoachingRequestRepository) GetByTrainerID(ctx context.Context, 
 func (r *PostgresCoachingRequestRepository) GetPendingByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
 	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE trainer_id = $1 AND status = 'pending' ORDER BY created_at DESC`
 
-	rows, err := r.pool.Query(ctx, query, trainerID)
+	rows, err := querierFor(ctx, r.pool).Query(ctx, query, trainerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query pending coaching requests: %w", err)
 	}
@@ -104,7 +104,7 @@ func (r *PostgresCoachingRequestRepository) Update(ctx context.Context, req *mod
 
 	query := `UPDATE coaching_requests SET athlete_id = $1, trainer_id = $2, message = $3, status = $4, updated_at = $5 WHERE id = $6`
 
-	tag, err := r.pool.Exec(ctx, query,
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query,
 		req.AthleteID, req.TrainerID, req.Message, string(req.Status), req.UpdatedAt, req.RequestID,
 	)
 	if err != nil {
@@ -116,8 +116,18 @@ func (r *PostgresCoachingRequestRepository) Update(ctx context.Context, req *mod
 	return nil
 }
 
+func (r *PostgresCoachingRequestRepository) UpdateStatus(ctx context.Context, requestID int, from models.CoachingRequestStatus, to models.CoachingRequestStatus, updatedAt time.Time) (bool, error) {
+	query := `UPDATE coaching_requests SET status = $1, updated_at = $2 WHERE id = $3 AND status = $4`
+
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query, string(to), updatedAt, requestID, string(from))
+	if err != nil {
+		return false, mapWriteError(err, "failed to update coaching request status")
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
 func (r *PostgresCoachingRequestRepository) Delete(ctx context.Context, requestID int) error {
-	tag, err := r.pool.Exec(ctx, `DELETE FROM coaching_requests WHERE id = $1`, requestID)
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, `DELETE FROM coaching_requests WHERE id = $1`, requestID)
 	if err != nil {
 		return mapWriteError(err, "failed to delete coaching request")
 	}

@@ -16,6 +16,14 @@ var (
 	// ErrConflict is returned when a conflict occurs
 	ErrConflict = errors.New("this action conflicts with existing data. Please refresh and try again")
 
+	// ErrActiveRelationshipExists is returned by the relationship repository
+	// when a write would give the athlete a second active relationship. The
+	// partial unique index is the authority; translating it at the repository
+	// boundary lets services report the business outcome ("you already have a
+	// trainer") instead of a generic write conflict, while every other unique
+	// violation keeps the generic mapping.
+	ErrActiveRelationshipExists = errors.New("the athlete already has an active trainer")
+
 	// ErrInvalidInput is returned when input is invalid
 	ErrInvalidInput = errors.New("the provided data is invalid. Please check the fields and try again")
 

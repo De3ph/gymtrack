@@ -47,7 +47,7 @@ func (p *PostgresCodeBasedInvitation) GenerateInvitation(ctx context.Context, tr
 		VALUES ($1, $2, 'pending', $3, $4)
 		RETURNING id`
 
-	err = p.pool.QueryRow(ctx, query, trainerID, code, now, expiresAt).Scan(&invitationID)
+	err = querierFor(ctx, p.pool).QueryRow(ctx, query, trainerID, code, now, expiresAt).Scan(&invitationID)
 	if err != nil {
 		return nil, mapWriteError(err, "failed to create invitation")
 	}
@@ -84,7 +84,7 @@ func (p *PostgresCodeBasedInvitation) ClaimInvitation(ctx context.Context, code 
 
 	inv := &models.Invitation{}
 	var usedAt *time.Time
-	err := p.pool.QueryRow(ctx, query, now, code).Scan(
+	err := querierFor(ctx, p.pool).QueryRow(ctx, query, now, code).Scan(
 		&inv.InvitationID,
 		&inv.TrainerID,
 		&inv.Code,
@@ -115,7 +115,7 @@ func (p *PostgresCodeBasedInvitation) ClaimInvitation(ctx context.Context, code 
 func (p *PostgresCodeBasedInvitation) explainUnclaimable(ctx context.Context, code string, now time.Time) error {
 	var status string
 	var expiresAt time.Time
-	err := p.pool.QueryRow(ctx,
+	err := querierFor(ctx, p.pool).QueryRow(ctx,
 		`SELECT status, expires_at FROM invitations WHERE code = $1 LIMIT 1`, code,
 	).Scan(&status, &expiresAt)
 	if err != nil {
@@ -134,29 +134,6 @@ func (p *PostgresCodeBasedInvitation) explainUnclaimable(ctx context.Context, co
 	// Pending and unexpired but the claim still matched nothing: another
 	// transaction claimed it between the UPDATE and this read.
 	return domainerrors.ErrInvitationAlreadyUsed
-}
-
-// ReleaseClaim returns a claimed invitation to pending so a failed accept can
-// be retried.
-//
-// Guarded on status = 'used' AND used_at = the timestamp ClaimInvitation wrote.
-// That exact-match timestamp is what makes the release safe: a code consumed by
-// a successful accept carries a different used_at, so a late or duplicated
-// release cannot resurrect it.
-func (p *PostgresCodeBasedInvitation) ReleaseClaim(ctx context.Context, invitation *models.Invitation) error {
-	if invitation == nil {
-		return fmt.Errorf("cannot release a nil invitation")
-	}
-
-	_, err := p.pool.Exec(ctx, `
-		UPDATE invitations
-		SET status = 'pending', used_at = NULL
-		WHERE id = $1 AND status = 'used' AND used_at = $2`,
-		invitation.InvitationID, invitation.UsedAt)
-	if err != nil {
-		return fmt.Errorf("failed to release invitation claim: %w", err)
-	}
-	return nil
 }
 
 // generateRandomHex produces a hex string of the given byte length.

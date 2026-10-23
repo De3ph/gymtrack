@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"testing"
+	"time"
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
@@ -126,6 +127,30 @@ func TestPostgresCoachingRequestRepository(t *testing.T) {
 		fetched, err := repo.GetByID(ctx, req.RequestID)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated message", fetched.Message)
+		assert.Equal(t, models.CoachingRequestStatusAccepted, fetched.Status)
+	})
+
+	t.Run("UpdateStatus_OnlyAppliesToTheExpectedCurrentStatus", func(t *testing.T) {
+		req := &models.CoachingRequest{
+			AthleteID: athlete.UserID, TrainerID: trainer.UserID,
+			Message: "Race", Status: models.CoachingRequestStatusPending,
+		}
+		require.NoError(t, repo.Create(ctx, req))
+
+		applied, err := repo.UpdateStatus(ctx, req.RequestID,
+			models.CoachingRequestStatusPending, models.CoachingRequestStatusAccepted, time.Now())
+		require.NoError(t, err)
+		assert.True(t, applied)
+
+		// A concurrent reject read "pending" too; its conditional write must
+		// lose instead of overwriting the accepted state.
+		applied, err = repo.UpdateStatus(ctx, req.RequestID,
+			models.CoachingRequestStatusPending, models.CoachingRequestStatusRejected, time.Now())
+		require.NoError(t, err)
+		assert.False(t, applied)
+
+		fetched, err := repo.GetByID(ctx, req.RequestID)
+		require.NoError(t, err)
 		assert.Equal(t, models.CoachingRequestStatusAccepted, fetched.Status)
 	})
 

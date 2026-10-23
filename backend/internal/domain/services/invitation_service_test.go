@@ -13,13 +13,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// fakeInvitationMethod models the claim/release protocol of the PostgreSQL
-// adapter: a code can be claimed exactly once, and only the holder of a live
-// claim can release it.
+// fakeInvitationMethod models the claim protocol of the PostgreSQL adapter: a
+// code can be claimed exactly once. Rolling the claim back is the transaction's
+// job, so the fake marks the code used and lets the caller's transaction (or a
+// missing one, in these tests) decide what survives.
 type fakeInvitationMethod struct {
-	mu       sync.Mutex
-	codes    map[string]*models.Invitation
-	released int
+	mu    sync.Mutex
+	codes map[string]*models.Invitation
 }
 
 func newFakeInvitationMethod(codes ...*models.Invitation) *fakeInvitationMethod {
@@ -34,7 +34,10 @@ func (f *fakeInvitationMethod) GenerateInvitation(context.Context, int, int) (*m
 	panic("not used in these tests")
 }
 
-func (f *fakeInvitationMethod) ClaimInvitation(_ context.Context, code string) (*models.Invitation, error) {
+func (f *fakeInvitationMethod) ClaimInvitation(ctx context.Context, code string) (*models.Invitation, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if code == "" {
 		return nil, domainerrors.ErrInvitationCodeEmpty
 	}
@@ -57,20 +60,6 @@ func (f *fakeInvitationMethod) ClaimInvitation(_ context.Context, code string) (
 	inv.UsedAt = time.Now()
 	claimed := *inv
 	return &claimed, nil
-}
-
-func (f *fakeInvitationMethod) ReleaseClaim(_ context.Context, inv *models.Invitation) error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	stored, ok := f.codes[inv.Code]
-	if !ok || stored.Status != "used" || !stored.UsedAt.Equal(inv.UsedAt) {
-		return nil // guard rejected: not the claim we made
-	}
-	stored.Status = "pending"
-	stored.UsedAt = time.Time{}
-	f.released++
-	return nil
 }
 
 type stubRelationshipRepo struct {
@@ -196,6 +185,24 @@ func (s *stubUserRepo) GetUsersReadyForHardDelete(context.Context, time.Time) ([
 	return nil, nil
 }
 func (s *stubUserRepo) HardDeleteUser(context.Context, int) error { return nil }
+func (s *stubUserRepo) SetTrainerAssignment(_ context.Context, _ int, trainerID int) error {
+	if s.updateErr != nil {
+		return s.updateErr
+	}
+	if s.user != nil {
+		s.user.Profile.TrainerAssignment = trainerID
+	}
+	return nil
+}
+func (s *stubUserRepo) ClearTrainerAssignment(_ context.Context, _ int, trainerID int) error {
+	if s.updateErr != nil {
+		return s.updateErr
+	}
+	if s.user != nil && s.user.Profile.TrainerAssignment == trainerID {
+		s.user.Profile.TrainerAssignment = 0
+	}
+	return nil
+}
 
 func pendingCode(code string, trainerID int) *models.Invitation {
 	return &models.Invitation{
@@ -214,7 +221,7 @@ func TestAcceptInvitation_ConcurrentAcceptsOfSameCode_OnlyOneWins(t *testing.T) 
 	method := newFakeInvitationMethod(pendingCode("abc123", 42))
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), nil)
 
 	const racers = 8
 	var wg sync.WaitGroup
@@ -248,27 +255,22 @@ func TestAcceptInvitation_ConcurrentAcceptsOfSameCode_OnlyOneWins(t *testing.T) 
 	assert.Len(t, rels.createdTrainers, 1, "exactly one relationship may be created")
 }
 
-// A failure after the claim must hand the code back, so a transient database
-// error does not permanently invalidate a code the athlete never used.
-func TestAcceptInvitation_FailureAfterClaim_ReleasesCodeForRetry(t *testing.T) {
+// A failed accept must surface its cause and leave nothing behind: the claim
+// and the relationship share one transaction, so the adapter rolls the used
+// code back with the relationship instead of the service patching it up.
+func TestAcceptInvitation_ActivateFailure_ReturnsErrorAndWritesNoRelationship(t *testing.T) {
 	method := newFakeInvitationMethod(pendingCode("retry1", 42))
 	rels := &stubRelationshipRepo{createErr: assert.AnError}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
+	transactions := &recordingTransactions{}
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), transactions)
 
 	_, err := svc.AcceptInvitation(context.Background(), "retry1", 7)
-	require.Error(t, err)
+	require.ErrorIs(t, err, assert.AnError)
 
-	method.mu.Lock()
-	assert.Equal(t, "pending", method.codes["retry1"].Status, "code must be released")
-	assert.Equal(t, 1, method.released)
-	method.mu.Unlock()
-
-	// The retry must now succeed, proving the code was genuinely reusable.
-	rels.createErr = nil
-	rel, err := svc.AcceptInvitation(context.Background(), "retry1", 7)
-	require.NoError(t, err)
-	assert.Equal(t, 42, rel.TrainerID)
+	assert.Equal(t, 1, transactions.calls,
+		"the code claim and the relationship write must share one transaction")
+	assert.Empty(t, rels.createdTrainers, "a failed accept may not leave a relationship behind")
 }
 
 // An athlete who already has an active trainer must never claim the code at
@@ -279,7 +281,7 @@ func TestAcceptInvitation_AlreadyHasTrainer_DoesNotClaimCode(t *testing.T) {
 	method := newFakeInvitationMethod(pendingCode("taken1", 42))
 	rels := &stubRelationshipRepo{existing: &models.Relationship{Status: "active"}}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "taken1", 7)
 	require.ErrorIs(t, err, ErrAlreadyHasActiveTrainer)
@@ -287,44 +289,36 @@ func TestAcceptInvitation_AlreadyHasTrainer_DoesNotClaimCode(t *testing.T) {
 	method.mu.Lock()
 	defer method.mu.Unlock()
 	assert.Equal(t, "pending", method.codes["taken1"].Status, "code must be untouched")
-	assert.Equal(t, 0, method.released, "a code that was never claimed cannot be released")
 }
 
-// The release is the compensating action for a failed accept, and the failure
-// most likely to reach it is the request context being cancelled. Releasing on
-// that same dead context would fail instantly and burn the code anyway, so the
-// release must run detached with its own deadline.
-func TestAcceptInvitation_ReleaseSurvivesCancelledRequestContext(t *testing.T) {
+// A cancelled request must not claim anything: the pre-check runs before the
+// transaction opens, so a dead context never reaches the code at all.
+func TestAcceptInvitation_CancelledContext_DoesNotClaimCode(t *testing.T) {
 	method := newFakeInvitationMethod(pendingCode("cancel1", 42))
-
 	rels := &stubRelationshipRepo{createErr: context.Canceled}
-	// A cancelled parent context is the realistic trigger: the client
-	// disconnected while the relationship insert was in flight.
 	ctx, cancel := context.WithCancel(context.Background())
-	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
-
-	// Cancel before the accept so every repository call sees a dead context.
-	_, err := svc.AcceptInvitation(ctx, "cancel1", 7)
 	cancel()
+	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), nil)
+
+	_, err := svc.AcceptInvitation(ctx, "cancel1", 7)
 	require.Error(t, err)
 
 	method.mu.Lock()
 	defer method.mu.Unlock()
 	assert.Equal(t, "pending", method.codes["cancel1"].Status,
 		"a cancelled request must not burn the code")
-	assert.Equal(t, 1, method.released)
 }
 
 func TestAcceptInvitation_EmptyCode(t *testing.T) {
-	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil))
+	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvitationCodeEmpty)
 }
 
 func TestAcceptInvitation_UnknownCode(t *testing.T) {
-	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil))
+	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "nope", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvalidInvitationCode)
@@ -334,7 +328,7 @@ func TestAcceptInvitation_ExpiredCode(t *testing.T) {
 	expired := pendingCode("old123", 42)
 	expired.ExpiresAt = time.Now().Add(-time.Hour)
 	method := newFakeInvitationMethod(expired)
-	svc := NewInvitationService(method, NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil))
+	svc := NewInvitationService(method, NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "old123", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvitationExpired)

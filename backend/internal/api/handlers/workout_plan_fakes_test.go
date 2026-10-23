@@ -294,6 +294,14 @@ func (f *fakePlanUserRepo) GetUsersReadyForHardDelete(ctx context.Context, befor
 
 func (f *fakePlanUserRepo) HardDeleteUser(ctx context.Context, userID int) error { return nil }
 
+func (f *fakePlanUserRepo) SetTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	return nil
+}
+
+func (f *fakePlanUserRepo) ClearTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error {
+	return nil
+}
+
 // fakePlanRelationshipRepo implements repositories.RelationshipRepository.
 //
 // The service only ever asks one question ("is this trainer coaching this

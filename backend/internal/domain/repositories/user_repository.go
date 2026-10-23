@@ -16,6 +16,16 @@ type UserRepository interface {
 	GetUsersByIDs(ctx context.Context, userIDs []int) (map[int]*models.User, error)
 	GetAllUsers(ctx context.Context) ([]*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
+	// SetTrainerAssignment projects trainerID onto the athlete's profile.
+	//
+	// It is a targeted UPDATE rather than a read-modify-write of the whole
+	// users row: the relationship writer must not resurrect a concurrent
+	// password, role or status change from a stale copy.
+	SetTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error
+	// ClearTrainerAssignment clears the projection only while it still points
+	// at trainerID. The guard lives in the UPDATE, not in the caller, so a
+	// stale read cannot wipe a newer trainer's assignment.
+	ClearTrainerAssignment(ctx context.Context, athleteID int, trainerID int) error
 	GetAllUsersFiltered(ctx context.Context, role string, search string, limit, offset int) ([]*models.User, error)
 	CountUsers(ctx context.Context, role string, search string) (int, error)
 	// BumpTokenVersion atomically increments users.token_version, invalidating

@@ -15,6 +15,7 @@ type CoachingRequestService struct {
 	coachingRequestRepo repositories.CoachingRequestRepository
 	userRepo            repositories.UserRepository
 	relationships       *RelationshipService
+	transactions        repositories.TransactionManager
 	clock               utils.Clock
 }
 
@@ -22,6 +23,7 @@ func NewCoachingRequestService(
 	coachingRequestRepo repositories.CoachingRequestRepository,
 	userRepo repositories.UserRepository,
 	relationships *RelationshipService,
+	transactions repositories.TransactionManager,
 	clock utils.Clock,
 ) *CoachingRequestService {
 	if clock == nil {
@@ -31,6 +33,7 @@ func NewCoachingRequestService(
 		coachingRequestRepo: coachingRequestRepo,
 		userRepo:            userRepo,
 		relationships:       relationships,
+		transactions:        transactionManagerOrDefault(transactions),
 		clock:               clock,
 	}
 }
@@ -102,35 +105,38 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 		return nil, &CoachingRequestResolvedError{Status: string(request.Status)}
 	}
 
-	hasActiveTrainer, err := s.relationships.HasActiveTrainer(ctx, request.AthleteID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
-	}
-	if hasActiveTrainer {
-		return nil, ErrAthleteAlreadyHasActiveTrainer
-	}
-
-	relationship, err := s.relationships.Activate(ctx, trainerID, request.AthleteID)
-	if err != nil {
-		if errors.Is(err, ErrAlreadyHasActiveTrainer) {
-			return nil, ErrAthleteAlreadyHasActiveTrainer
+	// Accepting is one unit of work: the relationship, the trainer projection
+	// on the athlete's profile, and the request status all commit together.
+	// Either the athlete is connected and the request is accepted, or nothing
+	// changed and the trainer can retry.
+	var relationship *models.Relationship
+	err = s.transactions.WithinTransaction(ctx, func(txCtx context.Context) error {
+		// Claim the pending row first. The conditional UPDATE is the
+		// serialization point: a concurrent accept or reject matches zero rows
+		// and loses, and the relationship insert below never runs for it. If a
+		// later step fails, the status change rolls back with the rest.
+		applied, err := s.coachingRequestRepo.UpdateStatus(txCtx, requestID,
+			models.CoachingRequestStatusPending, models.CoachingRequestStatusAccepted, s.clock.Now())
+		if err != nil {
+			return fmt.Errorf("failed to update coaching request: %w", err)
 		}
+		if !applied {
+			return s.resolvedError(txCtx, requestID)
+		}
+
+		rel, err := s.relationships.Activate(txCtx, trainerID, request.AthleteID)
+		if err != nil {
+			if errors.Is(err, ErrAlreadyHasActiveTrainer) {
+				return ErrAthleteAlreadyHasActiveTrainer
+			}
+			return err
+		}
+
+		relationship = rel
+		return nil
+	})
+	if err != nil {
 		return nil, err
-	}
-
-	// Update the coaching request status
-	request.Status = models.CoachingRequestStatusAccepted
-	request.UpdatedAt = s.clock.Now()
-	err = s.coachingRequestRepo.Update(ctx, request)
-	if err != nil {
-		// The relationship is already active. Roll it back so a retry sees a
-		// pending request instead of an accepted request with no connection.
-		rollbackCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), relationshipRollbackTimeout)
-		defer cancel()
-		if _, rollbackErr := s.relationships.Terminate(rollbackCtx, relationship.RelationshipID, trainerID, models.RoleTrainer); rollbackErr != nil {
-			return nil, fmt.Errorf("failed to update coaching request: %w (relationship rollback failed: %v)", err, rollbackErr)
-		}
-		return nil, fmt.Errorf("failed to update coaching request: %w", err)
 	}
 
 	return relationship, nil
@@ -153,15 +159,32 @@ func (s *CoachingRequestService) RejectCoachingRequest(ctx context.Context, requ
 		return &CoachingRequestResolvedError{Status: string(request.Status)}
 	}
 
-	// Update the coaching request status
-	request.Status = models.CoachingRequestStatusRejected
-	request.UpdatedAt = s.clock.Now()
-	err = s.coachingRequestRepo.Update(ctx, request)
+	// The conditional write, not the read above, decides the winner. A
+	// concurrent accept between the read and this UPDATE makes it match zero
+	// rows; report the status the request actually has instead of overwriting
+	// an accepted request with "rejected".
+	applied, err := s.coachingRequestRepo.UpdateStatus(ctx, requestID,
+		models.CoachingRequestStatusPending, models.CoachingRequestStatusRejected, s.clock.Now())
 	if err != nil {
 		return fmt.Errorf("failed to update coaching request: %w", err)
 	}
+	if !applied {
+		return s.resolvedError(ctx, requestID)
+	}
 
 	return nil
+}
+
+// resolvedError explains why a conditional status update matched no row.
+func (s *CoachingRequestService) resolvedError(ctx context.Context, requestID int) error {
+	current, err := s.coachingRequestRepo.GetByID(ctx, requestID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return ErrCoachingRequestNotFound
+		}
+		return fmt.Errorf("failed to get coaching request: %w", err)
+	}
+	return &CoachingRequestResolvedError{Status: string(current.Status)}
 }
 
 func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, userRole string) ([]*models.CoachingRequestWithDetails, error) {

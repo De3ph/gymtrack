@@ -10,6 +10,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// recordingTransactions counts transaction boundaries. It does not roll
+// anything back: the repositories in these tests are fakes, and the production
+// manager's rollback is covered by the PostgreSQL tests.
+type recordingTransactions struct {
+	calls int
+}
+
+func (r *recordingTransactions) WithinTransaction(ctx context.Context, fn func(context.Context) error) error {
+	r.calls++
+	return fn(ctx)
+}
+
 func TestRelationshipService_HasActiveTrainer(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -24,7 +36,7 @@ func TestRelationshipService_HasActiveTrainer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := NewRelationshipService(&stubRelationshipRepo{existing: tt.existing}, &stubUserRepo{}, nil)
+			svc := NewRelationshipService(&stubRelationshipRepo{existing: tt.existing}, &stubUserRepo{}, nil, nil)
 
 			got, err := svc.HasActiveTrainer(context.Background(), 7)
 
@@ -36,7 +48,7 @@ func TestRelationshipService_HasActiveTrainer(t *testing.T) {
 
 func TestRelationshipService_Activate_RefusesSecondActiveTrainer(t *testing.T) {
 	rels := &stubRelationshipRepo{existing: &models.Relationship{Status: models.RelationshipStatusActive}}
-	svc := NewRelationshipService(rels, &stubUserRepo{}, nil)
+	svc := NewRelationshipService(rels, &stubUserRepo{}, nil, nil)
 
 	_, err := svc.Activate(context.Background(), 2, 7)
 
@@ -51,7 +63,7 @@ func TestRelationshipService_Activate_CreatesActiveRelationshipAndAssignsTrainer
 	)
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: athleteID, Role: models.RoleAthlete}}
-	svc := NewRelationshipService(rels, users, nil)
+	svc := NewRelationshipService(rels, users, nil, nil)
 
 	relationship, err := svc.Activate(context.Background(), trainerID, athleteID)
 
@@ -64,7 +76,7 @@ func TestRelationshipService_Activate_CreatesActiveRelationshipAndAssignsTrainer
 func TestRelationshipService_Activate_CreatesNewRowAfterTermination(t *testing.T) {
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: 7, Role: models.RoleAthlete}}
-	svc := NewRelationshipService(rels, users, nil)
+	svc := NewRelationshipService(rels, users, nil, nil)
 
 	relationship, err := svc.Activate(context.Background(), 2, 7)
 
@@ -84,7 +96,7 @@ func TestRelationshipService_Activate_PromotesPendingRow(t *testing.T) {
 	}
 	rels := &stubRelationshipRepo{byPair: pending}
 	users := &stubUserRepo{user: &models.User{UserID: 7, Role: models.RoleAthlete}}
-	svc := NewRelationshipService(rels, users, nil)
+	svc := NewRelationshipService(rels, users, nil, nil)
 
 	activated, err := svc.Activate(context.Background(), 2, 7)
 
@@ -96,18 +108,22 @@ func TestRelationshipService_Activate_PromotesPendingRow(t *testing.T) {
 	assert.Equal(t, 2, users.user.Profile.TrainerAssignment)
 }
 
-func TestRelationshipService_Activate_ProfileFailureRollsBackRelationship(t *testing.T) {
+func TestRelationshipService_Activate_ProfileFailureAbortsTransaction(t *testing.T) {
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{
 		user:      &models.User{UserID: 7, Role: models.RoleAthlete},
 		updateErr: assert.AnError,
 	}
-	svc := NewRelationshipService(rels, users, nil)
+	transactions := &recordingTransactions{}
+	svc := NewRelationshipService(rels, users, transactions, nil)
 
 	_, err := svc.Activate(context.Background(), 2, 7)
 
 	require.Error(t, err)
-	assert.Equal(t, []int{1}, rels.deleted, "the inserted relationship must be rolled back")
+	assert.Equal(t, 1, transactions.calls,
+		"the relationship insert and the profile projection must share one transaction")
+	assert.Empty(t, rels.deleted,
+		"rollback belongs to the transaction, not to a compensating delete in the service")
 }
 
 func TestRelationshipService_Terminate_ForbidsNonParticipant(t *testing.T) {
@@ -117,7 +133,7 @@ func TestRelationshipService_Terminate_ForbidsNonParticipant(t *testing.T) {
 		AthleteID:      3,
 		Status:         models.RelationshipStatusActive,
 	}}
-	svc := NewRelationshipService(relationships, &stubUserRepo{}, nil)
+	svc := NewRelationshipService(relationships, &stubUserRepo{}, nil, nil)
 
 	_, err := svc.Terminate(context.Background(), 1, 99, models.RoleTrainer)
 
@@ -138,7 +154,7 @@ func TestRelationshipService_Terminate_OldRelationshipDoesNotClearNewAssignment(
 		Role:    models.RoleAthlete,
 		Profile: models.UserProfile{TrainerAssignment: 99},
 	}}
-	svc := NewRelationshipService(relationships, users, nil)
+	svc := NewRelationshipService(relationships, users, nil, nil)
 
 	_, err := svc.Terminate(context.Background(), 1, 3, models.RoleAthlete)
 
@@ -159,7 +175,7 @@ func TestRelationshipService_Terminate_EndsRelationshipAndClearsAssignment(t *te
 		Role:    models.RoleAthlete,
 		Profile: models.UserProfile{TrainerAssignment: 2},
 	}}
-	svc := NewRelationshipService(relationships, users, nil)
+	svc := NewRelationshipService(relationships, users, nil, nil)
 
 	terminated, err := svc.Terminate(context.Background(), 1, 3, models.RoleAthlete)
 

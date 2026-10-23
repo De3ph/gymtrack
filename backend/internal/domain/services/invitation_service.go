@@ -3,12 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"gymtrack-backend/internal/domain/models"
-
-	"go.uber.org/zap"
-	logger "gymtrack-backend/internal/infrastructure/log"
+	"gymtrack-backend/internal/domain/repositories"
 )
 
 // InvitationMethod defines the storage interface for invitation codes.
@@ -21,28 +18,29 @@ type InvitationMethod interface {
 	// Validation and consumption must be a single operation. Reading the code
 	// and marking it used as two separate steps leaves a window in which two
 	// concurrent accepts both observe "pending" and both succeed.
-	ClaimInvitation(ctx context.Context, code string) (*models.Invitation, error)
-
-	// ReleaseClaim returns a code claimed by ClaimInvitation to the pending
-	// state, so an accept that failed after claiming can be retried.
 	//
-	// The claimed invitation is passed back whole so the storage layer can
-	// match on the timestamp its claim wrote; a release can therefore never
-	// resurrect a code consumed by a successful accept.
-	ReleaseClaim(ctx context.Context, invitation *models.Invitation) error
+	// An implementation backed by a transaction-aware repository joins the
+	// caller's transaction, so a failed accept rolls the claim back with it.
+	ClaimInvitation(ctx context.Context, code string) (*models.Invitation, error)
 }
 
 // InvitationService manages invitations using an adapter pattern.
 type InvitationService struct {
 	method        InvitationMethod
 	relationships *RelationshipService
+	transactions  repositories.TransactionManager
 }
 
 // NewInvitationService creates a new invitation service.
-func NewInvitationService(method InvitationMethod, relationships *RelationshipService) *InvitationService {
+func NewInvitationService(
+	method InvitationMethod,
+	relationships *RelationshipService,
+	transactions repositories.TransactionManager,
+) *InvitationService {
 	return &InvitationService{
 		method:        method,
 		relationships: relationships,
+		transactions:  transactionManagerOrDefault(transactions),
 	}
 }
 
@@ -51,23 +49,18 @@ func (s *InvitationService) GenerateInvitation(ctx context.Context, trainerID in
 	return s.method.GenerateInvitation(ctx, trainerID, 0)
 }
 
-// claimReleaseTimeout bounds the compensating release of an invitation claim.
-const claimReleaseTimeout = 5 * time.Second
-
 // AcceptInvitation allows an athlete to accept an invitation.
 //
-// The code is claimed atomically before it is redeemed, so exactly one
-// concurrent accept can proceed. If a later step fails the claim is released,
-// leaving the code usable rather than burned.
+// The claim, the relationship, and the trainer projection on the athlete's
+// profile are one transaction. A failure at any step rolls the whole accept
+// back, including the claim, so the code stays usable and the athlete can
+// retry. Splitting them would allow an active relationship the athlete never
+// finished accepting, or a burned code with no relationship behind it.
 func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, athleteID int) (*models.Relationship, error) {
 	// Check whether the athlete can accept anything at all before touching the
 	// code. Doing this first means an athlete who already has a trainer never
 	// claims a code at all, so a third party redeeming that same code during
 	// this request cannot be told it is already used.
-	//
-	// An athlete with an active trainer must not claim a code at all. The
-	// RelationshipService reports "no active relationship" as false, which is
-	// the normal case for a first-time acceptance.
 	hasActiveTrainer, err := s.relationships.HasActiveTrainer(ctx, athleteID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
@@ -76,49 +69,26 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 		return nil, ErrAlreadyHasActiveTrainer
 	}
 
-	// Claim the code. This both validates it and consumes it in one statement,
-	// so a second concurrent accept of the same code loses here with
-	// ErrInvitationAlreadyUsed instead of racing on to create a second
-	// relationship.
-	invitation, err := s.method.ClaimInvitation(ctx, code)
-	if err != nil {
-		return nil, err
-	}
-
-	// From here the code is held. Any failure must give it back, otherwise a
-	// transient database error would permanently invalidate a code the athlete
-	// never actually used.
-	release := func() {
-		// Deliberately not the request context. The failures that reach here
-		// most often *are* context cancellation — a client disconnecting
-		// mid-request aborts the write below and would abort the release on the
-		// same dead context, burning the code anyway. Detaching keeps the
-		// request's values (trace span, logger) while dropping its
-		// cancellation, bounded by a fresh timeout.
-		releaseCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), claimReleaseTimeout)
-		defer cancel()
-
-		if relErr := s.method.ReleaseClaim(releaseCtx, invitation); relErr != nil {
-			logger.From(ctx).Error("failed to release invitation claim; code is now unusable",
-				zap.Int("invitationId", invitation.InvitationID),
-				zap.Error(relErr),
-			)
+	var relationship *models.Relationship
+	err = s.transactions.WithinTransaction(ctx, func(txCtx context.Context) error {
+		// Claiming is the serialization point for concurrent accepts of the
+		// same code: only the transaction that wins the UPDATE proceeds.
+		invitation, err := s.method.ClaimInvitation(txCtx, code)
+		if err != nil {
+			return err
 		}
-	}
 
-	relationship, err := s.relationships.Activate(ctx, invitation.TrainerID, athleteID)
+		rel, err := s.relationships.Activate(txCtx, invitation.TrainerID, athleteID)
+		if err != nil {
+			return err
+		}
+
+		relationship = rel
+		return nil
+	})
 	if err != nil {
-		// The relationship row may already be committed and cannot be unwound
-		// here: the accept is not atomic across the relationship and profile
-		// writes. Releasing keeps the athlete from being locked out by a spent
-		// code, and the relationship created above remains the source of
-		// truth. A retry reaches the check at the top of this function and is
-		// rejected with ErrAlreadyHasActiveTrainer, which is the accurate
-		// answer for their state.
-		release()
 		return nil, err
 	}
 
-	// The relationship now exists, so the claim stands and the code is spent.
 	return relationship, nil
 }

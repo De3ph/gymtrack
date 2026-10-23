@@ -197,6 +197,30 @@ func (f *fakeUserRepo) HardDeleteUser(_ context.Context, userID int) error {
 	return nil
 }
 
+func (f *fakeUserRepo) SetTrainerAssignment(_ context.Context, athleteID int, trainerID int) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	u, ok := f.users[athleteID]
+	if !ok {
+		return domainerrors.ErrNotFound
+	}
+	u.Profile.TrainerAssignment = trainerID
+	return nil
+}
+
+func (f *fakeUserRepo) ClearTrainerAssignment(_ context.Context, athleteID int, trainerID int) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	u, ok := f.users[athleteID]
+	if !ok {
+		return domainerrors.ErrNotFound
+	}
+	if u.Profile.TrainerAssignment == trainerID {
+		u.Profile.TrainerAssignment = 0
+	}
+	return nil
+}
+
 // Compile-time check that fakeUserRepo satisfies the interface.
 var _ repositories.UserRepository = (*fakeUserRepo)(nil)
 

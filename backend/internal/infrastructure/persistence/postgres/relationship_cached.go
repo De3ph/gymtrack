@@ -29,7 +29,7 @@ func NewCachedRelationshipRepository(inner repositories.RelationshipRepository, 
 func (r *CachedRelationshipRepository) Create(ctx context.Context, relationship *models.Relationship) error {
 	err := r.inner.Create(ctx, relationship)
 	if err == nil {
-		r.cache.InvalidatePrefix("relationship:trainer:")
+		afterTransaction(ctx, func() { r.cache.InvalidatePrefix("relationship:trainer:") })
 	}
 	return err
 }
@@ -39,6 +39,12 @@ func (r *CachedRelationshipRepository) GetByID(ctx context.Context, relationship
 }
 
 func (r *CachedRelationshipRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
+	// Inside a transaction the read may observe uncommitted writes and a cache
+	// entry published here would outlive a rollback.
+	if isWithinTransaction(ctx) {
+		return r.inner.GetByTrainerID(ctx, trainerID)
+	}
+
 	key := "relationship:trainer:" + strconv.Itoa(trainerID)
 
 	val, err, _ := r.sf.Do(key, func() (interface{}, error) {
@@ -83,7 +89,7 @@ func (r *CachedRelationshipRepository) HasActiveRelationship(ctx context.Context
 func (r *CachedRelationshipRepository) Update(ctx context.Context, relationship *models.Relationship) error {
 	err := r.inner.Update(ctx, relationship)
 	if err == nil {
-		r.cache.InvalidatePrefix("relationship:trainer:")
+		afterTransaction(ctx, func() { r.cache.InvalidatePrefix("relationship:trainer:") })
 	}
 	return err
 }
@@ -91,7 +97,7 @@ func (r *CachedRelationshipRepository) Update(ctx context.Context, relationship 
 func (r *CachedRelationshipRepository) Delete(ctx context.Context, relationshipID int) error {
 	err := r.inner.Delete(ctx, relationshipID)
 	if err == nil {
-		r.cache.InvalidatePrefix("relationship:trainer:")
+		afterTransaction(ctx, func() { r.cache.InvalidatePrefix("relationship:trainer:") })
 	}
 	return err
 }

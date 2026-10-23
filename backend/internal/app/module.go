@@ -62,6 +62,12 @@ var RepositoryModule = fx.Module("repositories",
 			return persistence.NewRepositoryFactory(pool)
 		},
 
+		// Transaction boundary for aggregate writes that span repositories
+		// (relationship + athlete profile, relationship + coaching request).
+		func(pool *pgxpool.Pool) repositories.TransactionManager {
+			return postgres.NewPostgresTransactionManager(pool)
+		},
+
 		// Cache adapter factories (one per domain, separate metrics per instance)
 		func(cfg *config.Config, reg *prometheus.Registry) cache.Cache[*models.User] {
 			return cache.NewUserCache(reg, cfg.CacheEnabled)
@@ -166,9 +172,10 @@ var RepositoryModule = fx.Module("repositories",
 			pool *pgxpool.Pool,
 			clock utils.Clock,
 			relationships *services.RelationshipService,
+			transactions repositories.TransactionManager,
 		) *services.InvitationService {
 			method := postgres.NewPostgresCodeBasedInvitation(pool, clock)
-			return services.NewInvitationService(method, relationships)
+			return services.NewInvitationService(method, relationships, transactions)
 		},
 		services.NewBodyMeasurementService,
 		services.NewAdminService,

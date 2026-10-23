@@ -12,14 +12,17 @@ import (
 	"gymtrack-backend/internal/utils"
 )
 
-const relationshipRollbackTimeout = 5 * time.Second
-
 // RelationshipService owns the trainer-athlete connection aggregate:
 // establishing an active relationship, terminating it, and querying the active
 // connection between two users.
+//
+// Every write to the aggregate is one transaction: the relationships row and
+// the trainerAssignment projection on users.profile must never be observable
+// apart from each other.
 type RelationshipService struct {
 	relationshipRepo repositories.RelationshipRepository
 	userRepo         repositories.UserRepository
+	transactions     repositories.TransactionManager
 	clock            utils.Clock
 }
 
@@ -27,6 +30,7 @@ type RelationshipService struct {
 func NewRelationshipService(
 	relationshipRepo repositories.RelationshipRepository,
 	userRepo repositories.UserRepository,
+	transactions repositories.TransactionManager,
 	clock utils.Clock,
 ) *RelationshipService {
 	if clock == nil {
@@ -35,6 +39,7 @@ func NewRelationshipService(
 	return &RelationshipService{
 		relationshipRepo: relationshipRepo,
 		userRepo:         userRepo,
+		transactions:     transactionManagerOrDefault(transactions),
 		clock:            clock,
 	}
 }
@@ -150,9 +155,9 @@ func (s *RelationshipService) GetActiveClientRelationship(ctx context.Context, t
 }
 
 // Activate establishes an active relationship and projects the trainer onto
-// the athlete's profile. It refuses to create a second active relationship for
-// the same athlete, closing the race between the caller's pre-check and this
-// write.
+// the athlete's profile in the same transaction. It refuses to create a second
+// active relationship for the same athlete, closing the race between the
+// caller's pre-check and this write.
 func (s *RelationshipService) Activate(ctx context.Context, trainerID, athleteID int) (*models.Relationship, error) {
 	exists, err := s.HasActiveTrainer(ctx, athleteID)
 	if err != nil {
@@ -163,33 +168,38 @@ func (s *RelationshipService) Activate(ctx context.Context, trainerID, athleteID
 	}
 
 	now := s.clock.Now()
-	existing, err := s.relationshipRepo.GetByTrainerAndAthlete(ctx, trainerID, athleteID)
-	if err == nil {
-		return s.activatePending(ctx, existing, now)
-	}
-	if !errors.Is(err, domainerrors.ErrNotFound) {
-		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
-	}
 
-	relationship := models.NewRelationship(trainerID, athleteID)
-	relationship.CreatedAt = now
-	relationship.Accept()
-	relationship.UpdatedAt = now
-	if err := s.relationshipRepo.Create(ctx, relationship); err != nil {
-		if errors.Is(err, domainerrors.ErrConflict) {
-			// A concurrent activation won the partial unique index race. Report
-			// the business outcome, not a generic write conflict.
-			if active, checkErr := s.HasActiveTrainer(ctx, athleteID); checkErr == nil && active {
-				return nil, ErrAlreadyHasActiveTrainer
+	var relationship *models.Relationship
+	err = s.transactions.WithinTransaction(ctx, func(txCtx context.Context) error {
+		existing, err := s.relationshipRepo.GetByTrainerAndAthlete(txCtx, trainerID, athleteID)
+		if err == nil {
+			relationship, err = s.activatePending(txCtx, existing, now)
+			return err
+		}
+		if !errors.Is(err, domainerrors.ErrNotFound) {
+			return fmt.Errorf("failed to check existing relationship: %w", err)
+		}
+
+		created := models.NewRelationship(trainerID, athleteID)
+		created.CreatedAt = now
+		created.Accept()
+		created.UpdatedAt = now
+		if err := s.relationshipRepo.Create(txCtx, created); err != nil {
+			if errors.Is(err, domainerrors.ErrActiveRelationshipExists) {
+				// A concurrent activation won the partial unique index race.
+				// Report the business outcome, not a generic write conflict.
+				return ErrAlreadyHasActiveTrainer
 			}
+			return fmt.Errorf("failed to create relationship: %w", err)
 		}
-		return nil, fmt.Errorf("failed to create relationship: %w", err)
-	}
 
-	if err := s.setTrainerAssignment(ctx, athleteID, trainerID); err != nil {
-		if rollbackErr := s.rollbackRelationship(ctx, relationship.RelationshipID); rollbackErr != nil {
-			return nil, fmt.Errorf("%w (failed to roll back relationship: %v)", err, rollbackErr)
+		if err := s.setTrainerAssignment(txCtx, athleteID, trainerID); err != nil {
+			return err
 		}
+		relationship = created
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 	return relationship, nil
@@ -204,45 +214,50 @@ func (s *RelationshipService) activatePending(ctx context.Context, relationship 
 		return nil, ErrAlreadyHasActiveTrainer
 	}
 
-	previousStatus := relationship.Status
 	relationship.Status = models.RelationshipStatusActive
 	relationship.UpdatedAt = now
 	if err := s.relationshipRepo.Update(ctx, relationship); err != nil {
-		if errors.Is(err, domainerrors.ErrConflict) {
+		if errors.Is(err, domainerrors.ErrActiveRelationshipExists) {
 			return nil, ErrAlreadyHasActiveTrainer
 		}
 		return nil, fmt.Errorf("failed to activate relationship: %w", err)
 	}
 
+	// The caller's transaction also covers the profile projection, so a
+	// failure here rolls the status change back with it.
 	if err := s.setTrainerAssignment(ctx, relationship.AthleteID, relationship.TrainerID); err != nil {
-		relationship.Status = previousStatus
-		relationship.UpdatedAt = now
-		if restoreErr := s.relationshipRepo.Update(ctx, relationship); restoreErr != nil {
-			return nil, fmt.Errorf("%w (failed to restore relationship status: %v)", err, restoreErr)
-		}
 		return nil, err
 	}
 	return relationship, nil
 }
 
 // Terminate ends a relationship on behalf of one of its participants and clears
-// the trainer assignment from the athlete's profile. Re-terminating an already
-// terminated relationship succeeds, preserving the API's idempotent behaviour.
+// the trainer assignment from the athlete's profile in the same transaction.
+// Re-terminating an already terminated relationship succeeds, preserving the
+// API's idempotent behaviour.
 func (s *RelationshipService) Terminate(ctx context.Context, relationshipID, actorID int, actorRole models.UserRole) (*models.Relationship, error) {
-	relationship, err := s.relationshipRepo.GetByID(ctx, relationshipID)
+	var relationship *models.Relationship
+	err := s.transactions.WithinTransaction(ctx, func(txCtx context.Context) error {
+		rel, err := s.relationshipRepo.GetByID(txCtx, relationshipID)
+		if err != nil {
+			return err
+		}
+		if !canTerminate(rel, actorID, actorRole) {
+			return ErrRelationshipTerminationForbidden
+		}
+
+		rel.Terminate()
+		if err := s.relationshipRepo.Update(txCtx, rel); err != nil {
+			return fmt.Errorf("failed to terminate relationship: %w", err)
+		}
+		if err := s.clearTrainerAssignment(txCtx, rel.AthleteID, rel.TrainerID); err != nil {
+			return err
+		}
+
+		relationship = rel
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	if !canTerminate(relationship, actorID, actorRole) {
-		return nil, ErrRelationshipTerminationForbidden
-	}
-
-	relationship.Terminate()
-	if err := s.relationshipRepo.Update(ctx, relationship); err != nil {
-		return nil, fmt.Errorf("failed to terminate relationship: %w", err)
-	}
-
-	if err := s.clearTrainerAssignment(ctx, relationship.AthleteID, relationship.TrainerID); err != nil {
 		return nil, err
 	}
 	return relationship, nil
@@ -260,43 +275,18 @@ func canTerminate(relationship *models.Relationship, actorID int, actorRole mode
 }
 
 func (s *RelationshipService) setTrainerAssignment(ctx context.Context, athleteID, trainerID int) error {
-	athlete, err := s.userRepo.GetUserByID(ctx, athleteID)
-	if err != nil {
-		return fmt.Errorf("failed to get athlete: %w", err)
-	}
-
-	athlete.Profile.TrainerAssignment = trainerID
-	if err := s.userRepo.UpdateUser(ctx, athlete); err != nil {
+	if err := s.userRepo.SetTrainerAssignment(ctx, athleteID, trainerID); err != nil {
 		return fmt.Errorf("failed to update athlete profile: %w", err)
 	}
 	return nil
 }
 
 // clearTrainerAssignment clears the projection only when it still points at the
-// trainer being terminated. Re-terminating an old relationship must not wipe a
-// newer trainer's assignment.
+// trainer being terminated. The repository enforces that guard in the UPDATE
+// itself, so a stale read cannot wipe a newer trainer's assignment.
 func (s *RelationshipService) clearTrainerAssignment(ctx context.Context, athleteID, trainerID int) error {
-	athlete, err := s.userRepo.GetUserByID(ctx, athleteID)
-	if err != nil {
-		return fmt.Errorf("failed to get athlete: %w", err)
-	}
-	if athlete.Profile.TrainerAssignment != trainerID {
-		return nil
-	}
-
-	athlete.Profile.TrainerAssignment = 0
-	if err := s.userRepo.UpdateUser(ctx, athlete); err != nil {
+	if err := s.userRepo.ClearTrainerAssignment(ctx, athleteID, trainerID); err != nil {
 		return fmt.Errorf("failed to update athlete profile: %w", err)
 	}
 	return nil
-}
-
-// rollbackRelationship compensates for a profile-projection failure after the
-// relationship row was inserted. The request context may already be cancelled,
-// so the delete runs detached with its own deadline.
-func (s *RelationshipService) rollbackRelationship(ctx context.Context, relationshipID int) error {
-	rollbackCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), relationshipRollbackTimeout)
-	defer cancel()
-
-	return s.relationshipRepo.Delete(rollbackCtx, relationshipID)
 }
