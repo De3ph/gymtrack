@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useUsersTableContext } from "./users-table-context";
 import { DataError } from "@/components/features/DataError";
 import { Spinner } from "@/components/ui/spinner";
@@ -10,6 +11,8 @@ export function UsersTableStateHandler({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("admin.users.state");
+  const tErrors = useTranslations("common.errors");
   const { state } = useUsersTableContext();
   const { isLoading, error, filteredUsers, users } = state;
 
@@ -25,7 +28,9 @@ export function UsersTableStateHandler({
     return (
       <div className="px-6 py-8">
         <DataError
-          message={error instanceof Error ? error.message : "Failed to load users"}
+          message={
+            error instanceof Error ? error.message : tErrors("failed_load_users")
+          }
         />
       </div>
     );
@@ -36,9 +41,7 @@ export function UsersTableStateHandler({
       <div className="px-6 py-16 text-center">
         <Users className="mx-auto h-8 w-8 text-muted-foreground/50" />
         <p className="mt-3 text-sm text-muted-foreground">
-          {users.length === 0
-            ? "No users registered yet."
-            : "No users match your filters."}
+          {users.length === 0 ? t("no_users") : t("no_match")}
         </p>
       </div>
     );

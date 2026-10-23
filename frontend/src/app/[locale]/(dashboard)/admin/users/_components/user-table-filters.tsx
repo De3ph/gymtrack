@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useUsersTableContext } from "./users-table-context";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,6 +14,8 @@ import { Search } from "lucide-react";
 import type { UserRole } from "@/types";
 
 export function UserTableFilters() {
+  const t = useTranslations("admin.users.filters");
+  const tRoles = useTranslations("admin.roles");
   const { state, actions } = useUsersTableContext();
 
   return (
@@ -22,7 +25,7 @@ export function UserTableFilters() {
         <Search className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="text"
-          placeholder="Search by name, email, or username..."
+          placeholder={t("search_placeholder")}
           value={state.search}
           onChange={(e) => {
             actions.setSearch(e.target.value);
@@ -34,7 +37,7 @@ export function UserTableFilters() {
       {/* Role Filter */}
       <div className="flex items-center gap-2">
         <span className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
-          Role
+          {t("role")}
         </span>
         <Select
           value={state.roleFilter}
@@ -46,10 +49,10 @@ export function UserTableFilters() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="trainer">Trainer</SelectItem>
-            <SelectItem value="athlete">Athlete</SelectItem>
+            <SelectItem value="all">{t("all")}</SelectItem>
+            <SelectItem value="admin">{tRoles("admin")}</SelectItem>
+            <SelectItem value="trainer">{tRoles("trainer")}</SelectItem>
+            <SelectItem value="athlete">{tRoles("athlete")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -57,7 +60,7 @@ export function UserTableFilters() {
       {/* Period Filter */}
       <div className="flex items-center gap-2">
         <span className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
-          Joined
+          {t("joined")}
         </span>
         <Select
           value={state.period}
@@ -69,10 +72,10 @@ export function UserTableFilters() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All time</SelectItem>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="week">This week</SelectItem>
-            <SelectItem value="month">This month</SelectItem>
+            <SelectItem value="all">{t("all_time")}</SelectItem>
+            <SelectItem value="today">{t("today")}</SelectItem>
+            <SelectItem value="week">{t("this_week")}</SelectItem>
+            <SelectItem value="month">{t("this_month")}</SelectItem>
           </SelectContent>
         </Select>
       </div>

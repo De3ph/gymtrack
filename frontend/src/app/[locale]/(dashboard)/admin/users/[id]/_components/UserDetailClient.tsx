@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -64,6 +65,12 @@ export interface UserDetailClientProps {
 export function UserDetailClient({ detail: initialDetail }: UserDetailClientProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const t = useTranslations("admin.user_detail");
+  const tFields = useTranslations("admin.user_detail.fields");
+  const tRoles = useTranslations("admin.roles");
+  const tStatuses = useTranslations("admin.statuses");
+  const tActions = useTranslations("common.actions");
+  const locale = useLocale();
   const [detail, setDetail] = useState(initialDetail);
   const [roleOpen, setRoleOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -109,7 +116,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
           variant="ghost"
           size="icon"
           onClick={() => router.push(ROUTES.ADMIN_USERS)}
-          aria-label="Back to users"
+          aria-label={t("back")}
         >
           <ArrowLeft className="size-5" />
         </Button>
@@ -128,7 +135,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                 variant={roleBadgeVariant[detail.role] ?? "outline"}
                 className={badgeRegister}
               >
-                {detail.role}
+                {tRoles(detail.role)}
               </Badge>
               {detail.status && detail.status !== "active" && (
                 <>
@@ -137,7 +144,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                     variant={statusBadgeVariant[detail.status] ?? "outline"}
                     className={badgeRegister}
                   >
-                    {detail.status}
+                    {tStatuses(detail.status)}
                   </Badge>
                 </>
               )}
@@ -149,14 +156,14 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
       {/* Detail Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Account Info */}
-        <DetailPanel title="Account">
-          <InfoRow icon={Mail} label="Email" value={detail.email} />
-          <InfoRow icon={User} label="Username" value={detail.username} />
-          <InfoRow icon={Shield} label="Role" value={detail.role} />
+        <DetailPanel title={t("account")}>
+          <InfoRow icon={Mail} label={tFields("email")} value={detail.email} />
+          <InfoRow icon={User} label={tFields("username")} value={detail.username} />
+          <InfoRow icon={Shield} label={tFields("role")} value={tRoles(detail.role)} />
           <InfoRow
             icon={Calendar}
-            label="Joined"
-            value={joinedDate.toLocaleDateString("en-GB", {
+            label={tFields("joined")}
+            value={joinedDate.toLocaleDateString(locale, {
               day: "numeric",
               month: "long",
               year: "numeric",
@@ -165,32 +172,32 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
         </DetailPanel>
 
         {/* Profile Details */}
-        <DetailPanel title="Profile">
+        <DetailPanel title={t("profile")}>
           {detail.role === "athlete" && (
             <>
               <InfoRow
                 icon={Scale}
-                label="Weight"
+                label={tFields("weight")}
                 value={profile.weight ? `${profile.weight} kg` : undefined}
               />
               <InfoRow
                 icon={Ruler}
-                label="Height"
+                label={tFields("height")}
                 value={profile.height ? `${profile.height} cm` : undefined}
               />
               <InfoRow
                 icon={Target}
-                label="Fitness Goals"
+                label={tFields("fitness_goals")}
                 value={profile.fitnessGoals}
               />
               <InfoRow
                 icon={User}
-                label="Age"
+                label={tFields("age")}
                 value={profile.age ? `${profile.age}` : undefined}
               />
               <InfoRow
                 icon={Link2}
-                label="Trainer"
+                label={tFields("trainer")}
                 value={profile.trainerAssignment}
               />
             </>
@@ -199,39 +206,39 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
             <>
               <InfoRow
                 icon={Award}
-                label="Certifications"
+                label={tFields("certifications")}
                 value={profile.certifications}
               />
               <InfoRow
                 icon={Activity}
-                label="Specializations"
+                label={tFields("specializations")}
                 value={profile.specializations}
               />
             </>
           )}
           {detail.role === "admin" && (
             <p className="text-sm leading-6 text-muted-foreground">
-              Full system access. No profile restrictions.
+              {t("admin_note")}
             </p>
           )}
         </DetailPanel>
 
         {/* Activity + Admin Actions */}
         <div className="space-y-6">
-          <DetailPanel title="Activity">
+          <DetailPanel title={t("activity")}>
             <InfoRow
               icon={Calendar}
-              label="Last Updated"
+              label={tFields("last_updated")}
               value={
                 detail.updatedAt
-                  ? new Date(detail.updatedAt).toLocaleDateString("en-GB", {
+                  ? new Date(detail.updatedAt).toLocaleDateString(locale, {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
                       hour: "2-digit",
                       minute: "2-digit",
                     })
-                  : "Never"
+                  : tFields("never")
               }
             />
           </DetailPanel>
@@ -240,7 +247,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
           <div className="border border-border">
             <header className="flex items-center justify-between border-b border-border px-6 py-4">
               <h2 className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
-                Admin Actions
+                {t("admin_actions")}
               </h2>
               <AlertTriangle
                 className="size-5 text-muted-foreground"
@@ -251,18 +258,18 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
               {/* Role Change */}
               <div className="space-y-2">
                 <label className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
-                  Change Role
+                  {t("change_role")}
                 </label>
                 <Dialog open={roleOpen} onOpenChange={setRoleOpen}>
                   <DialogTrigger className="inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted">
                     <Shield className="size-4" />
-                    {detail.role}
+                    {tRoles(detail.role)}
                   </DialogTrigger>
                   <DialogContent className="rounded-none border border-border shadow-none">
                     <DialogHeader>
-                      <DialogTitle>Change User Role</DialogTitle>
+                      <DialogTitle>{t("change_user_role")}</DialogTitle>
                       <DialogDescription>
-                        Select a new role for @{detail.username}.
+                        {t("select_role", { username: detail.username })}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
@@ -276,7 +283,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                             className="w-full justify-start capitalize"
                             onClick={() => handleRoleChange(role)}
                           >
-                            {role}
+                            {tRoles(role)}
                           </Button>
                         ),
                       )}
@@ -286,7 +293,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                         variant="ghost"
                         onClick={() => setRoleOpen(false)}
                       >
-                        Cancel
+                        {tActions("cancel")}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -296,7 +303,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
               {/* Status Change */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-muted-foreground">
-                  Account Status
+                  {t("account_status")}
                 </label>
                 <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
                   <DialogTrigger
@@ -304,15 +311,15 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                       detail.status === "banned" ? "text-destructive" : "text-foreground"
                     }`}
                   >
-                    {detail.status || "active"}
+                    {tStatuses(detail.status || "active")}
                   </DialogTrigger>
                   <DialogContent className="rounded-none border border-border shadow-none">
                     <DialogHeader>
-                      <DialogTitle>Change Account Status</DialogTitle>
+                      <DialogTitle>{t("change_account_status")}</DialogTitle>
                       <DialogDescription>
                         {detail.status === "active"
-                          ? "Suspend or ban this account?"
-                          : "Reactivate this account?"}
+                          ? t("suspend_or_ban")
+                          : t("reactivate")}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
@@ -331,7 +338,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                           }`}
                           onClick={() => handleStatusChange(status)}
                         >
-                          {status}
+                          {tStatuses(status)}
                         </Button>
                       ))}
                     </div>
@@ -340,7 +347,7 @@ export function UserDetailClient({ detail: initialDetail }: UserDetailClientProp
                         variant="ghost"
                         onClick={() => setStatusOpen(false)}
                       >
-                        Cancel
+                        {tActions("cancel")}
                       </Button>
                     </DialogFooter>
                   </DialogContent>

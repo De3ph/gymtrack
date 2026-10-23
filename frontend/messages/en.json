@@ -739,6 +739,169 @@
       "users": "Users",
       "profile": "Profile",
       "moderation": "Moderation"
+    },
+    "roles": {
+      "admin": "Admin",
+      "trainer": "Trainer",
+      "athlete": "Athlete"
+    },
+    "statuses": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "banned": "Banned"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "description": "System overview and user management",
+      "stats": {
+        "total_users": "Total Users",
+        "trainers": "Trainers",
+        "athletes": "Athletes",
+        "new_today": "New Today",
+        "new_this_week": "New This Week",
+        "new_this_month": "New This Month",
+        "total_workouts": "Total Workouts",
+        "total_meals": "Total Meals"
+      },
+      "user_management": {
+        "title": "User Management",
+        "description": "View and manage all registered users. Filter by role, search by name or email, and inspect individual account details.",
+        "action": "Manage Users"
+      },
+      "platform_activity": {
+        "title": "Platform Activity",
+        "live": "Live",
+        "description": "Monitor platform growth and engagement. Track new registrations, workout volume, and nutrition logging trends over time.",
+        "today": "today",
+        "this_week": "this week"
+      }
+    },
+    "users": {
+      "title": "Users",
+      "description": "Manage all registered users",
+      "accounts": "Accounts",
+      "count": "{count, plural, =0 {No users} =1 {1 registered user} other {# registered users}}",
+      "filtered_count": "{filtered} of {total} users",
+      "columns": {
+        "username": "Username",
+        "email": "Email",
+        "role": "Role",
+        "name": "Name",
+        "joined": "Joined",
+        "view": "View"
+      },
+      "filters": {
+        "search_placeholder": "Search by name, email, or username...",
+        "role": "Role",
+        "all": "All",
+        "joined": "Joined",
+        "all_time": "All time",
+        "today": "Today",
+        "this_week": "This week",
+        "this_month": "This month"
+      },
+      "state": {
+        "no_users": "No users registered yet.",
+        "no_match": "No users match your filters."
+      },
+      "pagination": {
+        "page_of": "Page {page} of {pages}",
+        "rows_of": "{shown} of {total} rows",
+        "first": "First page",
+        "previous": "Previous page",
+        "next": "Next page",
+        "last": "Last page"
+      }
+    },
+    "moderation": {
+      "title": "Moderation",
+      "description": "Review and manage user comments",
+      "target_type": "Target type",
+      "all_types": "All types",
+      "workouts": "Workouts",
+      "meals": "Meals",
+      "list_title": "Comments",
+      "target_labels": {
+        "workout": "Workout",
+        "meal": "Meal"
+      },
+      "count": "{count, plural, =0 {No comments} =1 {1 comment} other {# comments}}",
+      "table": {
+        "content": "Content",
+        "author": "Author",
+        "target": "Target",
+        "date": "Date"
+      },
+      "pagination": {
+        "page_of": "Page {page} of {pages}"
+      },
+      "empty": {
+        "title": "No comments to moderate",
+        "description": "Comments appear here as athletes and trainers post them."
+      },
+      "delete_confirm": "Delete this comment permanently?",
+      "delete_aria": "Delete comment"
+    },
+    "profile": {
+      "title": "Admin Profile",
+      "description": "Your account information and security settings",
+      "account_information": "Account Information",
+      "role": "Role",
+      "email": "Email",
+      "username": "Username",
+      "member_since": "Member Since",
+      "change_password": "Change Password",
+      "password_changed": "Password changed successfully",
+      "current_password": {
+        "label": "Current Password",
+        "placeholder": "Enter current password"
+      },
+      "new_password": {
+        "label": "New Password",
+        "placeholder": "Enter new password (min 8 characters)"
+      },
+      "confirm_password": {
+        "label": "Confirm New Password",
+        "placeholder": "Re-enter new password"
+      },
+      "submit": "Change Password",
+      "submitting": "Changing Password...",
+      "errors": {
+        "required": "All password fields are required",
+        "min_length": "New password must be at least 8 characters",
+        "mismatch": "New passwords do not match",
+        "same_as_current": "New password must differ from current password"
+      }
+    },
+    "user_detail": {
+      "back": "Back to users",
+      "account": "Account",
+      "profile": "Profile",
+      "activity": "Activity",
+      "admin_actions": "Admin Actions",
+      "fields": {
+        "email": "Email",
+        "username": "Username",
+        "role": "Role",
+        "joined": "Joined",
+        "weight": "Weight",
+        "height": "Height",
+        "fitness_goals": "Fitness Goals",
+        "age": "Age",
+        "trainer": "Trainer",
+        "certifications": "Certifications",
+        "specializations": "Specializations",
+        "last_updated": "Last Updated",
+        "never": "Never"
+      },
+      "admin_note": "Full system access. No profile restrictions.",
+      "change_role": "Change Role",
+      "change_user_role": "Change User Role",
+      "select_role": "Select a new role for @{username}.",
+      "account_status": "Account Status",
+      "change_account_status": "Change Account Status",
+      "suspend_or_ban": "Suspend or ban this account?",
+      "reactivate": "Reactivate this account?"
     }
   },
   "body_measurement": {

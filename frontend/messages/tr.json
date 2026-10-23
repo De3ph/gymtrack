@@ -739,6 +739,169 @@
       "users": "Kullanıcılar",
       "profile": "Profil",
       "moderation": "Moderasyon"
+    },
+    "roles": {
+      "admin": "Yönetici",
+      "trainer": "Antrenör",
+      "athlete": "Sporcu"
+    },
+    "statuses": {
+      "active": "Aktif",
+      "suspended": "Askıya alındı",
+      "banned": "Yasaklandı"
+    },
+    "dashboard": {
+      "title": "Yönetici Paneli",
+      "description": "Sistem görünümü ve kullanıcı yönetimi",
+      "stats": {
+        "total_users": "Toplam Kullanıcı",
+        "trainers": "Antrenörler",
+        "athletes": "Sporcular",
+        "new_today": "Bugün Yeni",
+        "new_this_week": "Bu Hafta Yeni",
+        "new_this_month": "Bu Ay Yeni",
+        "total_workouts": "Toplam Antrenman",
+        "total_meals": "Toplam Öğün"
+      },
+      "user_management": {
+        "title": "Kullanıcı Yönetimi",
+        "description": "Tüm kayıtlı kullanıcıları görüntüleyin ve yönetin. Role göre filtreleyin, ada veya e-postaya göre arayın ve hesap ayrıntılarını inceleyin.",
+        "action": "Kullanıcıları Yönet"
+      },
+      "platform_activity": {
+        "title": "Platform Etkinliği",
+        "live": "Canlı",
+        "description": "Platform büyümesini ve etkileşimi izleyin. Yeni kayıtları, antrenman hacmini ve beslenme kayıt eğilimlerini takip edin.",
+        "today": "bugün",
+        "this_week": "bu hafta"
+      }
+    },
+    "users": {
+      "title": "Kullanıcılar",
+      "description": "Tüm kayıtlı kullanıcıları yönetin",
+      "accounts": "Hesaplar",
+      "count": "{count, plural, =0 {Kullanıcı yok} =1 {1 kayıtlı kullanıcı} other {# kayıtlı kullanıcı}}",
+      "filtered_count": "{total} kullanıcıdan {filtered} tanesi",
+      "columns": {
+        "username": "Kullanıcı adı",
+        "email": "E-posta",
+        "role": "Rol",
+        "name": "Ad",
+        "joined": "Katılım",
+        "view": "Görüntüle"
+      },
+      "filters": {
+        "search_placeholder": "Ada, e-postaya veya kullanıcı adına göre ara...",
+        "role": "Rol",
+        "all": "Tümü",
+        "joined": "Katılım",
+        "all_time": "Tüm zamanlar",
+        "today": "Bugün",
+        "this_week": "Bu hafta",
+        "this_month": "Bu ay"
+      },
+      "state": {
+        "no_users": "Henüz kayıtlı kullanıcı yok.",
+        "no_match": "Filtrelerinize uyan kullanıcı yok."
+      },
+      "pagination": {
+        "page_of": "Sayfa {page} / {pages}",
+        "rows_of": "{total} satırdan {shown} tanesi",
+        "first": "İlk sayfa",
+        "previous": "Önceki sayfa",
+        "next": "Sonraki sayfa",
+        "last": "Son sayfa"
+      }
+    },
+    "moderation": {
+      "title": "Moderasyon",
+      "description": "Kullanıcı yorumlarını inceleyin ve yönetin",
+      "target_type": "Hedef türü",
+      "all_types": "Tüm türler",
+      "workouts": "Antrenmanlar",
+      "meals": "Öğünler",
+      "list_title": "Yorumlar",
+      "target_labels": {
+        "workout": "Antrenman",
+        "meal": "Öğün"
+      },
+      "count": "{count, plural, =0 {Yorum yok} =1 {1 yorum} other {# yorum}}",
+      "table": {
+        "content": "İçerik",
+        "author": "Yazar",
+        "target": "Hedef",
+        "date": "Tarih"
+      },
+      "pagination": {
+        "page_of": "Sayfa {page} / {pages}"
+      },
+      "empty": {
+        "title": "Modere edilecek yorum yok",
+        "description": "Sporcular ve antrenörler yorum yazdıkça burada görünür."
+      },
+      "delete_confirm": "Bu yorum kalıcı olarak silinsin mi?",
+      "delete_aria": "Yorumu sil"
+    },
+    "profile": {
+      "title": "Yönetici Profili",
+      "description": "Hesap bilgileriniz ve güvenlik ayarlarınız",
+      "account_information": "Hesap Bilgileri",
+      "role": "Rol",
+      "email": "E-posta",
+      "username": "Kullanıcı adı",
+      "member_since": "Üyelik başlangıcı",
+      "change_password": "Şifre Değiştir",
+      "password_changed": "Şifre başarıyla değiştirildi",
+      "current_password": {
+        "label": "Mevcut Şifre",
+        "placeholder": "Mevcut şifreyi girin"
+      },
+      "new_password": {
+        "label": "Yeni Şifre",
+        "placeholder": "Yeni şifreyi girin (en az 8 karakter)"
+      },
+      "confirm_password": {
+        "label": "Yeni Şifreyi Doğrula",
+        "placeholder": "Yeni şifreyi tekrar girin"
+      },
+      "submit": "Şifre Değiştir",
+      "submitting": "Şifre değiştiriliyor...",
+      "errors": {
+        "required": "Tüm şifre alanları zorunludur",
+        "min_length": "Yeni şifre en az 8 karakter olmalıdır",
+        "mismatch": "Yeni şifreler eşleşmiyor",
+        "same_as_current": "Yeni şifre mevcut şifreden farklı olmalıdır"
+      }
+    },
+    "user_detail": {
+      "back": "Kullanıcılara dön",
+      "account": "Hesap",
+      "profile": "Profil",
+      "activity": "Etkinlik",
+      "admin_actions": "Yönetici İşlemleri",
+      "fields": {
+        "email": "E-posta",
+        "username": "Kullanıcı adı",
+        "role": "Rol",
+        "joined": "Katılım",
+        "weight": "Kilo",
+        "height": "Boy",
+        "fitness_goals": "Fitness Hedefleri",
+        "age": "Yaş",
+        "trainer": "Antrenör",
+        "certifications": "Sertifikalar",
+        "specializations": "Uzmanlıklar",
+        "last_updated": "Son Güncelleme",
+        "never": "Hiç"
+      },
+      "admin_note": "Tam sistem erişimi. Profil kısıtlaması yok.",
+      "change_role": "Rolü Değiştir",
+      "change_user_role": "Kullanıcı Rolünü Değiştir",
+      "select_role": "@{username} için yeni bir rol seçin.",
+      "account_status": "Hesap Durumu",
+      "change_account_status": "Hesap Durumunu Değiştir",
+      "suspend_or_ban": "Bu hesap askıya alınsın veya yasaklansın mı?",
+      "reactivate": "Bu hesap yeniden etkinleştirilsin mi?"
     }
   },
   "body_measurement": {

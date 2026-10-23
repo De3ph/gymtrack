@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/authStore";
 import { adminApi } from "@/lib/api/adminApi";
 import { qk } from "@/lib/query-keys";
@@ -24,6 +25,9 @@ import {
 export function AdminProfileClient() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const t = useTranslations("admin.profile");
+  const tRoles = useTranslations("admin.roles");
+  const locale = useLocale();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -50,22 +54,22 @@ export function AdminProfileClient() {
     setPasswordError("");
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setPasswordError("All password fields are required");
+      setPasswordError(t("errors.required"));
       return;
     }
 
     if (newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters");
+      setPasswordError(t("errors.min_length"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords do not match");
+      setPasswordError(t("errors.mismatch"));
       return;
     }
 
     if (oldPassword === newPassword) {
-      setPasswordError("New password must differ from current password");
+      setPasswordError(t("errors.same_as_current"));
       return;
     }
 
@@ -84,38 +88,38 @@ export function AdminProfileClient() {
       {/* Header */}
       <div>
         <h1 className="font-mono text-3xl leading-tight tracking-[-0.04em]">
-          Admin Profile
+          {t("title")}
         </h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Your account information and security settings
+          {t("description")}
         </p>
       </div>
 
       {/* Account Info */}
-      <DetailPanel title="Account Information">
+      <DetailPanel title={t("account_information")}>
         <InfoRow
           icon={Shield}
-          label="Role"
+          label={t("role")}
           value={
             <Badge
               variant="destructive"
               className="mt-0.5 h-auto rounded-none px-2.5 py-0.5 capitalize"
             >
-              {user.role}
+              {tRoles(user.role)}
             </Badge>
           }
         />
 
-        <InfoRow icon={Mail} label="Email" value={user.email} />
+        <InfoRow icon={Mail} label={t("email")} value={user.email} />
 
-        <InfoRow icon={User} label="Username" value={`@${user.username}`} />
+        <InfoRow icon={User} label={t("username")} value={`@${user.username}`} />
 
         <InfoRow
           icon={Calendar}
-          label="Member Since"
+          label={t("member_since")}
           value={
             joinedDate
-              ? joinedDate.toLocaleDateString("en-GB", {
+              ? joinedDate.toLocaleDateString(locale, {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -129,7 +133,7 @@ export function AdminProfileClient() {
       <div className="border border-border">
         <header className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 className="font-mono text-[10px] uppercase leading-3 tracking-[0.18em] text-muted-foreground">
-            Change Password
+            {t("change_password")}
           </h2>
           <Lock className="size-5 text-muted-foreground" aria-hidden="true" />
         </header>
@@ -148,7 +152,7 @@ export function AdminProfileClient() {
             {changePasswordMutation.isSuccess && (
               <div className="flex items-center gap-2 border border-accent/40 bg-accent/10 p-3 text-sm text-foreground">
                 <CheckCircle2 className="size-5 shrink-0 text-accent" aria-hidden="true" />
-                Password changed successfully
+                {t("password_changed")}
               </div>
             )}
 
@@ -157,14 +161,14 @@ export function AdminProfileClient() {
                 htmlFor="oldPassword"
                 className="mb-1.5 block text-sm font-semibold text-muted-foreground"
               >
-                Current Password
+                {t("current_password.label")}
               </label>
               <Input
                 id="oldPassword"
                 type="password"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="Enter current password"
+                placeholder={t("current_password.placeholder")}
                 autoComplete="current-password"
               />
             </div>
@@ -174,14 +178,14 @@ export function AdminProfileClient() {
                 htmlFor="newPassword"
                 className="mb-1.5 block text-sm font-semibold text-muted-foreground"
               >
-                New Password
+                {t("new_password.label")}
               </label>
               <Input
                 id="newPassword"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password (min 8 characters)"
+                placeholder={t("new_password.placeholder")}
                 autoComplete="new-password"
               />
             </div>
@@ -191,14 +195,14 @@ export function AdminProfileClient() {
                 htmlFor="confirmPassword"
                 className="mb-1.5 block text-sm font-semibold text-muted-foreground"
               >
-                Confirm New Password
+                {t("confirm_password.label")}
               </label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter new password"
+                placeholder={t("confirm_password.placeholder")}
                 autoComplete="new-password"
               />
             </div>
@@ -212,8 +216,8 @@ export function AdminProfileClient() {
                 <Spinner className="size-5" />
               )}
               {changePasswordMutation.isPending
-                ? "Changing Password..."
-                : "Change Password"}
+                ? t("submitting")
+                : t("submit")}
             </Button>
           </form>
         </div>
