@@ -1171,7 +1171,7 @@ src/
       landing/ (7 components)
         landing-variants.ts, LandingConsole.tsx, LandingFeatureGrid.tsx
         LandingHeader.tsx, LandingHero.tsx, LandingMetrics.tsx
-        LandingProof.tsx, LandingRolePaths.tsx
+        LandingRolePaths.tsx
       meal/ (9 components)
       reviews/ (2 components)
       trainer/ (10 components)

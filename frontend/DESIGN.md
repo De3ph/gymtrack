@@ -578,7 +578,7 @@ import { ArrowUpRight } from "lucide-react";
 </section>
 ```
 
-That's the whole pattern. It recurs across `LandingConsole`, `LandingFeatureGrid`, `LandingRolePaths`, `LandingProof`. Learn it once, repeat it.
+That's the whole pattern. It recurs across `LandingConsole`, `LandingFeatureGrid`, `LandingRolePaths`. Learn it once, repeat it.
 
 ---
 
@@ -595,6 +595,5 @@ That's the whole pattern. It recurs across `LandingConsole`, `LandingFeatureGrid
   - `src/components/features/landing/LandingConsole.tsx` — scoreboard panel, live signal.
   - `src/components/features/landing/LandingFeatureGrid.tsx` — table-as-list.
   - `src/components/features/landing/LandingRolePaths.tsx` — comparison split, monospaced bullets.
-  - `src/components/features/landing/LandingProof.tsx` — proof section, single CTA.
 
 When in doubt, open one of these and match it. If you're reaching for a primitive for the first time, read the source at `src/components/ui/<name>.tsx` — the prop API and baked-in styles are the contract.
