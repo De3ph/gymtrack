@@ -106,6 +106,29 @@ services:
       - gymtrack
     restart: "no"
 
+  create-admin:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: gymtrack-backend:latest
+    container_name: gymtrack-create-admin
+    command: ["/app/create-admin"]
+    environment:
+      # Runs as the schema owner (can insert/update users). Idempotent.
+      POSTGRES_DSN: postgres://${MIGRATE_DB_USER:-gymtrack_migrate}:${MIGRATE_DB_PASSWORD}@db:5432/${POSTGRES_DB:-gymtrack}?sslmode=disable
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - gymtrack
+    restart: "no"
+
+
   backend:
     build:
       context: ./backend
