@@ -30,6 +30,12 @@ interface ExerciseLibraryFiltersProps {
   equipment: Equipment[];
   resultCount: number;
   totalCount: number;
+  /**
+   * How many of `resultCount` are actually on screen. The library windows its
+   * grid, so the count line is the only place that can tell the viewer a
+   * "load more" click changed something without scrolling them.
+   */
+  visibleCount?: number;
   onChange: (next: ExerciseLibraryFilterState) => void;
   className?: string;
 }
@@ -77,6 +83,7 @@ export function ExerciseLibraryFilters({
   equipment,
   resultCount,
   totalCount,
+  visibleCount = resultCount,
   onChange,
   className,
 }: ExerciseLibraryFiltersProps) {
@@ -119,13 +126,24 @@ export function ExerciseLibraryFilters({
     [equipment, equipmentLabel],
   );
 
-  const resultLabel = useMemo(
-    () =>
-      resultCount === totalCount
-        ? t("results_total", { count: totalCount })
-        : t("results_filtered", { count: resultCount, total: totalCount }),
-    [resultCount, totalCount, t],
-  );
+  // Three states to keep apart: everything shown, a filtered subset shown, and
+  // either of those truncated by the "load more" window. The truncated form is
+  // what the live region announces after each click.
+  const isWindowed = visibleCount < resultCount;
+  const resultLabel = useMemo(() => {
+    if (resultCount === totalCount) {
+      return isWindowed
+        ? t("results_showing", { shown: visibleCount, count: resultCount })
+        : t("results_total", { count: totalCount });
+    }
+    return isWindowed
+      ? t("results_showing_filtered", {
+          shown: visibleCount,
+          count: resultCount,
+          total: totalCount,
+        })
+      : t("results_filtered", { count: resultCount, total: totalCount });
+  }, [resultCount, totalCount, visibleCount, isWindowed, t]);
 
   return (
     <div className={cn("space-y-4 border border-border px-4 py-4", className)}>
