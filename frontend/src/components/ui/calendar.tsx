@@ -9,6 +9,7 @@ import {
 } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
+import { useDatePickerLocale } from "@/lib/i18n/datepicker-locale";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   ChevronLeftIcon,
@@ -30,6 +31,8 @@ function Calendar({
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
 }) {
   const defaultClassNames = getDefaultClassNames();
+  // Locale from next-intl unless the caller pins one explicitly.
+  locale = useDatePickerLocale(locale);
 
   return (
     <DayPicker
