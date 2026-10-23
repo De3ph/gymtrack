@@ -9,6 +9,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -75,8 +76,11 @@ func (noRelationshipRepo) GetByTrainerID(context.Context, int) ([]*models.Relati
 func (noRelationshipRepo) GetByTrainerAndAthlete(context.Context, int, int) (*models.Relationship, error) {
 	return nil, domainerrors.ErrNotFound
 }
-func (noRelationshipRepo) GetActiveByTrainerID(context.Context, int) ([]*models.Relationship, error) {
+func (noRelationshipRepo) GetActiveByTrainerID(context.Context, int, int, int) ([]*models.Relationship, error) {
 	return nil, nil
+}
+func (noRelationshipRepo) CountActiveByTrainerID(context.Context, int) (int, error) {
+	return 0, nil
 }
 func (noRelationshipRepo) GetActiveByAthleteID(context.Context, int) (*models.Relationship, error) {
 	return nil, domainerrors.ErrNotFound
@@ -304,6 +308,18 @@ func (f *fakeWorkoutRepo) CountByAthlete(context.Context, int, *time.Time, *time
 }
 
 func (f *fakeWorkoutRepo) CountAll(context.Context) (int, error) { return 0, nil }
+
+func (f *fakeWorkoutRepo) WeeklyVolume(context.Context, int) ([]repositories.VolumeWeekRow, error) {
+	return nil, nil
+}
+
+func (f *fakeWorkoutRepo) ExerciseAggregates(context.Context, int) ([]repositories.ExerciseAggregateRow, error) {
+	return nil, nil
+}
+
+func (f *fakeWorkoutRepo) CountByAthleteSince(context.Context, int, time.Time) (int, error) {
+	return 0, nil
+}
 
 func (f *fakeWorkoutRepo) Update(_ context.Context, workout *models.Workout) error {
 	return nil

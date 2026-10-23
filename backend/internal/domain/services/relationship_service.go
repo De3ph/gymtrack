@@ -102,13 +102,25 @@ func (s *RelationshipService) GetActiveTrainer(ctx context.Context, athleteID in
 	return &ActiveTrainer{Relationship: relationship, Trainer: trainer}, nil
 }
 
-// GetActiveClients returns the trainer's active relationships with their
-// athlete profiles. Athletes whose profile cannot be found are skipped, so one
-// deleted account does not hide the trainer's whole roster.
-func (s *RelationshipService) GetActiveClients(ctx context.Context, trainerID int) ([]*ActiveClient, error) {
-	relationships, err := s.relationshipRepo.GetActiveByTrainerID(ctx, trainerID)
+// ActiveClientsPage is one page of a trainer's roster plus the total number of
+// active clients.
+type ActiveClientsPage struct {
+	Clients []*ActiveClient
+	Count   int
+}
+
+// GetActiveClients pages the trainer's active relationships with their athlete
+// profiles. Athletes whose profile cannot be found are skipped, so one deleted
+// account does not hide the trainer's whole roster.
+func (s *RelationshipService) GetActiveClients(ctx context.Context, trainerID int, limit, offset int) (*ActiveClientsPage, error) {
+	relationships, err := s.relationshipRepo.GetActiveByTrainerID(ctx, trainerID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve active relationships: %w", err)
+	}
+
+	count, err := s.relationshipRepo.CountActiveByTrainerID(ctx, trainerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count active relationships: %w", err)
 	}
 
 	athleteIDs := make([]int, 0, len(relationships))
@@ -134,7 +146,7 @@ func (s *RelationshipService) GetActiveClients(ctx context.Context, trainerID in
 		}
 		clients = append(clients, &ActiveClient{Relationship: relationship, Athlete: athlete})
 	}
-	return clients, nil
+	return &ActiveClientsPage{Clients: clients, Count: count}, nil
 }
 
 // GetActiveClientRelationship returns the active relationship between the

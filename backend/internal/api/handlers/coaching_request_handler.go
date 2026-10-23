@@ -78,7 +78,9 @@ func (h *CoachingRequestHandler) CreateCoachingRequest(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]any "Successfully retrieved coaching requests" "{\"requests\": []}"
+// @Param limit query int false "Max number of coaching requests to return" minimum(1) maximum(500) default(100)
+// @Param offset query int false "Number of coaching requests to skip" minimum(0) default(0)
+// @Success 200 {object} map[string]any "Successfully retrieved coaching requests" "{\"requests\": [], \"count\": 12, \"limit\": 100, \"offset\": 0}"
 // @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
 // @Failure 500 {object} map[string]any "Internal server error"
 // @Router /coaching-requests/my [get]
@@ -97,13 +99,14 @@ func (h *CoachingRequestHandler) GetMyRequests(c *gin.Context) {
 		return
 	}
 
-	requests, err := h.service.GetMyRequests(c.Request.Context(), userIDInt, string(userRole.(models.UserRole)))
+	limit, offset := listPagination(c, 100, 500)
+	page, err := h.service.GetMyRequests(c.Request.Context(), userIDInt, string(userRole.(models.UserRole)), limit, offset)
 	if err != nil {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"requests": requests})
+	c.JSON(http.StatusOK, gin.H{"requests": page.Requests, "count": page.Count, "limit": limit, "offset": offset})
 }
 
 // @Summary Accept a coaching request
@@ -211,7 +214,9 @@ func (h *CoachingRequestHandler) RejectCoachingRequest(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]any "Successfully retrieved pending coaching requests" "{\"requests\": []}"
+// @Param limit query int false "Max number of pending coaching requests to return" minimum(1) maximum(500) default(100)
+// @Param offset query int false "Number of pending coaching requests to skip" minimum(0) default(0)
+// @Success 200 {object} map[string]any "Successfully retrieved pending coaching requests" "{\"requests\": [], \"count\": 3, \"limit\": 100, \"offset\": 0}"
 // @Failure 401 {object} map[string]any "Unauthorized - user not authenticated"
 // @Failure 403 {object} map[string]any "Forbidden - only trainers can view pending requests"
 // @Failure 500 {object} map[string]any "Internal server error"
@@ -235,11 +240,12 @@ func (h *CoachingRequestHandler) GetPendingRequests(c *gin.Context) {
 		return
 	}
 
-	requests, err := h.service.GetPendingRequestsForTrainer(c.Request.Context(), userIDInt)
+	limit, offset := listPagination(c, 100, 500)
+	page, err := h.service.GetPendingRequestsForTrainer(c.Request.Context(), userIDInt, limit, offset)
 	if err != nil {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"requests": requests})
+	c.JSON(http.StatusOK, gin.H{"requests": page.Requests, "count": page.Count, "limit": limit, "offset": offset})
 }

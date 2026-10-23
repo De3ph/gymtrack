@@ -3,19 +3,135 @@ package services
 import (
 	"context"
 	"fmt"
-	"sort"
 	"time"
 
-	"gymtrack-backend/internal/domain/models"
 	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/utils"
 )
 
-// clientStatsPageSize bounds the history scanned for statistics. The endpoints
-// remain capped until aggregation moves into SQL.
-const clientStatsPageSize = 1000
+// GetActivity returns the athlete's workout and meal counts for the current
+// week.
+func (s *ClientStatsService) GetActivity(ctx context.Context, athleteID int) (*ClientActivityStats, error) {
+	// Week start comes from the injected clock, so these counters stay
+	// testable; the DB only counts rows dated after it.
+	now := s.clock.Now()
+	weekStart := now.AddDate(0, 0, -int(now.Weekday())).Truncate(24 * time.Hour)
 
-// ClientActivityStats summarises an athlete's activity for the current week.
+	workoutsThisWeek, err := s.workoutRepo.CountByAthleteSince(ctx, athleteID, weekStart)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count workouts this week: %w", err)
+	}
+	mealsThisWeek, err := s.mealRepo.CountByAthleteSince(ctx, athleteID, weekStart)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count meals this week: %w", err)
+	}
+
+	return &ClientActivityStats{
+		WorkoutsThisWeek: workoutsThisWeek,
+		MealsThisWeek:    mealsThisWeek,
+	}, nil
+}
+
+// GetDetailedStats returns the athlete's workout and meal analytics. The
+// aggregations run in SQL (see WorkoutRepository.WeeklyVolume and
+// MealRepository.WeeklyNutrition); this service only computes the consistency
+// score, which needs a pass over the weekly rows it already holds.
+func (s *ClientStatsService) GetDetailedStats(ctx context.Context, athleteID int) (*WorkoutStats, *MealStats, error) {
+	weekly, err := s.workoutRepo.WeeklyVolume(ctx, athleteID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to retrieve workout stats: %w", err)
+	}
+	exercises, err := s.workoutRepo.ExerciseAggregates(ctx, athleteID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to retrieve exercise breakdown: %w", err)
+	}
+	averages, err := s.mealRepo.NutritionAverages(ctx, athleteID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to retrieve meal stats: %w", err)
+	}
+	weeklyNutrition, err := s.mealRepo.WeeklyNutrition(ctx, athleteID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to retrieve weekly nutrition: %w", err)
+	}
+	mealTypes, err := s.mealRepo.MealTypeCounts(ctx, athleteID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to retrieve meal type breakdown: %w", err)
+	}
+
+	return workoutStatsFromRows(weekly, exercises), mealStatsFromRows(averages, weeklyNutrition, mealTypes), nil
+}
+
+func workoutStatsFromRows(weekly []repositories.VolumeWeekRow, exercises []repositories.ExerciseAggregateRow) *WorkoutStats {
+	var totalVolume float64
+	weeklyVolume := make([]WeeklyVolumePoint, 0, len(weekly))
+	weeksWithWorkouts := 0
+	for _, week := range weekly {
+		totalVolume += week.Volume
+		weeklyVolume = append(weeklyVolume, WeeklyVolumePoint{
+			Week:     week.Week,
+			Volume:   week.Volume,
+			Workouts: week.Workouts,
+		})
+		if week.Workouts >= 3 {
+			weeksWithWorkouts++
+		}
+	}
+
+	var consistency float64
+	if len(weekly) > 0 {
+		consistency = float64(weeksWithWorkouts) / float64(len(weekly)) * 100
+	}
+
+	exerciseBreakdown := make([]ExerciseStat, 0, len(exercises))
+	for _, exercise := range exercises {
+		exerciseBreakdown = append(exerciseBreakdown, ExerciseStat{
+			Name:      exercise.Name,
+			TotalSets: exercise.TotalSets,
+			TotalReps: exercise.TotalReps,
+			MaxWeight: exercise.MaxWeight,
+		})
+	}
+
+	return &WorkoutStats{
+		TotalVolume:       totalVolume,
+		WeeklyVolume:      weeklyVolume,
+		ExerciseBreakdown: exerciseBreakdown,
+		Consistency:       consistency,
+	}
+}
+
+func mealStatsFromRows(averages *repositories.NutritionAveragesRow, weekly []repositories.WeeklyNutritionRow, mealTypes []repositories.MealTypeCountRow) *MealStats {
+	weeklyAverages := make([]WeeklyMealAvg, 0, len(weekly))
+	for _, week := range weekly {
+		weeklyAverages = append(weeklyAverages, WeeklyMealAvg{
+			Week:     week.Week,
+			Calories: week.Calories,
+			Protein:  week.Protein,
+			Carbs:    week.Carbs,
+			Fats:     week.Fats,
+		})
+	}
+
+	mealTypeBreakdown := make([]MealTypeStat, 0, len(mealTypes))
+	for _, mealType := range mealTypes {
+		mealTypeBreakdown = append(mealTypeBreakdown, MealTypeStat{
+			MealType: mealType.MealType,
+			Count:    mealType.Count,
+		})
+	}
+
+	if averages == nil {
+		averages = &repositories.NutritionAveragesRow{}
+	}
+	return &MealStats{
+		AverageCalories:   averages.Calories,
+		AverageProtein:    averages.Protein,
+		AverageCarbs:      averages.Carbs,
+		AverageFats:       averages.Fats,
+		WeeklyAverages:    weeklyAverages,
+		MealTypeBreakdown: mealTypeBreakdown,
+	}
+} // ClientActivityStats summarises an athlete's activity for the current week.
 type ClientActivityStats struct {
 	WorkoutsThisWeek int `json:"workoutsThisWeek"`
 	MealsThisWeek    int `json:"mealsThisWeek"`
@@ -92,222 +208,5 @@ func NewClientStatsService(
 		workoutRepo: workoutRepo,
 		mealRepo:    mealRepo,
 		clock:       clock,
-	}
-}
-
-// GetActivity returns the athlete's workout and meal counts for the current
-// week.
-func (s *ClientStatsService) GetActivity(ctx context.Context, athleteID int) (*ClientActivityStats, error) {
-	workouts, err := s.workoutRepo.GetByAthleteID(ctx, athleteID, clientStatsPageSize, 0)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve workouts: %w", err)
-	}
-	meals, err := s.mealRepo.GetByAthleteID(ctx, athleteID, clientStatsPageSize, 0)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve meals: %w", err)
-	}
-
-	now := s.clock.Now()
-	weekStart := now.AddDate(0, 0, -int(now.Weekday())).Truncate(24 * time.Hour)
-
-	stats := &ClientActivityStats{}
-	for _, workout := range workouts {
-		if workout.Date.After(weekStart) {
-			stats.WorkoutsThisWeek++
-		}
-	}
-	for _, meal := range meals {
-		if meal.Date.After(weekStart) {
-			stats.MealsThisWeek++
-		}
-	}
-	return stats, nil
-}
-
-// GetDetailedStats returns the athlete's workout and meal analytics.
-func (s *ClientStatsService) GetDetailedStats(ctx context.Context, athleteID int) (*WorkoutStats, *MealStats, error) {
-	workouts, err := s.workoutRepo.GetByAthleteID(ctx, athleteID, clientStatsPageSize, 0)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to retrieve workouts: %w", err)
-	}
-	meals, err := s.mealRepo.GetByAthleteID(ctx, athleteID, clientStatsPageSize, 0)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to retrieve meals: %w", err)
-	}
-	return calculateWorkoutStats(workouts), calculateMealStats(meals), nil
-}
-
-func calculateWorkoutStats(workouts []*models.Workout) *WorkoutStats {
-	var totalVolume float64
-	exerciseMap := make(map[string]*ExerciseStat)
-	weeklyData := make([]WeeklyVolumePoint, 0)
-
-	// Group workouts by week
-	weekMap := make(map[string][]*models.Workout)
-
-	for _, w := range workouts {
-		// Calculate volume (sets * reps * weight)
-		for _, e := range w.Exercises {
-			for _, set := range e.Sets {
-				volume := set.Weight * float64(set.Reps)
-				totalVolume += volume
-			}
-
-			// Exercise breakdown
-			if _, ok := exerciseMap[e.Name]; !ok {
-				exerciseMap[e.Name] = &ExerciseStat{Name: e.Name}
-			}
-			exerciseMap[e.Name].TotalSets += len(e.Sets)
-			for _, set := range e.Sets {
-				if set.Weight > exerciseMap[e.Name].MaxWeight {
-					exerciseMap[e.Name].MaxWeight = set.Weight
-				}
-				exerciseMap[e.Name].TotalReps += set.Reps
-			}
-		}
-
-		// Group by week
-		year, week := w.Date.ISOWeek()
-		weekKey := fmt.Sprintf("%d-W%02d", year, week)
-		weekMap[weekKey] = append(weekMap[weekKey], w)
-	}
-
-	// Calculate weekly volume
-	for week, ws := range weekMap {
-		var weekVol float64
-		for _, w := range ws {
-			for _, e := range w.Exercises {
-				for _, set := range e.Sets {
-					weekVol += set.Weight * float64(set.Reps)
-				}
-			}
-		}
-		weeklyData = append(weeklyData, WeeklyVolumePoint{
-			Week:     week,
-			Volume:   weekVol,
-			Workouts: len(ws),
-		})
-	}
-
-	// Calculate consistency (percentage of weeks with at least 3 workouts)
-	weeksWithWorkouts := 0
-	totalWeeks := len(weeklyData)
-	if totalWeeks > 0 {
-		for _, wd := range weeklyData {
-			if wd.Workouts >= 3 {
-				weeksWithWorkouts++
-			}
-		}
-	}
-
-	var consistency float64
-	if totalWeeks > 0 {
-		consistency = float64(weeksWithWorkouts) / float64(totalWeeks) * 100
-	}
-
-	// Map iteration order is random; sort the response slices for stable JSON.
-	sort.Slice(weeklyData, func(i, j int) bool { return weeklyData[i].Week < weeklyData[j].Week })
-
-	// Convert exercise map to slice
-	exerciseBreakdown := make([]ExerciseStat, 0)
-	for _, es := range exerciseMap {
-		exerciseBreakdown = append(exerciseBreakdown, *es)
-	}
-	sort.Slice(exerciseBreakdown, func(i, j int) bool { return exerciseBreakdown[i].Name < exerciseBreakdown[j].Name })
-
-	return &WorkoutStats{
-		TotalVolume:       totalVolume,
-		WeeklyVolume:      weeklyData,
-		ExerciseBreakdown: exerciseBreakdown,
-		Consistency:       consistency,
-	}
-}
-
-func calculateMealStats(meals []*models.Meal) *MealStats {
-	var totalCalories, totalProtein, totalCarbs, totalFats float64
-	mealTypeMap := make(map[models.MealType]int)
-	weeklyMap := make(map[string][]*models.Meal)
-
-	for _, m := range meals {
-		// Calculate totals
-		for _, item := range m.Items {
-			if item.Calories > 0 {
-				totalCalories += item.Calories
-			}
-			hasAnyMacros := item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0
-			if hasAnyMacros {
-				totalProtein += item.Macros.Protein
-				totalCarbs += item.Macros.Carbs
-				totalFats += item.Macros.Fats
-			}
-		}
-
-		// Meal type breakdown
-		mealTypeMap[m.MealType]++
-
-		// Weekly averages
-		year, week := m.Date.ISOWeek()
-		weekKey := fmt.Sprintf("%d-W%02d", year, week)
-		weeklyMap[weekKey] = append(weeklyMap[weekKey], m)
-	}
-
-	// Calculate averages
-	mealCount := float64(len(meals))
-	var avgCalories, avgProtein, avgCarbs, avgFats float64
-	if mealCount > 0 {
-		avgCalories = totalCalories / mealCount
-		avgProtein = totalProtein / mealCount
-		avgCarbs = totalCarbs / mealCount
-		avgFats = totalFats / mealCount
-	}
-
-	// Calculate weekly averages
-	weeklyAverages := make([]WeeklyMealAvg, 0)
-	for week, ws := range weeklyMap {
-		var weekCalories, weekProtein, weekCarbs, weekFats float64
-		mealCountInWeek := float64(len(ws))
-		for _, m := range ws {
-			for _, item := range m.Items {
-				if item.Calories > 0 {
-					weekCalories += item.Calories
-				}
-				hasAnyMacros := item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0
-				if hasAnyMacros {
-					weekProtein += item.Macros.Protein
-					weekCarbs += item.Macros.Carbs
-					weekFats += item.Macros.Fats
-				}
-			}
-		}
-		if mealCountInWeek > 0 {
-			weeklyAverages = append(weeklyAverages, WeeklyMealAvg{
-				Week:     week,
-				Calories: weekCalories / mealCountInWeek,
-				Protein:  weekProtein / mealCountInWeek,
-				Carbs:    weekCarbs / mealCountInWeek,
-				Fats:     weekFats / mealCountInWeek,
-			})
-		}
-	}
-
-	sort.Slice(weeklyAverages, func(i, j int) bool { return weeklyAverages[i].Week < weeklyAverages[j].Week })
-
-	// Convert meal type map to slice
-	mealTypeBreakdown := make([]MealTypeStat, 0)
-	for mt, count := range mealTypeMap {
-		mealTypeBreakdown = append(mealTypeBreakdown, MealTypeStat{
-			MealType: string(mt),
-			Count:    count,
-		})
-	}
-	sort.Slice(mealTypeBreakdown, func(i, j int) bool { return mealTypeBreakdown[i].MealType < mealTypeBreakdown[j].MealType })
-
-	return &MealStats{
-		AverageCalories:   avgCalories,
-		AverageProtein:    avgProtein,
-		AverageCarbs:      avgCarbs,
-		AverageFats:       avgFats,
-		WeeklyAverages:    weeklyAverages,
-		MealTypeBreakdown: mealTypeBreakdown,
 	}
 }

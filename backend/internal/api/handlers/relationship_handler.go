@@ -231,7 +231,9 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 // @Tags Relationships
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]any "Success" {"clients": []ClientWithAthlete, "count": int}
+// @Param limit query int false "Number of clients per page (default: 200, max: 1000)"
+// @Param offset query int false "Number of clients to skip (default: 0)"
+// @Success 200 {object} map[string]any "Success" {"clients": []ClientWithAthlete, "count": int, "limit": int, "offset": int}
 // @Failure 401 {object} map[string]string "Unauthorized" {"error":"You need to log in to continue. Please log in and try again"}
 // @Failure 403 {object} map[string]string "Forbidden" {"error":"Only trainers can view their clients"}
 // @Failure 500 {object} map[string]string "Internal server error" {"error":"Failed to retrieve clients"}
@@ -258,7 +260,8 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 		return
 	}
 
-	activeClients, err := h.relationships.GetActiveClients(c.Request.Context(), trainerIDInt)
+	limit, offset := listPagination(c, 200, 1000)
+	activeClientPage, err := h.relationships.GetActiveClients(c.Request.Context(), trainerIDInt, limit, offset)
 	if err != nil {
 		handleInternalError(c, err, "internal server error")
 		return
@@ -269,8 +272,8 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 		Athlete      *models.User         `json:"athlete"`
 	}
 
-	clientsWithAthlete := make([]ClientWithAthlete, 0, len(activeClients))
-	for _, client := range activeClients {
+	clientsWithAthlete := make([]ClientWithAthlete, 0, len(activeClientPage.Clients))
+	for _, client := range activeClientPage.Clients {
 		clientsWithAthlete = append(clientsWithAthlete, ClientWithAthlete{
 			Relationship: client.Relationship,
 			Athlete:      client.Athlete,
@@ -279,7 +282,9 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"clients": clientsWithAthlete,
-		"count":   len(clientsWithAthlete),
+		"count":   activeClientPage.Count,
+		"limit":   limit,
+		"offset":  offset,
 	})
 }
 

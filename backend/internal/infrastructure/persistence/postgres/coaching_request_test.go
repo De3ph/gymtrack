@@ -70,7 +70,7 @@ func TestPostgresCoachingRequestRepository(t *testing.T) {
 	})
 
 	t.Run("GetByAthleteID", func(t *testing.T) {
-		reqs, err := repo.GetByAthleteID(ctx, athlete.UserID)
+		reqs, err := repo.GetByAthleteID(ctx, athlete.UserID, 0, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(reqs), 1)
 		for _, r := range reqs {
@@ -79,7 +79,7 @@ func TestPostgresCoachingRequestRepository(t *testing.T) {
 	})
 
 	t.Run("GetByTrainerID", func(t *testing.T) {
-		reqs, err := repo.GetByTrainerID(ctx, trainer.UserID)
+		reqs, err := repo.GetByTrainerID(ctx, trainer.UserID, 0, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(reqs), 2)
 		for _, r := range reqs {
@@ -88,7 +88,7 @@ func TestPostgresCoachingRequestRepository(t *testing.T) {
 	})
 
 	t.Run("GetPendingByTrainerID", func(t *testing.T) {
-		pending, err := repo.GetPendingByTrainerID(ctx, trainer.UserID)
+		pending, err := repo.GetPendingByTrainerID(ctx, trainer.UserID, 0, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(pending), 2)
 		for _, r := range pending {
@@ -98,14 +98,14 @@ func TestPostgresCoachingRequestRepository(t *testing.T) {
 
 	t.Run("GetPendingByTrainerID_AfterAccept", func(t *testing.T) {
 		// Accept one request, verify it leaves pending list
-		reqs, err := repo.GetPendingByTrainerID(ctx, trainer.UserID)
+		reqs, err := repo.GetPendingByTrainerID(ctx, trainer.UserID, 0, 0)
 		require.NoError(t, err)
 		require.GreaterOrEqual(t, len(reqs), 1)
 
 		reqs[0].Status = models.CoachingRequestStatusAccepted
 		require.NoError(t, repo.Update(ctx, reqs[0]))
 
-		pending, err := repo.GetPendingByTrainerID(ctx, trainer.UserID)
+		pending, err := repo.GetPendingByTrainerID(ctx, trainer.UserID, 0, 0)
 		require.NoError(t, err)
 		for _, r := range pending {
 			assert.NotEqual(t, reqs[0].RequestID, r.RequestID, "accepted request should not be pending")

@@ -6,6 +6,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 )
 
 // Fakes for the repositories behind the workout-plan service. WorkoutPlanHandler
@@ -209,6 +210,18 @@ func (f *fakePlanWorkoutRepo) CountAll(ctx context.Context) (int, error) {
 	return 0, nil
 }
 
+func (f *fakePlanWorkoutRepo) WeeklyVolume(ctx context.Context, athleteID int) ([]repositories.VolumeWeekRow, error) {
+	return nil, nil
+}
+
+func (f *fakePlanWorkoutRepo) ExerciseAggregates(ctx context.Context, athleteID int) ([]repositories.ExerciseAggregateRow, error) {
+	return nil, nil
+}
+
+func (f *fakePlanWorkoutRepo) CountByAthleteSince(ctx context.Context, athleteID int, since time.Time) (int, error) {
+	return 0, nil
+}
+
 func (f *fakePlanWorkoutRepo) Update(ctx context.Context, workout *models.Workout) error {
 	return nil
 }
@@ -342,8 +355,12 @@ func (f *fakePlanRelationshipRepo) GetByTrainerAndAthlete(ctx context.Context, t
 	return nil, domainerrors.ErrNotFound
 }
 
-func (f *fakePlanRelationshipRepo) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
+func (f *fakePlanRelationshipRepo) GetActiveByTrainerID(ctx context.Context, trainerID int, limit, offset int) ([]*models.Relationship, error) {
 	return nil, nil
+}
+
+func (f *fakePlanRelationshipRepo) CountActiveByTrainerID(ctx context.Context, trainerID int) (int, error) {
+	return 0, nil
 }
 
 func (f *fakePlanRelationshipRepo) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {

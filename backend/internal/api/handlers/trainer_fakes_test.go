@@ -177,8 +177,12 @@ func (f *fakeRelationshipRepo) GetByTrainerAndAthlete(ctx context.Context, train
 	return nil, domainerrors.ErrNotFound
 }
 
-func (f *fakeRelationshipRepo) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
+func (f *fakeRelationshipRepo) GetActiveByTrainerID(ctx context.Context, trainerID int, limit, offset int) ([]*models.Relationship, error) {
 	return nil, nil
+}
+
+func (f *fakeRelationshipRepo) CountActiveByTrainerID(ctx context.Context, trainerID int) (int, error) {
+	return 0, nil
 }
 
 func (f *fakeRelationshipRepo) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {

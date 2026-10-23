@@ -126,7 +126,7 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 	})
 
 	t.Run("GetActiveByTrainerID", func(t *testing.T) {
-		rels, err := repo.GetActiveByTrainerID(ctx, trainer.UserID)
+		rels, err := repo.GetActiveByTrainerID(ctx, trainer.UserID, 10, 0)
 		require.NoError(t, err)
 		for _, rel := range rels {
 			assert.Equal(t, trainer.UserID, rel.TrainerID)
@@ -153,7 +153,7 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 			Status: models.RelationshipStatusActive,
 		}
 		err = repo.Create(ctx, secondActive)
-		assert.ErrorIs(t, err, domainerrors.ErrConflict, "one athlete must not have two active trainers")
+		assert.ErrorIs(t, err, domainerrors.ErrActiveRelationshipExists, "one athlete must not have two active trainers")
 
 		terminatedAthlete := createTestUser(t, "rel_term", "rel_term@test.com", models.RoleAthlete)
 		terminated := &models.Relationship{
@@ -169,6 +169,37 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 	t.Run("GetActiveByAthleteID_NotFound", func(t *testing.T) {
 		_, err := repo.GetActiveByAthleteID(ctx, 999999)
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
+	})
+
+	t.Run("GetActiveByTrainerID_Pagination", func(t *testing.T) {
+		pagedTrainer := createTestUser(t, "rel_paged_trainer", "rel_paged_trainer@test.com", models.RoleTrainer)
+		for _, name := range []string{"rel_paged1", "rel_paged2"} {
+			a := createTestUser(t, name, name+"@test.com", models.RoleAthlete)
+			require.NoError(t, repo.Create(ctx, &models.Relationship{
+				TrainerID: pagedTrainer.UserID, AthleteID: a.UserID,
+				Status: models.RelationshipStatusActive,
+			}))
+		}
+
+		total, err := repo.CountActiveByTrainerID(ctx, pagedTrainer.UserID)
+		require.NoError(t, err)
+		require.Equal(t, 2, total)
+
+		page, err := repo.GetActiveByTrainerID(ctx, pagedTrainer.UserID, 1, 0)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, models.RelationshipStatusActive, page[0].Status)
+
+		// Offset pages through the set; the two pages must not share rows.
+		page2, err := repo.GetActiveByTrainerID(ctx, pagedTrainer.UserID, 1, 1)
+		require.NoError(t, err)
+		require.Len(t, page2, 1)
+		assert.NotEqual(t, page[0].RelationshipID, page2[0].RelationshipID)
+
+		// Limit beyond the total returns everything it has.
+		all, err := repo.GetActiveByTrainerID(ctx, pagedTrainer.UserID, 0, 0)
+		require.NoError(t, err)
+		assert.Len(t, all, 2)
 	})
 
 	t.Run("GetPendingByAthleteID", func(t *testing.T) {

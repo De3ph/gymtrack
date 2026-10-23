@@ -6,6 +6,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 )
 
 // fakeWorkoutRepo implements repositories.WorkoutRepository for the workout
@@ -51,6 +52,18 @@ func (f *fakeWorkoutRepo) CountByAthlete(ctx context.Context, athleteID int, sta
 }
 
 func (f *fakeWorkoutRepo) CountAll(ctx context.Context) (int, error) {
+	return 0, nil
+}
+
+func (f *fakeWorkoutRepo) WeeklyVolume(ctx context.Context, athleteID int) ([]repositories.VolumeWeekRow, error) {
+	return nil, nil
+}
+
+func (f *fakeWorkoutRepo) ExerciseAggregates(ctx context.Context, athleteID int) ([]repositories.ExerciseAggregateRow, error) {
+	return nil, nil
+}
+
+func (f *fakeWorkoutRepo) CountByAthleteSince(ctx context.Context, athleteID int, since time.Time) (int, error) {
 	return 0, nil
 }
 

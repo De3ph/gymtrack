@@ -5,6 +5,22 @@ import (
 	"fmt"
 )
 
+// limitClause builds a " LIMIT n [OFFSET m]" suffix. A limit <= 0 means "no
+// LIMIT"; LIMIT ALL keeps an offset-only page expressible. Both values are Go
+// ints, so embedding them in the SQL text is safe.
+func limitClause(limit, offset int) string {
+	switch {
+	case limit <= 0 && offset <= 0:
+		return ""
+	case limit <= 0:
+		return fmt.Sprintf(" LIMIT ALL OFFSET %d", offset)
+	case offset <= 0:
+		return fmt.Sprintf(" LIMIT %d", limit)
+	default:
+		return fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset)
+	}
+}
+
 // MarshalToJSONB converts a Go value into a JSONB-compatible []byte payload.
 // It returns an error wrapped with context when marshalling fails so callers
 // can attribute the failure to the originating struct.

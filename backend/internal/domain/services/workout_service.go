@@ -223,17 +223,11 @@ type GetClientWorkoutsInput struct {
 }
 
 func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientWorkoutsInput) (*GetWorkoutsOutput, error) {
-	relationships, err := s.relationshipRepo.GetByTrainerID(ctx, input.TrainerID)
+	// Single indexed EXISTS instead of scanning the trainer's whole
+	// relationship set and matching on the athlete in Go.
+	hasActiveRelationship, err := s.relationshipRepo.HasActiveRelationship(ctx, input.TrainerID, input.ClientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify relationship: %w", err)
-	}
-
-	hasActiveRelationship := false
-	for _, rel := range relationships {
-		if rel.AthleteID == input.ClientID && rel.IsActive() {
-			hasActiveRelationship = true
-			break
-		}
 	}
 
 	if !hasActiveRelationship {

@@ -7,6 +7,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,6 +32,18 @@ func (s *stubMealRepo) GetByAthleteDateRange(context.Context, int, time.Time, ti
 	return nil, nil
 }
 func (s *stubMealRepo) CountAll(context.Context) (int, error) { return 0, nil }
+func (s *stubMealRepo) NutritionAverages(context.Context, int) (*repositories.NutritionAveragesRow, error) {
+	return nil, nil
+}
+func (s *stubMealRepo) WeeklyNutrition(context.Context, int) ([]repositories.WeeklyNutritionRow, error) {
+	return nil, nil
+}
+func (s *stubMealRepo) MealTypeCounts(context.Context, int) ([]repositories.MealTypeCountRow, error) {
+	return nil, nil
+}
+func (s *stubMealRepo) CountByAthleteSince(context.Context, int, time.Time) (int, error) {
+	return 0, nil
+}
 
 func TestGetMealAccessControl(t *testing.T) {
 	const (

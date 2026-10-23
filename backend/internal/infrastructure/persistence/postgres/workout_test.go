@@ -224,4 +224,106 @@ func TestPostgresWorkoutRepository(t *testing.T) {
 		assert.Equal(t, models.WeightUnitLbs, fetched.Exercises[1].Sets[1].WeightUnit)
 		assert.Equal(t, 10.0, fetched.Exercises[1].Sets[1].Weight)
 	})
+
+	// The aggregate endpoints must agree with the legacy Go computation over
+	// the same workouts: volume = weight * reps (units not converted), and
+	// weeks keyed as ISO "YYYY-Www".
+	t.Run("WeeklyVolume", func(t *testing.T) {
+		statAthlete := createUser(t, "wk_stats", models.RoleAthlete)
+
+		createWorkout := func(date time.Time, name string, sets ...models.ExerciseSet) {
+			t.Helper()
+			w := &models.Workout{
+				AthleteID: statAthlete.UserID,
+				Date:      date,
+				Exercises: []models.WorkoutExercise{{ExerciseID: 1, Name: name, Sets: sets}},
+			}
+			require.NoError(t, repo.Create(ctx, w))
+		}
+		monday := func(week int) time.Time { // 2024-W<week> Monday, ISO weeks
+			firstMonday := time.Date(2024, 6, 3, 0, 0, 0, 0, time.UTC) // 2024-W23
+			return firstMonday.AddDate(0, 0, 7*(week-23))
+		}
+
+		createWorkout(monday(23), "Bench Press",
+			models.ExerciseSet{Weight: 80, Reps: 10},
+			models.ExerciseSet{Weight: 85, Reps: 8},
+		)
+		createWorkout(monday(23).AddDate(0, 0, 2), "Squats",
+			models.ExerciseSet{Weight: 100, Reps: 5},
+		)
+		// Week 24 workout with only zero-weight sets still counts as a workout.
+		createWorkout(monday(24), "Pull-ups",
+			models.ExerciseSet{Weight: 0, Reps: 12},
+		)
+
+		weeks, err := repo.WeeklyVolume(ctx, statAthlete.UserID)
+		require.NoError(t, err)
+		require.Len(t, weeks, 2)
+		assert.Equal(t, "2024-W23", weeks[0].Week)
+		assert.InDelta(t, 80*10+85*8+100*5, weeks[0].Volume, 0.01)
+		assert.Equal(t, 2, weeks[0].Workouts)
+		assert.Equal(t, "2024-W24", weeks[1].Week)
+		assert.InDelta(t, 0.0, weeks[1].Volume, 0.01)
+		assert.Equal(t, 1, weeks[1].Workouts)
+	})
+
+	t.Run("ExerciseAggregates", func(t *testing.T) {
+		statAthlete := createUser(t, "wk_stats_agg", models.RoleAthlete)
+
+		one := time.Date(2024, 6, 3, 0, 0, 0, 0, time.UTC)
+		other := time.Date(2024, 6, 10, 0, 0, 0, 0, time.UTC)
+		require.NoError(t, repo.Create(ctx, &models.Workout{
+			AthleteID: statAthlete.UserID, Date: one,
+			Exercises: []models.WorkoutExercise{{
+				ExerciseID: 1, Name: "Bench Press",
+				Sets: []models.ExerciseSet{{Weight: 80, Reps: 10}, {Weight: 85, Reps: 8}},
+			}},
+		}))
+		require.NoError(t, repo.Create(ctx, &models.Workout{
+			AthleteID: statAthlete.UserID, Date: other,
+			Exercises: []models.WorkoutExercise{{
+				ExerciseID: 1, Name: "Bench Press",
+				Sets: []models.ExerciseSet{{Weight: 90, Reps: 5}},
+			}},
+		}))
+
+		aggregates, err := repo.ExerciseAggregates(ctx, statAthlete.UserID)
+		require.NoError(t, err)
+		require.Len(t, aggregates, 1)
+		assert.Equal(t, "Bench Press", aggregates[0].Name)
+		assert.Equal(t, 3, aggregates[0].TotalSets)
+		assert.Equal(t, 23, aggregates[0].TotalReps)
+		assert.InDelta(t, 90.0, aggregates[0].MaxWeight, 0.01)
+	})
+
+	t.Run("CountByAthleteSince", func(t *testing.T) {
+		sinceAthlete := createUser(t, "wk_stats_since", models.RoleAthlete)
+		require.NoError(t, repo.Create(ctx, &models.Workout{
+			AthleteID: sinceAthlete.UserID,
+			Date:      time.Date(2024, 6, 3, 0, 0, 0, 0, time.UTC),
+			Exercises: []models.WorkoutExercise{{
+				ExerciseID: 1, Name: "Bench Press",
+				Sets: []models.ExerciseSet{{Weight: 50, Reps: 5}},
+			}},
+		}))
+
+		since := time.Date(2024, 6, 5, 0, 0, 0, 0, time.UTC)
+		count, err := repo.CountByAthleteSince(ctx, sinceAthlete.UserID, since)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count) // the only workout is on 2024-06-03, not after
+
+		added := time.Date(2024, 6, 6, 0, 0, 0, 0, time.UTC)
+		require.NoError(t, repo.Create(ctx, &models.Workout{
+			AthleteID: sinceAthlete.UserID,
+			Date:      added,
+			Exercises: []models.WorkoutExercise{{
+				ExerciseID: 2, Name: "Squats",
+				Sets: []models.ExerciseSet{{Weight: 60, Reps: 5}},
+			}},
+		}))
+		count, err = repo.CountByAthleteSince(ctx, sinceAthlete.UserID, since)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count) // only 2024-06-06 is strictly after 2024-06-05
+	})
 }

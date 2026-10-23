@@ -7,6 +7,7 @@ import (
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
+	"gymtrack-backend/internal/domain/repositories"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,6 +37,15 @@ func (s *stubWorkoutRepo) CountByAthlete(context.Context, int, *time.Time, *time
 func (s *stubWorkoutRepo) CountAll(context.Context) (int, error)         { return 0, nil }
 func (s *stubWorkoutRepo) Update(context.Context, *models.Workout) error { return nil }
 func (s *stubWorkoutRepo) Delete(context.Context, int) error             { return nil }
+func (s *stubWorkoutRepo) WeeklyVolume(context.Context, int) ([]repositories.VolumeWeekRow, error) {
+	return nil, nil
+}
+func (s *stubWorkoutRepo) ExerciseAggregates(context.Context, int) ([]repositories.ExerciseAggregateRow, error) {
+	return nil, nil
+}
+func (s *stubWorkoutRepo) CountByAthleteSince(context.Context, int, time.Time) (int, error) {
+	return 0, nil
+}
 
 func TestGetWorkoutAccessControl(t *testing.T) {
 	const (

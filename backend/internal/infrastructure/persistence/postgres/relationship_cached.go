@@ -70,8 +70,12 @@ func (r *CachedRelationshipRepository) GetByTrainerAndAthlete(ctx context.Contex
 	return r.inner.GetByTrainerAndAthlete(ctx, trainerID, athleteID)
 }
 
-func (r *CachedRelationshipRepository) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
-	return r.inner.GetActiveByTrainerID(ctx, trainerID)
+func (r *CachedRelationshipRepository) GetActiveByTrainerID(ctx context.Context, trainerID int, limit, offset int) ([]*models.Relationship, error) {
+	return r.inner.GetActiveByTrainerID(ctx, trainerID, limit, offset)
+}
+
+func (r *CachedRelationshipRepository) CountActiveByTrainerID(ctx context.Context, trainerID int) (int, error) {
+	return r.inner.CountActiveByTrainerID(ctx, trainerID)
 }
 
 func (r *CachedRelationshipRepository) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {

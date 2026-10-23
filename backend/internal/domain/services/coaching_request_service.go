@@ -47,16 +47,14 @@ func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athl
 		return nil, ErrAlreadyHasActiveTrainer
 	}
 
-	// Check if there's already a pending request between these users
-	existingRequests, err := s.coachingRequestRepo.GetByAthleteID(ctx, athleteID)
+	// A duplicate pending request between the pair is an indexed EXISTS, not a
+	// scan of the athlete's whole request history in Go.
+	pendingExists, err := s.coachingRequestRepo.HasPendingRequestBetween(ctx, athleteID, trainerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing requests: %w", err)
 	}
-
-	for _, req := range existingRequests {
-		if req.TrainerID == trainerID && req.Status == models.CoachingRequestStatusPending {
-			return nil, ErrPendingCoachingRequestExists
-		}
+	if pendingExists {
+		return nil, ErrPendingCoachingRequestExists
 	}
 
 	trainer, err := s.userRepo.GetUserByID(ctx, trainerID)
@@ -187,15 +185,31 @@ func (s *CoachingRequestService) resolvedError(ctx context.Context, requestID in
 	return &CoachingRequestResolvedError{Status: string(current.Status)}
 }
 
-func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, userRole string) ([]*models.CoachingRequestWithDetails, error) {
-	requests := make([]*models.CoachingRequest, 0)
+// CoachingRequestsPage is one page of enriched coaching requests plus the
+// total number of rows matching the query (not the size of this page).
+type CoachingRequestsPage struct {
+	Requests []*models.CoachingRequestWithDetails
+	Count    int
+}
+
+func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, userRole string, limit, offset int) (*CoachingRequestsPage, error) {
+	var requests []*models.CoachingRequest
+	var count int
 	var err error
 
 	switch models.UserRole(userRole) {
 	case models.RoleAthlete:
-		requests, err = s.coachingRequestRepo.GetByAthleteID(ctx, userID)
+		requests, err = s.coachingRequestRepo.GetByAthleteID(ctx, userID, limit, offset)
+		if err != nil {
+			break
+		}
+		count, err = s.coachingRequestRepo.CountByAthleteID(ctx, userID)
 	case models.RoleTrainer:
-		requests, err = s.coachingRequestRepo.GetByTrainerID(ctx, userID)
+		requests, err = s.coachingRequestRepo.GetByTrainerID(ctx, userID, limit, offset)
+		if err != nil {
+			break
+		}
+		count, err = s.coachingRequestRepo.CountByTrainerID(ctx, userID)
 	default:
 		return nil, fmt.Errorf("your account role is invalid. Please contact support")
 	}
@@ -204,47 +218,61 @@ func (s *CoachingRequestService) GetMyRequests(ctx context.Context, userID int, 
 		return nil, fmt.Errorf("failed to get coaching requests: %w", err)
 	}
 
-	// Enrich with user details
-	requestsWithDetails := make([]*models.CoachingRequestWithDetails, 0)
-	for _, req := range requests {
-		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
+	requestsWithDetails, err := s.enrichAll(ctx, requests)
+	if err != nil {
+		return nil, err
 	}
 
+	return &CoachingRequestsPage{Requests: requestsWithDetails, Count: count}, nil
+}
+
+// enrichAll loads athlete and trainer details for a whole page in one batched
+// query instead of two GetUserByID calls per request. Details for accounts
+// that no longer exist degrade to their zero value.
+func (s *CoachingRequestService) enrichAll(ctx context.Context, requests []*models.CoachingRequest) ([]*models.CoachingRequestWithDetails, error) {
+	userIDs := make([]int, 0, 2*len(requests))
+	seen := make(map[int]struct{}, 2*len(requests))
+	for _, req := range requests {
+		for _, id := range []int{req.AthleteID, req.TrainerID} {
+			if _, ok := seen[id]; ok {
+				continue
+			}
+			seen[id] = struct{}{}
+			userIDs = append(userIDs, id)
+		}
+	}
+
+	users, err := s.userRepo.GetUsersByIDs(ctx, userIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load user details: %w", err)
+	}
+
+	requestsWithDetails := make([]*models.CoachingRequestWithDetails, 0, len(requests))
+	for _, req := range requests {
+		requestsWithDetails = append(requestsWithDetails, &models.CoachingRequestWithDetails{
+			CoachingRequest: req,
+			Athlete:         users[req.AthleteID],
+			Trainer:         users[req.TrainerID],
+		})
+	}
 	return requestsWithDetails, nil
 }
 
-// enrich loads athlete and trainer details for a coaching request
-func (s *CoachingRequestService) enrich(ctx context.Context, req *models.CoachingRequest) *models.CoachingRequestWithDetails {
-	requestWithDetails := &models.CoachingRequestWithDetails{
-		CoachingRequest: req,
-	}
-
-	// Get athlete details
-	athlete, err := s.userRepo.GetUserByID(ctx, req.AthleteID)
-	if err == nil {
-		requestWithDetails.Athlete = athlete
-	}
-
-	// Get trainer details
-	trainer, err := s.userRepo.GetUserByID(ctx, req.TrainerID)
-	if err == nil {
-		requestWithDetails.Trainer = trainer
-	}
-
-	return requestWithDetails
-}
-
-func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Context, trainerID int) ([]*models.CoachingRequestWithDetails, error) {
-	requests, err := s.coachingRequestRepo.GetPendingByTrainerID(ctx, trainerID)
+func (s *CoachingRequestService) GetPendingRequestsForTrainer(ctx context.Context, trainerID int, limit, offset int) (*CoachingRequestsPage, error) {
+	requests, err := s.coachingRequestRepo.GetPendingByTrainerID(ctx, trainerID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pending coaching requests: %w", err)
 	}
 
-	// Enrich with athlete details
-	requestsWithDetails := make([]*models.CoachingRequestWithDetails, 0)
-	for _, req := range requests {
-		requestsWithDetails = append(requestsWithDetails, s.enrich(ctx, req))
+	count, err := s.coachingRequestRepo.CountPendingByTrainerID(ctx, trainerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count pending coaching requests: %w", err)
 	}
 
-	return requestsWithDetails, nil
+	requestsWithDetails, err := s.enrichAll(ctx, requests)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CoachingRequestsPage{Requests: requestsWithDetails, Count: count}, nil
 }

@@ -217,5 +217,104 @@ func (r *PostgresWorkoutRepository) Delete(ctx context.Context, workoutID int) e
 	return nil
 }
 
+// setVolumeExpr is the set-level volume expression shared by the aggregate
+// queries: weight * reps exactly as the legacy Go aggregation computed it —
+// units are not converted. NULL weights or reps degrade to 0.
+const setVolumeExpr = `COALESCE((s.set ->> 'weight')::double precision, 0) * COALESCE((s.set ->> 'reps')::double precision, 0)`
+
+// setsLateral is the lateral expansion of workouts.exercises into sets.
+// Every workout produces at least one row (aggregate over an empty set list
+// evaluates to one NULL volume row), so weekly counts stay per workout.
+const setsLateral = `
+		CROSS JOIN LATERAL (
+			SELECT SUM(` + setVolumeExpr + `) AS volume
+			FROM jsonb_array_elements(w.exercises) AS ex(exercise)
+			CROSS JOIN LATERAL jsonb_array_elements(COALESCE(ex.exercise -> 'sets', '[]'::jsonb)) AS s(set)
+		) AS v`
+
+// isoWeekExpr renders the ISO week key, e.g. 2026-W03, matching the format
+// previously produced in Go by fmt.Sprintf("%d-W%02d", year, week).
+const isoWeekExpr = `to_char(w.date, 'IYYY-"W"IW')`
+
+// WeeklyVolume aggregates per-week training volume in SQL: the full workout
+// history is never row-shipped to Go for aggregation.
+func (r *PostgresWorkoutRepository) WeeklyVolume(ctx context.Context, athleteID int) ([]repositories.VolumeWeekRow, error) {
+	query := `
+		SELECT ` + isoWeekExpr + ` AS week,
+		       COALESCE(SUM(v.volume), 0) AS volume,
+		       COUNT(*)::int AS workouts
+		FROM workouts w` + setsLateral + `
+		WHERE w.athlete_id = $1
+		GROUP BY 1
+		ORDER BY 1 ASC`
+
+	rows, err := r.pool.Query(ctx, query, athleteID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate workout volume: %w", err)
+	}
+	defer rows.Close()
+
+	weeks := make([]repositories.VolumeWeekRow, 0)
+	for rows.Next() {
+		row := repositories.VolumeWeekRow{}
+		if err := rows.Scan(&row.Week, &row.Volume, &row.Workouts); err != nil {
+			return nil, fmt.Errorf("failed to scan workout volume row: %w", err)
+		}
+		weeks = append(weeks, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return weeks, nil
+}
+
+// ExerciseAggregates builds the per-exercise breakdown in SQL, ordered by name
+// ascending so the response body is deterministic.
+func (r *PostgresWorkoutRepository) ExerciseAggregates(ctx context.Context, athleteID int) ([]repositories.ExerciseAggregateRow, error) {
+	query := `
+		SELECT ex.exercise ->> 'name' AS name,
+		       COUNT(*)::int AS total_sets,
+		       SUM(COALESCE((s.set ->> 'reps')::double precision, 0))::int AS total_reps,
+		       COALESCE(MAX((s.set ->> 'weight')::double precision), 0) AS max_weight
+		FROM workouts w
+		CROSS JOIN LATERAL jsonb_array_elements(w.exercises) AS ex(exercise)
+		CROSS JOIN LATERAL jsonb_array_elements(COALESCE(ex.exercise -> 'sets', '[]'::jsonb)) AS s(set)
+		WHERE w.athlete_id = $1
+		GROUP BY 1
+		ORDER BY 1 ASC`
+
+	rows, err := r.pool.Query(ctx, query, athleteID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate workout exercises: %w", err)
+	}
+	defer rows.Close()
+
+	aggregates := make([]repositories.ExerciseAggregateRow, 0)
+	for rows.Next() {
+		row := repositories.ExerciseAggregateRow{}
+		if err := rows.Scan(&row.Name, &row.TotalSets, &row.TotalReps, &row.MaxWeight); err != nil {
+			return nil, fmt.Errorf("failed to scan exercise aggregate row: %w", err)
+		}
+		aggregates = append(aggregates, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return aggregates, nil
+}
+
+// CountByAthleteSince counts workouts strictly after "since", matching the
+// legacy weekStart comparisons in Go (date.After(weekStart)).
+func (r *PostgresWorkoutRepository) CountByAthleteSince(ctx context.Context, athleteID int, since time.Time) (int, error) {
+	var count int
+	if err := r.pool.QueryRow(ctx,
+		"SELECT COUNT(*) FROM workouts WHERE athlete_id = $1 AND date > $2",
+		athleteID, since,
+	).Scan(&count); err != nil {
+		return 0, fmt.Errorf("failed to count workouts since: %w", err)
+	}
+	return count, nil
+}
+
 // Compile-time interface compliance check.
 var _ repositories.WorkoutRepository = (*PostgresWorkoutRepository)(nil)

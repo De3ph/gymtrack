@@ -63,8 +63,8 @@ func (r *PostgresCoachingRequestRepository) GetByID(ctx context.Context, request
 	return req, nil
 }
 
-func (r *PostgresCoachingRequestRepository) GetByAthleteID(ctx context.Context, athleteID int) ([]*models.CoachingRequest, error) {
-	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE athlete_id = $1 ORDER BY created_at DESC`
+func (r *PostgresCoachingRequestRepository) GetByAthleteID(ctx context.Context, athleteID int, limit, offset int) ([]*models.CoachingRequest, error) {
+	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE athlete_id = $1 ORDER BY created_at DESC` + limitClause(limit, offset)
 
 	rows, err := querierFor(ctx, r.pool).Query(ctx, query, athleteID)
 	if err != nil {
@@ -75,8 +75,12 @@ func (r *PostgresCoachingRequestRepository) GetByAthleteID(ctx context.Context, 
 	return r.scanRequests(rows)
 }
 
-func (r *PostgresCoachingRequestRepository) GetByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
-	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE trainer_id = $1 ORDER BY created_at DESC`
+func (r *PostgresCoachingRequestRepository) CountByAthleteID(ctx context.Context, athleteID int) (int, error) {
+	return r.count(ctx, `WHERE athlete_id = $1`, athleteID)
+}
+
+func (r *PostgresCoachingRequestRepository) GetByTrainerID(ctx context.Context, trainerID int, limit, offset int) ([]*models.CoachingRequest, error) {
+	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE trainer_id = $1 ORDER BY created_at DESC` + limitClause(limit, offset)
 
 	rows, err := querierFor(ctx, r.pool).Query(ctx, query, trainerID)
 	if err != nil {
@@ -87,8 +91,12 @@ func (r *PostgresCoachingRequestRepository) GetByTrainerID(ctx context.Context, 
 	return r.scanRequests(rows)
 }
 
-func (r *PostgresCoachingRequestRepository) GetPendingByTrainerID(ctx context.Context, trainerID int) ([]*models.CoachingRequest, error) {
-	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE trainer_id = $1 AND status = 'pending' ORDER BY created_at DESC`
+func (r *PostgresCoachingRequestRepository) CountByTrainerID(ctx context.Context, trainerID int) (int, error) {
+	return r.count(ctx, `WHERE trainer_id = $1`, trainerID)
+}
+
+func (r *PostgresCoachingRequestRepository) GetPendingByTrainerID(ctx context.Context, trainerID int, limit, offset int) ([]*models.CoachingRequest, error) {
+	query := `SELECT id, athlete_id, trainer_id, message, status, created_at, updated_at FROM coaching_requests WHERE trainer_id = $1 AND status = 'pending' ORDER BY created_at DESC` + limitClause(limit, offset)
 
 	rows, err := querierFor(ctx, r.pool).Query(ctx, query, trainerID)
 	if err != nil {
@@ -97,6 +105,33 @@ func (r *PostgresCoachingRequestRepository) GetPendingByTrainerID(ctx context.Co
 	defer rows.Close()
 
 	return r.scanRequests(rows)
+}
+
+func (r *PostgresCoachingRequestRepository) CountPendingByTrainerID(ctx context.Context, trainerID int) (int, error) {
+	return r.count(ctx, `WHERE trainer_id = $1 AND status = 'pending'`, trainerID)
+}
+
+// HasPendingRequestBetween is an indexed EXISTS, so the duplicate-request check
+// in CreateCoachingRequest no longer scans the athlete's entire history.
+func (r *PostgresCoachingRequestRepository) HasPendingRequestBetween(ctx context.Context, athleteID, trainerID int) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM coaching_requests WHERE athlete_id = $1 AND trainer_id = $2 AND status = 'pending')`
+
+	var exists bool
+	err := querierFor(ctx, r.pool).QueryRow(ctx, query, athleteID, trainerID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check pending coaching request: %w", err)
+	}
+	return exists, nil
+}
+
+// count is a helper for the Count* methods; clause must begin with WHERE.
+func (r *PostgresCoachingRequestRepository) count(ctx context.Context, clause string, arg int) (int, error) {
+	var total int
+	err := querierFor(ctx, r.pool).QueryRow(ctx, `SELECT COUNT(*) FROM coaching_requests `+clause, arg).Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count coaching requests: %w", err)
+	}
+	return total, nil
 }
 
 func (r *PostgresCoachingRequestRepository) Update(ctx context.Context, req *models.CoachingRequest) error {

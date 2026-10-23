@@ -104,8 +104,11 @@ func (s *stubRelationshipRepo) GetByTrainerAndAthlete(context.Context, int, int)
 	}
 	return s.byPair, nil
 }
-func (s *stubRelationshipRepo) GetActiveByTrainerID(context.Context, int) ([]*models.Relationship, error) {
+func (s *stubRelationshipRepo) GetActiveByTrainerID(context.Context, int, int, int) ([]*models.Relationship, error) {
 	return nil, nil
+}
+func (s *stubRelationshipRepo) CountActiveByTrainerID(context.Context, int) (int, error) {
+	return 0, nil
 }
 func (s *stubRelationshipRepo) GetActiveByAthleteID(context.Context, int) (*models.Relationship, error) {
 	s.mu.Lock()
@@ -140,6 +143,10 @@ func (s *stubRelationshipRepo) Delete(_ context.Context, relationshipID int) err
 type stubUserRepo struct {
 	user      *models.User
 	updateErr error
+
+	// batchCalls counts GetUsersByIDs invocations so enrichment tests can
+	// prove user details load in one batched query.
+	batchCalls int
 }
 
 func (s *stubUserRepo) CreateUser(context.Context, *models.User) error { return nil }
@@ -149,6 +156,7 @@ func (s *stubUserRepo) GetUserByID(_ context.Context, id int) (*models.User, err
 	return &u, nil
 }
 func (s *stubUserRepo) GetUsersByIDs(_ context.Context, ids []int) (map[int]*models.User, error) {
+	s.batchCalls++
 	users := make(map[int]*models.User, len(ids))
 	for _, id := range ids {
 		if s.user == nil {

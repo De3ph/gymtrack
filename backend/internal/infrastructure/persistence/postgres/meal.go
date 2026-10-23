@@ -114,5 +114,133 @@ func (r *PostgresMealRepository) CountAll(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+// mealTotals_cte reduces each meal to one row of item totals. The aggregate
+// over the lateral join emits exactly one row per meal, so meals with no items
+// (or only zero-valued items) still appear with zero totals and keep counting
+// toward the per-meal averages, matching the legacy Go arithmetic:
+//
+//	value counts only when strictly positive; macros count only when any of
+//	them is positive (see services/client_stats_service.go history).
+const mealTotalsCTE = `
+	WITH meal_totals AS (
+		SELECT
+			m.id,
+			m.date,
+			SUM(CASE WHEN COALESCE((i.item ->> 'calories')::double precision, 0) > 0
+				THEN COALESCE((i.item ->> 'calories')::double precision, 0) ELSE 0 END) AS calories,
+			SUM(CASE WHEN COALESCE((i.item -> 'macros' ->> 'protein')::double precision, 0) > 0
+				OR COALESCE((i.item -> 'macros' ->> 'carbs')::double precision, 0) > 0
+				OR COALESCE((i.item -> 'macros' ->> 'fats')::double precision, 0) > 0
+				THEN COALESCE((i.item -> 'macros' ->> 'protein')::double precision, 0) ELSE 0 END) AS protein,
+			SUM(CASE WHEN COALESCE((i.item -> 'macros' ->> 'protein')::double precision, 0) > 0
+				OR COALESCE((i.item -> 'macros' ->> 'carbs')::double precision, 0) > 0
+				OR COALESCE((i.item -> 'macros' ->> 'fats')::double precision, 0) > 0
+				THEN COALESCE((i.item -> 'macros' ->> 'carbs')::double precision, 0) ELSE 0 END) AS carbs,
+			SUM(CASE WHEN COALESCE((i.item -> 'macros' ->> 'protein')::double precision, 0) > 0
+				OR COALESCE((i.item -> 'macros' ->> 'carbs')::double precision, 0) > 0
+				OR COALESCE((i.item -> 'macros' ->> 'fats')::double precision, 0) > 0
+				THEN COALESCE((i.item -> 'macros' ->> 'fats')::double precision, 0) ELSE 0 END) AS fats
+		FROM meals m
+		CROSS JOIN LATERAL jsonb_array_elements(COALESCE(m.items, '[]'::jsonb)) AS i(item)
+		WHERE m.athlete_id = $1
+		GROUP BY m.id, m.date
+	)`
+
+// NutritionAverages aggregates the athlete's nutrition averages in SQL: item
+// totals divided by the meal count, as the legacy Go aggregation divided them.
+func (r *PostgresMealRepository) NutritionAverages(ctx context.Context, athleteID int) (*repositories.NutritionAveragesRow, error) {
+	query := mealTotalsCTE + `
+		SELECT COUNT(*)::int AS meals,
+		       COALESCE(SUM(calories) / COUNT(*), 0) AS calories,
+		       COALESCE(SUM(protein) / COUNT(*), 0) AS protein,
+		       COALESCE(SUM(carbs) / COUNT(*), 0) AS carbs,
+		       COALESCE(SUM(fats) / COUNT(*), 0) AS fats
+		FROM meal_totals`
+
+	row := &repositories.NutritionAveragesRow{}
+	err := r.pool.QueryRow(ctx, query, athleteID).Scan(
+		&row.Meals, &row.Calories, &row.Protein, &row.Carbs, &row.Fats,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate meal nutrition: %w", err)
+	}
+	return row, nil
+}
+
+// WeeklyNutrition aggregates per-week nutrition in SQL, ordered by ISO week key
+// ascending so the response body is deterministic.
+func (r *PostgresMealRepository) WeeklyNutrition(ctx context.Context, athleteID int) ([]repositories.WeeklyNutritionRow, error) {
+	query := mealTotalsCTE + `
+	 SELECT to_char(date, 'IYYY-"W"IW') AS week,
+	        SUM(calories) / COUNT(*) AS calories,
+	        SUM(protein) / COUNT(*) AS protein,
+	        SUM(carbs) / COUNT(*) AS carbs,
+	        SUM(fats) / COUNT(*) AS fats
+	 FROM meal_totals
+	 GROUP BY 1
+	 ORDER BY 1 ASC`
+
+	rows, err := r.pool.Query(ctx, query, athleteID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate weekly nutrition: %w", err)
+	}
+	defer rows.Close()
+
+	weeks := make([]repositories.WeeklyNutritionRow, 0)
+	for rows.Next() {
+		row := repositories.WeeklyNutritionRow{}
+		if err := rows.Scan(&row.Week, &row.Calories, &row.Protein, &row.Carbs, &row.Fats); err != nil {
+			return nil, fmt.Errorf("failed to scan weekly nutrition row: %w", err)
+		}
+		weeks = append(weeks, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return weeks, nil
+}
+
+// MealTypeCounts counts meals per type, ordered by type ascending.
+func (r *PostgresMealRepository) MealTypeCounts(ctx context.Context, athleteID int) ([]repositories.MealTypeCountRow, error) {
+	query := `
+		SELECT meal_type, COUNT(*)::int
+		FROM meals
+		WHERE athlete_id = $1
+		GROUP BY 1
+		ORDER BY 1 ASC`
+
+	rows, err := r.pool.Query(ctx, query, athleteID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate meal types: %w", err)
+	}
+	defer rows.Close()
+
+	counts := make([]repositories.MealTypeCountRow, 0)
+	for rows.Next() {
+		row := repositories.MealTypeCountRow{}
+		if err := rows.Scan(&row.MealType, &row.Count); err != nil {
+			return nil, fmt.Errorf("failed to scan meal type row: %w", err)
+		}
+		counts = append(counts, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return counts, nil
+}
+
+// CountByAthleteSince counts meals strictly after "since", matching the legacy
+// weekStart comparisons in Go (date.After(weekStart)).
+func (r *PostgresMealRepository) CountByAthleteSince(ctx context.Context, athleteID int, since time.Time) (int, error) {
+	var count int
+	if err := r.pool.QueryRow(ctx,
+		"SELECT COUNT(*) FROM meals WHERE athlete_id = $1 AND date > $2",
+		athleteID, since,
+	).Scan(&count); err != nil {
+		return 0, fmt.Errorf("failed to count meals since: %w", err)
+	}
+	return count, nil
+}
+
 // Compile-time interface compliance check.
 var _ repositories.MealRepository = (*PostgresMealRepository)(nil)

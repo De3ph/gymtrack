@@ -120,8 +120,8 @@ func (r *PostgresRelationshipRepository) GetByTrainerAndAthlete(ctx context.Cont
 	return rel, nil
 }
 
-func (r *PostgresRelationshipRepository) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
-	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE trainer_id = $1 AND status = 'active' ORDER BY created_at DESC`
+func (r *PostgresRelationshipRepository) GetActiveByTrainerID(ctx context.Context, trainerID int, limit, offset int) ([]*models.Relationship, error) {
+	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE trainer_id = $1 AND status = 'active' ORDER BY created_at DESC` + limitClause(limit, offset)
 
 	rows, err := querierFor(ctx, r.pool).Query(ctx, query, trainerID)
 	if err != nil {
@@ -144,8 +144,22 @@ func (r *PostgresRelationshipRepository) GetActiveByTrainerID(ctx context.Contex
 	return rels, nil
 }
 
+func (r *PostgresRelationshipRepository) CountActiveByTrainerID(ctx context.Context, trainerID int) (int, error) {
+	var total int
+	err := querierFor(ctx, r.pool).QueryRow(ctx,
+		`SELECT COUNT(*) FROM relationships WHERE trainer_id = $1 AND status = 'active'`, trainerID,
+	).Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count active relationships: %w", err)
+	}
+	return total, nil
+}
+
 func (r *PostgresRelationshipRepository) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
-	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE athlete_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1`
+	// No ORDER BY: idx_relationships_one_active_per_athlete guarantees at most
+	// one active row per athlete, so this is an index point lookup on
+	// (athlete_id) where status = 'active' with nothing to sort.
+	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE athlete_id = $1 AND status = 'active' LIMIT 1`
 
 	rel := &models.Relationship{}
 	err := querierFor(ctx, r.pool).QueryRow(ctx, query, athleteID).Scan(
