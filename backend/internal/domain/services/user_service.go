@@ -40,6 +40,20 @@ func (s *UserService) GetUserByID(ctx context.Context, userID int) (*models.User
 	return user, nil
 }
 
+func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	user, err := s.userRepo.GetUserByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	}
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
+	return user, nil
+}
+
 func (s *UserService) UpdateUserProfile(ctx context.Context, userID int, profile models.UserProfile) (*models.User, error) {
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {

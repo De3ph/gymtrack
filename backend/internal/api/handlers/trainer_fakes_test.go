@@ -104,10 +104,10 @@ func (f *fakeReviewRepo) DeleteReview(ctx context.Context, reviewID int) error {
 }
 
 type fakeAvailabilityRepo struct {
-	slots     map[int][]models.TrainerAvailability
-	listErr   error
-	upserted  []models.TrainerAvailability
-	deleted   []int
+	slots    map[int][]models.TrainerAvailability
+	listErr  error
+	upserted []models.TrainerAvailability
+	deleted  []int
 	// deletedTrainerIDs records the trainerID argument paired with each
 	// deleted slot, so ownership-threading can be asserted.
 	deletedTrainerIDs []int
@@ -173,8 +173,16 @@ func (f *fakeRelationshipRepo) GetByTrainerID(ctx context.Context, trainerID int
 	return nil, nil
 }
 
-func (f *fakeRelationshipRepo) GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
+func (f *fakeRelationshipRepo) GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.Relationship, error) {
+	return nil, domainerrors.ErrNotFound
+}
+
+func (f *fakeRelationshipRepo) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
 	return nil, nil
+}
+
+func (f *fakeRelationshipRepo) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
+	return nil, domainerrors.ErrNotFound
 }
 
 func (f *fakeRelationshipRepo) GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error) {

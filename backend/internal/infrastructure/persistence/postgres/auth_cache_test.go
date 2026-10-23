@@ -25,6 +25,9 @@ func (c *countingUserRepo) GetUserByID(ctx context.Context, userID int) (*models
 	c.callCount++
 	return c.inner.GetUserByID(ctx, userID)
 }
+func (c *countingUserRepo) GetUsersByIDs(ctx context.Context, userIDs []int) (map[int]*models.User, error) {
+	return c.inner.GetUsersByIDs(ctx, userIDs)
+}
 func (c *countingUserRepo) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	return c.inner.GetUserByEmail(ctx, email)
 }

@@ -446,11 +446,10 @@ func TestE2E_Coach_AdminMyRequests(t *testing.T) {
 		"Something went wrong while processing your request. Please try again later")
 }
 
-// TestE2E_Coach_TerminatedRelationship pins the coaching-request guards
-// against a terminated relationship (finding H2): CreateCoachingRequest and
-// AcceptCoachingRequest treat *any* row returned by GetByAthleteID as an
-// active trainer, so an athlete whose only relationship is terminated is
-// permanently blocked from the coaching-request loop.
+// TestE2E_Coach_TerminatedRelationship covers the coaching-request loop after
+// the athlete's only relationship is terminated. A terminated row must not
+// read as an active trainer, so the athlete can request a new coach and a
+// request stranded before the previous connection can still be accepted.
 func TestE2E_Coach_TerminatedRelationship(t *testing.T) {
 	env := SetupTestEnv(t)
 	t1Token, _ := env.RegisterTrainer(t, "coterm1")
@@ -463,21 +462,28 @@ func TestE2E_Coach_TerminatedRelationship(t *testing.T) {
 	pending := createCoachingRequestAs(t, env, athToken, t2ID, "from before")
 
 	// The athlete takes T1 and terminates, leaving only a terminated row.
-
 	relID := establishRelationshipByInvitation(t, env, t1Token, athToken)
 	w := env.DoAuthRequest(http.MethodDelete, "/api/relationships/"+itoa(relID), nil, athToken)
 	RequireJSONMessage(t, w, http.StatusOK, "Relationship terminated successfully")
 
-	// Create still reports the ex-trainer: the check does not call IsActive().
+	// A terminated relationship no longer blocks a fresh request.
+	fresh := createCoachingRequestAs(t, env, athToken, t3ID, "new start")
+	if fresh.Status != "pending" {
+		t.Fatalf("new request status = %q, want pending", fresh.Status)
+	}
+
+	// The request stranded before the previous connection can now be accepted.
+	w = env.DoAuthRequest(http.MethodPut, "/api/coaching-requests/"+itoa(pending.RequestID)+"/accept", nil, t2Token)
+	RequireJSONMessage(t, w, http.StatusOK, "coaching request accepted")
+	if got := athleteTrainerAssignment(t, env, athToken); got != t2ID {
+		t.Fatalf("profile.trainerAssignment = %d, want %d", got, t2ID)
+	}
+
+	// With T2 active, the guard is back: a second trainer cannot be requested.
 	const alreadyHasTrainer = "you already have an active trainer. Please end your current coaching relationship first"
-	const athleteHasTrainer = "this athlete already has an active trainer, so the request can't be accepted"
-
-	w2 := env.DoAuthRequest(http.MethodPost, "/api/coaching-requests",
-		map[string]any{"trainerId": t3ID, "message": "new start"}, athToken)
-	RequireJSONError(t, w2, http.StatusConflict, alreadyHasTrainer)
-
-	w3 := env.DoAuthRequest(http.MethodPut, "/api/coaching-requests/"+itoa(pending.RequestID)+"/accept", nil, t2Token)
-	RequireJSONError(t, w3, http.StatusConflict, athleteHasTrainer)
+	w = env.DoAuthRequest(http.MethodPost, "/api/coaching-requests",
+		map[string]any{"trainerId": t3ID, "message": "one more"}, athToken)
+	RequireJSONError(t, w, http.StatusConflict, alreadyHasTrainer)
 }
 
 func TestE2E_Coach_Unauthenticated(t *testing.T) {

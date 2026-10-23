@@ -60,8 +60,16 @@ func (r *CachedRelationshipRepository) GetByTrainerID(ctx context.Context, train
 	return val.([]*models.Relationship), nil
 }
 
-func (r *CachedRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
-	return r.inner.GetByAthleteID(ctx, athleteID)
+func (r *CachedRelationshipRepository) GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.Relationship, error) {
+	return r.inner.GetByTrainerAndAthlete(ctx, trainerID, athleteID)
+}
+
+func (r *CachedRelationshipRepository) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
+	return r.inner.GetActiveByTrainerID(ctx, trainerID)
+}
+
+func (r *CachedRelationshipRepository) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
+	return r.inner.GetActiveByAthleteID(ctx, athleteID)
 }
 
 func (r *CachedRelationshipRepository) GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error) {

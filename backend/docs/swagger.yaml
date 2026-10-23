@@ -87,13 +87,6 @@ definitions:
     - newPassword
     - oldPassword
     type: object
-  handlers.ClientStats:
-    properties:
-      mealsThisWeek:
-        type: integer
-      workoutsThisWeek:
-        type: integer
-    type: object
   handlers.ConfirmPasswordResetRequest:
     properties:
       newPassword:
@@ -248,17 +241,6 @@ definitions:
     required:
     - password
     type: object
-  handlers.ExerciseStat:
-    properties:
-      maxWeight:
-        type: number
-      name:
-        type: string
-      totalReps:
-        type: integer
-      totalSets:
-        type: integer
-    type: object
   handlers.GetClientDetailsResponse:
     properties:
       athlete:
@@ -266,14 +248,14 @@ definitions:
       relationship:
         $ref: '#/definitions/models.Relationship'
       stats:
-        $ref: '#/definitions/handlers.ClientStats'
+        $ref: '#/definitions/services.ClientActivityStats'
     type: object
   handlers.GetClientStatsResponse:
     properties:
       mealStats:
-        $ref: '#/definitions/handlers.MealStats'
+        $ref: '#/definitions/services.MealStats'
       workoutStats:
-        $ref: '#/definitions/handlers.WorkoutStats'
+        $ref: '#/definitions/services.WorkoutStats'
     type: object
   handlers.LoginRequest:
     properties:
@@ -286,32 +268,6 @@ definitions:
     required:
     - identifier
     - password
-    type: object
-  handlers.MealStats:
-    properties:
-      averageCalories:
-        type: number
-      averageCarbs:
-        type: number
-      averageFats:
-        type: number
-      averageProtein:
-        type: number
-      mealTypeBreakdown:
-        items:
-          $ref: '#/definitions/handlers.MealTypeStat'
-        type: array
-      weeklyAverages:
-        items:
-          $ref: '#/definitions/handlers.WeeklyMealAvg'
-        type: array
-    type: object
-  handlers.MealTypeStat:
-    properties:
-      count:
-        type: integer
-      mealType:
-        type: string
     type: object
   handlers.RefreshTokenRequest:
     properties:
@@ -445,6 +401,20 @@ definitions:
     required:
     - status
     type: object
+  handlers.UpdateWorkoutRequest:
+    description: Request to update an existing workout
+    properties:
+      date:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/models.WorkoutExercise'
+        minItems: 1
+        type: array
+    required:
+    - date
+    - exercises
+    type: object
   handlers.UserResponse:
     properties:
       createdAt:
@@ -461,44 +431,6 @@ definitions:
         type: integer
       username:
         type: string
-    type: object
-  handlers.WeeklyMealAvg:
-    properties:
-      calories:
-        type: number
-      carbs:
-        type: number
-      fats:
-        type: number
-      protein:
-        type: number
-      week:
-        type: string
-    type: object
-  handlers.WeeklyVolumePoint:
-    properties:
-      volume:
-        type: number
-      week:
-        type: string
-      workouts:
-        type: integer
-    type: object
-  handlers.WorkoutStats:
-    properties:
-      consistency:
-        description: percentage
-        type: number
-      exerciseBreakdown:
-        items:
-          $ref: '#/definitions/handlers.ExerciseStat'
-        type: array
-      totalVolume:
-        type: number
-      weeklyVolume:
-        items:
-          $ref: '#/definitions/handlers.WeeklyVolumePoint'
-        type: array
     type: object
   models.AuthorRole:
     enum:
@@ -899,8 +831,6 @@ definitions:
         type: string
       email:
         type: string
-      passwordHash:
-        type: string
       profile:
         $ref: '#/definitions/models.UserProfile'
       reviewCount:
@@ -940,8 +870,6 @@ definitions:
       deletedAt:
         type: string
       email:
-        type: string
-      passwordHash:
         type: string
       profile:
         $ref: '#/definitions/models.UserProfile'
@@ -1101,6 +1029,13 @@ definitions:
     - name
     - sets
     type: object
+  services.ClientActivityStats:
+    properties:
+      mealsThisWeek:
+        type: integer
+      workoutsThisWeek:
+        type: integer
+    type: object
   services.DashboardStats:
     properties:
       activeUsersToday:
@@ -1121,6 +1056,81 @@ definitions:
         type: integer
       totalWorkouts:
         type: integer
+    type: object
+  services.ExerciseStat:
+    properties:
+      maxWeight:
+        type: number
+      name:
+        type: string
+      totalReps:
+        type: integer
+      totalSets:
+        type: integer
+    type: object
+  services.MealStats:
+    properties:
+      averageCalories:
+        type: number
+      averageCarbs:
+        type: number
+      averageFats:
+        type: number
+      averageProtein:
+        type: number
+      mealTypeBreakdown:
+        items:
+          $ref: '#/definitions/services.MealTypeStat'
+        type: array
+      weeklyAverages:
+        items:
+          $ref: '#/definitions/services.WeeklyMealAvg'
+        type: array
+    type: object
+  services.MealTypeStat:
+    properties:
+      count:
+        type: integer
+      mealType:
+        type: string
+    type: object
+  services.WeeklyMealAvg:
+    properties:
+      calories:
+        type: number
+      carbs:
+        type: number
+      fats:
+        type: number
+      protein:
+        type: number
+      week:
+        type: string
+    type: object
+  services.WeeklyVolumePoint:
+    properties:
+      volume:
+        type: number
+      week:
+        type: string
+      workouts:
+        type: integer
+    type: object
+  services.WorkoutStats:
+    properties:
+      consistency:
+        description: percentage
+        type: number
+      exerciseBreakdown:
+        items:
+          $ref: '#/definitions/services.ExerciseStat'
+        type: array
+      totalVolume:
+        type: number
+      weeklyVolume:
+        items:
+          $ref: '#/definitions/services.WeeklyVolumePoint'
+        type: array
     type: object
 info:
   contact: {}

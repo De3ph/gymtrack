@@ -2,14 +2,10 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
-	"gymtrack-backend/internal/domain/repositories"
-	"gymtrack-backend/internal/utils"
 
 	"go.uber.org/zap"
 	logger "gymtrack-backend/internal/infrastructure/log"
@@ -38,27 +34,15 @@ type InvitationMethod interface {
 
 // InvitationService manages invitations using an adapter pattern.
 type InvitationService struct {
-	method           InvitationMethod
-	relationshipRepo repositories.RelationshipRepository
-	userRepo         repositories.UserRepository
-	clock            utils.Clock
+	method        InvitationMethod
+	relationships *RelationshipService
 }
 
 // NewInvitationService creates a new invitation service.
-func NewInvitationService(
-	method InvitationMethod,
-	relationshipRepo repositories.RelationshipRepository,
-	userRepo repositories.UserRepository,
-	clock utils.Clock,
-) *InvitationService {
-	if clock == nil {
-		clock = utils.RealClock{}
-	}
+func NewInvitationService(method InvitationMethod, relationships *RelationshipService) *InvitationService {
 	return &InvitationService{
-		method:           method,
-		relationshipRepo: relationshipRepo,
-		userRepo:         userRepo,
-		clock:            clock,
+		method:        method,
+		relationships: relationships,
 	}
 }
 
@@ -81,13 +65,14 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 	// claims a code at all, so a third party redeeming that same code during
 	// this request cannot be told it is already used.
 	//
-	// GetByAthleteID reports "no relationship yet" with ErrNotFound, which is
-	// the normal case for a first-time acceptance, not a failure.
-	existingRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
-	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
+	// An athlete with an active trainer must not claim a code at all. The
+	// RelationshipService reports "no active relationship" as false, which is
+	// the normal case for a first-time acceptance.
+	hasActiveTrainer, err := s.relationships.HasActiveTrainer(ctx, athleteID)
+	if err != nil {
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
 	}
-	if existingRelationship != nil && existingRelationship.IsActive() {
+	if hasActiveTrainer {
 		return nil, ErrAlreadyHasActiveTrainer
 	}
 
@@ -121,25 +106,9 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 		}
 	}
 
-	// Create new relationship
-	relationship := models.NewRelationship(invitation.TrainerID, athleteID)
-	relationship.Accept() // Set as active immediately
-
-	// Save relationship
-	if err := s.relationshipRepo.Create(ctx, relationship); err != nil {
-		release()
-		return nil, fmt.Errorf("failed to create relationship: %w", err)
-	}
-
-	// Update athlete's profile with trainer assignment
-	athlete, err := s.userRepo.GetUserByID(ctx, athleteID)
+	relationship, err := s.relationships.Activate(ctx, invitation.TrainerID, athleteID)
 	if err != nil {
-		release()
-		return nil, fmt.Errorf("failed to get athlete: %w", err)
-	}
-	athlete.Profile.TrainerAssignment = invitation.TrainerID
-	if err := s.userRepo.UpdateUser(ctx, athlete); err != nil {
-		// The relationship row is already committed and cannot be unwound
+		// The relationship row may already be committed and cannot be unwound
 		// here: the accept is not atomic across the relationship and profile
 		// writes. Releasing keeps the athlete from being locked out by a spent
 		// code, and the relationship created above remains the source of
@@ -147,18 +116,9 @@ func (s *InvitationService) AcceptInvitation(ctx context.Context, code string, a
 		// rejected with ErrAlreadyHasActiveTrainer, which is the accurate
 		// answer for their state.
 		release()
-		return nil, fmt.Errorf("failed to update athlete profile: %w", err)
+		return nil, err
 	}
 
 	// The relationship now exists, so the claim stands and the code is spent.
 	return relationship, nil
-}
-
-// GetPendingInvitations gets pending invitations for an athlete.
-func (s *InvitationService) GetPendingInvitations(ctx context.Context, athleteID int) ([]*models.Relationship, error) {
-	relationships, err := s.relationshipRepo.GetPendingByAthleteID(ctx, athleteID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get pending invitations: %w", err)
-	}
-	return relationships, nil
 }

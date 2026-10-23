@@ -158,16 +158,17 @@ var RepositoryModule = fx.Module("repositories",
 		services.NewTrainerCatalogService,
 		services.NewAvailabilityService,
 		services.NewReviewService,
+		services.NewRelationshipService,
 		services.NewCoachingRequestService,
 		services.NewWorkoutPlanService,
+		services.NewClientStatsService,
 		func(
 			pool *pgxpool.Pool,
 			clock utils.Clock,
-			relationshipRepo repositories.RelationshipRepository,
-			userRepo repositories.UserRepository,
+			relationships *services.RelationshipService,
 		) *services.InvitationService {
 			method := postgres.NewPostgresCodeBasedInvitation(pool, clock)
-			return services.NewInvitationService(method, relationshipRepo, userRepo, clock)
+			return services.NewInvitationService(method, relationships)
 		},
 		services.NewBodyMeasurementService,
 		services.NewAdminService,

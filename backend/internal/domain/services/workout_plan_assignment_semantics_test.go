@@ -72,7 +72,13 @@ func (noRelationshipRepo) GetByID(context.Context, int) (*models.Relationship, e
 func (noRelationshipRepo) GetByTrainerID(context.Context, int) ([]*models.Relationship, error) {
 	return nil, nil
 }
-func (noRelationshipRepo) GetByAthleteID(context.Context, int) (*models.Relationship, error) {
+func (noRelationshipRepo) GetByTrainerAndAthlete(context.Context, int, int) (*models.Relationship, error) {
+	return nil, domainerrors.ErrNotFound
+}
+func (noRelationshipRepo) GetActiveByTrainerID(context.Context, int) ([]*models.Relationship, error) {
+	return nil, nil
+}
+func (noRelationshipRepo) GetActiveByAthleteID(context.Context, int) (*models.Relationship, error) {
 	return nil, domainerrors.ErrNotFound
 }
 func (noRelationshipRepo) GetPendingByAthleteID(context.Context, int) ([]*models.Relationship, error) {

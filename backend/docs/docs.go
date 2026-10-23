@@ -4048,17 +4048,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.ClientStats": {
-            "type": "object",
-            "properties": {
-                "mealsThisWeek": {
-                    "type": "integer"
-                },
-                "workoutsThisWeek": {
-                    "type": "integer"
-                }
-            }
-        },
         "handlers.ConfirmPasswordResetRequest": {
             "type": "object",
             "required": [
@@ -4275,23 +4264,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.ExerciseStat": {
-            "type": "object",
-            "properties": {
-                "maxWeight": {
-                    "type": "number"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "totalReps": {
-                    "type": "integer"
-                },
-                "totalSets": {
-                    "type": "integer"
-                }
-            }
-        },
         "handlers.GetClientDetailsResponse": {
             "type": "object",
             "properties": {
@@ -4302,7 +4274,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Relationship"
                 },
                 "stats": {
-                    "$ref": "#/definitions/handlers.ClientStats"
+                    "$ref": "#/definitions/services.ClientActivityStats"
                 }
             }
         },
@@ -4310,10 +4282,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "mealStats": {
-                    "$ref": "#/definitions/handlers.MealStats"
+                    "$ref": "#/definitions/services.MealStats"
                 },
                 "workoutStats": {
-                    "$ref": "#/definitions/handlers.WorkoutStats"
+                    "$ref": "#/definitions/services.WorkoutStats"
                 }
             }
         },
@@ -4331,46 +4303,6 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password123"
-                }
-            }
-        },
-        "handlers.MealStats": {
-            "type": "object",
-            "properties": {
-                "averageCalories": {
-                    "type": "number"
-                },
-                "averageCarbs": {
-                    "type": "number"
-                },
-                "averageFats": {
-                    "type": "number"
-                },
-                "averageProtein": {
-                    "type": "number"
-                },
-                "mealTypeBreakdown": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.MealTypeStat"
-                    }
-                },
-                "weeklyAverages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.WeeklyMealAvg"
-                    }
-                }
-            }
-        },
-        "handlers.MealTypeStat": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "mealType": {
-                    "type": "string"
                 }
             }
         },
@@ -4564,6 +4496,26 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.UpdateWorkoutRequest": {
+            "description": "Request to update an existing workout",
+            "type": "object",
+            "required": [
+                "date",
+                "exercises"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "exercises": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/models.WorkoutExercise"
+                    }
+                }
+            }
+        },
         "handlers.UserResponse": {
             "type": "object",
             "properties": {
@@ -4587,64 +4539,6 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
-                }
-            }
-        },
-        "handlers.WeeklyMealAvg": {
-            "type": "object",
-            "properties": {
-                "calories": {
-                    "type": "number"
-                },
-                "carbs": {
-                    "type": "number"
-                },
-                "fats": {
-                    "type": "number"
-                },
-                "protein": {
-                    "type": "number"
-                },
-                "week": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.WeeklyVolumePoint": {
-            "type": "object",
-            "properties": {
-                "volume": {
-                    "type": "number"
-                },
-                "week": {
-                    "type": "string"
-                },
-                "workouts": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.WorkoutStats": {
-            "type": "object",
-            "properties": {
-                "consistency": {
-                    "description": "percentage",
-                    "type": "number"
-                },
-                "exerciseBreakdown": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.ExerciseStat"
-                    }
-                },
-                "totalVolume": {
-                    "type": "number"
-                },
-                "weeklyVolume": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.WeeklyVolumePoint"
-                    }
                 }
             }
         },
@@ -5219,9 +5113,6 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "passwordHash": {
-                    "type": "string"
-                },
                 "profile": {
                     "$ref": "#/definitions/models.UserProfile"
                 },
@@ -5279,9 +5170,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "email": {
-                    "type": "string"
-                },
-                "passwordHash": {
                     "type": "string"
                 },
                 "profile": {
@@ -5498,6 +5386,17 @@ const docTemplate = `{
                 }
             }
         },
+        "services.ClientActivityStats": {
+            "type": "object",
+            "properties": {
+                "mealsThisWeek": {
+                    "type": "integer"
+                },
+                "workoutsThisWeek": {
+                    "type": "integer"
+                }
+            }
+        },
         "services.DashboardStats": {
             "type": "object",
             "properties": {
@@ -5527,6 +5426,121 @@ const docTemplate = `{
                 },
                 "totalWorkouts": {
                     "type": "integer"
+                }
+            }
+        },
+        "services.ExerciseStat": {
+            "type": "object",
+            "properties": {
+                "maxWeight": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "totalReps": {
+                    "type": "integer"
+                },
+                "totalSets": {
+                    "type": "integer"
+                }
+            }
+        },
+        "services.MealStats": {
+            "type": "object",
+            "properties": {
+                "averageCalories": {
+                    "type": "number"
+                },
+                "averageCarbs": {
+                    "type": "number"
+                },
+                "averageFats": {
+                    "type": "number"
+                },
+                "averageProtein": {
+                    "type": "number"
+                },
+                "mealTypeBreakdown": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.MealTypeStat"
+                    }
+                },
+                "weeklyAverages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.WeeklyMealAvg"
+                    }
+                }
+            }
+        },
+        "services.MealTypeStat": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "mealType": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.WeeklyMealAvg": {
+            "type": "object",
+            "properties": {
+                "calories": {
+                    "type": "number"
+                },
+                "carbs": {
+                    "type": "number"
+                },
+                "fats": {
+                    "type": "number"
+                },
+                "protein": {
+                    "type": "number"
+                },
+                "week": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.WeeklyVolumePoint": {
+            "type": "object",
+            "properties": {
+                "volume": {
+                    "type": "number"
+                },
+                "week": {
+                    "type": "string"
+                },
+                "workouts": {
+                    "type": "integer"
+                }
+            }
+        },
+        "services.WorkoutStats": {
+            "type": "object",
+            "properties": {
+                "consistency": {
+                    "description": "percentage",
+                    "type": "number"
+                },
+                "exerciseBreakdown": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.ExerciseStat"
+                    }
+                },
+                "totalVolume": {
+                    "type": "number"
+                },
+                "weeklyVolume": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.WeeklyVolumePoint"
+                    }
                 }
             }
         }

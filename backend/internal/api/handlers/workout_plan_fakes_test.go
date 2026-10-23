@@ -250,6 +250,16 @@ func (f *fakePlanUserRepo) GetUserByID(ctx context.Context, userID int) (*models
 	return nil, domainerrors.ErrNotFound
 }
 
+func (f *fakePlanUserRepo) GetUsersByIDs(ctx context.Context, userIDs []int) (map[int]*models.User, error) {
+	users := make(map[int]*models.User, len(userIDs))
+	for _, userID := range userIDs {
+		if user, err := f.GetUserByID(ctx, userID); err == nil {
+			users[userID] = user
+		}
+	}
+	return users, nil
+}
+
 func (f *fakePlanUserRepo) CreateUser(ctx context.Context, user *models.User) error {
 	return nil
 }
@@ -320,7 +330,15 @@ func (f *fakePlanRelationshipRepo) GetByTrainerID(ctx context.Context, trainerID
 	return nil, nil
 }
 
-func (f *fakePlanRelationshipRepo) GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
+func (f *fakePlanRelationshipRepo) GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.Relationship, error) {
+	return nil, domainerrors.ErrNotFound
+}
+
+func (f *fakePlanRelationshipRepo) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
+	return nil, nil
+}
+
+func (f *fakePlanRelationshipRepo) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
 	return nil, domainerrors.ErrNotFound
 }
 

@@ -75,9 +75,11 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 	trainerCatalogService := services.NewTrainerCatalogService(trainerProfileRepo, trainerReviewRepo)
 	adminService := services.NewAdminService(userRepo, workoutRepo, mealRepo, commentRepo, exerciseRepo)
 	passwordResetService := services.NewPasswordResetService(userRepo, passwordResetRepo, &NoopMailer{}, "http://localhost:3000", clock)
-	coachingRequestService := services.NewCoachingRequestService(coachingRequestRepo, userRepo, relationshipRepo, clock)
+	relationshipService := services.NewRelationshipService(relationshipRepo, userRepo, clock)
+	clientStatsService := services.NewClientStatsService(workoutRepo, mealRepo, clock)
+	coachingRequestService := services.NewCoachingRequestService(coachingRequestRepo, userRepo, relationshipService, clock)
 	workoutPlanService := services.NewWorkoutPlanService(workoutPlanRepo, workoutPlanAssignmentRepo, relationshipRepo, workoutRepo)
-	invitationService := services.NewInvitationService(invitationRepo, relationshipRepo, userRepo, clock)
+	invitationService := services.NewInvitationService(invitationRepo, relationshipService)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userService)
@@ -91,7 +93,7 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 	trainerCatalogHandler := handlers.NewTrainerCatalogHandler(trainerCatalogService)
 	adminHandler := handlers.NewAdminHandler(adminService)
 	passwordResetHandler := handlers.NewPasswordResetHandler(passwordResetService)
-	relationshipHandler := handlers.NewRelationshipHandler(invitationService, relationshipRepo, userRepo, workoutRepo, mealRepo)
+	relationshipHandler := handlers.NewRelationshipHandler(invitationService, relationshipService, userService, clientStatsService)
 	coachingRequestHandler := handlers.NewCoachingRequestHandler(coachingRequestService)
 	workoutPlanHandler := handlers.NewWorkoutPlanHandler(workoutPlanService, userRepo)
 

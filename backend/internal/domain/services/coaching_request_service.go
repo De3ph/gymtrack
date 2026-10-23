@@ -14,14 +14,14 @@ import (
 type CoachingRequestService struct {
 	coachingRequestRepo repositories.CoachingRequestRepository
 	userRepo            repositories.UserRepository
-	relationshipRepo    repositories.RelationshipRepository
+	relationships       *RelationshipService
 	clock               utils.Clock
 }
 
 func NewCoachingRequestService(
 	coachingRequestRepo repositories.CoachingRequestRepository,
 	userRepo repositories.UserRepository,
-	relationshipRepo repositories.RelationshipRepository,
+	relationships *RelationshipService,
 	clock utils.Clock,
 ) *CoachingRequestService {
 	if clock == nil {
@@ -30,14 +30,17 @@ func NewCoachingRequestService(
 	return &CoachingRequestService{
 		coachingRequestRepo: coachingRequestRepo,
 		userRepo:            userRepo,
-		relationshipRepo:    relationshipRepo,
+		relationships:       relationships,
 		clock:               clock,
 	}
 }
 
 func (s *CoachingRequestService) CreateCoachingRequest(ctx context.Context, athleteID int, trainerID int, message string) (*models.CoachingRequest, error) {
-	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, athleteID)
-	if err == nil && activeRelationship != nil {
+	hasActiveTrainer, err := s.relationships.HasActiveTrainer(ctx, athleteID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
+	}
+	if hasActiveTrainer {
 		return nil, ErrAlreadyHasActiveTrainer
 	}
 
@@ -99,37 +102,20 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 		return nil, &CoachingRequestResolvedError{Status: string(request.Status)}
 	}
 
-	activeRelationship, err := s.relationshipRepo.GetByAthleteID(ctx, request.AthleteID)
-	if err == nil && activeRelationship != nil {
+	hasActiveTrainer, err := s.relationships.HasActiveTrainer(ctx, request.AthleteID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
+	}
+	if hasActiveTrainer {
 		return nil, ErrAthleteAlreadyHasActiveTrainer
 	}
 
-	// Create the relationship
-	now := s.clock.Now()
-	relationship := &models.Relationship{
-		RelationshipID: 0,
-		TrainerID:      trainerID,
-		AthleteID:      request.AthleteID,
-		Status:         models.RelationshipStatusActive,
-		CreatedAt:      now,
-		UpdatedAt:      now,
-	}
-
-	err = s.relationshipRepo.Create(ctx, relationship)
+	relationship, err := s.relationships.Activate(ctx, trainerID, request.AthleteID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create relationship: %w", err)
-	}
-
-	// Update athlete's profile to include trainer assignment
-	athlete, err := s.userRepo.GetUserByID(ctx, request.AthleteID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get athlete: %w", err)
-	}
-
-	athlete.Profile.TrainerAssignment = trainerID
-	err = s.userRepo.UpdateUser(ctx, athlete)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update athlete profile: %w", err)
+		if errors.Is(err, ErrAlreadyHasActiveTrainer) {
+			return nil, ErrAthleteAlreadyHasActiveTrainer
+		}
+		return nil, err
 	}
 
 	// Update the coaching request status
@@ -137,6 +123,13 @@ func (s *CoachingRequestService) AcceptCoachingRequest(ctx context.Context, requ
 	request.UpdatedAt = s.clock.Now()
 	err = s.coachingRequestRepo.Update(ctx, request)
 	if err != nil {
+		// The relationship is already active. Roll it back so a retry sees a
+		// pending request instead of an accepted request with no connection.
+		rollbackCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), relationshipRollbackTimeout)
+		defer cancel()
+		if _, rollbackErr := s.relationships.Terminate(rollbackCtx, relationship.RelationshipID, trainerID, models.RoleTrainer); rollbackErr != nil {
+			return nil, fmt.Errorf("failed to update coaching request: %w (relationship rollback failed: %v)", err, rollbackErr)
+		}
 		return nil, fmt.Errorf("failed to update coaching request: %w", err)
 	}
 

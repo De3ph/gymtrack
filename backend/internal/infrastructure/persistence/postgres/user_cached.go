@@ -67,6 +67,17 @@ func (r *CachedUserRepository) GetUserByID(ctx context.Context, userID int) (*mo
 	return val.(*models.User), nil
 }
 
+func (r *CachedUserRepository) GetUsersByIDs(ctx context.Context, userIDs []int) (map[int]*models.User, error) {
+	users, err := r.inner.GetUsersByIDs(ctx, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	for userID, user := range users {
+		r.cache.Set("user:id:"+strconv.Itoa(userID), user)
+	}
+	return users, nil
+}
+
 func (r *CachedUserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	key := "user:email:" + strings.ToLower(email)
 

@@ -168,6 +168,53 @@ func (r *PostgresUserRepository) GetUserByID(ctx context.Context, userID int) (*
 	return user, nil
 }
 
+func (r *PostgresUserRepository) GetUsersByIDs(ctx context.Context, userIDs []int) (map[int]*models.User, error) {
+	users := make(map[int]*models.User, len(userIDs))
+	if len(userIDs) == 0 {
+		return users, nil
+	}
+
+	query := `
+		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at
+		FROM users
+		WHERE user_id = ANY($1)`
+
+	rows, err := r.pool.Query(ctx, query, userIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users by IDs: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		user := &models.User{}
+		var profileRaw []byte
+		if err := rows.Scan(
+			&user.UserID,
+			&user.Username,
+			&user.Email,
+			&user.PasswordHash,
+			&user.Role,
+			&user.Status,
+			&profileRaw,
+			&user.TokenVersion,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.DeletedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan user row: %w", err)
+		}
+		if err := UnmarshalUserProfile(profileRaw, &user.Profile); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal user profile: %w", err)
+		}
+		user.Type = "user"
+		users[user.UserID] = user
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return users, nil
+}
+
 func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	query := `
 		SELECT user_id, username, email, password_hash, role, status, profile, token_version, created_at, updated_at, deleted_at

@@ -81,14 +81,59 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 		}
 	})
 
-	t.Run("GetByAthleteID", func(t *testing.T) {
-		rel, err := repo.GetByAthleteID(ctx, athlete.UserID)
+	t.Run("GetByTrainerAndAthlete", func(t *testing.T) {
+		fetched, err := repo.GetByTrainerAndAthlete(ctx, trainer.UserID, athlete2.UserID)
 		require.NoError(t, err)
-		assert.Equal(t, athlete.UserID, rel.AthleteID)
+		assert.Equal(t, trainer.UserID, fetched.TrainerID)
+		assert.Equal(t, athlete2.UserID, fetched.AthleteID)
+
+		_, err = repo.GetByTrainerAndAthlete(ctx, trainer.UserID, 999999)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 	})
 
-	t.Run("GetByAthleteID_NotFound", func(t *testing.T) {
-		_, err := repo.GetByAthleteID(ctx, 999999)
+	t.Run("GetActiveByTrainerID", func(t *testing.T) {
+		rels, err := repo.GetActiveByTrainerID(ctx, trainer.UserID)
+		require.NoError(t, err)
+		for _, rel := range rels {
+			assert.Equal(t, trainer.UserID, rel.TrainerID)
+			assert.Equal(t, models.RelationshipStatusActive, rel.Status)
+		}
+	})
+
+	t.Run("GetActiveByAthleteID", func(t *testing.T) {
+		activeAthlete := createTestUser(t, "rel_active", "rel_active@test.com", models.RoleAthlete)
+		active := &models.Relationship{
+			TrainerID: trainer.UserID, AthleteID: activeAthlete.UserID,
+			Status: models.RelationshipStatusActive,
+		}
+		require.NoError(t, repo.Create(ctx, active))
+
+		fetched, err := repo.GetActiveByAthleteID(ctx, activeAthlete.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, active.RelationshipID, fetched.RelationshipID)
+		assert.Equal(t, models.RelationshipStatusActive, fetched.Status)
+
+		secondTrainer := createTestUser(t, "rel_trainer2", "rel_trainer2@test.com", models.RoleTrainer)
+		secondActive := &models.Relationship{
+			TrainerID: secondTrainer.UserID, AthleteID: activeAthlete.UserID,
+			Status: models.RelationshipStatusActive,
+		}
+		err = repo.Create(ctx, secondActive)
+		assert.ErrorIs(t, err, domainerrors.ErrConflict, "one athlete must not have two active trainers")
+
+		terminatedAthlete := createTestUser(t, "rel_term", "rel_term@test.com", models.RoleAthlete)
+		terminated := &models.Relationship{
+			TrainerID: trainer.UserID, AthleteID: terminatedAthlete.UserID,
+			Status: models.RelationshipStatusTerminated,
+		}
+		require.NoError(t, repo.Create(ctx, terminated))
+
+		_, err = repo.GetActiveByAthleteID(ctx, terminatedAthlete.UserID)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "terminated rows must not be active")
+	})
+
+	t.Run("GetActiveByAthleteID_NotFound", func(t *testing.T) {
+		_, err := repo.GetActiveByAthleteID(ctx, 999999)
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound)
 	})
 

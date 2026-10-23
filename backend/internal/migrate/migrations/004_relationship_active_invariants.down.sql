@@ -1,0 +1,3 @@
+DROP INDEX IF EXISTS idx_relationships_trainer_active_recent;
+DROP INDEX IF EXISTS idx_relationships_athlete_active_recent;
+DROP INDEX IF EXISTS idx_relationships_one_active_per_athlete;

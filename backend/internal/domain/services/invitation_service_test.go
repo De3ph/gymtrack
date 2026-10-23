@@ -76,8 +76,13 @@ func (f *fakeInvitationMethod) ReleaseClaim(_ context.Context, inv *models.Invit
 type stubRelationshipRepo struct {
 	mu              sync.Mutex
 	existing        *models.Relationship
+	byID            *models.Relationship
+	byPair          *models.Relationship
 	createErr       error
+	updateErr       error
 	createdTrainers []int
+	updated         []*models.Relationship
+	deleted         []int
 }
 
 func (s *stubRelationshipRepo) Create(_ context.Context, rel *models.Relationship) error {
@@ -92,15 +97,31 @@ func (s *stubRelationshipRepo) Create(_ context.Context, rel *models.Relationshi
 }
 
 func (s *stubRelationshipRepo) GetByID(context.Context, int) (*models.Relationship, error) {
-	return nil, domainerrors.ErrNotFound
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.byID == nil {
+		return nil, domainerrors.ErrNotFound
+	}
+	return s.byID, nil
 }
 func (s *stubRelationshipRepo) GetByTrainerID(context.Context, int) ([]*models.Relationship, error) {
 	return nil, nil
 }
-func (s *stubRelationshipRepo) GetByAthleteID(context.Context, int) (*models.Relationship, error) {
+func (s *stubRelationshipRepo) GetByTrainerAndAthlete(context.Context, int, int) (*models.Relationship, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.existing == nil {
+	if s.byPair == nil {
+		return nil, domainerrors.ErrNotFound
+	}
+	return s.byPair, nil
+}
+func (s *stubRelationshipRepo) GetActiveByTrainerID(context.Context, int) ([]*models.Relationship, error) {
+	return nil, nil
+}
+func (s *stubRelationshipRepo) GetActiveByAthleteID(context.Context, int) (*models.Relationship, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.existing == nil || !s.existing.IsActive() {
 		return nil, domainerrors.ErrNotFound
 	}
 	return s.existing, nil
@@ -111,11 +132,25 @@ func (s *stubRelationshipRepo) GetPendingByAthleteID(context.Context, int) ([]*m
 func (s *stubRelationshipRepo) HasActiveRelationship(context.Context, int, int) (bool, error) {
 	return false, nil
 }
-func (s *stubRelationshipRepo) Update(context.Context, *models.Relationship) error { return nil }
-func (s *stubRelationshipRepo) Delete(context.Context, int) error                  { return nil }
+func (s *stubRelationshipRepo) Update(_ context.Context, rel *models.Relationship) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.updateErr != nil {
+		return s.updateErr
+	}
+	s.updated = append(s.updated, rel)
+	return nil
+}
+func (s *stubRelationshipRepo) Delete(_ context.Context, relationshipID int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.deleted = append(s.deleted, relationshipID)
+	return nil
+}
 
 type stubUserRepo struct {
-	user *models.User
+	user      *models.User
+	updateErr error
 }
 
 func (s *stubUserRepo) CreateUser(context.Context, *models.User) error { return nil }
@@ -124,6 +159,18 @@ func (s *stubUserRepo) GetUserByID(_ context.Context, id int) (*models.User, err
 	u.UserID = id
 	return &u, nil
 }
+func (s *stubUserRepo) GetUsersByIDs(_ context.Context, ids []int) (map[int]*models.User, error) {
+	users := make(map[int]*models.User, len(ids))
+	for _, id := range ids {
+		if s.user == nil {
+			continue
+		}
+		u := *s.user
+		u.UserID = id
+		users[id] = &u
+	}
+	return users, nil
+}
 func (s *stubUserRepo) GetUserByEmail(context.Context, string) (*models.User, error) {
 	return nil, domainerrors.ErrNotFound
 }
@@ -131,7 +178,13 @@ func (s *stubUserRepo) GetUserByUsername(context.Context, string) (*models.User,
 	return nil, domainerrors.ErrNotFound
 }
 func (s *stubUserRepo) GetAllUsers(context.Context) ([]*models.User, error) { return nil, nil }
-func (s *stubUserRepo) UpdateUser(_ context.Context, u *models.User) error  { s.user = u; return nil }
+func (s *stubUserRepo) UpdateUser(_ context.Context, u *models.User) error {
+	if s.updateErr != nil {
+		return s.updateErr
+	}
+	s.user = u
+	return nil
+}
 func (s *stubUserRepo) GetAllUsersFiltered(context.Context, string, string, int, int) ([]*models.User, error) {
 	return nil, nil
 }
@@ -161,7 +214,7 @@ func TestAcceptInvitation_ConcurrentAcceptsOfSameCode_OnlyOneWins(t *testing.T) 
 	method := newFakeInvitationMethod(pendingCode("abc123", 42))
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, rels, users, nil)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
 
 	const racers = 8
 	var wg sync.WaitGroup
@@ -201,7 +254,7 @@ func TestAcceptInvitation_FailureAfterClaim_ReleasesCodeForRetry(t *testing.T) {
 	method := newFakeInvitationMethod(pendingCode("retry1", 42))
 	rels := &stubRelationshipRepo{createErr: assert.AnError}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, rels, users, nil)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
 
 	_, err := svc.AcceptInvitation(context.Background(), "retry1", 7)
 	require.Error(t, err)
@@ -226,7 +279,7 @@ func TestAcceptInvitation_AlreadyHasTrainer_DoesNotClaimCode(t *testing.T) {
 	method := newFakeInvitationMethod(pendingCode("taken1", 42))
 	rels := &stubRelationshipRepo{existing: &models.Relationship{Status: "active"}}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, rels, users, nil)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
 
 	_, err := svc.AcceptInvitation(context.Background(), "taken1", 7)
 	require.ErrorIs(t, err, ErrAlreadyHasActiveTrainer)
@@ -249,7 +302,7 @@ func TestAcceptInvitation_ReleaseSurvivesCancelledRequestContext(t *testing.T) {
 	// disconnected while the relationship insert was in flight.
 	ctx, cancel := context.WithCancel(context.Background())
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, rels, users, nil)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil))
 
 	// Cancel before the accept so every repository call sees a dead context.
 	_, err := svc.AcceptInvitation(ctx, "cancel1", 7)
@@ -264,14 +317,14 @@ func TestAcceptInvitation_ReleaseSurvivesCancelledRequestContext(t *testing.T) {
 }
 
 func TestAcceptInvitation_EmptyCode(t *testing.T) {
-	svc := NewInvitationService(newFakeInvitationMethod(), &stubRelationshipRepo{}, &stubUserRepo{}, nil)
+	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil))
 
 	_, err := svc.AcceptInvitation(context.Background(), "", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvitationCodeEmpty)
 }
 
 func TestAcceptInvitation_UnknownCode(t *testing.T) {
-	svc := NewInvitationService(newFakeInvitationMethod(), &stubRelationshipRepo{}, &stubUserRepo{}, nil)
+	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil))
 
 	_, err := svc.AcceptInvitation(context.Background(), "nope", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvalidInvitationCode)
@@ -281,7 +334,7 @@ func TestAcceptInvitation_ExpiredCode(t *testing.T) {
 	expired := pendingCode("old123", 42)
 	expired.ExpiresAt = time.Now().Add(-time.Hour)
 	method := newFakeInvitationMethod(expired)
-	svc := NewInvitationService(method, &stubRelationshipRepo{}, &stubUserRepo{}, nil)
+	svc := NewInvitationService(method, NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil))
 
 	_, err := svc.AcceptInvitation(context.Background(), "old123", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvitationExpired)

@@ -2,14 +2,11 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	domainerrors "gymtrack-backend/internal/domain/errors"
 	"gymtrack-backend/internal/domain/models"
-	"gymtrack-backend/internal/domain/repositories"
 	"gymtrack-backend/internal/domain/services"
 
 	"github.com/gin-gonic/gin"
@@ -18,26 +15,23 @@ import (
 
 type RelationshipHandler struct {
 	invitationService *services.InvitationService
-	relationshipRepo  repositories.RelationshipRepository
-	userRepo          repositories.UserRepository
-	workoutRepo       repositories.WorkoutRepository
-	mealRepo          repositories.MealRepository
+	relationships     *services.RelationshipService
+	userService       *services.UserService
+	clientStats       *services.ClientStatsService
 	validator         *validator.Validate
 }
 
 func NewRelationshipHandler(
 	invitationService *services.InvitationService,
-	relationshipRepo repositories.RelationshipRepository,
-	userRepo repositories.UserRepository,
-	workoutRepo repositories.WorkoutRepository,
-	mealRepo repositories.MealRepository,
+	relationships *services.RelationshipService,
+	userService *services.UserService,
+	clientStats *services.ClientStatsService,
 ) *RelationshipHandler {
 	return &RelationshipHandler{
 		invitationService: invitationService,
-		relationshipRepo:  relationshipRepo,
-		userRepo:          userRepo,
-		workoutRepo:       workoutRepo,
-		mealRepo:          mealRepo,
+		relationships:     relationships,
+		userService:       userService,
+		clientStats:       clientStats,
 		validator:         validator.New(),
 	}
 }
@@ -54,69 +48,15 @@ type AcceptInvitationRequest struct {
 
 // GetClientDetailsResponse contains detailed information about a client including relationship, athlete profile, and stats.
 type GetClientDetailsResponse struct {
-	Relationship *models.Relationship `json:"relationship"`
-	Athlete      *models.User         `json:"athlete"`
-	Stats        *ClientStats         `json:"stats"`
-}
-
-// ClientStats contains summary statistics for an athlete client.
-type ClientStats struct {
-	WorkoutsThisWeek int `json:"workoutsThisWeek"`
-	MealsThisWeek    int `json:"mealsThisWeek"`
-}
-
-// WorkoutStats contains detailed workout statistics including volume trends, exercise breakdown, and consistency.
-type WorkoutStats struct {
-	TotalVolume       float64             `json:"totalVolume"`
-	WeeklyVolume      []WeeklyVolumePoint `json:"weeklyVolume"`
-	ExerciseBreakdown []ExerciseStat      `json:"exerciseBreakdown"`
-	Consistency       float64             `json:"consistency"` // percentage
-}
-
-// WeeklyVolumePoint represents workout volume for a specific week.
-type WeeklyVolumePoint struct {
-	Week     string  `json:"week"`
-	Volume   float64 `json:"volume"`
-	Workouts int     `json:"workouts"`
-}
-
-// ExerciseStat contains statistics for a specific exercise.
-type ExerciseStat struct {
-	Name      string  `json:"name"`
-	TotalSets int     `json:"totalSets"`
-	TotalReps int     `json:"totalReps"`
-	MaxWeight float64 `json:"maxWeight"`
-}
-
-// MealStats contains detailed meal and nutrition statistics including averages, weekly trends, and meal type breakdown.
-type MealStats struct {
-	AverageCalories   float64         `json:"averageCalories"`
-	AverageProtein    float64         `json:"averageProtein"`
-	AverageCarbs      float64         `json:"averageCarbs"`
-	AverageFats       float64         `json:"averageFats"`
-	WeeklyAverages    []WeeklyMealAvg `json:"weeklyAverages"`
-	MealTypeBreakdown []MealTypeStat  `json:"mealTypeBreakdown"`
-}
-
-// WeeklyMealAvg represents average nutrition metrics for a specific week.
-type WeeklyMealAvg struct {
-	Week     string  `json:"week"`
-	Calories float64 `json:"calories"`
-	Protein  float64 `json:"protein"`
-	Carbs    float64 `json:"carbs"`
-	Fats     float64 `json:"fats"`
-}
-
-// MealTypeStat represents the count of meals for a specific meal type.
-type MealTypeStat struct {
-	MealType string `json:"mealType"`
-	Count    int    `json:"count"`
+	Relationship *models.Relationship          `json:"relationship"`
+	Athlete      *models.User                  `json:"athlete"`
+	Stats        *services.ClientActivityStats `json:"stats"`
 }
 
 // GetClientStatsResponse contains comprehensive workout and meal statistics for a client.
 type GetClientStatsResponse struct {
-	WorkoutStats *WorkoutStats `json:"workoutStats"`
-	MealStats    *MealStats    `json:"mealStats"`
+	WorkoutStats *services.WorkoutStats `json:"workoutStats"`
+	MealStats    *services.MealStats    `json:"mealStats"`
 }
 
 // GenerateInvitation generates a new invitation code for a trainer.
@@ -260,43 +200,26 @@ func (h *RelationshipHandler) GetMyTrainer(c *gin.Context) {
 		return
 	}
 
-	invitations, err := h.invitationService.GetPendingInvitations(c.Request.Context(), athleteIDInt)
+	invitations, err := h.relationships.GetPendingInvitations(c.Request.Context(), athleteIDInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve invitations"})
 		return
 	}
 
-	// Get active trainer relationship
-	activeRelationship, err := h.relationshipRepo.GetByAthleteID(c.Request.Context(), athleteIDInt)
+	activeTrainer, err := h.relationships.GetActiveTrainer(c.Request.Context(), athleteIDInt)
 	if err != nil {
-		if errors.Is(err, domainerrors.ErrNotFound) {
-			activeRelationship = nil
-		} else {
-			handleInternalError(c, err, "failed to retrieve relationships")
-			return
-		}
-	}
-
-	var activeTrainer *gin.H
-	// Only an active relationship is an active trainer: GetByAthleteID returns
-	// the newest row regardless of status, so terminated (and stray pending)
-	// rows must be filtered here — cf. GetClientDetails / GetClientStats.
-	if activeRelationship != nil && activeRelationship.IsActive() {
-		// Get trainer details
-		trainer, err := h.userRepo.GetUserByID(c.Request.Context(), activeRelationship.TrainerID)
-		if err == nil {
-			activeTrainer = &gin.H{
-				"relationship": activeRelationship,
-				"trainer":      trainer,
-			}
-		}
+		handleInternalError(c, err, "failed to retrieve relationships")
+		return
 	}
 
 	response := gin.H{
 		"pendingInvitations": invitations,
 	}
 	if activeTrainer != nil {
-		response["activeTrainer"] = *activeTrainer
+		response["activeTrainer"] = gin.H{
+			"relationship": activeTrainer.Relationship,
+			"trainer":      activeTrainer.Trainer,
+		}
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -335,35 +258,22 @@ func (h *RelationshipHandler) GetMyClients(c *gin.Context) {
 		return
 	}
 
-	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerIDInt)
+	activeClients, err := h.relationships.GetActiveClients(c.Request.Context(), trainerIDInt)
 	if err != nil {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
 
-	// Filter for active relationships only
-	activeClients := make([]*models.Relationship, 0)
-	for _, rel := range relationships {
-		if rel.IsActive() {
-			activeClients = append(activeClients, rel)
-		}
-	}
-
-	// Fetch athlete details for each client
 	type ClientWithAthlete struct {
 		Relationship *models.Relationship `json:"relationship"`
 		Athlete      *models.User         `json:"athlete"`
 	}
 
-	clientsWithAthlete := make([]ClientWithAthlete, 0)
-	for _, rel := range activeClients {
-		athlete, err := h.userRepo.GetUserByID(c.Request.Context(), rel.AthleteID)
-		if err != nil {
-			continue
-		}
+	clientsWithAthlete := make([]ClientWithAthlete, 0, len(activeClients))
+	for _, client := range activeClients {
 		clientsWithAthlete = append(clientsWithAthlete, ClientWithAthlete{
-			Relationship: rel,
-			Athlete:      athlete,
+			Relationship: client.Relationship,
+			Athlete:      client.Athlete,
 		})
 	}
 
@@ -400,71 +310,37 @@ func (h *RelationshipHandler) GetClientDetails(c *gin.Context) {
 		return
 	}
 
-	// Get athlete details by username. GetUserByUsername reports an unknown
-	// username as domainerrors.ErrNotFound, which must surface as 404 — not
-	// 500 — so the athlete == nil branch below stays the single not-found
-	// response (cf. workout_handler.go / meal_handler.go).
-	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
-	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-	if athlete == nil {
+	// An unknown username is a client error, not an internal fault.
+	athlete, err := h.userService.GetUserByUsername(c.Request.Context(), username)
+	if errors.Is(err, services.ErrUserNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
+	if err != nil {
+		handleInternalError(c, err, "internal server error")
+		return
+	}
 
-	// Verify relationship
 	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
 	if convErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
-	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerIDInt)
+	clientRelationship, err := h.relationships.GetActiveClientRelationship(c.Request.Context(), trainerIDInt, athlete.UserID)
+	if errors.Is(err, services.ErrNoActiveCoachingRelationship) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active coaching relationship with this client"})
+		return
+	}
 	if err != nil {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
 
-	var clientRelationship *models.Relationship
-	for _, rel := range relationships {
-		if rel.AthleteID == athlete.UserID && rel.IsActive() {
-			clientRelationship = rel
-			break
-		}
-	}
-
-	if clientRelationship == nil {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active coaching relationship with this client"})
+	stats, err := h.clientStats.GetActivity(c.Request.Context(), athlete.UserID)
+	if err != nil {
+		handleInternalError(c, err, "internal server error")
 		return
-	}
-
-	// Get stats
-	allWorkouts, _ := h.workoutRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
-	allMeals, _ := h.mealRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
-
-	// Calculate this week's stats
-	now := time.Now()
-	weekStart := now.AddDate(0, 0, -int(now.Weekday()))
-	weekStart = weekStart.Truncate(24 * time.Hour)
-
-	workoutsThisWeek := 0
-	mealsThisWeek := 0
-	for _, w := range allWorkouts {
-		if w.Date.After(weekStart) {
-			workoutsThisWeek++
-		}
-	}
-	for _, m := range allMeals {
-		if m.Date.After(weekStart) {
-			mealsThisWeek++
-		}
-	}
-
-	stats := &ClientStats{
-		WorkoutsThisWeek: workoutsThisWeek,
-		MealsThisWeek:    mealsThisWeek,
 	}
 
 	c.JSON(http.StatusOK, GetClientDetailsResponse{
@@ -494,8 +370,16 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid relationship ID. Please check the URL and try again"})
 		return
 	}
-	userID, _ := c.Get("userID")
-	userRole, _ := c.Get("userRole")
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to log in to continue. Please log in and try again"})
+		return
+	}
+	userRole, exists := c.Get("userRole")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Your session is missing role information. Please log in again"})
+		return
+	}
 
 	userIDInt, err := strconv.Atoi(userID.(string))
 	if err != nil {
@@ -503,41 +387,22 @@ func (h *RelationshipHandler) TerminateRelationship(c *gin.Context) {
 		return
 	}
 
-	// Get the relationship
-	relationship, err := h.relationshipRepo.GetByID(c.Request.Context(), relationshipID)
-	if err != nil {
+	role, ok := userRole.(models.UserRole)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
+		return
+	}
+
+	relationship, err := h.relationships.Terminate(c.Request.Context(), relationshipID, userIDInt, role)
+	if errors.Is(err, domainerrors.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Relationship not found. It may have already been terminated"})
 		return
 	}
-
-	// Check if user is authorized (must be the trainer or athlete in the relationship)
-	isAuthorized := false
-	if userRole == models.RoleTrainer && relationship.TrainerID == userIDInt {
-		isAuthorized = true
-	} else if userRole == models.RoleAthlete && relationship.AthleteID == userIDInt {
-		isAuthorized = true
-	}
-
-	if !isAuthorized {
+	if errors.Is(err, services.ErrRelationshipTerminationForbidden) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to terminate this relationship. Only the trainer or athlete involved can do this"})
 		return
 	}
-
-	// Terminate the relationship
-	relationship.Terminate()
-	if err := h.relationshipRepo.Update(c.Request.Context(), relationship); err != nil {
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-
-	// Update athlete's profile to remove trainer assignment
-	athlete, err := h.userRepo.GetUserByID(c.Request.Context(), relationship.AthleteID)
 	if err != nil {
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-	athlete.Profile.TrainerAssignment = 0
-	if err := h.userRepo.UpdateUser(c.Request.Context(), athlete); err != nil {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
@@ -575,224 +440,39 @@ func (h *RelationshipHandler) GetClientStats(c *gin.Context) {
 		return
 	}
 
-	// Get athlete details by username. As in GetClientDetails, an unknown
-	// username arrives as domainerrors.ErrNotFound and must map to 404.
-	athlete, err := h.userRepo.GetUserByUsername(c.Request.Context(), username)
-	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
-		handleInternalError(c, err, "internal server error")
-		return
-	}
-	if athlete == nil {
+	athlete, err := h.userService.GetUserByUsername(c.Request.Context(), username)
+	if errors.Is(err, services.ErrUserNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Client not found. They may have been removed or the username is incorrect"})
 		return
 	}
+	if err != nil {
+		handleInternalError(c, err, "internal server error")
+		return
+	}
 
-	// Verify relationship
 	trainerIDInt, convErr := strconv.Atoi(trainerID.(string))
 	if convErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your session is invalid. Please log in again"})
 		return
 	}
 
-	relationships, err := h.relationshipRepo.GetByTrainerID(c.Request.Context(), trainerIDInt)
+	if _, err := h.relationships.GetActiveClientRelationship(c.Request.Context(), trainerIDInt, athlete.UserID); err != nil {
+		if errors.Is(err, services.ErrNoActiveCoachingRelationship) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active coaching relationship with this client"})
+			return
+		}
+		handleInternalError(c, err, "internal server error")
+		return
+	}
+
+	workoutStats, mealStats, err := h.clientStats.GetDetailedStats(c.Request.Context(), athlete.UserID)
 	if err != nil {
 		handleInternalError(c, err, "internal server error")
 		return
 	}
 
-	hasActiveRelationship := false
-	for _, rel := range relationships {
-		if rel.AthleteID == athlete.UserID && rel.IsActive() {
-			hasActiveRelationship = true
-			break
-		}
-	}
-
-	if !hasActiveRelationship {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have an active coaching relationship with this client"})
-		return
-	}
-
-	// Get all workouts and meals
-	allWorkouts, _ := h.workoutRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
-	allMeals, _ := h.mealRepo.GetByAthleteID(c.Request.Context(), athlete.UserID, 1000, 0)
-
-	// Calculate workout stats
-	workoutStats := calculateWorkoutStats(allWorkouts)
-
-	// Calculate meal stats
-	mealStats := calculateMealStats(allMeals)
-
 	c.JSON(http.StatusOK, GetClientStatsResponse{
 		WorkoutStats: workoutStats,
 		MealStats:    mealStats,
 	})
-}
-
-func calculateWorkoutStats(workouts []*models.Workout) *WorkoutStats {
-	var totalVolume float64
-	exerciseMap := make(map[string]*ExerciseStat)
-	weeklyData := make([]WeeklyVolumePoint, 0)
-
-	// Group workouts by week
-	weekMap := make(map[string][]*models.Workout)
-
-	for _, w := range workouts {
-		// Calculate volume (sets * reps * weight)
-		for _, e := range w.Exercises {
-			for _, set := range e.Sets {
-				volume := set.Weight * float64(set.Reps)
-				totalVolume += volume
-			}
-
-			// Exercise breakdown
-			if _, ok := exerciseMap[e.Name]; !ok {
-				exerciseMap[e.Name] = &ExerciseStat{Name: e.Name}
-			}
-			exerciseMap[e.Name].TotalSets += len(e.Sets)
-			for _, set := range e.Sets {
-				if set.Weight > exerciseMap[e.Name].MaxWeight {
-					exerciseMap[e.Name].MaxWeight = set.Weight
-				}
-				exerciseMap[e.Name].TotalReps += set.Reps
-			}
-		}
-
-		// Group by week
-		year, week := w.Date.ISOWeek()
-		weekKey := fmt.Sprintf("%d-W%02d", year, week)
-		weekMap[weekKey] = append(weekMap[weekKey], w)
-	}
-
-	// Calculate weekly volume
-	for week, ws := range weekMap {
-		var weekVol float64
-		for _, w := range ws {
-			for _, e := range w.Exercises {
-				for _, set := range e.Sets {
-					weekVol += set.Weight * float64(set.Reps)
-				}
-			}
-		}
-		weeklyData = append(weeklyData, WeeklyVolumePoint{
-			Week:     week,
-			Volume:   weekVol,
-			Workouts: len(ws),
-		})
-	}
-
-	// Calculate consistency (percentage of weeks with at least 3 workouts)
-	weeksWithWorkouts := 0
-	totalWeeks := len(weeklyData)
-	if totalWeeks > 0 {
-		for _, wd := range weeklyData {
-			if wd.Workouts >= 3 {
-				weeksWithWorkouts++
-			}
-		}
-	}
-
-	var consistency float64
-	if totalWeeks > 0 {
-		consistency = float64(weeksWithWorkouts) / float64(totalWeeks) * 100
-	}
-
-	// Convert exercise map to slice
-	exerciseBreakdown := make([]ExerciseStat, 0)
-	for _, es := range exerciseMap {
-		exerciseBreakdown = append(exerciseBreakdown, *es)
-	}
-
-	return &WorkoutStats{
-		TotalVolume:       totalVolume,
-		WeeklyVolume:      weeklyData,
-		ExerciseBreakdown: exerciseBreakdown,
-		Consistency:       consistency,
-	}
-}
-
-func calculateMealStats(meals []*models.Meal) *MealStats {
-	var totalCalories, totalProtein, totalCarbs, totalFats float64
-	mealTypeMap := make(map[models.MealType]int)
-	weeklyMap := make(map[string][]*models.Meal)
-
-	for _, m := range meals {
-		// Calculate totals
-		for _, item := range m.Items {
-			if item.Calories > 0 {
-				totalCalories += item.Calories
-			}
-			hasAnyMacros := item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0
-			if hasAnyMacros {
-				totalProtein += item.Macros.Protein
-				totalCarbs += item.Macros.Carbs
-				totalFats += item.Macros.Fats
-			}
-		}
-
-		// Meal type breakdown
-		mealTypeMap[m.MealType]++
-
-		// Weekly averages
-		year, week := m.Date.ISOWeek()
-		weekKey := fmt.Sprintf("%d-W%02d", year, week)
-		weeklyMap[weekKey] = append(weeklyMap[weekKey], m)
-	}
-
-	// Calculate averages
-	mealCount := float64(len(meals))
-	var avgCalories, avgProtein, avgCarbs, avgFats float64
-	if mealCount > 0 {
-		avgCalories = totalCalories / mealCount
-		avgProtein = totalProtein / mealCount
-		avgCarbs = totalCarbs / mealCount
-		avgFats = totalFats / mealCount
-	}
-
-	// Calculate weekly averages
-	weeklyAverages := make([]WeeklyMealAvg, 0)
-	for week, ws := range weeklyMap {
-		var weekCalories, weekProtein, weekCarbs, weekFats float64
-		mealCountInWeek := float64(len(ws))
-		for _, m := range ws {
-			for _, item := range m.Items {
-				if item.Calories > 0 {
-					weekCalories += item.Calories
-				}
-				hasAnyMacros := item.Macros.Protein > 0 || item.Macros.Carbs > 0 || item.Macros.Fats > 0
-				if hasAnyMacros {
-					weekProtein += item.Macros.Protein
-					weekCarbs += item.Macros.Carbs
-					weekFats += item.Macros.Fats
-				}
-			}
-		}
-		if mealCountInWeek > 0 {
-			weeklyAverages = append(weeklyAverages, WeeklyMealAvg{
-				Week:     week,
-				Calories: weekCalories / mealCountInWeek,
-				Protein:  weekProtein / mealCountInWeek,
-				Carbs:    weekCarbs / mealCountInWeek,
-				Fats:     weekFats / mealCountInWeek,
-			})
-		}
-	}
-
-	// Convert meal type map to slice
-	mealTypeBreakdown := make([]MealTypeStat, 0)
-	for mt, count := range mealTypeMap {
-		mealTypeBreakdown = append(mealTypeBreakdown, MealTypeStat{
-			MealType: string(mt),
-			Count:    count,
-		})
-	}
-
-	return &MealStats{
-		AverageCalories:   avgCalories,
-		AverageProtein:    avgProtein,
-		AverageCarbs:      avgCarbs,
-		AverageFats:       avgFats,
-		WeeklyAverages:    weeklyAverages,
-		MealTypeBreakdown: mealTypeBreakdown,
-	}
 }

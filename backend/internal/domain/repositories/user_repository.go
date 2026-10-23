@@ -13,6 +13,7 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	GetUserByID(ctx context.Context, userID int) (*models.User, error)
+	GetUsersByIDs(ctx context.Context, userIDs []int) (map[int]*models.User, error)
 	GetAllUsers(ctx context.Context) ([]*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
 	GetAllUsersFiltered(ctx context.Context, role string, search string, limit, offset int) ([]*models.User, error)

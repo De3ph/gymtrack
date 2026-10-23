@@ -11,7 +11,9 @@ type RelationshipRepository interface {
 	Create(ctx context.Context, relationship *models.Relationship) error
 	GetByID(ctx context.Context, relationshipID int) (*models.Relationship, error)
 	GetByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error)
-	GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error)
+	GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error)
+	GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error)
+	GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.Relationship, error)
 	GetPendingByAthleteID(ctx context.Context, athleteID int) ([]*models.Relationship, error)
 	HasActiveRelationship(ctx context.Context, trainerID int, athleteID int) (bool, error)
 	Update(ctx context.Context, relationship *models.Relationship) error

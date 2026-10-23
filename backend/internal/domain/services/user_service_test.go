@@ -61,6 +61,21 @@ func (f *fakeUserRepo) GetUserByID(_ context.Context, userID int) (*models.User,
 	return &clone, nil
 }
 
+func (f *fakeUserRepo) GetUsersByIDs(_ context.Context, userIDs []int) (map[int]*models.User, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	users := make(map[int]*models.User, len(userIDs))
+	for _, userID := range userIDs {
+		u, ok := f.users[userID]
+		if !ok {
+			continue
+		}
+		clone := *u
+		users[userID] = &clone
+	}
+	return users, nil
+}
+
 func (f *fakeUserRepo) GetUserByEmail(_ context.Context, email string) (*models.User, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

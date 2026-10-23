@@ -630,6 +630,16 @@ func TestE2E_Relationship_Terminate(t *testing.T) {
 	// requires a conscious handler change.
 	w = env.DoAuthRequest(http.MethodDelete, "/api/relationships/"+itoa(relID), nil, trainerToken)
 	RequireJSONMessage(t, w, http.StatusOK, "Relationship terminated successfully")
+
+	// Reconnecting the same pair must reuse the terminated row, because the
+	// schema keeps one row per (trainer, athlete).
+	reconnectedID := establishRelationshipByInvitation(t, env, trainerToken, athToken)
+	if reconnectedID != relID {
+		t.Fatalf("reconnect created relationship %d, want existing row %d", reconnectedID, relID)
+	}
+	if got := athleteTrainerAssignment(t, env, athToken); got != trainerID {
+		t.Fatalf("profile.trainerAssignment = %d after reconnect, want %d", got, trainerID)
+	}
 }
 
 // ---------------------------------------------------------------------------

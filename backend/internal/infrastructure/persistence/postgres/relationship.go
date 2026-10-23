@@ -87,8 +87,50 @@ func (r *PostgresRelationshipRepository) GetByTrainerID(ctx context.Context, tra
 	return rels, nil
 }
 
-func (r *PostgresRelationshipRepository) GetByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
-	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE athlete_id = $1 ORDER BY created_at DESC LIMIT 1`
+func (r *PostgresRelationshipRepository) GetByTrainerAndAthlete(ctx context.Context, trainerID int, athleteID int) (*models.Relationship, error) {
+	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE trainer_id = $1 AND athlete_id = $2`
+
+	rel := &models.Relationship{}
+	err := r.pool.QueryRow(ctx, query, trainerID, athleteID).Scan(
+		&rel.RelationshipID, &rel.TrainerID, &rel.AthleteID, &rel.Status, &rel.CreatedAt, &rel.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domainerrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to get relationship by trainer and athlete: %w", err)
+	}
+
+	rel.Type = "relationship"
+	return rel, nil
+}
+
+func (r *PostgresRelationshipRepository) GetActiveByTrainerID(ctx context.Context, trainerID int) ([]*models.Relationship, error) {
+	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE trainer_id = $1 AND status = 'active' ORDER BY created_at DESC`
+
+	rows, err := r.pool.Query(ctx, query, trainerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query active relationships by trainer: %w", err)
+	}
+	defer rows.Close()
+
+	rels := make([]*models.Relationship, 0)
+	for rows.Next() {
+		rel := &models.Relationship{}
+		if err := rows.Scan(&rel.RelationshipID, &rel.TrainerID, &rel.AthleteID, &rel.Status, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan relationship row: %w", err)
+		}
+		rel.Type = "relationship"
+		rels = append(rels, rel)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return rels, nil
+}
+
+func (r *PostgresRelationshipRepository) GetActiveByAthleteID(ctx context.Context, athleteID int) (*models.Relationship, error) {
+	query := `SELECT id, trainer_id, athlete_id, status, created_at, updated_at FROM relationships WHERE athlete_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1`
 
 	rel := &models.Relationship{}
 	err := r.pool.QueryRow(ctx, query, athleteID).Scan(
@@ -98,7 +140,7 @@ func (r *PostgresRelationshipRepository) GetByAthleteID(ctx context.Context, ath
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domainerrors.ErrNotFound
 		}
-		return nil, fmt.Errorf("failed to get relationship by athlete: %w", err)
+		return nil, fmt.Errorf("failed to get active relationship by athlete: %w", err)
 	}
 
 	rel.Type = "relationship"

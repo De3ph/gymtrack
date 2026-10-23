@@ -68,6 +68,14 @@ var (
 	// ErrCannotDeleteReview is returned when a user tries to delete a review
 	// that belongs to someone else.
 	ErrCannotDeleteReview = errors.New("you can only delete your own reviews")
+
+	// ErrRelationshipTerminationForbidden is returned when a user who is not a
+	// participant in a relationship tries to terminate it.
+	ErrRelationshipTerminationForbidden = errors.New("you are not authorized to terminate this relationship")
+
+	// ErrNoActiveCoachingRelationship is returned when a trainer addresses an
+	// athlete they do not currently coach.
+	ErrNoActiveCoachingRelationship = errors.New("no active coaching relationship with this athlete")
 )
 
 // ErrCoachingRequestAlreadyResolved is the match target for
