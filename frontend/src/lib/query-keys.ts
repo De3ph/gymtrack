@@ -189,6 +189,7 @@ export const qk = {
 
   admin: {
     all: ["admin"] as const,
+    stats: ["admin", "stats"] as const,
     users: {
       all: ["admin", "users"] as const,
       list: (p: AdminUsersListParams) => ["admin", "users", "list", p] as const,

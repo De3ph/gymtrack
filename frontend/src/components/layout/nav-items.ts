@@ -124,7 +124,7 @@ export function useNavItems(userRole?: string): NavItem[] {
     case "admin":
       return [
         {
-          href: ROUTES.ADMIN_DASHBOARD,
+          href: ROUTES.DASHBOARD,
           label: tAdmin("dashboard"),
           icon: LayoutDashboard,
           activeMatch: "endsWith",

@@ -1,30 +1,22 @@
 "use client";
 
+import { AdminDashboardPanel } from "@/components/features/dashboard/AdminDashboardPanel";
 import { AthleteDashboardContent } from "@/components/features/dashboard/AthleteDashboardContent";
 import { TrainerDashboardContent } from "@/components/features/dashboard/TrainerDashboardContent";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/lib/hooks/useLogout";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function RoleDashboardPage() {
   const { user, isLoading } = useAuthStore();
   const { logout } = useLogout();
 
-  const router = useRouter();
-
   useEffect(() => {
     if (!isLoading && !user) {
       logout();
     }
   }, [isLoading, user, logout]);
-
-  useEffect(() => {
-    if (!isLoading && user?.role === "admin") {
-      router.replace("/admin");
-    }
-  }, [isLoading, router, user?.role]);
 
   if (isLoading || !user) {
     return (
@@ -35,6 +27,10 @@ export default function RoleDashboardPage() {
         </div>
       </div>
     );
+  }
+
+  if (user.role === "admin") {
+    return <AdminDashboardPanel />;
   }
 
   if (user.role === "trainer") {

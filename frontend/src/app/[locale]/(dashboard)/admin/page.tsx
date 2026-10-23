@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { getAdminStatsCached, verifyAdmin } from "@/lib/dal";
 import type { AdminDashboardStats } from "@/lib/api/adminApi";
-import { AdminDashboardClient } from "./_components/AdminDashboardClient";
-import { AdminDashboardSkeleton } from "./_components/AdminDashboardSkeleton";
+import { AdminDashboardClient } from "@/components/features/dashboard/AdminDashboardClient";
+import { AdminDashboardSkeleton } from "@/components/features/dashboard/AdminDashboardSkeleton";
 import { DataError } from "@/components/features/DataError";
 import { getTranslations } from "next-intl/server";
 
