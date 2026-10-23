@@ -14,6 +14,7 @@
 | `go test ./...` | Run all tests |
 | `go test ./internal/infrastructure/persistence/postgres/...` | Run Postgres repository tests (uses real PostgreSQL via `POSTGRES_TEST_DSN`) |
 | `go run cmd/seed/main.go` | Seed mock data: 30 workouts + 30 meals for `de3ph` (password `1234567890`) |
+| `go run cmd/import-exercises/main.go -fetch` | Import the wrkout/exercises.json public exercise catalog (add `-file`, `-dry-run`, `-out`, `-update`; unknown equipment/muscle values fall back per the mapping tables in the command) |
 | `go run cmd/create-admin/main.go` | Bootstrap the first admin. Reads `ADMIN_EMAIL` / `ADMIN_PASSWORD_FILE` / `ADMIN_PASSWORD` / `ADMIN_USERNAME`, or the matching flags. Idempotent and safe on every deploy: an existing account is promoted and reactivated, and its password is only reset when one is supplied |
 
 **No hot-reload** — stop and restart after every edit, or use a tool like `air`.
