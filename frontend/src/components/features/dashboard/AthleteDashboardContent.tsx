@@ -14,8 +14,9 @@ import { DataError } from "@/components/features/DataError";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { staggerContainer } from "@/lib/animations";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 function getWeekRange() {
   // Quantized to day boundaries so the key is stable for the whole day:
@@ -76,72 +77,74 @@ export function AthleteDashboardContent() {
   };
 
   return (
-    <DashboardShell
-      title={tAthlete("title")}
-      description={tAthlete("description")}
-    >
-
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
+    <MotionProvider>
+      <DashboardShell
+        title={tAthlete("title")}
+        description={tAthlete("description")}
       >
-        <QuickActionsPanel />
-      </motion.section>
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <CombinedTrainingCalendar />
-      </motion.section>
+        <m.section
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <QuickActionsPanel />
+        </m.section>
 
-      <motion.section
-        className="grid gap-4 md:grid-cols-3"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        {metricsLoading ? (
-          <>
-            <DashboardMetricSkeleton />
-            <DashboardMetricSkeleton />
-            <DashboardMetricSkeleton />
-          </>
-        ) : metricsError ? (
-          <div className="md:col-span-3">
-            <DataError
-              message={ApiErrorHandler.handle(metricsError)}
-              onRetry={refetchAll}
-            />
-          </div>
-        ) : (
-          <>
-            <DashboardMetric
-              label={t("stats.workouts")}
-              value={workoutsThisWeek}
-              hint={tAthlete("workout_hint")}
-            />
-            <DashboardMetric
-              label={t("stats.meals")}
-              value={mealsThisWeek}
-              hint={tAthlete("meal_hint")}
-            />
-            <DashboardMetric
-              label={tAthlete("trainer")}
-              value={activeTrainer?.profile?.name ?? "—"}
-              hint={
-                activeTrainer
-                  ? tAthlete("trainer_connected")
-                  : tAthlete("trainer_empty")
-              }
-            />
-          </>
-        )}
-      </motion.section>
+        <m.section
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <CombinedTrainingCalendar />
+        </m.section>
+
+        <m.section
+          className="grid gap-4 md:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          {metricsLoading ? (
+            <>
+              <DashboardMetricSkeleton />
+              <DashboardMetricSkeleton />
+              <DashboardMetricSkeleton />
+            </>
+          ) : metricsError ? (
+            <div className="md:col-span-3">
+              <DataError
+                message={ApiErrorHandler.handle(metricsError)}
+                onRetry={refetchAll}
+              />
+            </div>
+          ) : (
+            <>
+              <DashboardMetric
+                label={t("stats.workouts")}
+                value={workoutsThisWeek}
+                hint={tAthlete("workout_hint")}
+              />
+              <DashboardMetric
+                label={t("stats.meals")}
+                value={mealsThisWeek}
+                hint={tAthlete("meal_hint")}
+              />
+              <DashboardMetric
+                label={tAthlete("trainer")}
+                value={activeTrainer?.profile?.name ?? "—"}
+                hint={
+                  activeTrainer
+                    ? tAthlete("trainer_connected")
+                    : tAthlete("trainer_empty")
+                }
+              />
+            </>
+          )}
+        </m.section>
 
 
-    </DashboardShell>
+      </DashboardShell>
+    </MotionProvider>
   );
 }

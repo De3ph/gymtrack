@@ -2,15 +2,16 @@
 
 import * as React from 'react';
 import {
-  motion,
   type HTMLMotionProps,
   type LegacyAnimationControls,
   type TargetAndTransition,
   type Transition,
 } from 'motion/react';
+import * as m from 'motion/react-m';
 
 import { useAutoHeight } from '@/hooks/use-auto-height';
 import { Slot, WithAsChild } from '@/components/animate-ui/primitives/animate/slot';
+import { MotionProvider } from '@/components/ui/motion-provider';
 
 type AutoHeightProps = WithAsChild<
   {
@@ -38,17 +39,21 @@ function AutoHeight({
 }: AutoHeightProps) {
   const { ref, height } = useAutoHeight<HTMLDivElement>(deps);
 
-  const Comp = asChild ? Slot : motion.div;
+  const Comp = asChild ? Slot : m.div;
 
   return (
-    <Comp
-      style={{ overflow: 'hidden', ...style }}
-      animate={{ height, ...animate }}
-      transition={transition}
-      {...props}
-    >
-      <div ref={ref}>{children}</div>
-    </Comp>
+    // `m.div` is a motion element: it needs a LazyMotion ancestor to pick up
+    // its features, otherwise it renders unanimated.
+    <MotionProvider>
+      <Comp
+        style={{ overflow: 'hidden', ...style }}
+        animate={{ height, ...animate }}
+        transition={transition}
+        {...props}
+      >
+        <div ref={ref}>{children}</div>
+      </Comp>
+    </MotionProvider>
   );
 }
 

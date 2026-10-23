@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { ArrowLeft, MapPin, Star } from "lucide-react";
 import dayjs from "dayjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +30,7 @@ import {
 import { DAYS_OF_WEEK } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 const heroContainer = trainerStagger;
 const heroItem = trainerReveal;
@@ -197,308 +198,310 @@ export default function TrainerProfilePage() {
   ];
 
   return (
-    <main className="relative min-h-screen">
-      <div className="relative mx-auto max-w-6xl px-5 pt-6">
-        <Link
-          href="/athlete/trainers"
-          className="group inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
-          {tTrainers("eyebrow")}
-        </Link>
-      </div>
-
-      {/* ── HERO ────────────────────────────────────────── */}
-      <section className="relative mx-auto mt-5 max-w-6xl px-5">
-        <motion.div
-          variants={heroContainer}
-          initial="hidden"
-          animate="visible"
-          className="relative overflow-hidden rounded-none border border-border bg-card"
-        >
-          <div className="relative grid items-center gap-8 px-6 py-10 sm:grid-cols-[1fr_auto] sm:px-12 sm:py-14">
-            <div>
-              <motion.p
-                variants={heroItem}
-                className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
-              >
-                {tCommon("status.available")}
-              </motion.p>
-
-              <motion.h1
-                variants={heroItem}
-                className="mt-3 font-mono text-5xl font-semibold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl"
-              >
-                {name}
-              </motion.h1>
-
-              <motion.div
-                variants={heroItem}
-                className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Stars value={rating} />
-                  <span className="font-mono font-medium text-foreground">
-                    {rating ? rating.toFixed(1) : "—"}
-                  </span>
-                  <span className="text-muted-foreground">
-                    ({reviewCount} {t("reviews_count", { count: reviewCount })})
-                  </span>
-                </span>
-                {location && (
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                    <MapPin className="size-5" aria-hidden="true" />
-                    {location}
-                  </span>
-                )}
-              </motion.div>
-
-              {isAvailable ? (
-                <motion.span
-                  variants={heroItem}
-                  className="mt-6 inline-flex items-center gap-2 rounded-none border border-accent/40 bg-accent/10 px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.18em] text-accent-foreground"
-                >
-                  <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
-                  {t("available")}
-                </motion.span>
-              ) : null}
-            </div>
-
-            {/* monogram */}
-            <motion.div
-              variants={heroItem}
-              className="flex justify-center sm:justify-end"
-            >
-              <div className="relative">
-                <div className="flex h-32 w-32 items-center justify-center rounded-none border border-border bg-background sm:h-36 sm:w-36">
-                  <span className="font-mono text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">
-                    {initials}
-                  </span>
-                </div>
-                {isAvailable ? (
-                  <span className="absolute bottom-2 right-2 size-1.5 rounded-full bg-accent" aria-hidden="true" />
-                ) : null}
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ── CONTENT ────────────────────────────────────── */}
-      <motion.div
-        variants={sectionContainer}
-        initial="hidden"
-        animate="visible"
-        className="relative mx-auto grid max-w-6xl grid-cols-1 gap-8 px-5 py-10 lg:grid-cols-3"
-      >
-        {/* MAIN COLUMN */}
-        <div className="space-y-10 lg:col-span-2">
-          {/* About */}
-          {trainer.trainerProfile?.bio && (
-            <motion.section variants={sectionItem}>
-              <h2 className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                {t("about")}
-              </h2>
-              <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground">
-                {trainer.trainerProfile.bio}
-              </p>
-            </motion.section>
-          )}
-
-          {/* Stat tiles */}
-          <motion.section
-            variants={sectionItem}
-            className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+    <MotionProvider>
+      <main className="relative min-h-screen">
+        <div className="relative mx-auto max-w-6xl px-5 pt-6">
+          <Link
+            href="/athlete/trainers"
+            className="group inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
           >
-            {statTiles.map((tile) => (
-              <div
-                key={tile.label}
-                className="rounded-none border border-border p-5"
-              >
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {tile.label}
-                </p>
-                <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-foreground">
-                  {tile.value ?? (
-                    <span className="text-base font-medium text-muted-foreground">
-                      {t("not_set")}
-                    </span>
-                  )}
-                  {tile.suffix && (
-                    <span className="ml-1 text-sm font-medium text-muted-foreground">
-                      {tile.suffix}
-                    </span>
-                  )}
-                </p>
-              </div>
-            ))}
-          </motion.section>
-
-          {/* Definition rows */}
-          <motion.section variants={sectionItem}>
-            <Card className="rounded-none border border-border shadow-none ring-0">
-              <dl className="divide-y divide-border">
-                {defRows.map((row) => (
-                  <div
-                    key={row.label}
-                    className="flex items-start justify-between gap-6 px-6 py-4"
-                  >
-                    <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                      {stripColon(row.label)}
-                    </dt>
-                    <dd className="text-right text-sm font-medium text-foreground">
-                      {row.value || (
-                        <span className="text-muted-foreground">
-                          {t("not_set")}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </Card>
-          </motion.section>
-
-          {/* Reviews */}
-          <motion.section variants={sectionItem}>
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-mono text-2xl font-semibold tracking-[-0.04em] text-foreground">
-                {t("reviews_title")}
-                <span className="ml-2 align-middle font-mono text-sm font-medium text-muted-foreground">
-                  {reviewCount}
-                </span>
-              </h2>
-              {currentUserId && (
-                <CreateReviewDialog
-                  trainerId={trainerId}
-                  trainerName={name}
-                  onReviewCreated={refreshData}
-                >
-                  <Button variant="outline" size="sm">
-                    {t("write_review")}
-                  </Button>
-                </CreateReviewDialog>
-              )}
-            </div>
-
-            {reviews.length === 0 ? (
-              <p className="mt-4 rounded-none border border-border px-6 py-10 text-center text-muted-foreground">
-                {t("no_reviews")}
-              </p>
-            ) : (
-              <motion.ul
-                variants={sectionContainer}
-                initial="hidden"
-                animate="visible"
-                className="mt-5 space-y-4"
-              >
-                {reviews.map((review) => (
-                  <motion.li
-                    key={review.reviewId}
-                    variants={sectionItem}
-                    className="rounded-none border border-border bg-card p-6"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <Stars value={review.rating} />
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {dayjs(review.createdAt).format("MMM D, YYYY")}
-                          </span>
-                        </div>
-                        {review.comment && (
-                          <p className="mt-3 leading-relaxed text-foreground/90">
-                            {review.comment}
-                          </p>
-                        )}
-                      </div>
-                      {currentUserId && (
-                        <ReviewActions
-                          review={review}
-                          currentUserId={currentUserId}
-                          onReviewUpdated={refreshData}
-                        />
-                      )}
-                    </div>
-                  </motion.li>
-                ))}
-              </motion.ul>
-            )}
-          </motion.section>
+            <ArrowLeft className="size-5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
+            {tTrainers("eyebrow")}
+          </Link>
         </div>
 
-        {/* SIDEBAR */}
-        <aside className="lg:col-span-1">
-          <div className="space-y-5 lg:sticky lg:top-6">
-            <Card className="rounded-none border border-border shadow-none ring-0">
-              <div className="border-b border-border px-6 py-4">
-                <h2 className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  {t("availability_title")}
-                </h2>
+        {/* ── HERO ────────────────────────────────────────── */}
+        <section className="relative mx-auto mt-5 max-w-6xl px-5">
+          <m.div
+            variants={heroContainer}
+            initial="hidden"
+            animate="visible"
+            className="relative overflow-hidden rounded-none border border-border bg-card"
+          >
+            <div className="relative grid items-center gap-8 px-6 py-10 sm:grid-cols-[1fr_auto] sm:px-12 sm:py-14">
+              <div>
+                <m.p
+                  variants={heroItem}
+                  className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+                >
+                  {tCommon("status.available")}
+                </m.p>
+
+                <m.h1
+                  variants={heroItem}
+                  className="mt-3 font-mono text-5xl font-semibold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl"
+                >
+                  {name}
+                </m.h1>
+
+                <m.div
+                  variants={heroItem}
+                  className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Stars value={rating} />
+                    <span className="font-mono font-medium text-foreground">
+                      {rating ? rating.toFixed(1) : "—"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      ({reviewCount} {t("reviews_count", { count: reviewCount })})
+                    </span>
+                  </span>
+                  {location && (
+                    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                      <MapPin className="size-5" aria-hidden="true" />
+                      {location}
+                    </span>
+                  )}
+                </m.div>
+
+                {isAvailable ? (
+                  <m.span
+                    variants={heroItem}
+                    className="mt-6 inline-flex items-center gap-2 rounded-none border border-accent/40 bg-accent/10 px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.18em] text-accent-foreground"
+                  >
+                    <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
+                    {t("available")}
+                  </m.span>
+                ) : null}
               </div>
-              <div className="px-6 py-5">
-                {availability.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t("no_availability")}
+
+              {/* monogram */}
+              <m.div
+                variants={heroItem}
+                className="flex justify-center sm:justify-end"
+              >
+                <div className="relative">
+                  <div className="flex h-32 w-32 items-center justify-center rounded-none border border-border bg-background sm:h-36 sm:w-36">
+                    <span className="font-mono text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">
+                      {initials}
+                    </span>
+                  </div>
+                  {isAvailable ? (
+                    <span className="absolute bottom-2 right-2 size-1.5 rounded-full bg-accent" aria-hidden="true" />
+                  ) : null}
+                </div>
+              </m.div>
+            </div>
+          </m.div>
+        </section>
+
+        {/* ── CONTENT ────────────────────────────────────── */}
+        <m.div
+          variants={sectionContainer}
+          initial="hidden"
+          animate="visible"
+          className="relative mx-auto grid max-w-6xl grid-cols-1 gap-8 px-5 py-10 lg:grid-cols-3"
+        >
+          {/* MAIN COLUMN */}
+          <div className="space-y-10 lg:col-span-2">
+            {/* About */}
+            {trainer.trainerProfile?.bio && (
+              <m.section variants={sectionItem}>
+                <h2 className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  {t("about")}
+                </h2>
+                <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground">
+                  {trainer.trainerProfile.bio}
+                </p>
+              </m.section>
+            )}
+
+            {/* Stat tiles */}
+            <m.section
+              variants={sectionItem}
+              className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+            >
+              {statTiles.map((tile) => (
+                <div
+                  key={tile.label}
+                  className="rounded-none border border-border p-5"
+                >
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    {tile.label}
                   </p>
-                ) : (
-                  <ul className="space-y-4">
-                    {DAYS_OF_WEEK.map((day, index) => {
-                      const daySlots = availability.filter(
-                        (s) => s.dayOfWeek === index,
-                      );
-                      if (daySlots.length === 0) return null;
-                      return (
-                        <li key={day} className="flex items-start gap-3">
-                          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                          <div className="flex-1">
-                            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                              {t(`common.date.${day.toLowerCase()}`)}
-                            </p>
-                            <div className="mt-1.5 flex flex-wrap gap-2">
-                              {daySlots.map((slot) => (
-                                <span
-                                  key={slot.availabilityId}
-                                  className="rounded-none border border-border px-2.5 py-1 font-mono text-xs font-medium text-foreground"
-                                >
-                                  {formatTime(slot.startTime)} –{" "}
-                                  {formatTime(slot.endTime)}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-foreground">
+                    {tile.value ?? (
+                      <span className="text-base font-medium text-muted-foreground">
+                        {t("not_set")}
+                      </span>
+                    )}
+                    {tile.suffix && (
+                      <span className="ml-1 text-sm font-medium text-muted-foreground">
+                        {tile.suffix}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              ))}
+            </m.section>
+
+            {/* Definition rows */}
+            <m.section variants={sectionItem}>
+              <Card className="rounded-none border border-border shadow-none ring-0">
+                <dl className="divide-y divide-border">
+                  {defRows.map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-start justify-between gap-6 px-6 py-4"
+                    >
+                      <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                        {stripColon(row.label)}
+                      </dt>
+                      <dd className="text-right text-sm font-medium text-foreground">
+                        {row.value || (
+                          <span className="text-muted-foreground">
+                            {t("not_set")}
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </Card>
+            </m.section>
+
+            {/* Reviews */}
+            <m.section variants={sectionItem}>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="font-mono text-2xl font-semibold tracking-[-0.04em] text-foreground">
+                  {t("reviews_title")}
+                  <span className="ml-2 align-middle font-mono text-sm font-medium text-muted-foreground">
+                    {reviewCount}
+                  </span>
+                </h2>
+                {currentUserId && (
+                  <CreateReviewDialog
+                    trainerId={trainerId}
+                    trainerName={name}
+                    onReviewCreated={refreshData}
+                  >
+                    <Button variant="outline" size="sm">
+                      {t("write_review")}
+                    </Button>
+                  </CreateReviewDialog>
                 )}
               </div>
-            </Card>
 
-            {currentUserId && trainer && (
-              <>
-                <CoachingRequestDialog
-                  trainerId={trainerId}
-                  trainerName={name}
-                  onRequestSent={refreshData}
+              {reviews.length === 0 ? (
+                <p className="mt-4 rounded-none border border-border px-6 py-10 text-center text-muted-foreground">
+                  {t("no_reviews")}
+                </p>
+              ) : (
+                <m.ul
+                  variants={sectionContainer}
+                  initial="hidden"
+                  animate="visible"
+                  className="mt-5 space-y-4"
                 >
-                  <Button className="w-full">{t("request_coaching")}</Button>
-                </CoachingRequestDialog>
-
-                <CreateReviewDialog
-                  trainerId={trainerId}
-                  trainerName={name}
-                  onReviewCreated={refreshData}
-                >
-                  <Button variant="outline" className="w-full">
-                    {t("write_review")}
-                  </Button>
-                </CreateReviewDialog>
-              </>
-            )}
+                  {reviews.map((review) => (
+                    <m.li
+                      key={review.reviewId}
+                      variants={sectionItem}
+                      className="rounded-none border border-border bg-card p-6"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Stars value={review.rating} />
+                            <span className="font-mono text-xs text-muted-foreground">
+                              {dayjs(review.createdAt).format("MMM D, YYYY")}
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <p className="mt-3 leading-relaxed text-foreground/90">
+                              {review.comment}
+                            </p>
+                          )}
+                        </div>
+                        {currentUserId && (
+                          <ReviewActions
+                            review={review}
+                            currentUserId={currentUserId}
+                            onReviewUpdated={refreshData}
+                          />
+                        )}
+                      </div>
+                    </m.li>
+                  ))}
+                </m.ul>
+              )}
+            </m.section>
           </div>
-        </aside>
-      </motion.div>
-    </main>
+
+          {/* SIDEBAR */}
+          <aside className="lg:col-span-1">
+            <div className="space-y-5 lg:sticky lg:top-6">
+              <Card className="rounded-none border border-border shadow-none ring-0">
+                <div className="border-b border-border px-6 py-4">
+                  <h2 className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    {t("availability_title")}
+                  </h2>
+                </div>
+                <div className="px-6 py-5">
+                  {availability.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      {t("no_availability")}
+                    </p>
+                  ) : (
+                    <ul className="space-y-4">
+                      {DAYS_OF_WEEK.map((day, index) => {
+                        const daySlots = availability.filter(
+                          (s) => s.dayOfWeek === index,
+                        );
+                        if (daySlots.length === 0) return null;
+                        return (
+                          <li key={day} className="flex items-start gap-3">
+                            <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                            <div className="flex-1">
+                              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                                {t(`common.date.${day.toLowerCase()}`)}
+                              </p>
+                              <div className="mt-1.5 flex flex-wrap gap-2">
+                                {daySlots.map((slot) => (
+                                  <span
+                                    key={slot.availabilityId}
+                                    className="rounded-none border border-border px-2.5 py-1 font-mono text-xs font-medium text-foreground"
+                                  >
+                                    {formatTime(slot.startTime)} –{" "}
+                                    {formatTime(slot.endTime)}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </Card>
+
+              {currentUserId && trainer && (
+                <>
+                  <CoachingRequestDialog
+                    trainerId={trainerId}
+                    trainerName={name}
+                    onRequestSent={refreshData}
+                  >
+                    <Button className="w-full">{t("request_coaching")}</Button>
+                  </CoachingRequestDialog>
+
+                  <CreateReviewDialog
+                    trainerId={trainerId}
+                    trainerName={name}
+                    onReviewCreated={refreshData}
+                  >
+                    <Button variant="outline" className="w-full">
+                      {t("write_review")}
+                    </Button>
+                  </CreateReviewDialog>
+                </>
+              )}
+            </div>
+          </aside>
+        </m.div>
+      </main>
+    </MotionProvider>
   );
 }

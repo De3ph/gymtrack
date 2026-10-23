@@ -1,4 +1,5 @@
-import { motion, LazyMotion, domAnimation } from "motion/react";
+import * as m from "motion/react-m";
+import { MotionProvider } from "@/components/ui/motion-provider";
 import { landingReveal, reducedMotionVariants } from "../landing-variants";
 import { useReducedMotion } from "../useReducedMotion";
 import { HeroTitle } from "./hero-title";
@@ -11,13 +12,13 @@ export function LandingHero() {
   const variants = reducedMotion ? reducedMotionVariants : landingReveal;
 
   return (
-    <LazyMotion features={domAnimation}>
-      <motion.div className="max-w-5xl" variants={variants}>
+    <MotionProvider>
+      <m.div className="max-w-5xl" variants={variants}>
         <HeroTitle />
         <HeroDescription />
         <HeroActions />
         <HeroMetrics />
-      </motion.div>
-    </LazyMotion>
+      </m.div>
+    </MotionProvider>
   );
 }

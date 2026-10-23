@@ -1,6 +1,6 @@
 import { Activity, BarChart3, UsersRound, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { reducedMotionVariants, textReveal, textStagger } from "../landing-variants";
 import { useReducedMotion } from "../useReducedMotion";
 
@@ -29,12 +29,12 @@ export function HeroMetrics() {
   ];
 
   return (
-    <motion.dl
+    <m.dl
       variants={staggerVariants}
       className="mt-16 grid max-w-3xl grid-cols-3 divide-x divide-border border-y border-border"
     >
       {metrics.map((metric) => (
-        <motion.div
+        <m.div
           key={metric.label}
           variants={revealVariants}
           className="flex flex-col gap-2 px-4 py-5 sm:px-6 sm:py-6"
@@ -46,8 +46,8 @@ export function HeroMetrics() {
           <dd className="text-4xl font-medium tabular-nums text-foreground sm:text-5xl">
             {metric.value}
           </dd>
-        </motion.div>
+        </m.div>
       ))}
-    </motion.dl>
+    </m.dl>
   );
 }

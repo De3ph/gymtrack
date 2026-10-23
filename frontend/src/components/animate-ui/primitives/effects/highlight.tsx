@@ -1,8 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { AnimatePresence, motion, type Transition } from 'motion/react';
+import { AnimatePresence, type Transition } from 'motion/react';
+import * as m from 'motion/react-m';
 
+import { MotionLayoutProvider } from '@/components/ui/motion-layout-provider';
 import { cn } from '@/lib/utils';
 
 type HighlightMode = 'children' | 'parent';
@@ -261,7 +263,7 @@ function Highlight<T extends React.ElementType = 'div'>({
         >
           <AnimatePresence initial={false} mode="wait">
             {boundsState && (
-              <motion.div
+              <m.div
                 data-slot="motion-highlight"
                 animate={{
                   top: boundsState.top,
@@ -299,40 +301,44 @@ function Highlight<T extends React.ElementType = 'div'>({
   };
 
   return (
-    <HighlightContext.Provider
-      value={{
-        mode,
-        activeValue,
-        setActiveValue: safeSetActiveValue,
-        id,
-        hover,
-        click,
-        className,
-        style,
-        transition,
-        disabled,
-        enabled,
-        exitDelay,
-        setBounds: safeSetBounds,
-        clearBounds,
-        activeClassName: activeClassNameState,
-        setActiveClassName: setActiveClassNameState,
-        forceUpdateBounds: (props as ParentModeHighlightProps)
-          ?.forceUpdateBounds,
-      }}
-    >
-      {enabled
-        ? controlledItems
-          ? render(children)
-          : render(
-              React.Children.map(children, (child, index) => (
-                <HighlightItem key={index} className={props?.itemsClassName}>
-                  {child}
-                </HighlightItem>
-              )),
-            )
-        : children}
-    </HighlightContext.Provider>
+    // The highlight slides between items via `layoutId`, which needs the
+    // layout feature - not part of domAnimation.
+    <MotionLayoutProvider>
+      <HighlightContext.Provider
+        value={{
+          mode,
+          activeValue,
+          setActiveValue: safeSetActiveValue,
+          id,
+          hover,
+          click,
+          className,
+          style,
+          transition,
+          disabled,
+          enabled,
+          exitDelay,
+          setBounds: safeSetBounds,
+          clearBounds,
+          activeClassName: activeClassNameState,
+          setActiveClassName: setActiveClassNameState,
+          forceUpdateBounds: (props as ParentModeHighlightProps)
+            ?.forceUpdateBounds,
+        }}
+      >
+        {enabled
+          ? controlledItems
+            ? render(children)
+            : render(
+                React.Children.map(children, (child, index) => (
+                  <HighlightItem key={index} className={props?.itemsClassName}>
+                    {child}
+                  </HighlightItem>
+                )),
+              )
+          : children}
+      </HighlightContext.Provider>
+    </MotionLayoutProvider>
   );
 }
 
@@ -525,7 +531,7 @@ function HighlightItem<T extends React.ElementType>({
         <>
           <AnimatePresence initial={false} mode="wait">
             {isActive && !isDisabled && (
-              <motion.div
+              <m.div
                 layoutId={`transition-background-${contextId}`}
                 data-slot="motion-highlight"
                 style={{
@@ -587,7 +593,7 @@ function HighlightItem<T extends React.ElementType>({
       {mode === 'children' && (
         <AnimatePresence initial={false} mode="wait">
           {isActive && !isDisabled && (
-            <motion.div
+            <m.div
               layoutId={`transition-background-${contextId}`}
               data-slot="motion-highlight"
               style={{

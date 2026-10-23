@@ -5,7 +5,7 @@ import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { NoiseBackground } from "@/components/ui/noise-background";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import {
   reducedMotionVariants,
   textReveal,
@@ -20,11 +20,11 @@ export function HeroActions() {
   const revealVariants = reducedMotion ? reducedMotionVariants : textReveal;
 
   return (
-    <motion.div
+    <m.div
       variants={staggerVariants}
       className="mt-12 flex flex-col gap-3 sm:flex-row sm:items-center"
     >
-      <motion.div variants={revealVariants} className="w-full sm:w-auto">
+      <m.div variants={revealVariants} className="w-full sm:w-auto">
         <NoiseBackground
           padding="p-px"
           radius="rounded-none"
@@ -46,8 +46,8 @@ export function HeroActions() {
             <ArrowRight className="size-7" aria-hidden="true" />
           </Link>
         </NoiseBackground>
-      </motion.div>
-      <motion.div variants={revealVariants} className="w-full sm:w-auto">
+      </m.div>
+      <m.div variants={revealVariants} className="w-full sm:w-auto">
         <NoiseBackground
           padding="p-px"
           radius="rounded-none"
@@ -68,7 +68,7 @@ export function HeroActions() {
             {t("login")}
           </Link>
         </NoiseBackground>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 }

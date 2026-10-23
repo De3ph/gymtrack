@@ -1,9 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import {
-  motion,
   useAnimationFrame,
   useMotionTemplate,
   useMotionValue,
@@ -12,7 +10,11 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import * as m from "motion/react-m";
 import { useEffect, useRef } from "react";
+
+/** Pre-compressed noise overlay (512x512 WebP, ~89 KB). */
+const NOISE_TEXTURE = "/images/noise.webp";
 
 /** Moving radial highlight that drifts across the surface. */
 function GradientLayer({
@@ -33,7 +35,7 @@ function GradientLayer({
   const background = useMotionTemplate`radial-gradient(circle at ${x}px ${y}px, ${gradientColor} 0%, transparent 55%)`;
 
   return (
-    <motion.div
+    <m.div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0"
       style={{ opacity, background }}
@@ -234,24 +236,33 @@ export const NoiseBackground = ({
         multiplier={1.2}
       />
 
-      {/* Static noise texture */}
+      {/* Static noise texture.
+
+          Painted as a CSS background instead of an <Image> on purpose. The
+          texture is a decorative, aria-hidden overlay on a wrapper that hugs
+          its child, so its rendered width is the child's width - there is no
+          viewport-relative size to describe, and every `sizes` candidate
+          was wrong. next/image also re-encodes through the optimizer, and
+          because WebP alpha is always lossless the sparse dot alpha ballooned
+          the payload to ~900 KB. A CSS background fetches the pre-compressed
+          texture straight from /public and keeps the exact `object-cover`
+          rendering (`background-size: cover` + centered position). */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-      >
-        <Image
-          src="/images/noise.webp"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover opacity-[var(--noise-opacity)]"
-          style={{ mixBlendMode: "overlay" }}
-        />
-      </div>
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `url(${NOISE_TEXTURE})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: "var(--noise-opacity)",
+          mixBlendMode: "overlay",
+        }}
+      />
 
       {/* Optional accent bar, inset to the ring so it never overlaps content */}
       {showTopStrip ? (
-        <motion.div
+        <m.div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 h-px"
           style={{

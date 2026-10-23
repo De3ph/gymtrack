@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { useTranslations } from "next-intl"
 
 import {
@@ -28,6 +29,7 @@ import { MealFilterBar } from "./MealFilterBar"
 import { PAGINATION } from "@/lib/constants"
 import { getPaginationRange } from "@/lib/pagination"
 import { staggerContainer } from "@/lib/animations"
+import { MotionLayoutProvider } from "@/components/ui/motion-layout-provider"
 
 export interface MealFilter {
   startDate?: string;
@@ -120,7 +122,7 @@ export function MealList({
   const canPaginate = isSelfFetching || totalCountProp !== undefined
 
   const { collapsedIds, toggleCollapsed } = useCollapseSeed(
-    meals.map((m) => ({ id: m.mealId, date: m.date })),
+    meals.map((mod) => ({ id: mod.mealId, date: mod.date })),
     collapseAllExceptNewest,
   )
 
@@ -180,27 +182,31 @@ export function MealList({
         </div>
       )}
 
-      <motion.div
-        className="space-y-4"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <AnimatePresence mode="popLayout">
-          {meals.map((meal) => (
-            <MealCard
-              key={meal.mealId}
-              meal={meal}
-              isCollapsed={Boolean(collapsedIds[String(meal.mealId)])}
-              onToggle={() => {
-                if (meal.mealId != null) toggleCollapsed(meal.mealId);
-              }}
-              expandedCommentsId={expandedCommentsId}
-              setExpandedCommentsId={setExpandedCommentsId}
-            />
-          ))}
-        </AnimatePresence>
-      </motion.div>
+      {/* The cards use `layout`, which needs the layout feature. One provider
+          per list, not one per card. */}
+      <MotionLayoutProvider>
+        <m.div
+          className="space-y-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <AnimatePresence mode="popLayout">
+            {meals.map((meal) => (
+              <MealCard
+                key={meal.mealId}
+                meal={meal}
+                isCollapsed={Boolean(collapsedIds[String(meal.mealId)])}
+                onToggle={() => {
+                  if (meal.mealId != null) toggleCollapsed(meal.mealId);
+                }}
+                expandedCommentsId={expandedCommentsId}
+                setExpandedCommentsId={setExpandedCommentsId}
+              />
+            ))}
+          </AnimatePresence>
+        </m.div>
+      </MotionLayoutProvider>
 
       {showPagination && (
         <Pagination className="mt-6">

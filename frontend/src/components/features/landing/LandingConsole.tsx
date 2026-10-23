@@ -14,8 +14,9 @@ import {
   BentoItemPattern,
   BentoItemTitle,
 } from "@/components/ui/bento-grid";
-import { motion, LazyMotion, domAnimation } from "motion/react";
-import { landingReveal, reducedMotionVariants } from "./landing-variants";
+import * as m from "motion/react-m";
+import { MotionProvider } from "@/components/ui/motion-provider";
+import { landingReveal, reducedMotionVariants, revealOnView } from "./landing-variants";
 import { useReducedMotion } from "./useReducedMotion";
 import CountingNumber from "@/components/animated/counting-number";
 
@@ -45,9 +46,10 @@ export function LandingConsole() {
   const variants = reducedMotion ? reducedMotionVariants : landingReveal;
 
   return (
-    <LazyMotion features={domAnimation}>
-      <motion.div
+    <MotionProvider>
+      <m.div
         variants={variants}
+        {...revealOnView}
         className="border border-border"
         role="region"
         aria-labelledby="console-heading"
@@ -200,7 +202,7 @@ export function LandingConsole() {
             </BentoItemDescription>
           </BentoItem>
         </BentoGrid>
-      </motion.div>
-    </LazyMotion>
+      </m.div>
+    </MotionProvider>
   );
 }

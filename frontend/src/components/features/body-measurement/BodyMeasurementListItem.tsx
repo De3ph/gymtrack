@@ -12,10 +12,10 @@ import {
 } from "lucide-react";
 import {
   AnimatePresence,
-  motion,
   type Transition,
   useReducedMotion,
 } from "motion/react";
+import * as m from "motion/react-m";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -109,13 +109,13 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
               className="flex min-w-0 flex-1 flex-row items-center justify-between gap-3 rounded-none text-left outline-none transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               {summary}
-              <motion.span
+              <m.span
                 className="flex shrink-0 text-muted-foreground"
                 animate={{ rotate: isCollapsed ? 0 : 180 }}
                 transition={collapseTransition}
               >
                 <ChevronDown className="size-4" aria-hidden="true" />
-              </motion.span>
+              </m.span>
             </button>
           ) : (
             <div className="min-w-0 flex-1">{summary}</div>
@@ -187,7 +187,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
 
       <AnimatePresence initial={false}>
         {!isCollapsed && hasDetails && (
-          <motion.div
+          <m.div
             key="body"
             id={bodyId}
             className="overflow-hidden border-t border-border"
@@ -221,7 +221,7 @@ export const BodyMeasurementListItem = memo(function BodyMeasurementListItemImpl
                 </>
               )}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

@@ -22,9 +22,10 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useDeferredValue, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ROUTES, buildRoute } from "@/lib/routes";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { staggerContainer } from "@/lib/animations";
 import { STALE_TIMES } from "@/lib/api/api-constants";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 export default function TrainerClientsPage() {
   const tCommonLoading = useTranslations("common");
@@ -79,107 +80,109 @@ export default function TrainerClientsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {t("title")}
-          </h1>
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {t("description")}
-          </p>
+    <MotionProvider>
+      <div className="container mx-auto py-6">
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {t("title")}
+            </h1>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {t("description")}
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowInviteDialog(true)}
+            className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+          >
+            <UserPlus className="size-5" aria-hidden="true" />
+            {t("invite_athlete")}
+          </Button>
         </div>
-        <Button
-          onClick={() => setShowInviteDialog(true)}
-          className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
-        >
-          <UserPlus className="size-5" aria-hidden="true" />
-          {t("invite_athlete")}
-        </Button>
-      </div>
 
-      {error && (
-        <div
-          role="alert"
-          className="mb-4 border border-destructive px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-destructive"
-        >
-          {error instanceof Error ? error.message : String(error)}
-        </div>
-      )}
+        {error && (
+          <div
+            role="alert"
+            className="mb-4 border border-destructive px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-destructive"
+          >
+            {error instanceof Error ? error.message : String(error)}
+          </div>
+        )}
 
-      {clients.length > 0 && (
-        <div className="mb-4">
-          <Input
-            type="text"
-            placeholder={t("search_placeholder")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-sm"
-          />
-        </div>
-      )}
-
-      {clients.length === 0 ? (
-        <Empty className="rounded-none border border-border">
-          <EmptyHeader>
-            <EmptyMedia
-              variant="default"
-              className="rounded-none bg-transparent"
-            >
-              <Users
-                className="size-5 text-muted-foreground"
-                aria-hidden="true"
-              />
-            </EmptyMedia>
-            <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em]">
-              {t("no_clients_title")}
-            </EmptyTitle>
-          </EmptyHeader>
-          <EmptyContent>
-            <EmptyDescription>{t("no_clients_description")}</EmptyDescription>
-            <Button
-              onClick={() => setShowInviteDialog(true)}
-              className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
-            >
-              <UserPlus className="size-5" aria-hidden="true" />
-              {t("invite_first_athlete")}
-            </Button>
-          </EmptyContent>
-        </Empty>
-      ) : (
-        <motion.div
-          className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {filteredClients.map((client) => (
-            <ClientCard
-              key={client.relationship?.relationshipId}
-              client={client}
-              onViewClient={handleViewClient}
+        {clients.length > 0 && (
+          <div className="mb-4">
+            <Input
+              type="text"
+              placeholder={t("search_placeholder")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full max-w-sm"
             />
-          ))}
-        </motion.div>
-      )}
+          </div>
+        )}
 
-      {filteredClients.length === 0 && clients.length > 0 && (
-        <Empty className="rounded-none border border-border">
-          <EmptyHeader>
-            <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em]">
-              {t("no_results_title")}
-            </EmptyTitle>
-          </EmptyHeader>
-          <EmptyContent>
-            <EmptyDescription>{t("no_results_description")}</EmptyDescription>
-          </EmptyContent>
-        </Empty>
-      )}
+        {clients.length === 0 ? (
+          <Empty className="rounded-none border border-border">
+            <EmptyHeader>
+              <EmptyMedia
+                variant="default"
+                className="rounded-none bg-transparent"
+              >
+                <Users
+                  className="size-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
+              </EmptyMedia>
+              <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em]">
+                {t("no_clients_title")}
+              </EmptyTitle>
+            </EmptyHeader>
+            <EmptyContent>
+              <EmptyDescription>{t("no_clients_description")}</EmptyDescription>
+              <Button
+                onClick={() => setShowInviteDialog(true)}
+                className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+              >
+                <UserPlus className="size-5" aria-hidden="true" />
+                {t("invite_first_athlete")}
+              </Button>
+            </EmptyContent>
+          </Empty>
+        ) : (
+          <m.div
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {filteredClients.map((client) => (
+              <ClientCard
+                key={client.relationship?.relationshipId}
+                client={client}
+                onViewClient={handleViewClient}
+              />
+            ))}
+          </m.div>
+        )}
 
-      <GenerateInvitationDialog
-        open={showInviteDialog}
-        onOpenChange={setShowInviteDialog}
-      />
-    </div>
+        {filteredClients.length === 0 && clients.length > 0 && (
+          <Empty className="rounded-none border border-border">
+            <EmptyHeader>
+              <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em]">
+                {t("no_results_title")}
+              </EmptyTitle>
+            </EmptyHeader>
+            <EmptyContent>
+              <EmptyDescription>{t("no_results_description")}</EmptyDescription>
+            </EmptyContent>
+          </Empty>
+        )}
+
+        <GenerateInvitationDialog
+          open={showInviteDialog}
+          onOpenChange={setShowInviteDialog}
+        />
+      </div>
+    </MotionProvider>
   );
 }

@@ -1,10 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { motion, type HTMLMotionProps } from 'motion/react';
+import { type HTMLMotionProps } from 'motion/react';
+import * as m from 'motion/react-m';
 
 import { getStrictContext } from '@/lib/get-strict-context';
 import { Slot, type WithAsChild } from '@/components/animate-ui/primitives/animate/slot';
+import { MotionProvider } from '@/components/ui/motion-provider';
 
 type Ripple = {
   id: number;
@@ -74,24 +76,26 @@ function RippleButton({
     [createRipple, onClick],
   );
 
-  const Component = asChild ? Slot : motion.button;
+  const Component = asChild ? Slot : m.button;
 
   return (
-    <RippleButtonProvider value={{ ripples, setRipples }}>
-      <Component
-        ref={buttonRef}
-        data-slot="ripple-button"
-        onClick={handleClick}
-        whileTap={{ scale: tapScale }}
-        whileHover={{ scale: hoverScale }}
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          ...style,
-        }}
-        {...props}
-      />
-    </RippleButtonProvider>
+    <MotionProvider>
+      <RippleButtonProvider value={{ ripples, setRipples }}>
+        <Component
+          ref={buttonRef}
+          data-slot="ripple-button"
+          onClick={handleClick}
+          whileTap={{ scale: tapScale }}
+          whileHover={{ scale: hoverScale }}
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            ...style,
+          }}
+          {...props}
+        />
+      </RippleButtonProvider>
+    </MotionProvider>
   );
 }
 
@@ -112,7 +116,7 @@ function RippleButtonRipples({
 }: RippleButtonRipplesProps) {
   const { ripples } = useRippleButton();
 
-  const Component = asChild ? Slot : motion.span;
+  const Component = asChild ? Slot : m.span;
 
   return ripples.map((ripple) => (
     <Component

@@ -1,8 +1,9 @@
 "use client";
 
-import { motion, LazyMotion, domAnimation } from "motion/react";
+import * as m from "motion/react-m";
+import { MotionProvider } from "@/components/ui/motion-provider";
 import { useTranslations } from "next-intl";
-import { landingReveal, reducedMotionVariants } from "./landing-variants";
+import { landingReveal, reducedMotionVariants, revealOnView } from "./landing-variants";
 import { useReducedMotion } from "./useReducedMotion";
 import { landingFeatures } from "./landing-features";
 import { LandingFeatureItem } from "./LandingFeatureItem";
@@ -13,9 +14,10 @@ export function LandingFeatureGrid() {
   const variants = reducedMotion ? reducedMotionVariants : landingReveal;
 
   return (
-    <LazyMotion features={domAnimation}>
-      <motion.div
+    <MotionProvider>
+      <m.div
         variants={variants}
+        {...revealOnView}
         className="border border-border"
         role="region"
         aria-labelledby="features-heading"
@@ -42,7 +44,7 @@ export function LandingFeatureGrid() {
             <LandingFeatureItem key={feature.id} feature={feature} />
           ))}
         </ul>
-      </motion.div>
-    </LazyMotion>
+      </m.div>
+    </MotionProvider>
   );
 }

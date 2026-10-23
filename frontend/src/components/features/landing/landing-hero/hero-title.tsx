@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { useTranslations } from "next-intl";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { reducedMotionVariants, textReveal, textStagger } from "../landing-variants";
 import { useReducedMotion } from "../useReducedMotion";
 
@@ -13,7 +13,7 @@ export function HeroTitle() {
   const words = title.split(" ");
 
   return (
-    <motion.h1
+    <m.h1
       id="hero-heading"
       variants={staggerVariants}
       initial="hidden"
@@ -26,12 +26,12 @@ export function HeroTitle() {
           to anyone copying from the page. */}
       {words.map((word, i) => (
         <Fragment key={`${word}-${i}`}>
-          <motion.span variants={revealVariants} className="inline-block">
+          <m.span variants={revealVariants} className="inline-block">
             {word}
-          </motion.span>
+          </m.span>
           {i < words.length - 1 ? " " : null}
         </Fragment>
       ))}
-    </motion.h1>
+    </m.h1>
   );
 }

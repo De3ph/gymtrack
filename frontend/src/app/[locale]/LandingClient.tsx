@@ -21,17 +21,17 @@ import dynamic from "next/dynamic";
 import { MotionProvider } from "@/components/ui/motion-provider";
 
 const LandingConsole = dynamic(
-  () => import("@/components/features/landing/LandingConsole").then((m) => m.LandingConsole),
+  () => import("@/components/features/landing/LandingConsole").then((mod) => mod.LandingConsole),
   { ssr: false, loading: () => null }
 );
 
 const LandingFeatureGrid = dynamic(
-  () => import("@/components/features/landing/LandingFeatureGrid").then((m) => m.LandingFeatureGrid),
+  () => import("@/components/features/landing/LandingFeatureGrid").then((mod) => mod.LandingFeatureGrid),
   { ssr: false, loading: () => null }
 );
 
 const LandingRolePaths = dynamic(
-  () => import("@/components/features/landing/LandingRolePaths").then((m) => m.LandingRolePaths),
+  () => import("@/components/features/landing/LandingRolePaths").then((mod) => mod.LandingRolePaths),
   { ssr: false, loading: () => null }
 );
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useCallback, memo } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import { useTranslations } from "next-intl";
 import { Comment } from "@/types";
 import dayjs from "dayjs";
@@ -93,7 +94,7 @@ const CommentNodeRow = memo(function CommentNodeRow({
       />
       <AnimatePresence initial={false}>
         {replyingToId === node.comment.commentId && !readOnly && (
-          <motion.div
+          <m.div
             key="reply-form"
             initial={
               reduce ? { opacity: 0 } : { height: 0, opacity: 0 }
@@ -117,12 +118,12 @@ const CommentNodeRow = memo(function CommentNodeRow({
                 onCancel={onCancelReply}
               />
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
       <AnimatePresence initial={false}>
         {node.children.map((child) => (
-          <motion.div
+          <m.div
             key={child.comment.commentId}
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -144,7 +145,7 @@ const CommentNodeRow = memo(function CommentNodeRow({
               depth={depth + 1}
               t={t}
             />
-          </motion.div>
+          </m.div>
         ))}
       </AnimatePresence>
     </div>
@@ -194,7 +195,7 @@ export function CommentList({
     <div className="divide-y divide-border">
       <AnimatePresence initial={false}>
         {tree.map((node) => (
-          <motion.div
+          <m.div
             key={node.comment.commentId}
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -217,7 +218,7 @@ export function CommentList({
               depth={0}
               t={t}
             />
-          </motion.div>
+          </m.div>
         ))}
       </AnimatePresence>
     </div>

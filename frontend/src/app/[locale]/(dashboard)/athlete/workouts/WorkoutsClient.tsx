@@ -20,6 +20,7 @@ import {
 import { toast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
 import { WorkoutPlan } from "@/types";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 // react-day-picker only ships when the athlete opens the calendar tab.
 const WorkoutCalendar = dynamic(
@@ -101,48 +102,50 @@ export function WorkoutsClient({
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col space-y-2">
-        <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
-          {t("title")}
-        </h1>
+    <MotionProvider>
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
+            {t("title")}
+          </h1>
+        </div>
+
+        <Tabs
+          className="w-full"
+          onValueChange={handleTabChange}
+          value={activeTab}
+        >
+          <TabsList className="grid w-full grid-cols-3 mb-2">
+            <TabsTab value="log">{t("log_tab")}</TabsTab>
+            <TabsTab value="list">{t("list_tab")}</TabsTab>
+            <TabsTab value="calendar">{t("calendar_tab")}</TabsTab>
+          </TabsList>
+
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
+            <div className="max-w-2xl">
+              <Card className="rounded-none border border-border shadow-none ring-0">
+                <CardContent>
+                  <WorkoutForm
+                    key={planId || "default"}
+                    plan={initialPlan}
+                    loadedPlanName={initialPlanName}
+                    onSuccess={() => handleTabChange("list")}
+                    onClear={handleClear}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsPanel>
+
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
+            <WorkoutList />
+          </TabsPanel>
+
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="calendar">
+            <WorkoutCalendar />
+          </TabsPanel>
+        </Tabs>
       </div>
-
-      <Tabs
-        className="w-full"
-        onValueChange={handleTabChange}
-        value={activeTab}
-      >
-        <TabsList className="grid w-full grid-cols-3 mb-2">
-          <TabsTab value="log">{t("log_tab")}</TabsTab>
-          <TabsTab value="list">{t("list_tab")}</TabsTab>
-          <TabsTab value="calendar">{t("calendar_tab")}</TabsTab>
-        </TabsList>
-
-        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
-          <div className="max-w-2xl">
-            <Card className="rounded-none border border-border shadow-none ring-0">
-              <CardContent>
-                <WorkoutForm
-                  key={planId || "default"}
-                  plan={initialPlan}
-                  loadedPlanName={initialPlanName}
-                  onSuccess={() => handleTabChange("list")}
-                  onClear={handleClear}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsPanel>
-
-        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
-          <WorkoutList />
-        </TabsPanel>
-
-        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="calendar">
-          <WorkoutCalendar />
-        </TabsPanel>
-      </Tabs>
-    </div>
+    </MotionProvider>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { ReactNode } from "react";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
@@ -14,13 +14,13 @@ interface DashboardShellProps {
 
 export function DashboardShell({ title, description, children }: DashboardShellProps) {
   return (
-    <motion.div
+    <m.div
       className="space-y-8"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
     >
-      <motion.section
+      <m.section
         variants={fadeInUp}
         className="border border-border bg-card px-6 py-6 sm:px-8 sm:py-8"
       >
@@ -32,10 +32,10 @@ export function DashboardShell({ title, description, children }: DashboardShellP
             {description}
           </p>
         </div>
-      </motion.section>
+      </m.section>
 
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -48,7 +48,7 @@ interface DashboardMetricProps {
 
 export function DashboardMetric({ label, value, hint, className }: DashboardMetricProps) {
   return (
-    <motion.div
+    <m.div
       variants={fadeInUp}
       className={cn(
         "border border-border bg-card px-6 py-6 sm:px-8 sm:py-8",
@@ -62,7 +62,7 @@ export function DashboardMetric({ label, value, hint, className }: DashboardMetr
         {value}
       </p>
       {hint && <p className="mt-2 font-sans text-sm leading-6 text-muted-foreground">{hint}</p>}
-    </motion.div>
+    </m.div>
   );
 }
 

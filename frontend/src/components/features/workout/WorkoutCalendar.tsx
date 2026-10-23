@@ -3,7 +3,8 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import dayjs, { formatDate } from "@/lib/i18n/dayjs";
 import { useTranslations } from "next-intl";
 
@@ -18,7 +19,7 @@ import { useCalendarStore } from "@/stores/calendar-store";
 import { WorkoutExercise, ExerciseSet } from "@/types";
 
 const CalendarGrid = dynamic(
-  () => import("@/components/ui/calendar-grid").then((m) => m.CalendarGrid),
+  () => import("@/components/ui/calendar-grid").then((mod) => mod.CalendarGrid),
   { ssr: false, loading: () => <Skeleton className="h-[280px] w-full" /> },
 );
 
@@ -92,7 +93,7 @@ export function WorkoutCalendar() {
           {/* Switching days swaps the whole day panel, so it crossfades
               instead of teleporting. Opacity only. */}
           <AnimatePresence mode="wait" initial={false}>
-            <motion.div
+            <m.div
               key={selectedDate ? selectedDate.toISOString() : "no-date"}
               initial={reduce ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -152,7 +153,7 @@ export function WorkoutCalendar() {
               {t("no_workouts")}
             </p>
           )}
-            </motion.div>
+            </m.div>
           </AnimatePresence>
         </div>
 

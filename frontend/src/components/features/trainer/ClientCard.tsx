@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ClientWithAthlete } from "@/types";
 import { Eye, Users } from "lucide-react";
 import { formatDate } from "@/lib/i18n/dayjs";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { staggerItem } from "@/lib/animations";
 import { useTranslations } from "next-intl"
 
@@ -19,7 +19,7 @@ export const ClientCard = memo(function ClientCardImpl({ client, onViewClient }:
   const tCommon = useTranslations("common.actions")
 
   return (
-    <motion.div
+    <m.div
       key={client.relationship?.relationshipId}
       variants={staggerItem}
     >
@@ -57,6 +57,6 @@ export const ClientCard = memo(function ClientCardImpl({ client, onViewClient }:
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 })

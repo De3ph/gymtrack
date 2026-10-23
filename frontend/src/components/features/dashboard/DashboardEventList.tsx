@@ -1,7 +1,8 @@
 "use client";
 
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import { useTranslations } from "next-intl";
 import { formatDate } from "@/lib/i18n/dayjs";
 import { DashboardEventItem } from "./DashboardEventItem";
@@ -44,7 +45,7 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
     // Switching days swaps the whole list, so the panel crossfades instead of
     // teleporting. Opacity only: this surface is read dozens of times a day.
     <AnimatePresence mode="wait" initial={false}>
-      <motion.div
+      <m.div
         key={date.toISOString()}
         initial={reduce ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -64,7 +65,7 @@ export function DashboardEventList({ date, events }: DashboardEventListProps) {
             ))}
           </ul>
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }

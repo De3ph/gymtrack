@@ -27,6 +27,7 @@ import { ArrowLeft, UserX } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 import { STALE_TIMES } from "@/lib/api/api-constants";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 export default function ClientDetailClient() {
   const params = useParams();
@@ -165,55 +166,57 @@ export default function ClientDetailClient() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
-            className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
-          >
-            <ArrowLeft className="size-5" aria-hidden="true" />
-            {t("back")}
-          </Button>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {clientDetails.athlete?.profile?.name || t("client_details")}
-            </h1>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              {clientDetails.athlete?.email}
-            </p>
-          </div>
-        </div>
-        <TerminateRelationshipDialog
-          clientId={clientDetails.athlete?.userId ?? 0}
-          athleteName={clientDetails.athlete?.profile?.name}
-          trigger={
+    <MotionProvider>
+      <div className="container mx-auto py-6">
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <Button
-              variant="destructive"
+              variant="outline"
+              onClick={() => router.push(ROUTES.TRAINER_CLIENTS)}
               className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
             >
-              <UserX className="size-5" aria-hidden="true" />
-              {t("end_relationship")}
+              <ArrowLeft className="size-5" aria-hidden="true" />
+              {t("back")}
             </Button>
-          }
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {clientDetails.athlete?.profile?.name || t("client_details")}
+              </h1>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                {clientDetails.athlete?.email}
+              </p>
+            </div>
+          </div>
+          <TerminateRelationshipDialog
+            clientId={clientDetails.athlete?.userId ?? 0}
+            athleteName={clientDetails.athlete?.profile?.name}
+            trigger={
+              <Button
+                variant="destructive"
+                className="rounded-none font-mono text-[10px] uppercase tracking-[0.18em]"
+              >
+                <UserX className="size-5" aria-hidden="true" />
+                {t("end_relationship")}
+              </Button>
+            }
+          />
+        </div>
+
+        <ClientOverview
+          athlete={clientDetails.athlete}
+          stats={clientDetails.stats}
+        />
+
+        <ClientTabs
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          username={username}
+          workoutStats={workoutStats}
+          mealStats={mealStats}
+          filters={filters}
+          onFiltersChange={setFilters}
         />
       </div>
-
-      <ClientOverview
-        athlete={clientDetails.athlete}
-        stats={clientDetails.stats}
-      />
-
-      <ClientTabs
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        username={username}
-        workoutStats={workoutStats}
-        mealStats={mealStats}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
-    </div>
+    </MotionProvider>
   );
 }

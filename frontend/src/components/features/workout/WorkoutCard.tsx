@@ -5,10 +5,10 @@ import { formatDate } from "@/lib/i18n/dayjs";
 import { MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import {
   AnimatePresence,
-  motion,
   type Transition,
   useReducedMotion,
 } from "motion/react";
+import * as m from "motion/react-m";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 const CommentThread = dynamic(
   () =>
     import("@/components/features/comments/CommentThread").then(
-      (m) => m.CommentThread,
+      (mod) => mod.CommentThread,
     ),
   { ssr: false, loading: () => <Skeleton className="h-12 w-full" /> },
 );
@@ -68,18 +68,18 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
             {workout.exercises.length} {t("exercises")}
           </span>
         </div>
-        <motion.span
+        <m.span
           className="flex shrink-0 text-muted-foreground"
           animate={{ rotate: isCollapsed ? 0 : 180 }}
           transition={collapseTransition}
         >
           <ChevronDown className="size-4" aria-hidden="true" />
-        </motion.span>
+        </m.span>
       </button>
 
       <AnimatePresence initial={false}>
         {!isCollapsed && (
-          <motion.div
+          <m.div
             key="body"
             id={`workout-card-body-${workout.workoutId}`}
             className="overflow-hidden border-t border-border"
@@ -164,7 +164,7 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
               </div>
             )}
           </div>
-        </motion.div>
+        </m.div>
         )}
       </AnimatePresence>
     </article>

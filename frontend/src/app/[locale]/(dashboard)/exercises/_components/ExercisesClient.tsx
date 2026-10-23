@@ -3,7 +3,8 @@
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import { Dumbbell, SearchX } from "lucide-react";
 import type { Equipment, ExerciseLibrary, MuscleGroup } from "@/types";
 import {
@@ -22,6 +23,7 @@ import {
   exerciseRevealReduced,
   exerciseStagger,
 } from "@/components/features/exercise/exercise-variants";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 interface ExercisesClientProps {
   exercises: ExerciseLibrary[];
@@ -113,68 +115,70 @@ export function ExercisesClient({
   const itemVariants = reducedMotion ? exerciseRevealReduced : exerciseReveal;
 
   return (
-    <div className="container mx-auto space-y-6 py-6">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {t("title")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-      </header>
+    <MotionProvider>
+      <div className="container mx-auto space-y-6 py-6">
+        <header className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {t("title")}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+          </div>
+        </header>
 
-      <ExerciseLibraryFilters
-        value={filters}
-        categories={categories}
-        muscleGroups={muscleGroups}
-        equipment={equipment}
-        resultCount={filtered.length}
-        totalCount={exercises.length}
-        onChange={handleFilterChange}
-      />
+        <ExerciseLibraryFilters
+          value={filters}
+          categories={categories}
+          muscleGroups={muscleGroups}
+          equipment={equipment}
+          resultCount={filtered.length}
+          totalCount={exercises.length}
+          onChange={handleFilterChange}
+        />
 
-      {filtered.length === 0 ? (
-        <Empty className="rounded-none border border-border">
-          <EmptyHeader>
-            <SearchX className="size-5 text-muted-foreground" aria-hidden="true" />
-            <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground">
-              {tFilters("no_results")}
-            </EmptyTitle>
-            <EmptyDescription>
-              {exercises.length === 0 ? t("catalog_empty") : t("no_results_hint")}
-            </EmptyDescription>
-          </EmptyHeader>
-          {exercises.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setFilters(EMPTY_FILTERS)}
-              className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              {tFilters("clear")}
-            </button>
-          )}
-        </Empty>
-      ) : (
-        <motion.div
-          variants={exerciseStagger}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {filtered.map((exercise) => (
-            <motion.div key={exercise.exerciseId} variants={itemVariants}>
-              <ExerciseLibraryCard exercise={exercise} />
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+        {filtered.length === 0 ? (
+          <Empty className="rounded-none border border-border">
+            <EmptyHeader>
+              <SearchX className="size-5 text-muted-foreground" aria-hidden="true" />
+              <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground">
+                {tFilters("no_results")}
+              </EmptyTitle>
+              <EmptyDescription>
+                {exercises.length === 0 ? t("catalog_empty") : t("no_results_hint")}
+              </EmptyDescription>
+            </EmptyHeader>
+            {exercises.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setFilters(EMPTY_FILTERS)}
+                className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                {tFilters("clear")}
+              </button>
+            )}
+          </Empty>
+        ) : (
+          <m.div
+            variants={exerciseStagger}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {filtered.map((exercise) => (
+              <m.div key={exercise.exerciseId} variants={itemVariants}>
+                <ExerciseLibraryCard exercise={exercise} />
+              </m.div>
+            ))}
+          </m.div>
+        )}
 
-      {exercises.length === 0 && (
-        <p className="flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          <Dumbbell className="size-5" aria-hidden="true" />
-          {t("catalog_empty")}
-        </p>
-      )}
-    </div>
+        {exercises.length === 0 && (
+          <p className="flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <Dumbbell className="size-5" aria-hidden="true" />
+            {t("catalog_empty")}
+          </p>
+        )}
+      </div>
+    </MotionProvider>
   );
 }

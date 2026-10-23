@@ -20,6 +20,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 export default function MealsClient() {
   const pathname = usePathname();
@@ -49,42 +50,44 @@ export default function MealsClient() {
   );
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col space-y-2">
-        <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
-          {t("title")}
-        </h1>
+    <MotionProvider>
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
+            {t("title")}
+          </h1>
+        </div>
+
+        <Tabs
+          className="w-full"
+          onValueChange={handleTabChange}
+          value={activeTab}
+        >
+          <TabsList className="grid w-full grid-cols-3 mb-2">
+            <TabsTab value="log">{t("log_tab")}</TabsTab>
+            <TabsTab value="list">{t("list_tab")}</TabsTab>
+            <TabsTab value="calendar">{t("calendar_tab")}</TabsTab>
+          </TabsList>
+
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
+            <div className="max-w-2xl">
+              <Card className="rounded-none border border-border shadow-none ring-0">
+                <CardContent>
+                  <MealForm onSuccess={() => handleTabChange("list")} />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsPanel>
+
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
+            <MealList />
+          </TabsPanel>
+
+          <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="calendar">
+            <MealCalendar />
+          </TabsPanel>
+        </Tabs>
       </div>
-
-      <Tabs
-        className="w-full"
-        onValueChange={handleTabChange}
-        value={activeTab}
-      >
-        <TabsList className="grid w-full grid-cols-3 mb-2">
-          <TabsTab value="log">{t("log_tab")}</TabsTab>
-          <TabsTab value="list">{t("list_tab")}</TabsTab>
-          <TabsTab value="calendar">{t("calendar_tab")}</TabsTab>
-        </TabsList>
-
-        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="log">
-          <div className="max-w-2xl">
-            <Card className="rounded-none border border-border shadow-none ring-0">
-              <CardContent>
-                <MealForm onSuccess={() => handleTabChange("list")} />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsPanel>
-
-        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="list">
-          <MealList />
-        </TabsPanel>
-
-        <TabsPanel transition={{ duration: 0.15, ease: "easeInOut" }} value="calendar">
-          <MealCalendar />
-        </TabsPanel>
-      </Tabs>
-    </div>
+    </MotionProvider>
   );
 }

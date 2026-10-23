@@ -1,7 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { motion, isMotionComponent, type HTMLMotionProps } from 'motion/react';
+import { isMotionComponent, type HTMLMotionProps } from 'motion/react';
+import * as m from 'motion/react-m';
+
+import { MotionProvider } from '@/components/ui/motion-provider';
 import { cn } from '@/lib/utils';
 
 type AnyProps = Record<string, unknown>;
@@ -72,7 +75,7 @@ function Slot<T extends HTMLElement = HTMLElement>({
     () =>
       isAlreadyMotion
         ? (children.type as React.ElementType)
-        : motion.create(children.type as React.ElementType),
+        : m.create(children.type as React.ElementType),
     [isAlreadyMotion, children.type],
   );
 
@@ -83,7 +86,11 @@ function Slot<T extends HTMLElement = HTMLElement>({
   const mergedProps = mergeProps(childProps, props);
 
   return (
-    <Base {...mergedProps} ref={mergeRefs(childRef as React.Ref<T>, ref)} />
+    // The element created above is a motion element: it needs a LazyMotion
+    // ancestor to pick up its features, otherwise it renders unanimated.
+    <MotionProvider>
+      <Base {...mergedProps} ref={mergeRefs(childRef as React.Ref<T>, ref)} />
+    </MotionProvider>
   );
 }
 

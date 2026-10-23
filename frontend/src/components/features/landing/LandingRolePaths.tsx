@@ -4,8 +4,8 @@ import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@/lib/routes";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
-import { landingReveal, reducedMotionVariants } from "./landing-variants";
+import * as m from "motion/react-m";
+import { landingReveal, reducedMotionVariants, revealOnView } from "./landing-variants";
 import { useReducedMotion } from "./useReducedMotion";
 
 const roleKeys = ["athlete", "trainer"] as const;
@@ -16,8 +16,9 @@ export function LandingRolePaths() {
   const variants = reducedMotion ? reducedMotionVariants : landingReveal;
 
   return (
-    <motion.div
+    <m.div
       variants={variants}
+      {...revealOnView}
       className="grid grid-cols-1 items-stretch border border-border lg:grid-cols-2"
       role="region"
       aria-labelledby="roles-heading"
@@ -93,6 +94,6 @@ export function LandingRolePaths() {
           </Link>
         </article>
       ))}
-    </motion.div>
+    </m.div>
   );
 }

@@ -3,11 +3,11 @@
 import * as React from 'react';
 import { Tabs as TabsPrimitive } from '@base-ui-components/react/tabs';
 import {
-  motion,
   AnimatePresence,
   type HTMLMotionProps,
   type Transition,
 } from 'motion/react';
+import * as m from 'motion/react-m';
 
 import {
   Highlight,
@@ -17,6 +17,7 @@ import {
 } from '@/components/animate-ui/primitives/effects/highlight';
 import { getStrictContext } from '@/lib/get-strict-context';
 import { useControlledState } from '@/hooks/use-controlled-state';
+import { MotionLayoutProvider } from '@/components/ui/motion-layout-provider';
 import {
   AutoHeight,
   type AutoHeightProps,
@@ -100,24 +101,28 @@ function TabsPanel({
   ...props
 }: TabsPanelProps) {
   return (
-    <AnimatePresence mode="wait">
-      <TabsPrimitive.Panel
-        render={
-          <motion.div
-            data-slot="tabs-panel"
-            layout
-            layoutDependency={value}
-            initial={{ opacity: 0, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, filter: 'blur(4px)' }}
-            transition={transition}
-            {...props}
-          />
-        }
-        keepMounted={keepMounted}
-        value={value}
-      />
-    </AnimatePresence>
+    // The `layout` prop needs the layout feature, which is not part of
+    // domAnimation - hence the dedicated provider.
+    <MotionLayoutProvider>
+      <AnimatePresence mode="wait">
+        <TabsPrimitive.Panel
+          render={
+            <m.div
+              data-slot="tabs-panel"
+              layout
+              layoutDependency={value}
+              initial={{ opacity: 0, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, filter: 'blur(4px)' }}
+              transition={transition}
+              {...props}
+            />
+          }
+          keepMounted={keepMounted}
+          value={value}
+        />
+      </AnimatePresence>
+    </MotionLayoutProvider>
   );
 }
 
@@ -171,16 +176,20 @@ function TabsPanels(props: TabsPanelsProps) {
   } = props;
 
   return (
-    <motion.div
-      data-slot="tabs-panels"
-      layout="size"
-      layoutDependency={value}
-      transition={{ layout: transition }}
-      style={{ overflow: 'hidden', ...style }}
-      {...layoutProps}
-    >
-      <React.Fragment key={value}>{children}</React.Fragment>
-    </motion.div>
+    // The `layout` prop needs the layout feature, which is not part of
+    // domAnimation - hence the dedicated provider.
+    <MotionLayoutProvider>
+      <m.div
+        data-slot="tabs-panels"
+        layout="size"
+        layoutDependency={value}
+        transition={{ layout: transition }}
+        style={{ overflow: 'hidden', ...style }}
+        {...layoutProps}
+      >
+        <React.Fragment key={value}>{children}</React.Fragment>
+      </m.div>
+    </MotionLayoutProvider>
   );
 }
 

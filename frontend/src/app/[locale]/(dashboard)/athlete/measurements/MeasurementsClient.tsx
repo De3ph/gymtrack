@@ -36,6 +36,7 @@ const BodyMeasurementCharts = dynamic(
 );
 import { BodyMeasurement } from "@/types";
 import { useTranslations } from "next-intl";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 interface MeasurementsClientProps {
   latest: BodyMeasurement | null;
@@ -99,101 +100,103 @@ export function MeasurementsClient({ latest }: MeasurementsClientProps) {
   }, [activeTab, queryClient]);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col space-y-2">
-        <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
-          {t("title")}
-        </h1>
-      </div>
+    <MotionProvider>
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h1 className="font-mono text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground">
+            {t("title")}
+          </h1>
+        </div>
 
-      {latest && (
-        <Card className="rounded-none border border-border shadow-none ring-0">
-          <CardContent className="flex flex-wrap gap-16">
-            <div className="flex flex-col justify-between">
-              <div>{t("latest.title")}</div>
-              <div>
-                {new Date(latest.date).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+        {latest && (
+          <Card className="rounded-none border border-border shadow-none ring-0">
+            <CardContent className="flex flex-wrap gap-16">
+              <div className="flex flex-col justify-between">
+                <div>{t("latest.title")}</div>
+                <div>
+                  {new Date(latest.date).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </div>
               </div>
+              {typeof latest.weight === "number" && (
+                <div>
+                  <div className="font-mono text-2xl font-semibold tracking-tight text-foreground">
+                    {latest.weight.toFixed(1)} {latest.weightUnit}
+                  </div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    {t("latest.weight")}
+                  </div>
+                </div>
+              )}
+              {typeof latest.bodyFatPct === "number" && latest.bodyFatPct > 0 && (
+                <div>
+                  <div className="font-mono text-2xl font-semibold tracking-tight text-foreground">
+                    {latest.bodyFatPct.toFixed(1)}%
+                  </div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    {t("latest.body_fat")}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-3 mb-2">
+            <TabsTab value="log">{t("log_tab")}</TabsTab>
+            <TabsTab value="list">{t("list_tab")}</TabsTab>
+            <TabsTab value="charts">{t("charts_tab")}</TabsTab>
+          </TabsList>
+
+          <TabsPanel
+            transition={{ duration: 0.15, ease: "easeInOut" }}
+            value="log"
+          >
+            <div className="max-w-3xl">
+              <Card className="rounded-none border border-border shadow-none ring-0">
+                <CardContent>
+                  <BodyMeasurementForm
+                    onSuccess={() => {
+                      justSubmittedRef.current = true;
+                      handleTabChange("list");
+                    }}
+                  />
+                </CardContent>
+              </Card>
             </div>
-            {typeof latest.weight === "number" && (
-              <div>
-                <div className="font-mono text-2xl font-semibold tracking-tight text-foreground">
-                  {latest.weight.toFixed(1)} {latest.weightUnit}
-                </div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {t("latest.weight")}
-                </div>
-              </div>
-            )}
-            {typeof latest.bodyFatPct === "number" && latest.bodyFatPct > 0 && (
-              <div>
-                <div className="font-mono text-2xl font-semibold tracking-tight text-foreground">
-                  {latest.bodyFatPct.toFixed(1)}%
-                </div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {t("latest.body_fat")}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+          </TabsPanel>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-3 mb-2">
-          <TabsTab value="log">{t("log_tab")}</TabsTab>
-          <TabsTab value="list">{t("list_tab")}</TabsTab>
-          <TabsTab value="charts">{t("charts_tab")}</TabsTab>
-        </TabsList>
+          <TabsPanel
+            transition={{ duration: 0.15, ease: "easeInOut" }}
+            value="list"
+          >
+            <BodyMeasurementList
+              filter={filter}
+              onFilterChange={handleFilterChange}
+              page={page}
+              onPageChange={measurementListStore.setPage}
+            />
+          </TabsPanel>
 
-        <TabsPanel
-          transition={{ duration: 0.15, ease: "easeInOut" }}
-          value="log"
-        >
-          <div className="max-w-3xl">
-            <Card className="rounded-none border border-border shadow-none ring-0">
-              <CardContent>
-                <BodyMeasurementForm
-                  onSuccess={() => {
-                    justSubmittedRef.current = true;
-                    handleTabChange("list");
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsPanel>
-
-        <TabsPanel
-          transition={{ duration: 0.15, ease: "easeInOut" }}
-          value="list"
-        >
-          <BodyMeasurementList
-            filter={filter}
-            onFilterChange={handleFilterChange}
-            page={page}
-            onPageChange={measurementListStore.setPage}
-          />
-        </TabsPanel>
-
-        <TabsPanel
-          transition={{ duration: 0.15, ease: "easeInOut" }}
-          value="charts"
-        >
-          <BodyMeasurementCharts
-            filter={filter}
-            onFilterChange={handleFilterChange}
-          />
-        </TabsPanel>
-      </Tabs>
-    </div>
+          <TabsPanel
+            transition={{ duration: 0.15, ease: "easeInOut" }}
+            value="charts"
+          >
+            <BodyMeasurementCharts
+              filter={filter}
+              onFilterChange={handleFilterChange}
+            />
+          </TabsPanel>
+        </Tabs>
+      </div>
+    </MotionProvider>
   );
 }

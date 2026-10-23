@@ -9,7 +9,7 @@ import { buildRoute } from "@/lib/routes";
 import { Eye, UserCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 
 interface TodayClientListProps {
@@ -52,7 +52,7 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
             </EmptyHeader>
           </Empty>
         ) : (
-          <motion.ul className="border border-border divide-y divide-border" variants={staggerContainer} initial="hidden" animate="visible">
+          <m.ul className="border border-border divide-y divide-border" variants={staggerContainer} initial="hidden" animate="visible">
             {focusClients.map((client) => (
               <TodayClientRow
                 key={client.relationship.relationshipId}
@@ -61,7 +61,7 @@ export function TodayClientList({ clients, limit = 4 }: TodayClientListProps) {
                 tCommon={tCommon}
               />
             ))}
-          </motion.ul>
+          </m.ul>
         )}
       </div>
     </div>
@@ -82,7 +82,7 @@ const TodayClientRow = memo(function TodayClientRow({
   const goal = client.athlete?.profile?.fitnessGoals;
 
   return (
-    <motion.li variants={staggerItem} className="list-none">
+    <m.li variants={staggerItem} className="list-none">
       <Item
         variant="outline"
         size="default"
@@ -113,7 +113,7 @@ const TodayClientRow = memo(function TodayClientRow({
           </Button>
         </ItemActions>
       </Item>
-    </motion.li>
+    </m.li>
   );
 })
 

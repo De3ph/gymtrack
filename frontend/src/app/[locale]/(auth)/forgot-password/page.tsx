@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { ArrowLeft, ArrowRight, RotateCw } from "lucide-react";
 import { type ForgotPasswordFormData } from "@/lib/validations/auth";
 import { authApi } from "@/lib/api/authApi";
@@ -16,6 +16,7 @@ import { FieldInfo } from "@/components/ui/form-field";
 import { Spinner } from "@/components/ui/spinner";
 import { stagger, reveal } from "@/components/features/auth/auth-variants";
 import { useReducedMotion } from "@/components/features/landing/useReducedMotion";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth.forgot_password");
@@ -64,44 +65,44 @@ export default function ForgotPasswordPage() {
 
   if (submittedEmail) {
     return (
-      <motion.div
+      <m.div
         key="sent"
         initial="hidden"
         animate="visible"
         variants={stagger}
         className="w-full"
       >
-        <motion.div variants={reveal} className="mb-8 h-1 w-12 bg-primary" />
+        <m.div variants={reveal} className="mb-8 h-1 w-12 bg-primary" />
 
-        <motion.div variants={reveal} className="mb-10">
+        <m.div variants={reveal} className="mb-10">
           <p className="font-mono text-xs font-medium text-muted-foreground">
             {tAuth("account")}
           </p>
           <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
             {t("success.title")}
           </h1>
-        </motion.div>
+        </m.div>
 
         {error && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
           >
             <p className="text-sm font-medium text-destructive">{error}</p>
-          </motion.div>
+          </m.div>
         )}
 
-        <motion.div variants={reveal} className="space-y-3">
+        <m.div variants={reveal} className="space-y-3">
           <p className="text-base text-foreground">
             {t("success.subtitle", { email: submittedEmail })}
           </p>
           <p className="font-mono text-sm font-medium text-foreground">
             {submittedEmail}
           </p>
-        </motion.div>
+        </m.div>
 
-        <motion.div variants={reveal} className="mt-12 flex items-center gap-3">
+        <m.div variants={reveal} className="mt-12 flex items-center gap-3">
           <span className="font-mono text-xs font-medium text-muted-foreground">
             {t("success.didnt_get_it")}
           </span>
@@ -126,9 +127,9 @@ export default function ForgotPasswordPage() {
               </>
             )}
           </button>
-        </motion.div>
+        </m.div>
 
-        <motion.div variants={reveal} className="mt-16">
+        <m.div variants={reveal} className="mt-16">
           <a
             href={ROUTES.LOGIN}
             className="inline-flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -136,148 +137,150 @@ export default function ForgotPasswordPage() {
             <ArrowLeft className="size-3.5" aria-hidden="true" />
             {t("back_to_login")}
           </a>
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
     );
   }
 
   return (
-    <motion.div
-      key="form"
-      initial="hidden"
-      animate="visible"
-      variants={stagger}
-      className="w-full"
-    >
-      <motion.div variants={reveal} className="mb-8 h-1 w-12 bg-primary" />
-
-      <motion.div variants={reveal} className="mb-10">
-        <p className="font-mono text-xs font-medium text-muted-foreground">
-          {tAuth("account")}
-        </p>
-        <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
-          {t("title")}
-        </h1>
-        <p className="mt-4 max-w-md text-base text-muted-foreground">
-          {t("subtitle")}
-        </p>
-      </motion.div>
-
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
-        >
-          <p className="text-sm font-medium text-destructive">{error}</p>
-        </motion.div>
-      )}
-
-      <motion.form
+    <MotionProvider>
+      <m.div
+        key="form"
+        initial="hidden"
+        animate="visible"
         variants={stagger}
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-7"
+        className="w-full"
       >
-        <motion.div variants={reveal}>
-          <form.Field
-            name="email"
-            validators={{
-              onChange: ({ value }) => {
-                if (!value || value.trim().length === 0) {
-                  return t("email.error.required");
-                }
-                if (!/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
-                  return t("email.error.invalid");
-                }
-                return undefined;
-              },
-            }}
-          >
-            {(field) => (
-              <Field>
-                <FieldLabel
-                  htmlFor="email"
-                  className="mb-2 font-mono text-xs font-medium leading-normal text-muted-foreground"
-                >
-                  {t("email.label")}
-                </FieldLabel>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  type="email"
-                  id="email"
-                  autoComplete="email"
-                  placeholder={t("email.placeholder")}
-                  className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
-                  aria-describedby={fieldErrorId(field.name)}
-                />
-                <FieldInfo field={field} />
-              </Field>
-            )}
-          </form.Field>
-        </motion.div>
+        <m.div variants={reveal} className="mb-8 h-1 w-12 bg-primary" />
 
-        <motion.div variants={reveal} className="pt-2">
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full rounded-none px-8 py-4 font-mono text-sm font-medium"
+        <m.div variants={reveal} className="mb-10">
+          <p className="font-mono text-xs font-medium text-muted-foreground">
+            {tAuth("account")}
+          </p>
+          <h1 className="mt-2 font-mono text-3xl font-medium text-foreground">
+            {t("title")}
+          </h1>
+          <p className="mt-4 max-w-md text-base text-muted-foreground">
+            {t("subtitle")}
+          </p>
+        </m.div>
+
+        {error && (
+          <m.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="mb-8 border-l border-destructive bg-destructive/5 px-4 py-3"
           >
-            <span className="flex items-center justify-center gap-3">
-              {isLoading ? (
-                <>
-                  <Spinner className="size-5" />
-                  {t("submitting")}
-                </>
-              ) : (
-                <>
-                  {t("submit")}
-                  <ArrowRight className="size-5" aria-hidden="true" />
-                </>
+            <p className="text-sm font-medium text-destructive">{error}</p>
+          </m.div>
+        )}
+
+        <m.form
+          variants={stagger}
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+          className="space-y-7"
+        >
+          <m.div variants={reveal}>
+            <form.Field
+              name="email"
+              validators={{
+                onChange: ({ value }) => {
+                  if (!value || value.trim().length === 0) {
+                    return t("email.error.required");
+                  }
+                  if (!/^[\S]+@[\S]+\.[\S]+$/.test(value)) {
+                    return t("email.error.invalid");
+                  }
+                  return undefined;
+                },
+              }}
+            >
+              {(field) => (
+                <Field>
+                  <FieldLabel
+                    htmlFor="email"
+                    className="mb-2 font-mono text-xs font-medium leading-normal text-muted-foreground"
+                  >
+                    {t("email.label")}
+                  </FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    type="email"
+                    id="email"
+                    autoComplete="email"
+                    placeholder={t("email.placeholder")}
+                    className="block w-full border-0 border-b border-border bg-transparent px-0 py-3 text-base font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-0 aria-invalid:border-destructive"
+                    aria-describedby={fieldErrorId(field.name)}
+                  />
+                  <FieldInfo field={field} />
+                </Field>
               )}
-            </span>
-          </Button>
-        </motion.div>
-      </motion.form>
+            </form.Field>
+          </m.div>
 
-      <motion.div
-        variants={reveal}
-        className="mt-12 flex items-center gap-3 border-t border-border/60 pt-6"
-      >
-        <motion.span
-          aria-hidden="true"
-          className="font-mono text-xs font-medium text-muted-foreground/60"
-          animate={reducedMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          &gt;
-        </motion.span>
-        <p className="font-mono text-xs font-medium text-muted-foreground/60">
-          {t("hints.check_spam")}
-        </p>
-        <span className="text-muted-foreground/30" aria-hidden="true">·</span>
-        <p className="font-mono text-xs font-medium text-muted-foreground/60">
-          {t("hints.expires_in")}
-        </p>
-        <span className="text-muted-foreground/30" aria-hidden="true">·</span>
-        <p className="font-mono text-xs font-medium text-muted-foreground/60">
-          {t("hints.didnt_get")}
-        </p>
-      </motion.div>
+          <m.div variants={reveal} className="pt-2">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full rounded-none px-8 py-4 font-mono text-sm font-medium"
+            >
+              <span className="flex items-center justify-center gap-3">
+                {isLoading ? (
+                  <>
+                    <Spinner className="size-5" />
+                    {t("submitting")}
+                  </>
+                ) : (
+                  <>
+                    {t("submit")}
+                    <ArrowRight className="size-5" aria-hidden="true" />
+                  </>
+                )}
+              </span>
+            </Button>
+          </m.div>
+        </m.form>
 
-      <motion.div variants={reveal} className="mt-8">
-        <a
-          href={ROUTES.LOGIN}
-          className="inline-flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        <m.div
+          variants={reveal}
+          className="mt-12 flex items-center gap-3 border-t border-border/60 pt-6"
         >
-          <ArrowLeft className="size-3.5" aria-hidden="true" />
-          {t("back_to_login")}
-        </a>
-      </motion.div>
-    </motion.div>
+          <m.span
+            aria-hidden="true"
+            className="font-mono text-xs font-medium text-muted-foreground/60"
+            animate={reducedMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            &gt;
+          </m.span>
+          <p className="font-mono text-xs font-medium text-muted-foreground/60">
+            {t("hints.check_spam")}
+          </p>
+          <span className="text-muted-foreground/30" aria-hidden="true">·</span>
+          <p className="font-mono text-xs font-medium text-muted-foreground/60">
+            {t("hints.expires_in")}
+          </p>
+          <span className="text-muted-foreground/30" aria-hidden="true">·</span>
+          <p className="font-mono text-xs font-medium text-muted-foreground/60">
+            {t("hints.didnt_get")}
+          </p>
+        </m.div>
+
+        <m.div variants={reveal} className="mt-8">
+          <a
+            href={ROUTES.LOGIN}
+            className="inline-flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" aria-hidden="true" />
+            {t("back_to_login")}
+          </a>
+        </m.div>
+      </m.div>
+    </MotionProvider>
   );
 }

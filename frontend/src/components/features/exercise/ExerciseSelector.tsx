@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
 import { Search, Dumbbell, SearchX, Check } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { exerciseApi } from "@/lib/api";
 import { useExerciseCatalogStore } from "@/stores/exercise-catalog-store";
@@ -43,6 +44,7 @@ import {
 } from "./exercise-variants";
 import { ExerciseLibrary, ExerciseSearchParams } from "@/types";
 import { STALE_TIMES } from "@/lib/api/api-constants";
+import { MotionProvider } from "@/components/ui/motion-provider";
 
 interface ExerciseSelectorProps {
   onSelect: (exercise: ExerciseLibrary) => void;
@@ -174,192 +176,194 @@ export function ExerciseSelector({
       : null;
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger
-        render={
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            disabled={disabled}
-            className={cn(
-              "max-w-56 rounded-none font-mono shadow-none",
-              selectedName
-                ? "text-xs tracking-normal"
-                : "text-[10px] uppercase tracking-[0.18em]",
-            )}
-          >
-            <Dumbbell
-              className="size-5 shrink-0 transition-transform duration-200 ease-out motion-safe:group-hover/button:-rotate-6"
-              aria-hidden="true"
-            />
-            <span className="truncate">
-              {selectedName || t("selector.pick_exercise")}
-            </span>
-          </Button>
-        }
-      />
-      <DialogContent className="min-w-[50dvw] max-h-[80vh] overflow-y-auto rounded-none border border-border p-0 text-foreground shadow-none ring-0">
-        <DialogHeader className="border-b border-border px-6 pb-4 pt-6">
-          <DialogTitle className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            <Dumbbell className="size-5 text-foreground" aria-hidden="true" />
-            {t("selector.select_exercise")}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">
-            {t("selector.description")}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 px-6 pb-6 pt-4">
-          {isLoading && (
-            <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <Spinner className="size-5" />
-              <span>{t("selector.loading")}</span>
-            </div>
-          )}
-
-          {hasError && (
-            <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-destructive">
-              <span>{t("selector.error")}</span>
-            </div>
-          )}
-
-          {!isLoading && !hasError && (
-            <>
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <Input
-                  placeholder={t("selector.search_placeholder")}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-none pl-10"
-                  autoFocus
-                />
-              </div>
-
-              <ExerciseFilters
-                selectedMuscleGroup={selectedMuscleGroup}
-                selectedEquipment={selectedEquipment}
-                searchQuery={searchQuery}
-                muscleGroups={muscleGroups}
-                equipment={equipment}
-                onMuscleGroupChange={setSelectedMuscleGroup}
-                onEquipmentChange={setSelectedEquipment}
-                onClearFilters={clearFilters}
+    <MotionProvider>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger
+          render={
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              disabled={disabled}
+              className={cn(
+                "max-w-56 rounded-none font-mono shadow-none",
+                selectedName
+                  ? "text-xs tracking-normal"
+                  : "text-[10px] uppercase tracking-[0.18em]",
+              )}
+            >
+              <Dumbbell
+                className="size-5 shrink-0 transition-transform duration-200 ease-out motion-safe:group-hover/button:-rotate-6"
+                aria-hidden="true"
               />
+              <span className="truncate">
+                {selectedName || t("selector.pick_exercise")}
+              </span>
+            </Button>
+          }
+        />
+        <DialogContent className="min-w-[50dvw] max-h-[80vh] overflow-y-auto rounded-none border border-border p-0 text-foreground shadow-none ring-0">
+          <DialogHeader className="border-b border-border px-6 pb-4 pt-6">
+            <DialogTitle className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <Dumbbell className="size-5 text-foreground" aria-hidden="true" />
+              {t("selector.select_exercise")}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              {t("selector.description")}
+            </DialogDescription>
+          </DialogHeader>
 
-              <Separator className="my-2" />
+          <div className="space-y-4 px-6 pb-6 pt-4">
+            {isLoading && (
+              <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <Spinner className="size-5" />
+                <span>{t("selector.loading")}</span>
+              </div>
+            )}
 
-              <ScrollArea className="max-h-96">
-                {isLoadingExercises ? (
-                  <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                    <Spinner className="size-5" />
-                    <span>{t("selector.loading")}</span>
-                  </div>
-                ) : exercises.length === 0 ? (
-                  <Empty className="rounded-none border border-border p-12">
-                    <EmptyHeader>
-                      <SearchX
-                        className="size-5 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground">
-                        {t("filters.no_results")}
-                      </EmptyTitle>
-                      <EmptyDescription>
-                        {t("filters.clear")}
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                ) : (
-                  <motion.div
-                    variants={exerciseStagger}
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    <ItemGroup className="gap-2 border border-border">
-                      {exercises.map((exercise) => {
-                        const isSelected =
-                          selectedId !== null &&
-                          selectedId === String(exercise.exerciseId);
-                        return (
-                          <motion.div
-                            key={exercise.exerciseId}
-                            variants={itemVariants}
-                          >
-                            <Item
-                              variant="outline"
-                              size="sm"
-                              render={
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelect(exercise)}
-                                  aria-current={isSelected || undefined}
-                                  className={cn(
-                                    "gap-2 *:rounded-none border-x-0 border-b-2 border-border text-left transition-[background-color,transform] duration-150 ease-out hover:bg-muted/50 motion-safe:active:scale-[0.99]",
-                                    isSelected && "bg-muted/40",
-                                  )}
-                                />
-                              }
+            {hasError && (
+              <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-destructive">
+                <span>{t("selector.error")}</span>
+              </div>
+            )}
+
+            {!isLoading && !hasError && (
+              <>
+                <div className="relative">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <Input
+                    placeholder={t("selector.search_placeholder")}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="rounded-none pl-10"
+                    autoFocus
+                  />
+                </div>
+
+                <ExerciseFilters
+                  selectedMuscleGroup={selectedMuscleGroup}
+                  selectedEquipment={selectedEquipment}
+                  searchQuery={searchQuery}
+                  muscleGroups={muscleGroups}
+                  equipment={equipment}
+                  onMuscleGroupChange={setSelectedMuscleGroup}
+                  onEquipmentChange={setSelectedEquipment}
+                  onClearFilters={clearFilters}
+                />
+
+                <Separator className="my-2" />
+
+                <ScrollArea className="max-h-96">
+                  {isLoadingExercises ? (
+                    <div className="flex items-center justify-center gap-2 py-12 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      <Spinner className="size-5" />
+                      <span>{t("selector.loading")}</span>
+                    </div>
+                  ) : exercises.length === 0 ? (
+                    <Empty className="rounded-none border border-border p-12">
+                      <EmptyHeader>
+                        <SearchX
+                          className="size-5 text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                        <EmptyTitle className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground">
+                          {t("filters.no_results")}
+                        </EmptyTitle>
+                        <EmptyDescription>
+                          {t("filters.clear")}
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  ) : (
+                    <m.div
+                      variants={exerciseStagger}
+                      initial="hidden"
+                      animate="visible"
+                    >
+                      <ItemGroup className="gap-2 border border-border">
+                        {exercises.map((exercise) => {
+                          const isSelected =
+                            selectedId !== null &&
+                            selectedId === String(exercise.exerciseId);
+                          return (
+                            <m.div
+                              key={exercise.exerciseId}
+                              variants={itemVariants}
                             >
-                              <ItemMedia
-                                variant="icon"
-                                className="rounded-none bg-transparent"
+                              <Item
+                                variant="outline"
+                                size="sm"
+                                render={
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSelect(exercise)}
+                                    aria-current={isSelected || undefined}
+                                    className={cn(
+                                      "gap-2 *:rounded-none border-x-0 border-b-2 border-border text-left transition-[background-color,transform] duration-150 ease-out hover:bg-muted/50 motion-safe:active:scale-[0.99]",
+                                      isSelected && "bg-muted/40",
+                                    )}
+                                  />
+                                }
                               >
-                                <Dumbbell
-                                  className="size-5 text-muted-foreground transition-colors duration-150 ease-out group-hover/item:text-foreground"
-                                  aria-hidden="true"
-                                />
-                              </ItemMedia>
-                              <ItemContent>
-                                <ItemTitle className="text-sm font-semibold text-foreground">
-                                  {exercise.name}
-                                </ItemTitle>
-                                <ItemDescription className="line-clamp-2 text-xs text-muted-foreground">
-                                  {exercise.instructions}
-                                </ItemDescription>
-                                <div className="mt-1 flex flex-wrap gap-1">
-                                  {exercise.muscleGroup && (
-                                    <MuscleGroupBadge
-                                      muscleGroup={exercise.muscleGroup}
-                                      variant="small"
-                                    />
-                                  )}
-                                  {exercise.equipment && (
-                                    <EquipmentBadge
-                                      equipment={exercise.equipment}
-                                      variant="small"
-                                    />
-                                  )}
-                                </div>
-                              </ItemContent>
-                              <ItemActions>
-                                {isSelected ? (
-                                  <Check
-                                    className="size-5 text-foreground"
+                                <ItemMedia
+                                  variant="icon"
+                                  className="rounded-none bg-transparent"
+                                >
+                                  <Dumbbell
+                                    className="size-5 text-muted-foreground transition-colors duration-150 ease-out group-hover/item:text-foreground"
                                     aria-hidden="true"
                                   />
-                                ) : (
-                                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-transform duration-200 ease-out group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5">
-                                    →
-                                  </span>
-                                )}
-                              </ItemActions>
-                            </Item>
-                          </motion.div>
-                        );
-                      })}
-                    </ItemGroup>
-                  </motion.div>
-                )}
-              </ScrollArea>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+                                </ItemMedia>
+                                <ItemContent>
+                                  <ItemTitle className="text-sm font-semibold text-foreground">
+                                    {exercise.name}
+                                  </ItemTitle>
+                                  <ItemDescription className="line-clamp-2 text-xs text-muted-foreground">
+                                    {exercise.instructions}
+                                  </ItemDescription>
+                                  <div className="mt-1 flex flex-wrap gap-1">
+                                    {exercise.muscleGroup && (
+                                      <MuscleGroupBadge
+                                        muscleGroup={exercise.muscleGroup}
+                                        variant="small"
+                                      />
+                                    )}
+                                    {exercise.equipment && (
+                                      <EquipmentBadge
+                                        equipment={exercise.equipment}
+                                        variant="small"
+                                      />
+                                    )}
+                                  </div>
+                                </ItemContent>
+                                <ItemActions>
+                                  {isSelected ? (
+                                    <Check
+                                      className="size-5 text-foreground"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-transform duration-200 ease-out group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5">
+                                      →
+                                    </span>
+                                  )}
+                                </ItemActions>
+                              </Item>
+                            </m.div>
+                          );
+                        })}
+                      </ItemGroup>
+                    </m.div>
+                  )}
+                </ScrollArea>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </MotionProvider>
   );
 }
