@@ -124,6 +124,25 @@ func (r *PostgresCoachingRequestRepository) HasPendingRequestBetween(ctx context
 	return exists, nil
 }
 
+// ClosePendingForAthlete supersedes every pending request the athlete has. The
+// conditional UPDATE is the authoritative check: no row is read, mutated in
+// Go, or written back. The request being answered is never affected — on the
+// coaching-request path it is already 'accepted' before establish runs.
+func (r *PostgresCoachingRequestRepository) ClosePendingForAthlete(ctx context.Context, athleteID int) (int, error) {
+	query := `
+		UPDATE coaching_requests
+		SET status = $1, updated_at = now()
+		WHERE athlete_id = $2 AND status = $3`
+
+	tag, err := querierFor(ctx, r.pool).Exec(ctx, query,
+		string(models.CoachingRequestStatusSuperseded), athleteID, string(models.CoachingRequestStatusPending),
+	)
+	if err != nil {
+		return 0, mapWriteError(err, "failed to close pending coaching requests")
+	}
+	return int(tag.RowsAffected()), nil
+}
+
 // count is a helper for the Count* methods; clause must begin with WHERE.
 func (r *PostgresCoachingRequestRepository) count(ctx context.Context, clause string, arg int) (int, error) {
 	var total int

@@ -100,7 +100,7 @@ func TestPostgresRelationshipRepository(t *testing.T) {
 		}
 		require.NoError(t, repo.Create(ctx, first))
 
-		first.Terminate()
+		require.NoError(t, first.Terminate())
 		require.NoError(t, repo.Update(ctx, first))
 
 		_, err := repo.GetByTrainerAndAthlete(ctx, trainer.UserID, reconnectAthlete.UserID)

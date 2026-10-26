@@ -170,7 +170,7 @@ type CoachingRequestSeed = {
   requestId: number;
   trainerId: number;
   athleteId: number;
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected" | "superseded";
   message: string;
   createdAt: string;
   trainer?: { userId: number; email: string; profile: { name: string } };

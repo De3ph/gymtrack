@@ -26,12 +26,14 @@ const statusBadgeClass: Record<string, string> = {
   accepted: "bg-success-surface",
   rejected: "bg-danger-surface",
   pending: "bg-brand-surface",
+  superseded: "bg-muted-surface",
 };
 
 const statusTextClass: Record<string, string> = {
   accepted: "text-success-text",
   rejected: "text-danger-text",
   pending: "text-brand-on-light",
+  superseded: "text-muted-text",
 };
 
 export function CoachingRequestsScreen() {

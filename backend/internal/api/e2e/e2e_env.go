@@ -75,7 +75,7 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 	trainerCatalogService := services.NewTrainerCatalogService(trainerProfileRepo, trainerReviewRepo)
 	adminService := services.NewAdminService(userRepo, workoutRepo, mealRepo, commentRepo, exerciseRepo)
 	passwordResetService := services.NewPasswordResetService(userRepo, passwordResetRepo, &NoopMailer{}, "http://localhost:3000", clock)
-	relationshipService := services.NewRelationshipService(relationshipRepo, userRepo, postgres.NewPostgresTransactionManager(pool), clock)
+	relationshipService := services.NewRelationshipService(relationshipRepo, userRepo, coachingRequestRepo, postgres.NewPostgresTransactionManager(pool), clock)
 	clientStatsService := services.NewClientStatsService(workoutRepo, mealRepo, clock)
 	coachingRequestService := services.NewCoachingRequestService(coachingRequestRepo, userRepo, relationshipService, postgres.NewPostgresTransactionManager(pool), clock)
 	workoutPlanService := services.NewWorkoutPlanService(workoutPlanRepo, workoutPlanAssignmentRepo, relationshipRepo, workoutRepo)

@@ -7,9 +7,10 @@ import (
 type CoachingRequestStatus string
 
 const (
-	CoachingRequestStatusPending  CoachingRequestStatus = "pending"
-	CoachingRequestStatusAccepted CoachingRequestStatus = "accepted"
-	CoachingRequestStatusRejected CoachingRequestStatus = "rejected"
+	CoachingRequestStatusPending    CoachingRequestStatus = "pending"
+	CoachingRequestStatusAccepted   CoachingRequestStatus = "accepted"
+	CoachingRequestStatusRejected   CoachingRequestStatus = "rejected"
+	CoachingRequestStatusSuperseded CoachingRequestStatus = "superseded"
 )
 
 type CoachingRequest struct {

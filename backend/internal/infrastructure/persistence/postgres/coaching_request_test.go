@@ -154,6 +154,54 @@ func TestPostgresCoachingRequestRepository(t *testing.T) {
 		assert.Equal(t, models.CoachingRequestStatusAccepted, fetched.Status)
 	})
 
+	t.Run("ClosePendingForAthlete", func(t *testing.T) {
+		// Fresh athlete: earlier subtests leave pending rows behind, and the
+		// closed-count assertion must not depend on their statuses.
+		closeAthlete := createCRTestUser(t, "cr_close_athlete", models.RoleAthlete)
+		otherTrainer := createCRTestUser(t, "cr_trainer2", models.RoleTrainer)
+		thirdTrainer := createCRTestUser(t, "cr_trainer3", models.RoleTrainer)
+
+		mkPending := func(ath *models.User, tr *models.User) *models.CoachingRequest {
+			t.Helper()
+			req := &models.CoachingRequest{
+				AthleteID: ath.UserID, TrainerID: tr.UserID,
+				Message: "close me", Status: models.CoachingRequestStatusPending,
+			}
+			require.NoError(t, repo.Create(ctx, req))
+			return req
+		}
+
+		// Two pending requests to other trainers, one to the trainer the
+		// athlete just connected with via their invitation code, one already
+		// accepted (the row being answered is never affected), and another
+		// athlete's request.
+		toOther1 := mkPending(closeAthlete, otherTrainer)
+		toOther2 := mkPending(closeAthlete, thirdTrainer)
+		toTarget := mkPending(closeAthlete, trainer)
+		accepted := mkPending(closeAthlete, otherTrainer)
+		accepted.Status = models.CoachingRequestStatusAccepted
+		require.NoError(t, repo.Update(ctx, accepted))
+		otherAthletes := mkPending(athlete2, otherTrainer)
+
+		closed, err := repo.ClosePendingForAthlete(ctx, closeAthlete.UserID)
+		require.NoError(t, err)
+		assert.Equal(t, 3, closed, "all of the athlete's pending requests close")
+
+		for _, req := range []*models.CoachingRequest{toOther1, toOther2, toTarget} {
+			fetched, err := repo.GetByID(ctx, req.RequestID)
+			require.NoError(t, err)
+			assert.Equal(t, models.CoachingRequestStatusSuperseded, fetched.Status)
+		}
+		fetched, err := repo.GetByID(ctx, accepted.RequestID)
+		require.NoError(t, err)
+		assert.Equal(t, models.CoachingRequestStatusAccepted, fetched.Status,
+			"a resolved request must not be rewritten")
+		fetched, err = repo.GetByID(ctx, otherAthletes.RequestID)
+		require.NoError(t, err)
+		assert.Equal(t, models.CoachingRequestStatusPending, fetched.Status,
+			"another athlete's request must survive")
+	})
+
 	t.Run("Update_NotFound", func(t *testing.T) {
 		req := &models.CoachingRequest{
 			RequestID: 999999, AthleteID: athlete.UserID, TrainerID: trainer.UserID,

@@ -36,7 +36,7 @@ func TestRelationshipService_HasActiveTrainer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := NewRelationshipService(&stubRelationshipRepo{existing: tt.existing}, &stubUserRepo{}, nil, nil)
+			svc := NewRelationshipService(&stubRelationshipRepo{existing: tt.existing}, &stubUserRepo{}, nil, nil, nil)
 
 			got, err := svc.HasActiveTrainer(context.Background(), 7)
 
@@ -48,7 +48,7 @@ func TestRelationshipService_HasActiveTrainer(t *testing.T) {
 
 func TestRelationshipService_Activate_RefusesSecondActiveTrainer(t *testing.T) {
 	rels := &stubRelationshipRepo{existing: &models.Relationship{Status: models.RelationshipStatusActive}}
-	svc := NewRelationshipService(rels, &stubUserRepo{}, nil, nil)
+	svc := NewRelationshipService(rels, &stubUserRepo{}, nil, nil, nil)
 
 	_, err := svc.Activate(context.Background(), 2, 7)
 
@@ -63,7 +63,7 @@ func TestRelationshipService_Activate_CreatesActiveRelationshipAndAssignsTrainer
 	)
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: athleteID, Role: models.RoleAthlete}}
-	svc := NewRelationshipService(rels, users, nil, nil)
+	svc := NewRelationshipService(rels, users, nil, nil, nil)
 
 	relationship, err := svc.Activate(context.Background(), trainerID, athleteID)
 
@@ -76,7 +76,7 @@ func TestRelationshipService_Activate_CreatesActiveRelationshipAndAssignsTrainer
 func TestRelationshipService_Activate_CreatesNewRowAfterTermination(t *testing.T) {
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: 7, Role: models.RoleAthlete}}
-	svc := NewRelationshipService(rels, users, nil, nil)
+	svc := NewRelationshipService(rels, users, nil, nil, nil)
 
 	relationship, err := svc.Activate(context.Background(), 2, 7)
 
@@ -85,6 +85,58 @@ func TestRelationshipService_Activate_CreatesNewRowAfterTermination(t *testing.T
 	assert.Empty(t, rels.updated, "history must not be reopened")
 	assert.Equal(t, models.RelationshipStatusActive, relationship.Status)
 	assert.Equal(t, 2, users.user.Profile.TrainerAssignment)
+}
+
+func TestRelationshipService_Activate_SupersedesOtherPendingRequests(t *testing.T) {
+	const (
+		trainerID = 3
+		athleteID = 7
+	)
+	rels := &stubRelationshipRepo{}
+	users := &stubUserRepo{user: &models.User{UserID: athleteID, Role: models.RoleAthlete}}
+	requests := &batchCoachingRequestRepo{requests: []*models.CoachingRequest{
+		// Pending to another trainer: must be closed when the athlete
+		// connects here.
+		{RequestID: 1, AthleteID: athleteID, TrainerID: 2, Status: models.CoachingRequestStatusPending},
+		// Pending to the trainer being connected: also stale — the athlete
+		// answered the connection elsewhere, so no trainer may accept later.
+		{RequestID: 2, AthleteID: athleteID, TrainerID: trainerID, Status: models.CoachingRequestStatusPending},
+		// Already accepted: the request this activation is answering (the
+		// coaching-request path flips it before Activate) or resolved history.
+		{RequestID: 3, AthleteID: athleteID, TrainerID: 2, Status: models.CoachingRequestStatusAccepted},
+		// Another athlete's request: must be left alone.
+		{RequestID: 4, AthleteID: 8, TrainerID: 2, Status: models.CoachingRequestStatusPending},
+	}}
+	svc := NewRelationshipService(rels, users, requests, nil, nil)
+
+	_, err := svc.Activate(context.Background(), trainerID, athleteID)
+
+	require.NoError(t, err)
+	require.Len(t, requests.closeCalls, 1, "supersede must run inside the establish transaction")
+	assert.Equal(t, athleteID, requests.closeCalls[0])
+	assert.Equal(t, models.CoachingRequestStatusSuperseded, requests.requests[0].Status,
+		"the pending request to the other trainer must be superseded")
+	assert.Equal(t, models.CoachingRequestStatusSuperseded, requests.requests[1].Status,
+		"the athlete's pending request to the connecting trainer must be superseded too")
+	assert.Equal(t, models.CoachingRequestStatusAccepted, requests.requests[2].Status,
+		"a resolved request must not be rewritten")
+	assert.Equal(t, models.CoachingRequestStatusPending, requests.requests[3].Status,
+		"another athlete's request must survive")
+}
+
+func TestRelationshipService_Activate_CloseFailureAbortsEstablish(t *testing.T) {
+	rels := &stubRelationshipRepo{}
+	users := &stubUserRepo{user: &models.User{UserID: 7, Role: models.RoleAthlete}}
+	requests := &batchCoachingRequestRepo{closeErr: assert.AnError}
+	transactions := &recordingTransactions{}
+	svc := NewRelationshipService(rels, users, requests, transactions, nil)
+
+	_, err := svc.Activate(context.Background(), 2, 7)
+
+	require.Error(t, err)
+	assert.Equal(t, []int{2}, rels.createdTrainers,
+		"the insert runs inside the transaction; rollback belongs to the manager, not a compensating delete")
+	assert.Empty(t, rels.deleted)
 }
 
 func TestRelationshipService_Activate_PromotesPendingRow(t *testing.T) {
@@ -96,7 +148,7 @@ func TestRelationshipService_Activate_PromotesPendingRow(t *testing.T) {
 	}
 	rels := &stubRelationshipRepo{byPair: pending}
 	users := &stubUserRepo{user: &models.User{UserID: 7, Role: models.RoleAthlete}}
-	svc := NewRelationshipService(rels, users, nil, nil)
+	svc := NewRelationshipService(rels, users, nil, nil, nil)
 
 	activated, err := svc.Activate(context.Background(), 2, 7)
 
@@ -115,7 +167,7 @@ func TestRelationshipService_Activate_ProfileFailureAbortsTransaction(t *testing
 		updateErr: assert.AnError,
 	}
 	transactions := &recordingTransactions{}
-	svc := NewRelationshipService(rels, users, transactions, nil)
+	svc := NewRelationshipService(rels, users, nil, transactions, nil)
 
 	_, err := svc.Activate(context.Background(), 2, 7)
 
@@ -133,7 +185,7 @@ func TestRelationshipService_Terminate_ForbidsNonParticipant(t *testing.T) {
 		AthleteID:      3,
 		Status:         models.RelationshipStatusActive,
 	}}
-	svc := NewRelationshipService(relationships, &stubUserRepo{}, nil, nil)
+	svc := NewRelationshipService(relationships, &stubUserRepo{}, nil, nil, nil)
 
 	_, err := svc.Terminate(context.Background(), 1, 99, models.RoleTrainer)
 
@@ -154,12 +206,13 @@ func TestRelationshipService_Terminate_OldRelationshipDoesNotClearNewAssignment(
 		Role:    models.RoleAthlete,
 		Profile: models.UserProfile{TrainerAssignment: 99},
 	}}
-	svc := NewRelationshipService(relationships, users, nil, nil)
+	svc := NewRelationshipService(relationships, users, nil, nil, nil)
 
 	_, err := svc.Terminate(context.Background(), 1, 3, models.RoleAthlete)
 
 	require.NoError(t, err)
 	assert.Equal(t, 99, users.user.Profile.TrainerAssignment, "a newer trainer assignment must survive")
+	assert.Empty(t, relationships.updated, "re-terminating must not write or reset UpdatedAt")
 }
 
 func TestRelationshipService_Terminate_EndsRelationshipAndClearsAssignment(t *testing.T) {
@@ -175,7 +228,7 @@ func TestRelationshipService_Terminate_EndsRelationshipAndClearsAssignment(t *te
 		Role:    models.RoleAthlete,
 		Profile: models.UserProfile{TrainerAssignment: 2},
 	}}
-	svc := NewRelationshipService(relationships, users, nil, nil)
+	svc := NewRelationshipService(relationships, users, nil, nil, nil)
 
 	terminated, err := svc.Terminate(context.Background(), 1, 3, models.RoleAthlete)
 

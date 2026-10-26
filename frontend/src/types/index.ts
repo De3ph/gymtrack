@@ -246,7 +246,7 @@ export interface TrainerSearchResponse {
 
 // --- Coaching request types (not yet in swagger) ---
 
-export type CoachingRequestStatus = "pending" | "accepted" | "rejected";
+export type CoachingRequestStatus = "pending" | "accepted" | "rejected" | "superseded";
 
 export interface CoachingRequest {
   requestId: number;

@@ -1596,7 +1596,8 @@
       "rejecting": "Reddediliyor...",
       "request_accepted": "Talep Kabul Edildi!",
       "accepted_description": "Artık antrenörünüzle çalışmaya başlayabilirsiniz.",
-      "rejected_description": "Bu talep antrenör tarafından reddedildi. Yeni bir talep gönderebilir veya başka antrenörler arayabilirsiniz."
+      "rejected_description": "Bu talep antrenör tarafından reddedildi. Yeni bir talep gönderebilir veya başka antrenörler arayabilirsiniz.",
+      "superseded_description": "Bu talep başka bir antrenörle bağlantı kurduğunuz için kapatıldı. Bu antrenörle çalışmak isterseniz yeni bir talep gönderebilirsiniz."
     }
   },
   "exercise": {

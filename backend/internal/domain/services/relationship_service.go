@@ -22,6 +22,11 @@ import (
 type RelationshipService struct {
 	relationshipRepo repositories.RelationshipRepository
 	userRepo         repositories.UserRepository
+	// coachingRequests supersedes the athlete's other pending coaching
+	// requests when a connection is established. Both mechanisms — coaching
+	// requests and invitation codes — establish through Activate, so both
+	// inherit the cleanup.
+	coachingRequests repositories.CoachingRequestRepository
 	transactions     repositories.TransactionManager
 	clock            utils.Clock
 }
@@ -30,6 +35,7 @@ type RelationshipService struct {
 func NewRelationshipService(
 	relationshipRepo repositories.RelationshipRepository,
 	userRepo repositories.UserRepository,
+	coachingRequests repositories.CoachingRequestRepository,
 	transactions repositories.TransactionManager,
 	clock utils.Clock,
 ) *RelationshipService {
@@ -39,6 +45,7 @@ func NewRelationshipService(
 	return &RelationshipService{
 		relationshipRepo: relationshipRepo,
 		userRepo:         userRepo,
+		coachingRequests: coachingRequests,
 		transactions:     transactionManagerOrDefault(transactions),
 		clock:            clock,
 	}
@@ -169,7 +176,10 @@ func (s *RelationshipService) GetActiveClientRelationship(ctx context.Context, t
 // Activate establishes an active relationship and projects the trainer onto
 // the athlete's profile in the same transaction. It refuses to create a second
 // active relationship for the same athlete, closing the race between the
-// caller's pre-check and this write.
+// caller's pre-check and this write. Establishing also supersedes every
+// pending coaching request the athlete still has: an athlete who just
+// connected must not leave an answerable request anywhere, including the
+// trainer whose invitation code was used.
 func (s *RelationshipService) Activate(ctx context.Context, trainerID, athleteID int) (*models.Relationship, error) {
 	exists, err := s.HasActiveTrainer(ctx, athleteID)
 	if err != nil {
@@ -186,30 +196,33 @@ func (s *RelationshipService) Activate(ctx context.Context, trainerID, athleteID
 		existing, err := s.relationshipRepo.GetByTrainerAndAthlete(txCtx, trainerID, athleteID)
 		if err == nil {
 			relationship, err = s.activatePending(txCtx, existing, now)
-			return err
-		}
-		if !errors.Is(err, domainerrors.ErrNotFound) {
-			return fmt.Errorf("failed to check existing relationship: %w", err)
-		}
-
-		created := models.NewRelationship(trainerID, athleteID)
-		created.CreatedAt = now
-		created.Accept()
-		created.UpdatedAt = now
-		if err := s.relationshipRepo.Create(txCtx, created); err != nil {
-			if errors.Is(err, domainerrors.ErrActiveRelationshipExists) {
-				// A concurrent activation won the partial unique index race.
-				// Report the business outcome, not a generic write conflict.
-				return ErrAlreadyHasActiveTrainer
+			if err != nil {
+				return err
 			}
-			return fmt.Errorf("failed to create relationship: %w", err)
+		} else if errors.Is(err, domainerrors.ErrNotFound) {
+			created := models.NewRelationship(trainerID, athleteID)
+			created.CreatedAt = now
+			if err := created.Accept(); err != nil {
+				return fmt.Errorf("failed to activate new relationship: %w", err)
+			}
+			created.UpdatedAt = now
+			if err := s.relationshipRepo.Create(txCtx, created); err != nil {
+				if errors.Is(err, domainerrors.ErrActiveRelationshipExists) {
+					// A concurrent activation won the partial unique index race.
+					// Report the business outcome, not a generic write conflict.
+					return ErrAlreadyHasActiveTrainer
+				}
+				return fmt.Errorf("failed to create relationship: %w", err)
+			}
+			relationship = created
+		} else {
+			return fmt.Errorf("failed to check existing relationship: %w", err)
 		}
 
 		if err := s.setTrainerAssignment(txCtx, athleteID, trainerID); err != nil {
 			return err
 		}
-		relationship = created
-		return nil
+		return s.closeOtherPendingRequests(txCtx, athleteID)
 	})
 	if err != nil {
 		return nil, err
@@ -222,23 +235,18 @@ func (s *RelationshipService) Activate(ctx context.Context, trainerID, athleteID
 // Terminated rows are history: GetByTrainerAndAthlete never returns them, so a
 // reconnect after termination creates a new relationship row.
 func (s *RelationshipService) activatePending(ctx context.Context, relationship *models.Relationship, now time.Time) (*models.Relationship, error) {
-	if relationship.IsActive() {
+	if relationship.Status == models.RelationshipStatusActive {
 		return nil, ErrAlreadyHasActiveTrainer
 	}
-
-	relationship.Status = models.RelationshipStatusActive
+	if err := relationship.Accept(); err != nil {
+		return nil, fmt.Errorf("failed to activate relationship: %w", err)
+	}
 	relationship.UpdatedAt = now
 	if err := s.relationshipRepo.Update(ctx, relationship); err != nil {
 		if errors.Is(err, domainerrors.ErrActiveRelationshipExists) {
 			return nil, ErrAlreadyHasActiveTrainer
 		}
 		return nil, fmt.Errorf("failed to activate relationship: %w", err)
-	}
-
-	// The caller's transaction also covers the profile projection, so a
-	// failure here rolls the status change back with it.
-	if err := s.setTrainerAssignment(ctx, relationship.AthleteID, relationship.TrainerID); err != nil {
-		return nil, err
 	}
 	return relationship, nil
 }
@@ -257,8 +265,15 @@ func (s *RelationshipService) Terminate(ctx context.Context, relationshipID, act
 		if !canTerminate(rel, actorID, actorRole) {
 			return ErrRelationshipTerminationForbidden
 		}
-
-		rel.Terminate()
+		if rel.Status == models.RelationshipStatusTerminated {
+			// Idempotent terminate: already history, nothing to write and
+			// UpdatedAt must not be reset.
+			relationship = rel
+			return nil
+		}
+		if err := rel.Terminate(); err != nil {
+			return fmt.Errorf("failed to terminate relationship: %w", err)
+		}
 		if err := s.relationshipRepo.Update(txCtx, rel); err != nil {
 			return fmt.Errorf("failed to terminate relationship: %w", err)
 		}
@@ -273,6 +288,22 @@ func (s *RelationshipService) Terminate(ctx context.Context, relationshipID, act
 		return nil, err
 	}
 	return relationship, nil
+}
+
+// closeOtherPendingRequests supersedes the athlete's pending coaching requests
+// inside the establish transaction, so no trainer can later accept a request
+// the athlete answered by connecting (to anyone). The request being accepted
+// through the coaching-request path is already 'accepted' before this runs,
+// so it is not touched; a pending request to the same trainer as an accepted
+// invitation code is stale and closes with the rest.
+func (s *RelationshipService) closeOtherPendingRequests(ctx context.Context, athleteID int) error {
+	if s.coachingRequests == nil {
+		return nil
+	}
+	if _, err := s.coachingRequests.ClosePendingForAthlete(ctx, athleteID); err != nil {
+		return fmt.Errorf("failed to close other pending coaching requests: %w", err)
+	}
+	return nil
 }
 
 func canTerminate(relationship *models.Relationship, actorID int, actorRole models.UserRole) bool {

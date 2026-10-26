@@ -1596,7 +1596,8 @@
       "rejecting": "Rejecting...",
       "request_accepted": "Request Accepted!",
       "accepted_description": "You can now start working with your trainer.",
-      "rejected_description": "This request was declined by the trainer. You can try sending a new request or look for other trainers."
+      "rejected_description": "This request was declined by the trainer. You can try sending a new request or look for other trainers.",
+      "superseded_description": "This request was closed because you connected with another trainer. You can send a new request if you want to work with this trainer."
     }
   },
   "exercise": {

@@ -35,4 +35,10 @@ type CoachingRequestRepository interface {
 	// request to this trainer?" with an indexed EXISTS instead of scanning the
 	// athlete's whole request history in Go.
 	HasPendingRequestBetween(ctx context.Context, athleteID, trainerID int) (bool, error)
+	// ClosePendingForAthlete supersedes every pending request the athlete has,
+	// in one conditional UPDATE. It runs inside the establish transaction: the
+	// connection just established makes every remaining pending request stale,
+	// to the connecting trainer (who is being answered elsewhere — e.g. their
+	// invitation code was used) and to every other trainer alike.
+	ClosePendingForAthlete(ctx context.Context, athleteID int) (int, error)
 }

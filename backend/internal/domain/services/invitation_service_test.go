@@ -229,7 +229,7 @@ func TestAcceptInvitation_ConcurrentAcceptsOfSameCode_OnlyOneWins(t *testing.T) 
 	method := newFakeInvitationMethod(pendingCode("abc123", 42))
 	rels := &stubRelationshipRepo{}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), nil)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil, nil), nil)
 
 	const racers = 8
 	var wg sync.WaitGroup
@@ -271,7 +271,7 @@ func TestAcceptInvitation_ActivateFailure_ReturnsErrorAndWritesNoRelationship(t 
 	rels := &stubRelationshipRepo{createErr: assert.AnError}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
 	transactions := &recordingTransactions{}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), transactions)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil, nil), transactions)
 
 	_, err := svc.AcceptInvitation(context.Background(), "retry1", 7)
 	require.ErrorIs(t, err, assert.AnError)
@@ -289,7 +289,7 @@ func TestAcceptInvitation_AlreadyHasTrainer_DoesNotClaimCode(t *testing.T) {
 	method := newFakeInvitationMethod(pendingCode("taken1", 42))
 	rels := &stubRelationshipRepo{existing: &models.Relationship{Status: "active"}}
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), nil)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "taken1", 7)
 	require.ErrorIs(t, err, ErrAlreadyHasActiveTrainer)
@@ -307,7 +307,7 @@ func TestAcceptInvitation_CancelledContext_DoesNotClaimCode(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	users := &stubUserRepo{user: &models.User{UserID: 1, Role: models.RoleAthlete}}
-	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil), nil)
+	svc := NewInvitationService(method, NewRelationshipService(rels, users, nil, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(ctx, "cancel1", 7)
 	require.Error(t, err)
@@ -319,14 +319,14 @@ func TestAcceptInvitation_CancelledContext_DoesNotClaimCode(t *testing.T) {
 }
 
 func TestAcceptInvitation_EmptyCode(t *testing.T) {
-	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil), nil)
+	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvitationCodeEmpty)
 }
 
 func TestAcceptInvitation_UnknownCode(t *testing.T) {
-	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil), nil)
+	svc := NewInvitationService(newFakeInvitationMethod(), NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "nope", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvalidInvitationCode)
@@ -336,7 +336,7 @@ func TestAcceptInvitation_ExpiredCode(t *testing.T) {
 	expired := pendingCode("old123", 42)
 	expired.ExpiresAt = time.Now().Add(-time.Hour)
 	method := newFakeInvitationMethod(expired)
-	svc := NewInvitationService(method, NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil), nil)
+	svc := NewInvitationService(method, NewRelationshipService(&stubRelationshipRepo{}, &stubUserRepo{}, nil, nil, nil), nil)
 
 	_, err := svc.AcceptInvitation(context.Background(), "old123", 7)
 	assert.ErrorIs(t, err, domainerrors.ErrInvitationExpired)

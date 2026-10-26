@@ -69,6 +69,7 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
       pending: "default",
       accepted: "secondary",
       rejected: "destructive",
+      superseded: "outline",
     };
     return (
       <Badge variant={variants[status] || "outline"} className="h-auto rounded-none px-3 py-1.5">
@@ -178,6 +179,12 @@ export function CoachingRequestsList({ userType }: CoachingRequestsListProps) {
             {userType === "athlete" && request.status === "rejected" && (
               <div className="rounded-none border border-destructive bg-destructive/10 p-3 text-destructive text-sm">
                 {tList('rejected_description')}
+              </div>
+            )}
+
+            {userType === "athlete" && request.status === "superseded" && (
+              <div className="rounded-none border border-muted-foreground/30 bg-muted/40 p-3 text-muted-foreground text-sm">
+                {tList('superseded_description')}
               </div>
             )}
           </div>

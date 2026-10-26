@@ -51,7 +51,7 @@ func TestAcceptInvitation_RollsBackClaimWhenActivationFails(t *testing.T) {
 	projectionFailure := errors.New("profile projection failed")
 	failingUsers := failingAssignmentUserRepo{UserRepository: users, err: projectionFailure}
 
-	relationshipSvc := services.NewRelationshipService(relationships, failingUsers, transactions, nil)
+	relationshipSvc := services.NewRelationshipService(relationships, failingUsers, nil, transactions, nil)
 	invitationSvc := services.NewInvitationService(NewPostgresCodeBasedInvitation(pool, nil), relationshipSvc, transactions)
 
 	invitation, err := invitationSvc.GenerateInvitation(ctx, trainer.UserID)

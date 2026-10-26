@@ -406,9 +406,12 @@ func TestE2E_Coach_Accept_Flow(t *testing.T) {
 // Accept failure: athlete already has a trainer
 // ---------------------------------------------------------------------------
 
-// TestE2E_Coach_Accept_AthleteHasTrainer pins the accept-time guard against
-// a second active trainer: the athlete requests T2 first, then takes T1 via
-// the invitation flow, and T2's late accept must lose.
+// TestE2E_Coach_Accept_AthleteHasTrainer pins the establish-time supersede:
+// the athlete requests T2 first, then takes T1 via the invitation flow.
+// Establishing with T1 closes the pending request to T2 as 'superseded' in
+// the same transaction, so T2's late accept loses as a resolved request —
+// not with "already has an active trainer" after being told the request was
+// answerable.
 func TestE2E_Coach_Accept_AthleteHasTrainer(t *testing.T) {
 	env := SetupTestEnv(t)
 	t1Token, t1ID := env.RegisterTrainer(t, "coathas1")
@@ -421,11 +424,11 @@ func TestE2E_Coach_Accept_AthleteHasTrainer(t *testing.T) {
 
 	w := env.DoAuthRequest(http.MethodPut, "/api/coaching-requests/"+itoa(req.RequestID)+"/accept", nil, t1Token)
 	RequireJSONError(t, w, http.StatusConflict,
-		"this athlete already has an active trainer, so the request can't be accepted")
+		"this request has already been superseded and can no longer be changed")
 
-	// ...and the request stays pending — the conflict changed nothing.
-	if got := requestStatus(t, env, req.RequestID); got != "pending" {
-		t.Fatalf("DB status after failed accept = %q, want pending", got)
+	// The request was closed by the establish, not by the failed accept.
+	if got := requestStatus(t, env, req.RequestID); got != "superseded" {
+		t.Fatalf("DB status after establish = %q, want superseded", got)
 	}
 }
 
@@ -448,23 +451,34 @@ func TestE2E_Coach_AdminMyRequests(t *testing.T) {
 
 // TestE2E_Coach_TerminatedRelationship covers the coaching-request loop after
 // the athlete's only relationship is terminated. A terminated row must not
-// read as an active trainer, so the athlete can request a new coach and a
-// request stranded before the previous connection can still be accepted.
+// read as an active trainer, so the athlete can request a new coach. A request
+// pending before the previous connection was established is superseded by the
+// establish itself and stays unacceptable after the termination.
 func TestE2E_Coach_TerminatedRelationship(t *testing.T) {
 	env := SetupTestEnv(t)
 	t1Token, _ := env.RegisterTrainer(t, "coterm1")
 	t2Token, t2ID := env.RegisterTrainer(t, "coterm2")
-	_, t3ID := env.RegisterTrainer(t, "coterm3")
+	t3Token, t3ID := env.RegisterTrainer(t, "coterm3")
 	_, athEmail, _ := env.RegisterUser(t, "coterma", "coterma@e2e.test", "Password123!", "athlete")
 	athToken, _ := env.Login(t, athEmail, "Password123!")
 
-	// A request to T2 made while unaffiliated stays pending here.
+	// A request to T2 made while unaffiliated is superseded when the athlete
+	// establishes a connection with T1: establish closes the athlete's other
+	// pending requests, so no trainer can accept a stale request later.
 	pending := createCoachingRequestAs(t, env, athToken, t2ID, "from before")
 
 	// The athlete takes T1 and terminates, leaving only a terminated row.
 	relID := establishRelationshipByInvitation(t, env, t1Token, athToken)
+	if got := requestStatus(t, env, pending.RequestID); got != "superseded" {
+		t.Fatalf("stranded request status after establish = %q, want superseded", got)
+	}
 	w := env.DoAuthRequest(http.MethodDelete, "/api/relationships/"+itoa(relID), nil, athToken)
 	RequireJSONMessage(t, w, http.StatusOK, "Relationship terminated successfully")
+
+	// The superseded request is resolved history: T2's late accept loses.
+	w = env.DoAuthRequest(http.MethodPut, "/api/coaching-requests/"+itoa(pending.RequestID)+"/accept", nil, t2Token)
+	RequireJSONError(t, w, http.StatusConflict,
+		"this request has already been superseded and can no longer be changed")
 
 	// A terminated relationship no longer blocks a fresh request.
 	fresh := createCoachingRequestAs(t, env, athToken, t3ID, "new start")
@@ -472,17 +486,24 @@ func TestE2E_Coach_TerminatedRelationship(t *testing.T) {
 		t.Fatalf("new request status = %q, want pending", fresh.Status)
 	}
 
-	// The request stranded before the previous connection can now be accepted.
-	w = env.DoAuthRequest(http.MethodPut, "/api/coaching-requests/"+itoa(pending.RequestID)+"/accept", nil, t2Token)
-	RequireJSONMessage(t, w, http.StatusOK, "coaching request accepted")
-	if got := athleteTrainerAssignment(t, env, athToken); got != t2ID {
-		t.Fatalf("profile.trainerAssignment = %d, want %d", got, t2ID)
+	// The terminated pair is re-requestable too: the superseded row no longer
+	// counts as pending between the pair.
+	renewed := createCoachingRequestAs(t, env, athToken, t2ID, "back again")
+	if renewed.Status != "pending" {
+		t.Fatalf("re-request status = %q, want pending", renewed.Status)
 	}
 
-	// With T2 active, the guard is back: a second trainer cannot be requested.
+	// And that fresh request can be accepted.
+	w = env.DoAuthRequest(http.MethodPut, "/api/coaching-requests/"+itoa(fresh.RequestID)+"/accept", nil, t3Token)
+	RequireJSONMessage(t, w, http.StatusOK, "coaching request accepted")
+	if got := athleteTrainerAssignment(t, env, athToken); got != t3ID {
+		t.Fatalf("profile.trainerAssignment = %d, want %d", got, t3ID)
+	}
+
+	// With T3 active, the guard is back: a second trainer cannot be requested.
 	const alreadyHasTrainer = "you already have an active trainer. Please end your current coaching relationship first"
 	w = env.DoAuthRequest(http.MethodPost, "/api/coaching-requests",
-		map[string]any{"trainerId": t3ID, "message": "one more"}, athToken)
+		map[string]any{"trainerId": t2ID, "message": "one more"}, athToken)
 	RequireJSONError(t, w, http.StatusConflict, alreadyHasTrainer)
 }
 

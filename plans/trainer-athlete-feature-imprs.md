@@ -33,6 +33,11 @@ Scope: `backend/internal/{domain,infrastructure,api}`, `frontend/src/lib/api`, `
 - There is no `Relationship` state machine that both paths share: `models/relationship.go:40-49` exposes `Accept()`/`Terminate()` with **no guards** — `Terminate()` on a `pending` relationship, or `Accept()` on a `terminated` one, are legal.
 - *Why it matters:* "who is connected" is defined by `relationships.status='active'`, but the two mechanisms disagree on how you get there, on whether the athlete's other pending requests are invalidated, and on whether the trainer sees an inbox. An athlete can have a pending coaching request to T2 and simultaneously accept a code from T3 — T2's request stays `pending` and the trainer can later accept it, at which point `ErrAthleteAlreadyHasActiveTrainer` fires (`coaching_request_service.go:102-105`) but only *after* the trainer has already been told "accept". No row is invalidated.
 - *Remediation:* model one `CoachingConnection` aggregate with a single `openRequest` / `openInvitation` / `establish` / `terminate` state machine, and have both mechanisms funnel into `establish()`. On establish, close the athlete's other pending requests in the same transaction.
+- *Status (2026-10-26):* Fixed. Both mechanisms already funnelled into `RelationshipService.Activate` (the shared establish point, backed by the partial unique index from 004); the remaining gaps are now closed too:
+  (1) establish supersedes every `pending` coaching request the athlete still has, in the same transaction (`CoachingRequestRepository.ClosePendingForAthlete`, called from `Activate` after the profile projection); a pending request to the trainer being connected via their invitation code is stale as well, since the connection was established through the code. On the coaching-request path the answered row is already `accepted` before establish runs, so it is never touched.
+  (2) `coaching_requests.status` gained a `superseded` value (migration `006_coaching_request_superseded`), so the closed requests are observable instead of silently blocking a later accept.
+  (3) the aggregate now has guarded transitions: `Relationship.Accept()` / `.Terminate()` return `ErrRelationshipIllegalTransition` on illegal changes (F3.2), `activatePending` and `Terminate` use them, and re-terminating a `terminated` relationship no longer writes or resets `updated_at`.
+  The late-accept scenario from the finding now resolves as a 409 `CoachingRequestResolvedError` with status `superseded` — not a post-hoc "already has a trainer" failure. `TestE2E_Coach_Accept_AthleteHasTrainer` and `TestE2E_Coach_TerminatedRelationship` were rewritten to pin the new semantics (superseded request stays unacceptable after termination; the terminated pair is re-requestable). Unit tests: `TestRelationshipService_Activate_SupersedesOtherPendingRequests`, `TestRelationshipService_Activate_CloseFailureAbortsEstablish`, `TestCoachingRequestService_AcceptCoachingRequest_ResolvedRequestIsNotAcceptable`, model guard tests in `models/relationship_test.go`, and a PostgreSQL subtest for `ClosePendingForAthlete`.
 
 **F2.2 — Medium — Duplicated, divergent naming across the two mechanisms.**
 `routes/relationship_routes.go:14-24` uses `POST /relationships/invite`, `POST /relationships/accept`, `DELETE /relationships/:id`; `routes/coaching_request_routes.go:15-25` uses `POST /coaching-requests`, `PUT /coaching-requests/:id/accept`, `PUT /coaching-requests/:id/reject`. Same verbs, different nouns, different HTTP methods for the same semantic action (accept), and a third naming for the shared read (`/relationships/my-clients` vs `/relationships/client/:username` vs `/relationships/client/:username/stats`).
@@ -49,6 +54,7 @@ Scope: `backend/internal/{domain,infrastructure,api}`, `frontend/src/lib/api`, `
 **F3.2 — High — Transitions are enforced in the service layer only, and inconsistently; there is no single transition guard.**
 `coaching_request_service.go:98-100` and `:159-161` correctly guard on `pending`. But `services/invitation_service.go:125-126` creates an *active* relationship without passing through any guard, and `relationship_handler.go:527-531` terminates without checking the current status (a `pending` or already-`terminated` row can be "terminated" again, and re-terminating resets `updated_at`).
 - *Remediation:* put transitions on the aggregate (`Relationship.Accept()`, `.Terminate()` return an error on illegal transitions) and have every path use them.
+- *Status (2026-10-26):* Fixed together with F2.1: `Accept()`/`Terminate()` are guarded (`ErrRelationshipIllegalTransition`), `RelationshipService` is the only writer, and idempotent re-terminate no longer mutates the row.
 
 **F3.3 — Medium — `invitations.athlete_id` is never written; the invitation row never records who accepted it.**
 `postgres/invitation.go:80-83` — the claim UPDATE sets `status='used', used_at=$1` only. `athlete_id` remains NULL (column is nullable, `001_baseline.up.sql:258`), so the audit trail "which athlete redeemed which code" is lost, and `ON DELETE SET NULL` (`:1317`) has no effect.
@@ -208,6 +214,7 @@ Scope: `backend/internal/{domain,infrastructure,api}`, `frontend/src/lib/api`, `
 **F10.1 — High — N+1 user lookups in the trainer's client roster.**
 `relationship_handler.go:359-368` — for each active relationship, `h.userRepo.GetUserByID` is issued individually. For a trainer with 200 clients that is 201 queries per page load. The `user:` cache (5-minute TTL, `cache/factory.go:88`) masks this in the common case but each call still does a cache lookup + gob deep-copy (`gocache_adapter.go:63`), and a cold cache turns it into 200 DB round-trips.
 - *Remediation:* `GetUsersByIDs(ctx, []int)` batch query, as `TrainerCatalogService` already does for ratings (`services/trainer_catalog_service.go:58-73`).
+- *Status (2026-10-24):* Already fixed (found in place while working F10.2). The roster path batches users via a single `GetUsersByIDs` call instead of per-relationship `GetUserByID`.
 
 **F10.2 — High — N+1 in the coaching-request list enrichment.**
 `services/coaching_request_service.go:192-196` → `enrich` (`:201-219`) performs **two** `GetUserByID` calls per request, inside the loop, with errors swallowed (`:208`, `:214`). A trainer with 100 requests → 200 queries; a rejected athlete/trainer silently renders as `undefined
@@ -216,20 +223,31 @@ Continuing with the remainder of section 10 and the summary.
 ---
 
 **F10.2 (continued) — *Remediation:*** batch-load the distinct athlete and trainer IDs for the page in two queries and hydrate from a map. `trainer_catalog_service.go:58-73` already demonstrates the batch pattern.
+- *Status (2026-10-24):* Fixed. `CoachingRequestService` now enriches via `enrichAll` — one `GetUsersByIDs` batch per page — and enrichment errors are returned instead of swallowed. Duplicate-request guarding inside `CreateCoachingRequest` also moved off a full athlete-history scan to an indexed `HasPendingRequestBetween` `EXISTS`.
 
 **F10.3 — High — Unbounded list queries with no pagination on every connection endpoint.**
 `postgres/coaching_request.go:67` (`GetByAthleteID`), `:79` (`GetByTrainerID`), `:91` (`GetPendingByTrainerID`), `postgres/relationship.go:67` (`GetByTrainerID`) — no `LIMIT`/`OFFSET`. `GET /coaching-requests/my` for a long-lived trainer returns every request ever made, and `GET /relationships/my-clients` returns every relationship row including terminated ones (`relationship_handler.go:346-350` filters to active *after* fetching all).
+- *Status (2026-10-24):* Fixed. `limit`/`offset` query params with formula-suggested response fields `count`/`limit`/`offset` are now supported on `/coaching-requests/my`, `/coaching-requests/pending`, and `/relationships/my-clients` (defaults 100/200 respectively, clamped 500/1000 max by a shared `listPagination` helper). Repository lists take explicit `limit, offset` and each list gained a `Count*` method for the total. Responses are additive — clients that ignore the new fields keep working.
+
+**F10.4 — Medium —
 
 **F10.4 — Medium — The stats endpoints load up to 1000 rows each and aggregate in Go.**
 `relationship_handler.go:444-445` and `:617-618` — `GetByAthleteID(ctx, id, 1000, 0)` for workouts and meals, then `calculateWorkoutStats` / `calculateMealStats` (`:632-798`) aggregate in Go, including a `weeklyMap` and a `map[string]*ExerciseStat` whose iteration order is nondeterministic (`:701-704`, `:782-788`) so the response body ordering varies between calls. Errors from the loads are discarded (`:444-445` uses `_`), so a DB failure silently yields zeroed stats.
 - *Remediation:* push the aggregation to SQL, make the row cap explicit and paginated, sort the result slices, and stop swallowing the errors.
+- *Status (2026-10-24):* Fixed. Aggregation pushed to SQL in the workout/meal repositories (`WeeklyVolume`, `ExerciseAggregates`, `NutritionAverages`, `WeeklyNutrition`, `MealTypeCounts` via `jsonb_array_elements` LATERAL; ISO-week keys via `to_char(date, 'IYYY-"W"IW')`), with `CountByAthleteSince` counters. `ClientStatsService` maps repo rows and returns slices in deterministic SQL-sorted order; all errors propagate. Legacy semantics preserved (volume = weight×reps raw, per-meal averages, macros counted only when any value > 0). No full-row loads remain in the stats path.
+
+**F10.5 — Medium —
 
 **F10.5 — Medium — Authorization scans the full trainer relationship set on every request.**
 `relationship_handler.go:424-441` and `:597-614` — `GetByTrainerID` (uncached for these purposes, and the cached variant returns *all* rows) is fetched and scanned in Go to answer "is this one athlete my client?". `services/workout_service.go:226-239` and `services/meal_service.go:154-167` repeat the same pattern.
 - *Remediation:* use `HasActiveRelationship(trainerID, athleteID)` — a single indexed `EXISTS` — which the services already have (`postgres/relationship.go:132-141`).
+- *Status (2026-10-24):* Fixed. Workout and meal services authorize trainer access to an athlete's records via `HasActiveRelationship` `EXISTS` instead of fetching and scanning the trainer's full relationship set. The handler-side copies were superseded by the service-layer guards (services now own the authorization).
+
+**F10.6 — Medium —
 
 **F10.6 — Medium — `GetByAthleteID` uses `LIMIT 1` without a status filter, so it cannot be indexed for the "active" question.**
 `postgres/relationship.go:91` — `WHERE athlete_id = $1 ORDER BY created_at DESC LIMIT 1`. The index `idx_relationships_athlete (athlete_id, status)` (`001_baseline.up.sql:1133`) does not help the `ORDER BY created_at DESC` sort, so this is a scan-plus-sort per call, on a path hit by every accept, every `my-trainer` load, and every profile load.
+- *Status (2026-10-24):* Fixed. (a) The index `idx_relationships_athlete_active_recent` (migration 004, `(athlete_id, status DESC, created_at DESC) WHERE status = 'active'`) already covers the active lookup; (b) `GetActiveByAthleteID` dropped the dead `ORDER BY created_at DESC`, so it's a pure index-seek point lookup now.
 
 ---
 
