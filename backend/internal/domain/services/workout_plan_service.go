@@ -59,10 +59,12 @@ func (s *WorkoutPlanService) CreatePlan(
 		}
 	}
 
+	normalizePlanSetTypes(exercises)
+
 	plan := models.NewWorkoutPlan(creatorID, name, description, exercises)
 
 	if err := s.validator.Struct(plan); err != nil {
-		return nil, fmt.Errorf("plan validation failed: %w", err)
+		return nil, NewServiceError("Invalid workout plan data. Please check the exercises and sets and try again", "VALIDATION")
 	}
 
 	if err := s.planRepo.Create(ctx, plan); err != nil {
@@ -135,9 +137,15 @@ func (s *WorkoutPlanService) UpdatePlan(
 		return nil, NewServiceError("Please add at least one exercise to your workout plan", "VALIDATION")
 	}
 
+	normalizePlanSetTypes(exercises)
+
 	plan.Name = name
 	plan.Description = description
 	plan.Exercises = exercises
+
+	if err := s.validator.Struct(plan); err != nil {
+		return nil, NewServiceError("Invalid workout plan data. Please check the exercises and sets and try again", "VALIDATION")
+	}
 
 	if err := s.planRepo.Update(ctx, plan); err != nil {
 		return nil, fmt.Errorf("failed to update plan: %w", err)
@@ -362,6 +370,16 @@ func (s *WorkoutPlanService) findAssignment(ctx context.Context, athleteID, plan
 	return assignment, nil
 }
 
+// normalizePlanSetTypes fills in the default set type before validation and
+// storage. Invalid explicit values are left alone so validation rejects them.
+func normalizePlanSetTypes(exercises []models.WorkoutPlanExercise) {
+	for i := range exercises {
+		for j := range exercises[i].Sets {
+			exercises[i].Sets[j].Type = exercises[i].Sets[j].Type.OrDefault()
+		}
+	}
+}
+
 // convertPlanExercisesToWorkout converts plan exercises to workout exercises
 func convertPlanExercisesToWorkout(planExercises []models.WorkoutPlanExercise) []models.WorkoutExercise {
 	workoutExercises := make([]models.WorkoutExercise, len(planExercises))
@@ -370,6 +388,7 @@ func convertPlanExercisesToWorkout(planExercises []models.WorkoutPlanExercise) [
 		for j, ps := range pe.Sets {
 			sets[j] = models.ExerciseSet{
 				SetID:      ps.SetID, // reuse plan set ID
+				Type:       ps.Type.OrDefault(),
 				Weight:     ps.Weight,
 				WeightUnit: ps.WeightUnit,
 				Reps:       ps.Reps,

@@ -23,6 +23,7 @@ interface PlanViewDialogProps {
 export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
   const [open, setOpen] = useState(false);
   const t = useTranslations("athlete.workout_plans");
+  const tSetType = useTranslations("workout.set_types");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -69,6 +70,16 @@ export function PlanViewDialog({ plan, label }: PlanViewDialogProps) {
                         reps: exercise.sets.map((s) => s.reps).join(","),
                       })}
                     </p>
+                    {exercise.sets.some(
+                      (s) => s.setType && s.setType !== "working",
+                    ) && (
+                      <p className="text-xs text-muted-foreground">
+                        {exercise.sets
+                          .filter((s) => s.setType && s.setType !== "working")
+                          .map((s) => `${tSetType(s.setType!)} ${s.reps}@${s.weight}${s.weightUnit}`)
+                          .join(" • ")}
+                      </p>
+                    )}
                   </div>
                   {exercise.notes && (
                     <p className="text-xs text-muted-foreground ml-3 shrink-0 max-w-30 text-right">

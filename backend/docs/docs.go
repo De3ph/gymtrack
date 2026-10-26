@@ -1114,9 +1114,28 @@ const docTemplate = `{
                     "Coaching Requests"
                 ],
                 "summary": "Get my coaching requests",
+                "parameters": [
+                    {
+                        "maximum": 500,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Max number of coaching requests to return",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Number of coaching requests to skip",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Successfully retrieved coaching requests\" \"{\\\"requests\\\": []}",
+                        "description": "Successfully retrieved coaching requests\" \"{\\\"requests\\\": [], \\\"count\\\": 12, \\\"limit\\\": 100, \\\"offset\\\": 0}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1157,9 +1176,28 @@ const docTemplate = `{
                     "Coaching Requests"
                 ],
                 "summary": "Get pending coaching requests",
+                "parameters": [
+                    {
+                        "maximum": 500,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Max number of pending coaching requests to return",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Number of pending coaching requests to skip",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Successfully retrieved pending coaching requests\" \"{\\\"requests\\\": []}",
+                        "description": "Successfully retrieved pending coaching requests\" \"{\\\"requests\\\": [], \\\"count\\\": 3, \\\"limit\\\": 100, \\\"offset\\\": 0}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2828,9 +2866,23 @@ const docTemplate = `{
                     "Relationships"
                 ],
                 "summary": "Get my clients",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of clients per page (default: 200, max: 1000)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of clients to skip (default: 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Success\" {\"clients\": []ClientWithAthlete, \"count\": int}",
+                        "description": "Success\" {\"clients\": []ClientWithAthlete, \"count\": int, \"limit\": int, \"offset\": int}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -4773,6 +4825,19 @@ const docTemplate = `{
                 "setId": {
                     "type": "string"
                 },
+                "setType": {
+                    "enum": [
+                        "warmup",
+                        "working",
+                        "backoff",
+                        "drop"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.SetType"
+                        }
+                    ]
+                },
                 "weight": {
                     "type": "number",
                     "minimum": 0
@@ -4965,6 +5030,21 @@ const docTemplate = `{
                 "RelationshipStatusPending",
                 "RelationshipStatusActive",
                 "RelationshipStatusTerminated"
+            ]
+        },
+        "models.SetType": {
+            "type": "string",
+            "enum": [
+                "warmup",
+                "working",
+                "backoff",
+                "drop"
+            ],
+            "x-enum-varnames": [
+                "SetTypeWarmup",
+                "SetTypeWorking",
+                "SetTypeBackoff",
+                "SetTypeDrop"
             ]
         },
         "models.TargetType": {

@@ -11,6 +11,28 @@ const (
 	WeightUnitLbs WeightUnit = "lbs"
 )
 
+// SetType classifies an exercise set. "working" is the default: it is what a
+// set means when the athlete has not said otherwise, and what the frontend
+// sends for a plain set.
+type SetType string
+
+const (
+	SetTypeWarmup  SetType = "warmup"
+	SetTypeWorking SetType = "working"
+	SetTypeBackoff SetType = "backoff"
+	SetTypeDrop    SetType = "drop"
+)
+
+// OrDefault returns t unchanged when set, and SetTypeWorking when it is empty.
+// Used on the write path so a client that omits setType still stores a usable
+// value instead of an empty string.
+func (t SetType) OrDefault() SetType {
+	if t == "" {
+		return SetTypeWorking
+	}
+	return t
+}
+
 type Workout struct {
 	Type      string            `json:"type"` // Always "workout"
 	WorkoutID int               `json:"workoutId" example:"1"`

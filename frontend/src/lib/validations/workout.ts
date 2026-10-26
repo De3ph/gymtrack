@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { SET_TYPES } from "@/lib/constants";
 
 type ValidationTranslator = (key: string) => string;
 
 // ===== PER-SET TRACKING VALIDATION =====
 const createExerciseSetSchema = (t: ValidationTranslator) =>
   z.object({
+    setType: z.enum(SET_TYPES).optional(),
     weight: z.number().min(0, t("weight_non_negative")),
     weightUnit: z.enum(["kg", "lbs"]),
     reps: z.number().int().min(1, t("reps_min_one")),

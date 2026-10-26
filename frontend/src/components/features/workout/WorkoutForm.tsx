@@ -23,7 +23,13 @@ import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { ExerciseAutoScroll } from "@/components/features/exercise/ExerciseAutoScroll";
 import { workoutApi, workoutPlanApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
-import { Workout, WorkoutExercise, ExerciseSet, WorkoutPlan } from "@/types";
+import {
+  Workout,
+  WorkoutExercise,
+  ExerciseSet,
+  WorkoutPlan,
+  SetType,
+} from "@/types";
 import {
   createWorkoutWithPerSetSchema,
   WorkoutWithPerSetFormData,
@@ -80,6 +86,7 @@ const createDefaultExercise = (): FormExercise => ({
   name: "",
   sets: [
     {
+      setType: "working" as const,
       weight: 0,
       weightUnit: "kg" as const,
       reps: 10,
@@ -95,6 +102,7 @@ const formatExercisesForApi = (exercises: WorkoutExercise[]) => {
     name: exercise.name,
     sets: exercise.sets.map((set) => ({
       setId: set.setId ?? undefined,
+      setType: set.setType || "working",
       weight: set.weight,
       weightUnit: set.weightUnit,
       reps: set.reps,
@@ -111,6 +119,7 @@ type LoadedPlanExercise = {
   notes?: string;
   sets: {
     setId?: string;
+    setType?: SetType;
     weight: number;
     weightUnit: "kg" | "lbs";
     reps: number;
@@ -128,6 +137,7 @@ const planExerciseToWorkoutExercise = (
   notes: pe.notes,
   sets: pe.sets.map((ps) => ({
     setId: ps.setId != null ? String(ps.setId) : undefined,
+    setType: ps.setType || "working",
     weight: ps.weight,
     weightUnit: ps.weightUnit,
     reps: ps.reps,

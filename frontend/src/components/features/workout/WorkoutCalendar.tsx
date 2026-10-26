@@ -33,6 +33,7 @@ export function WorkoutCalendar() {
 
   const t = useTranslations("workout.calendar");
   const tList = useTranslations("workout.list");
+  const tSetType = useTranslations("workout.set_types");
   const tDate = useTranslations("common.date");
   const reduce = useReducedMotion();
 
@@ -134,11 +135,17 @@ export function WorkoutCalendar() {
                             " " +
                             ex.sets
                               .map((set: ExerciseSet) =>
-                                tList("set_detail", {
-                                  reps: set.reps,
-                                  weight: set.weight,
-                                  unit: set.weightUnit || "kg",
-                                }),
+                                set.setType && set.setType !== "working"
+                                  ? `${tSetType(set.setType)}: ${tList("set_detail", {
+                                      reps: set.reps,
+                                      weight: set.weight,
+                                      unit: set.weightUnit || "kg",
+                                    })}`
+                                  : tList("set_detail", {
+                                      reps: set.reps,
+                                      weight: set.weight,
+                                      unit: set.weightUnit || "kg",
+                                    }),
                               )
                               .join(", ")
                           : tList("no_sets")}

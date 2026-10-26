@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Workout, WorkoutExercise, ExerciseSet } from "@/types";
 import { TARGET_TYPES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { SetTypeBadge } from "./SetTypeBadge";
 
 const CommentThread = dynamic(
   () =>
@@ -109,6 +110,7 @@ export const WorkoutCard = memo(function WorkoutCardImpl({
                         <span className="text-[10px] text-muted-foreground">
                           {String(s + 1).padStart(2, "0")}
                         </span>
+                        <SetTypeBadge type={set.setType} />
                         {t("set_detail", {
                           reps: set.reps,
                           weight: set.weight,

@@ -78,6 +78,7 @@ func (e *Exercise) SetMedia(mediaURL, mediaType string) error {
 
 type ExerciseSet struct {
 	SetID      string     `json:"setId"`
+	Type       SetType    `json:"setType" validate:"omitempty,oneof=warmup working backoff drop"`
 	Weight     float64    `json:"weight" validate:"gte=0"`
 	WeightUnit WeightUnit `json:"weightUnit" validate:"required,oneof=kg lbs"`
 	Reps       int        `json:"reps" validate:"gt=0"`
@@ -110,6 +111,7 @@ func NewExercise(name, category string, muscleGroupID, equipmentID int, createdB
 // NewExerciseSet creates a new exercise set
 func NewExerciseSet(weight float64, weightUnit WeightUnit, reps, restTime int) *ExerciseSet {
 	return &ExerciseSet{
+		Type:       SetTypeWorking,
 		Weight:     weight,
 		WeightUnit: weightUnit,
 		Reps:       reps,

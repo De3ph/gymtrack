@@ -16,6 +16,7 @@ import type { components } from "./generated";
 export type UserRole = components["schemas"]["models.UserRole"];
 export type UserStatus = components["schemas"]["models.UserStatus"];
 export type WeightUnit = components["schemas"]["models.WeightUnit"];
+export type SetType = "warmup" | "working" | "backoff" | "drop";
 export type MealType = components["schemas"]["models.MealType"];
 export type RelationshipStatus = components["schemas"]["models.RelationshipStatus"];
 export type CommentTargetType = components["schemas"]["models.TargetType"];
@@ -28,6 +29,8 @@ export type CommentAuthorRole = components["schemas"]["models.AuthorRole"];
 // WorkoutID can't take such a tag — it is zero until the INSERT returns).
 export interface ExerciseSet {
   setId?: string;
+  /** Defaults to "working" when omitted (legacy rows are backfilled). */
+  setType?: SetType;
   weight: number;
   weightUnit: WeightUnit;
   reps: number;
@@ -323,6 +326,8 @@ export interface ExerciseSearchParams {
 export interface WorkoutPlanSet {
   /** The backend identifies a set by a string, not by a number. */
   setId?: string;
+  /** Defaults to "working" when omitted. */
+  setType?: SetType;
   weight: number;
   weightUnit: WeightUnit;
   reps: number;

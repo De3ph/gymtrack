@@ -59,7 +59,7 @@ const createDefaultExercise = (): PlanExerciseRow => ({
   exerciseId: 0,
   rowId: nextRowId(),
   name: "",
-  sets: [{ weight: 0, weightUnit: "kg", reps: 10, restTime: 60 }],
+  sets: [{ setType: "working", weight: 0, weightUnit: "kg", reps: 10, restTime: 60 }],
   notes: "",
   order: 0,
 });

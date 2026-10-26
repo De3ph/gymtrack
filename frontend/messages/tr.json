@@ -546,6 +546,7 @@
         "sets": {
           "label": "Setler",
           "set": "Set",
+          "type": "Tür",
           "add": "Set Ekle",
           "remove": "Set Kaldır",
           "set_number": "Set {number}",
@@ -606,6 +607,13 @@
       "set_detail": "{weight} {unit} x {reps}",
       "no_sets": "Set yok",
       "comments": "Yorumlar"
+    },
+    "set_types": {
+      "label": "Set türü",
+      "warmup": "Isınma",
+      "working": "Çalışma",
+      "backoff": "Backoff",
+      "drop": "Drop"
     },
     "calendar": {
       "title": "Antrenman Takvimi",

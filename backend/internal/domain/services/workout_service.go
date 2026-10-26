@@ -41,6 +41,8 @@ func (s *WorkoutService) CreateWorkout(ctx context.Context, input CreateWorkoutI
 		return nil, NewServiceError("Only athletes can log workouts. Trainers should create workout plans instead", "FORBIDDEN")
 	}
 
+	normalizeWorkoutSetTypes(input.Exercises)
+
 	if err := s.validator.Struct(input); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
@@ -86,6 +88,8 @@ func (s *WorkoutService) UpdateWorkout(ctx context.Context, input UpdateWorkoutI
 	if !workout.CanEdit() {
 		return nil, NewServiceError("This workout can no longer be edited because more than 24 hours have passed since it was logged", "FORBIDDEN")
 	}
+
+	normalizeWorkoutSetTypes(input.Exercises)
 
 	workout.Date = input.Date
 	workout.Exercises = input.Exercises
@@ -270,6 +274,17 @@ func (s *WorkoutService) GetClientWorkouts(ctx context.Context, input GetClientW
 		Workouts: workouts,
 		Count:    total,
 	}, nil
+}
+
+// normalizeWorkoutSetTypes fills in the default for sets whose type the client
+// left out, before validation or storage. An explicit invalid type is kept so
+// the validator rejects it instead of being silently repaired.
+func normalizeWorkoutSetTypes(exercises []models.WorkoutExercise) {
+	for i := range exercises {
+		for j := range exercises[i].Sets {
+			exercises[i].Sets[j].Type = exercises[i].Sets[j].Type.OrDefault()
+		}
+	}
 }
 
 func containsIgnoreCase(s, substr string) bool {

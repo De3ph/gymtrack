@@ -223,11 +223,19 @@ func (r *PostgresWorkoutRepository) Delete(ctx context.Context, workoutID int) e
 const setVolumeExpr = `COALESCE((s.set ->> 'weight')::double precision, 0) * COALESCE((s.set ->> 'reps')::double precision, 0)`
 
 // setsLateral is the lateral expansion of workouts.exercises into sets.
+// Warm-up sets contribute no volume: they are preparation, not training work,
+// so counting them would inflate every athlete's weekly volume. The COALESCE
+// keeps rows written before setType existed behaving as working sets.
 // Every workout produces at least one row (aggregate over an empty set list
 // evaluates to one NULL volume row), so weekly counts stay per workout.
 const setsLateral = `
 		CROSS JOIN LATERAL (
-			SELECT SUM(` + setVolumeExpr + `) AS volume
+			SELECT SUM(
+				CASE
+					WHEN COALESCE(s.set ->> 'setType', 'working') = 'warmup' THEN 0
+					ELSE ` + setVolumeExpr + `
+				END
+			) AS volume
 			FROM jsonb_array_elements(w.exercises) AS ex(exercise)
 			CROSS JOIN LATERAL jsonb_array_elements(COALESCE(ex.exercise -> 'sets', '[]'::jsonb)) AS s(set)
 		) AS v`
@@ -270,12 +278,21 @@ func (r *PostgresWorkoutRepository) WeeklyVolume(ctx context.Context, athleteID 
 
 // ExerciseAggregates builds the per-exercise breakdown in SQL, ordered by name
 // ascending so the response body is deterministic.
+//
+// Warm-up sets still count towards total_sets and total_reps — the athlete did
+// perform them — but they are excluded from max_weight, which should describe
+// the heaviest training set rather than a warm-up single.
 func (r *PostgresWorkoutRepository) ExerciseAggregates(ctx context.Context, athleteID int) ([]repositories.ExerciseAggregateRow, error) {
 	query := `
 		SELECT ex.exercise ->> 'name' AS name,
 		       COUNT(*)::int AS total_sets,
 		       SUM(COALESCE((s.set ->> 'reps')::double precision, 0))::int AS total_reps,
-		       COALESCE(MAX((s.set ->> 'weight')::double precision), 0) AS max_weight
+		       COALESCE(MAX(
+		         CASE
+		           WHEN COALESCE(s.set ->> 'setType', 'working') = 'warmup' THEN NULL
+		           ELSE (s.set ->> 'weight')::double precision
+		         END
+		       ), 0) AS max_weight
 		FROM workouts w
 		CROSS JOIN LATERAL jsonb_array_elements(w.exercises) AS ex(exercise)
 		CROSS JOIN LATERAL jsonb_array_elements(COALESCE(ex.exercise -> 'sets', '[]'::jsonb)) AS s(set)

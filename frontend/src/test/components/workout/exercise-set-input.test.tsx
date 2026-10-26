@@ -97,4 +97,51 @@ describe('ExerciseSetInput', () => {
     expect(final[1]).toHaveValue(30)
     expect(final[2]).toHaveValue(25)
   })
+
+  it('defaults a new set to the working type', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<ExerciseSetInput value={[aSet()]} onChange={onChange} />)
+
+    const combos = screen.getAllByRole('combobox')
+    expect(combos).toHaveLength(1)
+    expect(combos[0]).toHaveTextContent('Working')
+
+    await user.click(screen.getByRole('button', { name: /add/i }))
+
+    const after = screen.getAllByRole('combobox')
+    expect(after).toHaveLength(2)
+    // The new row inherits the type of the row above it.
+    expect(after[1]).toHaveTextContent('Working')
+  })
+
+  it('emits the selected set type', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<ExerciseSetInput value={[aSet()]} onChange={onChange} />)
+
+    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByRole('option', { name: 'Warm-up' }))
+
+    expect(onChange.mock.calls.at(-1)?.[0][0].setType).toBe('warmup')
+  })
+
+  it('keeps the set type when a number field is edited', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(
+      <ExerciseSetInput
+        value={[aSet({ setType: 'drop' })]}
+        onChange={onChange}
+      />,
+    )
+
+    const reps = screen.getByLabelText('Reps')
+    await user.clear(reps)
+    await user.type(reps, '8')
+
+    const emitted = onChange.mock.calls.at(-1)?.[0][0]
+    expect(emitted.setType).toBe('drop')
+    expect(emitted.reps).toBe(8)
+  })
 })

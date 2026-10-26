@@ -89,7 +89,18 @@ func TestBodyParts_NullEmpty(t *testing.T) {
 
 func TestPlanExercises_RoundTrip(t *testing.T) {
 	original := []models.WorkoutPlanExercise{
-		{ExerciseID: 1, Name: "Squat", Sets: []models.WorkoutPlanSet{{Weight: 100, WeightUnit: "kg", Reps: 5, RestTime: 120}}, Order: 1},
+		{
+			ExerciseID: 1,
+			Name:       "Squat",
+			Sets: []models.WorkoutPlanSet{
+				// A set written without a type roundtrips as the empty string —
+				// read-side normalization is out of scope; consumers fall back
+				// to "working" via `|| "working"` / COALESCE.
+				{Weight: 100, WeightUnit: "kg", Reps: 5, RestTime: 120},
+				{Type: models.SetTypeWarmup, Weight: 60, WeightUnit: "kg", Reps: 8, RestTime: 120},
+			},
+			Order: 1,
+		},
 	}
 	data, err := MarshalPlanExercises(original)
 	require.NoError(t, err)
@@ -97,6 +108,12 @@ func TestPlanExercises_RoundTrip(t *testing.T) {
 	var decoded []models.WorkoutPlanExercise
 	require.NoError(t, UnmarshalPlanExercises(data, &decoded))
 	assert.Equal(t, original, decoded)
+	assert.Empty(t, decoded[0].Sets[0].Type)
+	assert.Equal(t, models.SetTypeWarmup, decoded[0].Sets[1].Type)
+
+	// The empty-string type survives the JSON text, so the frontend can
+	// distinguish "explicit working" from "not set" if it ever needs to.
+	assert.Contains(t, string(data), `"setType":""`)
 }
 
 func TestPlanExercises_NullEmpty(t *testing.T) {

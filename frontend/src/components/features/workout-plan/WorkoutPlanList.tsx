@@ -32,6 +32,7 @@ export function WorkoutPlanList({
 }: WorkoutPlanListProps) {
   const t = useTranslations("trainer.workout_plans");
   const tAthlete = useTranslations("athlete.workout_plans");
+  const tSetType = useTranslations("workout.set_types");
   const [viewingPlan, setViewingPlan] = useState<WorkoutPlan | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -111,7 +112,11 @@ export function WorkoutPlanList({
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {exercise.sets
-                          .map((s) => `${s.weight}${s.weightUnit} x ${s.reps}`)
+                          .map((s) =>
+                            s.setType && s.setType !== "working"
+                              ? `${tSetType(s.setType)}: ${s.weight}${s.weightUnit} x ${s.reps}`
+                              : `${s.weight}${s.weightUnit} x ${s.reps}`,
+                          )
                           .join(" • ")}
                       </p>
                     </div>

@@ -15,6 +15,14 @@ export const TARGET_TYPES = {
   MEAL: "meal",
 } as const;
 
+/**
+ * The four set classifications, in the order the picker shows them.
+ * "working" is the default: a set is a normal training set unless the athlete
+ * says otherwise, so the UI only badges the other three.
+ */
+export const SET_TYPES = ["warmup", "working", "backoff", "drop"] as const;
+export const DEFAULT_SET_TYPE = "working";
+
 export const DAYS_OF_WEEK = [
   "Sunday",
   "Monday",

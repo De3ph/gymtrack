@@ -594,6 +594,14 @@ definitions:
         type: integer
       setId:
         type: string
+      setType:
+        allOf:
+        - $ref: '#/definitions/models.SetType'
+        enum:
+        - warmup
+        - working
+        - backoff
+        - drop
       weight:
         minimum: 0
         type: number
@@ -730,6 +738,18 @@ definitions:
     - RelationshipStatusPending
     - RelationshipStatusActive
     - RelationshipStatusTerminated
+  models.SetType:
+    enum:
+    - warmup
+    - working
+    - backoff
+    - drop
+    type: string
+    x-enum-varnames:
+    - SetTypeWarmup
+    - SetTypeWorking
+    - SetTypeBackoff
+    - SetTypeDrop
   models.TargetType:
     enum:
     - workout
@@ -1955,12 +1975,26 @@ paths:
       - application/json
       description: Retrieve coaching requests for the current user (sent by athlete
         or received by trainer)
+      parameters:
+      - default: 100
+        description: Max number of coaching requests to return
+        in: query
+        maximum: 500
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of coaching requests to skip
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: 'Successfully retrieved coaching requests" "{\"requests\":
-            []}'
+            [], \"count\": 12, \"limit\": 100, \"offset\": 0}'
           schema:
             additionalProperties: true
             type: object
@@ -1984,12 +2018,26 @@ paths:
       consumes:
       - application/json
       description: Trainer retrieves all pending coaching requests they have received
+      parameters:
+      - default: 100
+        description: Max number of pending coaching requests to return
+        in: query
+        maximum: 500
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of pending coaching requests to skip
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: 'Successfully retrieved pending coaching requests" "{\"requests\":
-            []}'
+            [], \"count\": 3, \"limit\": 100, \"offset\": 0}'
           schema:
             additionalProperties: true
             type: object
@@ -3069,11 +3117,21 @@ paths:
     get:
       description: Trainers can view all their active client relationships with athlete
         profiles.
+      parameters:
+      - description: 'Number of clients per page (default: 200, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of clients to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: 'Success" {"clients": []ClientWithAthlete, "count": int}'
+          description: 'Success" {"clients": []ClientWithAthlete, "count": int, "limit":
+            int, "offset": int}'
           schema:
             additionalProperties: true
             type: object

@@ -2,11 +2,12 @@
 
 import { useRef, useState } from "react";
 import { Plus, Trash2, Weight, Repeat, Timer } from "lucide-react";
-import { WorkoutPlanSet } from "@/types";
+import { SetType, WorkoutPlanSet } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { SetTypeSelect } from "../workout/SetTypeSelect";
 
 interface PlanSetWithId extends WorkoutPlanSet {
   id: string;
@@ -161,6 +162,7 @@ export function PlanSetInput({
   const addSet = () => {
     const lastSet = state.sets[state.sets.length - 1];
     const newSet: PlanSetWithId = {
+      setType: lastSet?.setType ?? "working",
       weight: lastSet ? lastSet.weight : 0,
       weightUnit: lastSet ? lastSet.weightUnit : "kg",
       reps: lastSet ? lastSet.reps : 10,
@@ -168,6 +170,13 @@ export function PlanSetInput({
       id: `set-${nextId.current++}`,
     };
     publish([...state.sets, newSet], state.drafts);
+  };
+
+  const changeSetType = (setId: string, setType: SetType) => {
+    publish(
+      state.sets.map((set) => (set.id === setId ? { ...set, setType } : set)),
+      state.drafts,
+    );
   };
 
   const removeSet = (setId: string) => {
@@ -218,18 +227,20 @@ export function PlanSetInput({
   return (
     <div className={cn("space-y-2", className)}>
       {state.sets.length > 0 && (
-        <div className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] gap-2 px-2 pb-1 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]">
-          <span className={cn(colLabel, "justify-start")}>{t('label')}</span>
-          <span className={cn(colLabel, "justify-center")}>
+        <div className="grid grid-cols-6 gap-2 px-2 pb-1 sm:grid-cols-[3.5rem_minmax(6rem,1.2fr)_1fr_1fr_1fr_2.25rem]">
+          <span className={cn(colLabel, "order-1 justify-start")}>{t('label')}</span>
+          <span className={cn(colLabel, "order-2 col-span-4 justify-start sm:col-span-1 sm:justify-center")}>
+            {t('type')}
+          </span>
+          <span className={cn(colLabel, "order-4 col-span-2 justify-center sm:order-3 sm:col-span-1")}>
             <Weight className="size-4" /> {t('weight')}
           </span>
-          <span className={cn(colLabel, "justify-center")}>
+          <span className={cn(colLabel, "order-5 col-span-2 justify-center sm:order-4 sm:col-span-1")}>
             <Repeat className="size-4" /> {t('reps')}
           </span>
-          <span className={cn(colLabel, "justify-center")}>
+          <span className={cn(colLabel, "order-6 col-span-2 justify-center sm:order-5 sm:col-span-1")}>
             <Timer className="size-4" /> {t('rest')}
           </span>
-          <span />
         </div>
       )}
 
@@ -237,12 +248,19 @@ export function PlanSetInput({
         {state.sets.map((set, index) => (
           <div
             key={set.id}
-            className="group grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-4 rounded-lg border bg-background p-2 transition-colors hover:border-primary/40 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]"
+            className="group grid grid-cols-6 items-center gap-4 rounded-lg border bg-background p-2 transition-colors hover:border-primary/40 sm:grid-cols-[3.5rem_minmax(6rem,1.2fr)_1fr_1fr_1fr_2.25rem]"
           >
-            <span className="flex justify-start text-sm font-semibold tabular-nums text-muted-foreground">
+            <span className="order-1 flex justify-start text-sm font-semibold tabular-nums text-muted-foreground">
               {String(index + 1).padStart(2, "0")}
             </span>
-            <div className="flex justify-center">
+            <div className="order-2 col-span-4 sm:order-2 sm:col-span-1">
+              <SetTypeSelect
+                value={set.setType}
+                onChange={(type) => changeSetType(set.id, type)}
+                disabled={disabled}
+              />
+            </div>
+            <div className="order-4 col-span-2 flex justify-center sm:order-3 sm:col-span-1">
               <Input
                 type="number" step="0.5" min={FIELD_SPECS.weight.min}
                 value={displayValue(set.id, "weight", set.weight)}
@@ -253,7 +271,7 @@ export function PlanSetInput({
                 className="h-8 w-full max-w-20 text-center tabular-nums" placeholder="0"
               />
             </div>
-            <div className="flex justify-center">
+            <div className="order-5 col-span-2 flex justify-center sm:order-4 sm:col-span-1">
               <Input
                 type="number" min={FIELD_SPECS.reps.min}
                 value={displayValue(set.id, "reps", set.reps)}
@@ -264,7 +282,7 @@ export function PlanSetInput({
                 className="h-8 w-full max-w-20 text-center tabular-nums" placeholder="—"
               />
             </div>
-            <div className="flex justify-center">
+            <div className="order-6 col-span-2 flex justify-center sm:order-5 sm:col-span-1">
               <Input
                 type="number" min={FIELD_SPECS.restTime.min} step="15"
                 value={displayValue(set.id, "restTime", set.restTime)}
@@ -275,7 +293,7 @@ export function PlanSetInput({
                 className="h-8 w-full max-w-20 text-center tabular-nums" placeholder="—"
               />
             </div>
-            <div className="flex justify-end">
+            <div className="order-3 col-span-1 flex justify-end sm:order-6 sm:col-span-1">
               <Button
                 type="button" variant="ghost" size="icon-sm"
                 onClick={() => removeSet(set.id)}

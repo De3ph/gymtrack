@@ -34,6 +34,7 @@ import { useTranslations } from "next-intl";
 import { PAGINATION } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Workout } from "@/types";
+import { SetTypeBadge } from "@/components/features/workout/SetTypeBadge";
 
 // ---------------------------------------------------------------------------
 // Lazy-load the comment thread so trainer pages do not carry a large bundle
@@ -111,6 +112,7 @@ function WorkoutRowDetail({ workout }: { workout: Workout }) {
                   className="flex items-baseline gap-1.5 border border-border px-2.5 py-1 font-mono text-xs tabular-nums text-foreground"
                 >
                   <span className="text-[10px] text-muted-foreground">{String(s + 1).padStart(2, "0")}</span>
+                  <SetTypeBadge type={set.setType} />
                   {tWorkout("set_detail", {
                     reps: set.reps,
                     weight: set.weight,

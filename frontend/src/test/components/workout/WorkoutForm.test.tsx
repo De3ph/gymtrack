@@ -128,13 +128,14 @@ describe('WorkoutForm', () => {
                 expect.objectContaining({
                   weight: expect.any(Number),
                   reps: expect.any(Number),
+                  setType: 'working',
                 }),
               ]),
             }),
           ]),
-        })
-      )
-    })
+        }),
+      );
+    });
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled()

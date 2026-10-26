@@ -546,6 +546,7 @@
         "sets": {
           "label": "Sets",
           "set": "Set",
+          "type": "Type",
           "add": "Add Set",
           "remove": "Remove Set",
           "set_number": "Set {number}",
@@ -606,6 +607,13 @@
       "set_detail": "{weight} {unit} x {reps}",
       "no_sets": "No sets",
       "comments": "Comments"
+    },
+    "set_types": {
+      "label": "Set type",
+      "warmup": "Warm-up",
+      "working": "Working",
+      "backoff": "Backoff",
+      "drop": "Drop"
     },
     "calendar": {
       "title": "Workout Calendar",

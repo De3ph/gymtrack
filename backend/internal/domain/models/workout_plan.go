@@ -10,7 +10,7 @@ type WorkoutPlan struct {
 	CreatorID   int                   `json:"creatorId"`
 	Name        string                `json:"name"`
 	Description string                `json:"description,omitempty"`
-	Exercises   []WorkoutPlanExercise `json:"exercises"`
+	Exercises   []WorkoutPlanExercise `json:"exercises" validate:"dive"`
 	CreatedAt   time.Time             `json:"createdAt"`
 	UpdatedAt   time.Time             `json:"updatedAt"`
 }
@@ -18,13 +18,14 @@ type WorkoutPlan struct {
 type WorkoutPlanExercise struct {
 	ExerciseID int              `json:"exerciseId"`
 	Name       string           `json:"name"`
-	Sets       []WorkoutPlanSet `json:"sets"`
+	Sets       []WorkoutPlanSet `json:"sets" validate:"dive"`
 	Notes      string           `json:"notes,omitempty"`
 	Order      int              `json:"order"`
 }
 
 type WorkoutPlanSet struct {
 	SetID      string     `json:"setId"`
+	Type       SetType    `json:"setType" validate:"omitempty,oneof=warmup working backoff drop"`
 	Weight     float64    `json:"weight"`
 	WeightUnit WeightUnit `json:"weightUnit"`
 	Reps       int        `json:"reps"`
@@ -68,6 +69,7 @@ func NewWorkoutPlanExercise(exerciseID int, name string, sets []WorkoutPlanSet, 
 
 func NewWorkoutPlanSet(weight float64, weightUnit WeightUnit, reps, restTime int) WorkoutPlanSet {
 	return WorkoutPlanSet{
+		Type:       SetTypeWorking,
 		Weight:     weight,
 		WeightUnit: weightUnit,
 		Reps:       reps,

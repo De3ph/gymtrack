@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
 
 import { WorkoutPlanForm } from "@/components/features/workout-plan/WorkoutPlanForm";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
+import { workoutPlanApi } from "@/lib/api";
 import type {
   WorkoutPlan,
   WorkoutPlanAssignment,
@@ -25,16 +26,28 @@ interface WorkoutPlanDetailClientProps {
 }
 
 export function WorkoutPlanDetailClient({
-  plan,
+  plan: initialPlan,
   assignments,
   planId,
 }: WorkoutPlanDetailClientProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const t = useTranslations("trainer.workout_plans");
+  const tSetType = useTranslations("workout.set_types");
   const tc = useTranslations("common.actions");
 
   const [showEditForm, setShowEditForm] = useState(false);
+
+  // The RSC seed is the first render, but the page must reflect writes made
+  // in this session. The plan is therefore read from the React Query cache,
+  // which the edit form invalidates on success — otherwise the detail view
+  // would keep showing the pre-edit plan (old set types included) until a
+  // full reload.
+  const { data: plan } = useQuery({
+    queryKey: qk.plans.detail(planId),
+    queryFn: () => workoutPlanApi.getById(planId),
+    initialData: initialPlan,
+  });
 
   if (!plan) {
     return (
@@ -115,7 +128,8 @@ export function WorkoutPlanDetailClient({
                         count: ex.sets.length,
                         weights: ex.sets
                           .map(
-                            (s: WorkoutPlanSet) => `${s.weight}${s.weightUnit}`,
+                            (s: WorkoutPlanSet) =>
+                              `${s.setType && s.setType !== "working" ? `${tSetType(s.setType)} ` : ""}${s.weight}${s.weightUnit}`,
                           )
                           .join(", "),
                       })}

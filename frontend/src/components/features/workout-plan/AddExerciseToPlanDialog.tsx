@@ -37,7 +37,7 @@ interface AddExerciseToPlanDialogProps {
 
 /** A first set to pre-fill the editor with, so the form is never empty. */
 function initialSets(): WorkoutPlanSet[] {
-  return [{ weight: 0, weightUnit: "kg", reps: 10, restTime: 60 }];
+  return [{ setType: "working", weight: 0, weightUnit: "kg", reps: 10, restTime: 60 }];
 }
 
 type Step = "plan" | "sets";

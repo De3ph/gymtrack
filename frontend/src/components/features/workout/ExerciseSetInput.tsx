@@ -2,11 +2,12 @@
 
 import { useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { ExerciseSet } from "@/types";
+import { ExerciseSet, SetType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { SetTypeSelect } from "./SetTypeSelect";
 
 interface ExerciseSetWithId extends ExerciseSet {
   id: string;
@@ -150,6 +151,7 @@ export function ExerciseSetInput({
   const addSet = () => {
     const prevSet = state.sets[state.sets.length - 1];
     const newSet: ExerciseSetWithId = {
+      setType: prevSet?.setType ?? "working",
       weight: prevSet?.weight ?? 0,
       weightUnit: prevSet?.weightUnit ?? "kg",
       reps: prevSet?.reps ?? 1,
@@ -158,6 +160,13 @@ export function ExerciseSetInput({
       id: `set-${nextId.current++}`,
     };
     publish([...state.sets, newSet], state.drafts);
+  };
+
+  const changeSetType = (setId: string, setType: SetType) => {
+    publish(
+      state.sets.map((set) => (set.id === setId ? { ...set, setType } : set)),
+      state.drafts,
+    );
   };
 
   const removeSet = (setId: string) => {
@@ -211,14 +220,40 @@ export function ExerciseSetInput({
   return (
     <div className={cn("border border-border", className)}>
       {state.sets.length > 0 && (
-        <div className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 border-b border-border px-3 py-2 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]">
-          <span className={cn(colLabel, "text-left")}>{t("set")}</span>
-          <span className={cn(colLabel, "text-center")}>
+        <div className="grid grid-cols-6 items-center gap-2 border-b border-border px-3 py-2 sm:grid-cols-[3.5rem_minmax(6rem,1.2fr)_1fr_1fr_1fr_2.25rem]">
+          <span className={cn(colLabel, "order-1 text-left")}>{t("set")}</span>
+          <span
+            className={cn(
+              colLabel,
+              "order-2 col-span-4 text-left sm:col-span-1 sm:order-2 sm:text-center",
+            )}
+          >
+            {t("type")}
+          </span>
+          <span
+            className={cn(
+              colLabel,
+              "order-4 col-span-2 text-center sm:order-3 sm:col-span-1",
+            )}
+          >
             {t("weight")} ({weightUnit})
           </span>
-          <span className={cn(colLabel, "text-center")}>{t("reps")}</span>
-          <span className={cn(colLabel, "text-center")}>{t("rest")}</span>
-          <span />
+          <span
+            className={cn(
+              colLabel,
+              "order-5 col-span-2 text-center sm:order-4 sm:col-span-1",
+            )}
+          >
+            {t("reps")}
+          </span>
+          <span
+            className={cn(
+              colLabel,
+              "order-6 col-span-2 text-center sm:order-5 sm:col-span-1",
+            )}
+          >
+            {t("rest")}
+          </span>
         </div>
       )}
 
@@ -232,12 +267,19 @@ export function ExerciseSetInput({
         {state.sets.map((set, index) => (
           <li
             key={set.id}
-            className="grid grid-cols-[3rem_1fr_1fr_1fr_2rem] items-center gap-2 px-3 py-1.5 sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.25rem]"
+            className="grid grid-cols-6 items-center gap-2 px-3 py-1.5 sm:grid-cols-[3.5rem_minmax(6rem,1.2fr)_1fr_1fr_1fr_2.25rem]"
           >
-            <span className="flex justify-start font-mono text-sm tabular-nums text-muted-foreground">
+            <span className="order-1 flex justify-start font-mono text-sm tabular-nums text-muted-foreground">
               {String(index + 1).padStart(2, "0")}
             </span>
-            <div className="flex justify-center">
+            <div className="order-2 col-span-4 sm:order-2 sm:col-span-1">
+              <SetTypeSelect
+                value={set.setType}
+                onChange={(type) => changeSetType(set.id, type)}
+                disabled={disabled}
+              />
+            </div>
+            <div className="order-4 col-span-2 flex justify-center sm:order-3 sm:col-span-1">
               <Input
                 type="number"
                 step="0.5"
@@ -253,7 +295,7 @@ export function ExerciseSetInput({
                 data-testid="set-weight"
               />
             </div>
-            <div className="flex justify-center">
+            <div className="order-5 col-span-2 flex justify-center sm:order-4 sm:col-span-1">
               <Input
                 type="number"
                 min="1"
@@ -268,7 +310,7 @@ export function ExerciseSetInput({
                 data-testid="set-reps"
               />
             </div>
-            <div className="flex justify-center">
+            <div className="order-6 col-span-2 flex justify-center sm:order-5 sm:col-span-1">
               <Input
                 type="number"
                 min="0"
@@ -284,7 +326,7 @@ export function ExerciseSetInput({
                 data-testid="set-rest"
               />
             </div>
-            <div className="flex justify-end">
+            <div className="order-3 col-span-1 flex justify-end sm:order-6 sm:col-span-1">
               <Button
                 type="button"
                 variant="ghost"

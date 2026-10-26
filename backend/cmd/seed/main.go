@@ -326,6 +326,7 @@ func buildSets(ex catalogExercise) []models.ExerciseSet {
 	for s := 0; s < setCount; s++ {
 		sets = append(sets, models.ExerciseSet{
 			SetID:      fmt.Sprintf("s%d", s+1),
+			Type:       models.SetTypeWorking,
 			Weight:     exerciseBaseWeight(ex),
 			WeightUnit: models.WeightUnitKg,
 			Reps:       6 + rng.Intn(7), // 6-12 reps
