@@ -1358,6 +1358,7 @@
       "log_workout": "Antrenman kaydet",
       "log_meal": "Öğün kaydet",
       "calendar": "Takvimi aç",
+      "one_rep_max": "1RM hesaplayıcı",
       "find_trainer": "Antrenör bul",
       "find_trainer_description": "Koçlara göz at ve istek gönder."
     },
@@ -1757,6 +1758,17 @@
     "actions": {
       "helpful": "Yararlı",
       "report": "Bildir"
+    }
+  },
+  "tools": {
+    "one_rep_max": {
+      "title": "1 tekrar maksimumu",
+      "description": "Bir çalışma setinden tahmini 1RM'ni hesapla ve antrenman yüklerini gör.",
+      "weight_label": "Ağırlık",
+      "reps_label": "Tekrar",
+      "result_label": "Tahmini 1RM",
+      "empty_hint": "Tahmini görmek için ağırlık ve tekrar gir.",
+      "reps_range_hint": "Tekrar 1 ile {max} arasında olmalı."
     }
   }
 }

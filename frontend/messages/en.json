@@ -1358,6 +1358,7 @@
       "log_workout": "Log workout",
       "log_meal": "Log meal",
       "calendar": "Open calendar",
+      "one_rep_max": "1RM calculator",
       "find_trainer": "Find trainer",
       "find_trainer_description": "Browse coaches and send a request."
     },
@@ -1757,6 +1758,17 @@
     "actions": {
       "helpful": "Helpful",
       "report": "Report"
+    }
+  },
+  "tools": {
+    "one_rep_max": {
+      "title": "One-rep max",
+      "description": "Estimate your 1RM from a working set and see the loads to train at.",
+      "weight_label": "Weight",
+      "reps_label": "Reps",
+      "result_label": "Estimated 1RM",
+      "empty_hint": "Enter a weight and reps to see your estimate.",
+      "reps_range_hint": "Reps must be between 1 and {max}."
     }
   }
 }

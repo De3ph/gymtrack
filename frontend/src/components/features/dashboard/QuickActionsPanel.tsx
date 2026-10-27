@@ -1,15 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { GlowHoverCard } from "@/components/shadcn-studio/card/glow-hover-card";
 import { BentoGrid } from "@/components/ui/bento-grid";
+import { OneRepMaxDialog } from "@/components/features/tools/OneRepMaxDialog";
 import { ROUTES } from "@/lib/routes";
-import { CalendarDays, Dumbbell, UtensilsCrossed } from "lucide-react";
+import { Calculator, CalendarDays, Dumbbell, UtensilsCrossed } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 export function QuickActionsPanel() {
   const router = useRouter();
   const tAthlete = useTranslations("athlete.dashboard");
+  const [calcOpen, setCalcOpen] = useState(false);
 
   return (
     <div className="border border-border bg-card">
@@ -36,7 +39,14 @@ export function QuickActionsPanel() {
           cardClassName="w-full max-w-none"
           onClick={() => router.push(ROUTES.ATHLETE_WORKOUTS)}
         />
+        <GlowHoverCard
+          title={tAthlete("one_rep_max")}
+          icon={<Calculator className="size-4" aria-hidden="true" />}
+          cardClassName="w-full max-w-none"
+          onClick={() => setCalcOpen(true)}
+        />
       </BentoGrid>
+      <OneRepMaxDialog open={calcOpen} onOpenChange={setCalcOpen} />
     </div>
   );
 }

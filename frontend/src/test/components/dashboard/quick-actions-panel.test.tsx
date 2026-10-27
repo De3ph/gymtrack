@@ -33,18 +33,19 @@ afterEach(() => {
 });
 
 describe("QuickActionsPanel", () => {
-  it("renders the three quick actions with their translated labels", () => {
+  it("renders the four quick actions with their translated labels", () => {
     render(<QuickActionsPanel />);
 
     expect(screen.getByText("Log workout")).toBeInTheDocument();
     expect(screen.getByText("Log meal")).toBeInTheDocument();
     expect(screen.getByText("Open calendar")).toBeInTheDocument();
+    expect(screen.getByText("1RM calculator")).toBeInTheDocument();
   });
 
   it("renders each action as a glow card", () => {
     const { container } = render(<QuickActionsPanel />);
 
-    expect(container.querySelectorAll(".spotlight-card")).toHaveLength(3);
+    expect(container.querySelectorAll(".spotlight-card")).toHaveLength(4);
   });
 
   it("renders each action as an accessible button", () => {
@@ -52,7 +53,7 @@ describe("QuickActionsPanel", () => {
 
     const buttons = screen.getAllByRole("button");
 
-    expect(buttons).toHaveLength(3);
+    expect(buttons).toHaveLength(4);
     buttons.forEach((button) => {
       expect(button).toHaveAttribute("tabindex", "0");
     });
@@ -80,5 +81,14 @@ describe("QuickActionsPanel", () => {
     fireEvent.click(screen.getByText("Open calendar"));
 
     expect(push).toHaveBeenCalledWith(ROUTES.ATHLETE_WORKOUTS);
+  });
+
+  it("opens the 1RM calculator instead of navigating away", () => {
+    render(<QuickActionsPanel />);
+
+    fireEvent.click(screen.getByText("1RM calculator"));
+
+    expect(screen.getByText("One-rep max")).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
   });
 });
